@@ -46,6 +46,9 @@ function TRAIN_SYSTEM:Ui765()
             elseif page == 5 then
                 self.Page = 5
                 self:DrawPage(self.DrawPneumatic, "Пневматическая система")
+            elseif page == 6 then
+                self.Page = 6
+                self:DrawPage(self.DrawCondPage, "Климатическая система")
             end
         end
 
@@ -94,7 +97,7 @@ local icons = {
     "zxc765/mfdu_async.png",
     "zxc765/mfdu_hvlv.png",
     "zxc765/mfdu_pneumo.png",
-    "zxc765/mfdu_cond.png",
+    {"zxc765/mfdu_cond.png", "zxc765/mfdu_cond_l.png"},
     "zxc765/mfdu_autodrive.png",
     "zxc765/mfdu_messages.png",
     "zxc765/mfdu_maintenance.png",
@@ -112,9 +115,13 @@ local icons = {
     "zxc765/mfdu_st_climb.png",
 }
 for idx, icoPath in ipairs(icons) do
-    local ico = Material(icoPath, "smooth")
-    ico:SetInt("$flags", bit.bor(ico:GetInt("$flags"), 32768))
-    icons[idx] = ico
+    local paths = istable(icoPath) and icoPath or {icoPath}
+    for pidx, path in ipairs(paths) do
+        local ico = Material(path, "smooth")
+        ico:SetInt("$flags", bit.bor(ico:GetInt("$flags"), 32768))
+        paths[pidx] = ico
+    end
+    icons[idx] = paths
 end
 
 surface.CreateFont("Mfdu765.Throttle", {
@@ -246,6 +253,27 @@ surface.CreateFont("Mfdu765.DoorsSide", {
     font = "Open Sans",
     extended = true,
     size = 40,
+    weight = 600,
+})
+
+surface.CreateFont("Mfdu765.BodyTextLarge", {
+    font = "Open Sans",
+    extended = true,
+    size = 48,
+    weight = 500,
+})
+
+surface.CreateFont("Mfdu765.BodyTextSmall", {
+    font = "Open Sans",
+    extended = true,
+    size = 32,
+    weight = 400,
+})
+
+surface.CreateFont("Mfdu765.BodyTextSmallBold", {
+    font = "Open Sans",
+    extended = true,
+    size = 32,
     weight = 600,
 })
 
@@ -487,7 +515,7 @@ local statusGetters = {
     -- Пневматика
     function(self, Wag) return colorMain end,
     -- Кондиционер
-    function(self, Wag) return colorMain end,
+    function(self, Wag) return Wag:GetNW2Bool("VityazCondAny", false) and (Wag:GetNW2Bool("VityazCond", false) and colorYellow or colorBlue) or colorMain end,
     -- Автоведение
     function(self, Wag) return colorMain end,
     -- Сообщения
@@ -607,6 +635,7 @@ function TRAIN_SYSTEM:DrawStatus(Wag)
         if idx > 10 then break end
         local x, y = (idx - 1) * (sizeButtonW + sizeButtonGap), scrOffsetY + scrH - sizeFooter
         local getter = statusGetters[idx]
+        icon = idx == 6 and icon[Wag:GetNW2Bool("VityazCond", false) and 2 or 1] or icon[1]
         surface.SetDrawColor(getter and getter(self, Wag) or colorMainDisabled)
         surface.SetMaterial(icon)
         surface.DrawTexturedRect(x + sizeButtonBorder, y + sizeButtonBorder, sizeButtonW - sizeButtonBorder * 2, sizeFooter - sizeButtonBorder * 2)
@@ -617,7 +646,7 @@ function TRAIN_SYSTEM:DrawStatus(Wag)
         local x, y = sizeStatusSide + sizeBorder + (idx - 11) * (sizeStatusIcon + sizeStatusIconsGap), scrOffsetY + scrH - sizeFooter - sizeStatus - sizeMainMargin + sizeBorder * 2
         local getter = statusGetters[idx]
         surface.SetDrawColor(getter and getter(self, Wag) or colorMainDisabled)
-        surface.SetMaterial(icon)
+        surface.SetMaterial(icon[1])
         surface.DrawTexturedRect(x, y, sizeStatusIcon, sizeStatusIcon)
     end
 end
@@ -1048,4 +1077,45 @@ function TRAIN_SYSTEM:DrawVoPage(Wag, x, y, w, h)
             end
         end
     )
+end
+
+local condLabels = { "Кондиционер 1", "Кондиционер 2", "Кондиционер К" }
+function TRAIN_SYSTEM:DrawCondPage(Wag, x, y, w, h)
+    local voPage = self.SubPage
+    if voPage == 1 then
+        draw.SimpleText("Параметр", "Mfdu765.VoLabel", x + sizeVoIndexW / 2, y + sizeVoIndexH - sizeVoCellMargin / 2, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+    end
+
+    local indexW = voPage > 1 and 0 or sizeVoIndexW
+    local gx, gy, gw, gh = x + indexW, y + sizeVoIndexH, w - indexW, 110
+    self:DrawGrid(
+        gx, gy, gw, gh, true, {2, sizeVoCellMargin},
+        condLabels, "Mfdu765.VoLabel",
+        true, "Mfdu765.VoLabel",
+        0, sizeVoCellMargin / 2,
+        function(idx, field)
+            if field == 3 then
+                return Wag:GetNW2Bool("VityazHasCabin" .. idx, false) and colorGreen or nil
+            end
+            return Wag:GetNW2Bool("VityazCond" .. field .. idx, false) and colorGreen or colorRed
+        end
+    )
+
+    draw.SimpleText("Температура", "Mfdu765.BodyTextLarge", x + w / 2, gy + gh + 16, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+    local cw = w / 3
+    draw.SimpleText("Кабина:", "Mfdu765.BodyTextSmall", x + cw / 2, gy + gh + 128, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+    draw.SimpleText("20.0 ℃", "Mfdu765.BodyTextSmallBold", x + cw / 2 + 100, gy + gh + 128, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+    draw.SimpleText("Салон:", "Mfdu765.BodyTextSmall", x + cw + cw / 2 - 46, gy + gh + 128, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+    draw.SimpleText("max 20.0 ℃", "Mfdu765.BodyTextSmallBold", x + cw + cw / 2 + 114, gy + gh + 110, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+    draw.SimpleText("min 20.0 ℃", "Mfdu765.BodyTextSmallBold", x + cw + cw / 2 + 114, gy + gh + 146, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+    draw.SimpleText("Внешняя:", "Mfdu765.BodyTextSmall", x + cw * 2 + cw / 2, gy + gh + 128, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+    draw.SimpleText("18.5 ℃", "Mfdu765.BodyTextSmallBold", x + cw * 2 + cw / 2 + 100, gy + gh + 128, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+
+    draw.SimpleText("Режим: " .. (Wag:GetNW2Bool("VityazCond", false) and "Лето" or "Зима"), "Mfdu765.BodyTextLarge", x + w / 2 - sizeButtonW / 2, gy + gh + 212, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    surface.SetDrawColor(Wag:GetNW2Bool("VityazCondAny", false) and (Wag:GetNW2Bool("VityazCond", false) and colorYellow or colorBlue) or colorMain)
+    surface.SetMaterial(icons[6][Wag:GetNW2Bool("VityazCond", false) and 2 or 1])
+    local icw, ich = sizeButtonW * 0.7, sizeFooter * 0.7
+    surface.DrawTexturedRect(x + w / 2 + 70, gy + gh + 218 - ich / 2, icw, ich)
+
+    draw.SimpleText("Загрузка: " .. (Wag:GetNW2Bool("VityazCondAny", false) and "33 %" or "0 %"), "Mfdu765.BodyTextSmall", x + 4, gy + gh + 290, colorMain, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 end

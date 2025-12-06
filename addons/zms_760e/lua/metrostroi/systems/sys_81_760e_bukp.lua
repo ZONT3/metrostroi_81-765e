@@ -512,26 +512,34 @@ if SERVER then
                     if char == math.floor(self.State2 / 10) and not self.MainScreen then
                         self.LegacyScreen = not self.LegacyScreen
                     else
-                        self.LegacyScreen = char == 0 or char > 5
+                        self.LegacyScreen = char == 0
                     end
                     self.MainScreen = false
                     self.State2 = tonumber(char .. "1")
                     self.AutoChPage = nil
                 end
 
-                if name == "VityazF7" and self.State2 ~= 01 and self.NextState[tostring(self.State2)[1]] and (tonumber(tostring(self.State2)[2]) == #self.NextState[tostring(self.State2)[1]] + 1) then
-                    self.State2 = tonumber(tostring(self.State2)[1] .. "1")
-                elseif name == "VityazF7" and self.State2 ~= 01 and self.NextState[tostring(self.State2)[1]] and self.NextState[tostring(self.State2)[1]][tonumber(tostring(self.State2)[2])] then
-                    self.State2 = self.State2 + 1
+                local interceptScroll = false
+                if name == "VityazF7" or name == "VityazF6" and self.State2 == 61 then
+                    interceptScroll = true
+                    self.CondLeto = not self.CondLeto
                 end
 
-                if name == "VityazF6" and self.State2 ~= 01 and self.NextState[tostring(self.State2)[1]] and tostring(self.State2)[2] == "1" then
-                    self.State2 = tonumber(tostring(self.State2)[1] .. tostring(#self.NextState[tostring(self.State2)[1]] + 1))
-                elseif name == "VityazF6" and self.State2 ~= 01 and self.NextState[tostring(self.State2)[1]] and self.NextState[tostring(self.State2)[1]][tonumber(tostring(self.State2)[2]) - 1] then
-                    self.State2 = self.State2 - 1
+                if not interceptScroll then
+                    if name == "VityazF7" and self.State2 ~= 01 and self.NextState[tostring(self.State2)[1]] and (tonumber(tostring(self.State2)[2]) == #self.NextState[tostring(self.State2)[1]] + 1) then
+                        self.State2 = tonumber(tostring(self.State2)[1] .. "1")
+                    elseif name == "VityazF7" and self.State2 ~= 01 and self.NextState[tostring(self.State2)[1]] and self.NextState[tostring(self.State2)[1]][tonumber(tostring(self.State2)[2])] then
+                        self.State2 = self.State2 + 1
+                    end
+
+                    if name == "VityazF6" and self.State2 ~= 01 and self.NextState[tostring(self.State2)[1]] and tostring(self.State2)[2] == "1" then
+                        self.State2 = tonumber(tostring(self.State2)[1] .. tostring(#self.NextState[tostring(self.State2)[1]] + 1))
+                    elseif name == "VityazF6" and self.State2 ~= 01 and self.NextState[tostring(self.State2)[1]] and self.NextState[tostring(self.State2)[1]][tonumber(tostring(self.State2)[2]) - 1] then
+                        self.State2 = self.State2 - 1
+                    end
                 end
 
-                if name == "VityazF9" and (self.State2 == 71 or self.State2 == 72) then self.CondLeto = not self.CondLeto end
+                if name == "VityazF9" and self.LegacyScreen and (self.State2 == 71 or self.State2 == 72) then self.CondLeto = not self.CondLeto end
                 if name == "VityazF5" then self.MainScreen = true self.LegacyScreen = false self.State2 = 11 end
             end
 
@@ -932,6 +940,7 @@ if SERVER then
                     local cabDoors = false
                     local hvBad = 0
                     local hvGood = 0
+                    local condAny = false
 
                     for i = 1, self.WagNum do
                         local trainid = self.Trains[i]
@@ -1001,6 +1010,7 @@ if SERVER then
                         if not train.BVEnabled and train.AsyncInverter then bvDisabled = bvDisabled + 1 end
                         if not train.HVBad and train.AsyncInverter then hvGood = hvGood + 1 end
                         if train.HVBad and train.AsyncInverter then hvBad = hvBad + 1 end
+                        if train.Cond1 or train.Cond2 then condAny = true end
 
                         Train:SetNW2Bool("VityazDoorLeft" .. i, doorleftopened)
                         Train:SetNW2Bool("VityazDoorRight" .. i, doorrightopened)
@@ -1031,6 +1041,7 @@ if SERVER then
                     Train:SetNW2Int("VityazDoorsAll", err11 and 0 or cabDoors and 2 or 1)
                     Train:SetNW2Int("VityazHvAll", hvGood == 0 and 0 or hvBad == 0 and 1 or 2)
                     Train:SetNW2Int("VityazBvAll", bvEnabled == 0 and 0 or bvDisabled == 0 and 1 or 2)
+                    Train:SetNW2Bool("VityazCondAny", condAny)
                     Train:SetNW2Int("VityazKTR", Train.EmerBrake.Value == 1 and 1 or -1)
                     Train:SetNW2Int("VityazALS", Train.ALS.Value == 1 and 1 or -1)
                     Train:SetNW2Int("VityazBOSD", Train.DoorBlock.Value == 1 and 0 or -1)
