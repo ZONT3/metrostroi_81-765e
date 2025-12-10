@@ -7,7 +7,7 @@
   - [ ] MFDU
       - [x] Change root UI, temporary pages from 760
       - [ ] New pages implementation
-      - [x] 1, 2, 3, 4, 5
+      - [x] 1, 2, 3, 4, 5, 6
       - [ ] Main message
       - [ ] Initialization
   - [ ] BU-IK
@@ -35,7 +35,7 @@
       - [x] Console (cringe)
       - [x] Doors (good)
       - [ ] Inter door LED (remake)
-      - [ ] Cabin PMV/PPZ
+      - [x] Cabin PMV/PPZ
       - [ ] Salon BNT
       - [ ] Salon CIS
   - [x] Console model (cringe)
@@ -44,11 +44,11 @@
       - [x] Xod => ARS work logic
       - [ ] No assemble instead of disable drive in some cases
       - [ ] Safety loop improvement
-      - [ ] Zero speed feature
+      - [x] Zero speed feature
       - [ ] PrOst KOS activation/deactivation logic improvement
       - [ ] (after MFDU UI done) BUKP legacy cleanup, old UI removal
   - [ ] Electric
-      - [ ] BS normalization
+      - [x] BS normalization
       - [ ] PSN normalization
       - [ ] No HV (ATZ)
       - [ ] Short circuit (ATZ)

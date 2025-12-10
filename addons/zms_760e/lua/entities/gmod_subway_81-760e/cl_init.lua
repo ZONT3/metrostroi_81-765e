@@ -4553,6 +4553,36 @@ ENT.ButtonMap["RouteNumber"] = {
 for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}) do
     for i, pos in ipairs(tbl) do
         local idx = (k - 1) * 4 + i
+        ENT.ButtonMap["DoorAddressOpen" .. idx] = {
+            pos = pos + Vector(k == 1 and -250 - 10 or 250 + 10, 0, 170) * 0.05,
+            ang = Angle(0, k == 1 and 0 or -180, 90),
+            width = 50, height = 50, scale = 0.05,
+            buttons = {
+                {
+                    ID = "DoorAddressButton" .. idx .. "Set",
+                    x = 0, y = 0, w = 50, h = 50,
+                    tooltip = "Кнопка ИОД",
+                }
+            }
+        }
+        ENT.ButtonMap["DoorAddressOpenOutside" .. idx] = {
+            pos = pos + Vector(k == 1 and -200 - 10 or 200 + 10, k == 1 and 24 or -24, 170) * 0.05,
+            ang = Angle(0, k == 1 and 180 or 0, 90),
+            width = 50, height = 50, scale = 0.05,
+            buttons = {
+                {
+                    ID = "DoorAddressButton" .. idx .. "Set",
+                    x = 0, y = 0, w = 50, h = 50,
+                    tooltip = "Кнопка ИОД",
+                }
+            }
+        }
+        ENT.ClientProps["DoorArrdessButton" .. idx] = {
+            model = "models/metrostroi_train/81-765/door_button.mdl",
+            pos = Vector(229.92 * (i - 1) * (k == 1 and 1 or -1), k == 1 and 0.08 or -0.08, 0),
+            ang = Angle(0, 180 + (k - 1) * 180, 0),
+            hide = 2,
+        }
         ENT.ButtonMap["DoorManualBlock" .. idx] = {
             pos = pos + Vector(k == 1 and 488 or -488, k == 1 and -18 or 18, -715) * 0.05,
             ang = Angle(0, k == 1 and 0 or -180, 90),
@@ -5323,13 +5353,26 @@ function ENT:Think()
             self:SetSoundState(sid .. "r" .. math.abs(1 - randval), 0, 0)
             local n_l = "door" .. i .. "x" .. k
             self:Animate(n_l, 1 - state, 0, 1, 15, 1) --0.8 + (-0.2+0.4*math.random()),0)
+
+            local idx = k * 4 + i + 1
+            local btnKey = "DoorArrdessButton" .. idx
+            self:Animate(btnKey, 1 - state, 0, 1, 15, 1)
         end
     end
 
     for idx = 1, 8 do
         self:HidePanel("DoorManual" .. idx, not self:GetNW2Bool("DoorManualOpenLever" .. idx, false))
         self:HidePanel("DoorManualOutside" .. idx, not self:GetNW2Bool("DoorManualOpenLever" .. idx, false))
-        self:HidePanel("DoorManualBlock" .. idx, self:GetPackedRatio((idx < 5 and "DoorL" or "DoorR") .. (idx < 5 and idx or 9 - idx), 0) > 0)
+        local open = self:GetPackedRatio((idx < 5 and "DoorL" or "DoorR") .. (idx < 5 and idx or 9 - idx), 0) > 0
+        self:HidePanel("DoorManualBlock" .. idx, open)
+        self:HidePanel("DoorAddressOpen" .. idx, open and self:GetNW2Bool("AddressDoors", true))
+        self:HidePanel("DoorAddressOpenOutside" .. idx, open and self:GetNW2Bool("AddressDoors", true))
+        local btnKey = "DoorArrdessButton" .. idx
+        self:ShowHide(btnKey, self:GetNW2Bool("AddressDoors", true))
+        local btn = self.ClientEnts[btnKey]
+        if IsValid(btn) then
+            btn:SetSubMaterial(1, self:GetNW2Bool("DoorButtonLed" .. (idx < 5 and 9 - idx or idx - 4), false) and "models/metrostroi_train/81-765/led_green" or "models/metrostroi_train/81-765/led_off")
+        end
     end
 
     local door_cab_m = self:Animate("door_cab_m", self:GetPackedBool("PassengerDoor") and 1 or 0, 0, 1, 2, 0.5)

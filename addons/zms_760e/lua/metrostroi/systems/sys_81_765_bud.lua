@@ -12,6 +12,8 @@ function TRAIN_SYSTEM:Initialize()
     self.CloseDoors = false
     self.ManualReverse = false
     self.ReverseWork = false
+    self.AddressReadyL = false
+    self.AddressReadyR = false
     if not TURBOSTROI then
         self.LeftDoorState = {0, 0, 0, 0}
         self.RightDoorState = {0, 0, 0, 0}
@@ -23,6 +25,8 @@ function TRAIN_SYSTEM:Initialize()
         self.AutoReverse = {}
         self.StuckPass = {}
         self.WasManual = {}
+        self.OpenButton = {}
+        self.MobsOpening = {}
         self.DoorSpeedMain = math.Rand(1.1, math.Rand(1.3, 1.6))
         for i = 1, #self.LeftDoorSpeed do
             self.LeftDoorSpeed[i] = math.Rand(self.DoorSpeedMain + 0.1, self.DoorSpeedMain + 0.3)
@@ -63,9 +67,14 @@ function TRAIN_SYSTEM:Think(dT)
     self.ReverseWork = false
 
     local poweron = Wag.Electric.Battery80V > 62
-    local commandLeft = poweron and ((BUV.OpenLeft or Wag:ReadTrainWire(38) > 0) and BUV.ADUDWork) and (BUV.Orientation and Wag.SF40.Value > 0 or not BUV.Orientation and Wag.SF41.Value > 0)
-    local commandRight = poweron and ((BUV.OpenRight or Wag:ReadTrainWire(37) > 0) and BUV.ADUDWork) and (BUV.Orientation and Wag.SF41.Value > 0 or not BUV.Orientation and Wag.SF40.Value > 0)
-    local commandClose = poweron and ((BUV.CloseDoors or Wag:ReadTrainWire(39) > 0) and BUV.ADUDWork) and BUV.Power * Wag.SF39.Value > 0
+    local working = poweron and BUV.ADUDWork
+    local workingLeft = working and BUV.Orientation and Wag.SF40.Value > 0 or not BUV.Orientation and Wag.SF41.Value > 0
+    local workingRight = working and BUV.Orientation and Wag.SF41.Value > 0 or not BUV.Orientation and Wag.SF40.Value > 0
+    local reserveLeft = Wag:ReadTrainWire(38) > 0
+    local reserveRight = Wag:ReadTrainWire(37) > 0
+    local commandLeft = workingLeft and (BUV.OpenLeft or reserveLeft)
+    local commandRight = workingRight and (BUV.OpenRight or reserveRight)
+    local commandClose = (BUV.CloseDoors or Wag:ReadTrainWire(39) > 0) and BUV.Power * Wag.SF39.Value > 0
     if commandClose then
         self.DoorLeft = false
         self.DoorRight = false
@@ -78,9 +87,25 @@ function TRAIN_SYSTEM:Think(dT)
         self.DoorRight = true
     end
 
-    local sideOpen = (commandLeft or commandRight) and not commandClose
+    local sideOpen = (self.DoorLeft and not self.DoorRight or self.DoorRight and not self.DoorLeft) and not commandClose
     local stuckEmpty = true
     local zeroSpeed = Wag.SF80F9.Value > 0 and Wag.Speed < 1.8
+    local addrMode = BUV.AddressDoors
+    local forceOpen = false
+
+    if addrMode and (commandLeft or commandRight) then
+        if not self.ForceOpenTimer then
+            self.ForceOpenTimer = CurTime() + 3
+        end
+        if self.ForceOpenTimer < CurTime() then
+            forceOpen = true
+        end
+    elseif self.ForceOpenTimer then
+        self.ForceOpenTimer = nil
+    end
+
+    self.AddressReadyL = false
+    self.AddressReadyR = false
 
     for idx = 1, 8 do
         local manual = Wag["DoorManualOpenLever" .. idx].Value * Wag["DoorManualOpenLeverPl" .. idx].Value == 1
@@ -94,9 +119,65 @@ function TRAIN_SYSTEM:Think(dT)
         local dir = left and self.LeftDoorDir or self.RightDoorDir
         local speed = left and self.LeftDoorSpeed or self.RightDoorSpeed
         local state = left and self.LeftDoorState or self.RightDoorState
-        local commandOpen = left and self.DoorLeft or not left and self.DoorRight
+        local commandOpen = zeroSpeed and (left and self.DoorLeft or not left and self.DoorRight)
+        forceOpen = forceOpen or left and workingLeft and reserveLeft or right and workingRight and reserveRight
 
-        local announceState = zeroSpeed and (self.Depart and "Depart" or commandOpen and "Open" or not sideOpen and "Closed") or "Moving"
+        if addrMode then
+            local btn = Wag["DoorAddressButton" .. idx]
+            if state[i] == 0 and self.ForeignObject[idx] or btn and btn.Value > 0.5 then
+                self.OpenButton[idx] = true
+            end
+        else
+            self.OpenButton[idx] = true
+        end
+
+        local readyToOpen = false
+        if not commandOpen and self.OpenButton[idx] then self.OpenButton[idx] = false end
+        if addrMode and commandOpen then
+            commandOpen = state[i] > 0 or Wag.RV and (idx == 1 or idx == 5) or forceOpen or self.OpenButton[idx] or false
+            readyToOpen = true
+        end
+        if readyToOpen then
+            if left then
+                self.AddressReadyL = true
+            else
+                self.AddressReadyR = true
+            end
+            if not self.OpenButton[idx] and not self.MobsOpening[idx] then
+                local platform = Wag.LastPlatform
+                if not IsValid(platform) or Wag ~= platform.CurrentTrain then
+                    platform = nil
+                    for _, w in ipairs(Wag.WagonList) do
+                        if IsValid(w.LastPlatform) and w.LastPlatform.CurrentTrain == w then
+                            platform = w.LastPlatform
+                            break
+                        end
+                    end
+                end
+                if IsValid(platform) then
+                    local halflen = Wag.BUV.TrainLen / 2
+                    local wagWeight = math.Clamp(Lerp(math.abs(halflen - Wag.BUV.WagIdx) / halflen, 0.2, 1.0), 0.2, 1.0) / 4
+                    local passLoad = wagWeight + platform:PopulationCount() / (200 * halflen)
+                    -- print(wagWeight, passLoad - wagWeight, passLoad)
+                    local open = math.random() < passLoad
+                    if open then
+                        self.MobsOpening[idx] = CurTime() + math.Rand(0.2, math.Rand(1.5, math.Rand(2, math.min(10, 10 / (passLoad - 0.3)))))
+                    else
+                        self.MobsOpening[idx] = CurTime() + math.Rand(20, 120)
+                    end
+                end
+
+            end
+        elseif self.MobsOpening[idx] then
+            self.MobsOpening[idx] = false
+        end
+
+        if addrMode and self.MobsOpening[idx] and self.MobsOpening[idx] < CurTime() then
+            self.MobsOpening[idx] = false
+            self.OpenButton[idx] = true
+        end
+
+        local announceState = zeroSpeed and (self.Depart and "Depart" or (commandOpen or readyToOpen) and "Open" or not sideOpen and "Closed") or "Moving"
 
         if block then
             if state[i] > 0 then
@@ -175,11 +256,13 @@ function TRAIN_SYSTEM:Think(dT)
             if not zeroSpeed or Wag.BUV.CloseDoorsCommand and not manual then
                 announceState = "Closing"
             elseif zeroSpeed and state[i] < 1 and commandOpen and not block then
-                announceState = "Opening"
+                announceState = (not addrMode or forceOpen) and "Opening" or "Open"
             end
         end
         if (manual or zeroSpeed and block) and announceState ~= "Closing" then
             announceState = manual and "Closing" or "Closed"
+        elseif not self.Depart and announceState ~= "Closing" and readyToOpen and not forceOpen then
+            announceState = "Open"
         end
 
         if self.AutoReverse[idx] then

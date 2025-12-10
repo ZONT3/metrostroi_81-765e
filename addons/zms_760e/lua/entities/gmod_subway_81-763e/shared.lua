@@ -324,10 +324,10 @@ end
 -- 2 = Only intherim
 ---------------------------------------------------
 ENT.SubwayTrain = {
-    Type = "81-760",
-    Name = "81-763A",
+    Type = "81-760E",
+    Name = "81-763E",
     WagType = 2,
-    Manufacturer = "MVM",
+    Manufacturer = "PvVZ",
     EKKType = 763,
 }
 

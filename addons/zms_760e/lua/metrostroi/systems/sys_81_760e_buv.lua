@@ -375,6 +375,8 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("WeightLoad", math.Round(Train.Pneumatic.WeightLoadRatio, 2))
         self:CState("ElectricEnergyUsed", Train.Electric.ElectricEnergyUsed / 3.6e6)
         self:CState("PSNEnabled", self.PSN)
+        self:CState("AddressDoorsL", Train.BUD.AddressReadyL)
+        self:CState("AddressDoorsR", Train.BUD.AddressReadyR)
 
         if HasEngine then
             self:CState("EnginesBroken", not self:Get("PVU9") and Train.Battery.Value * Train.SF52.Value == 1)
@@ -585,6 +587,9 @@ function TRAIN_SYSTEM:Think(dT)
     self.BTB = Train.Pneumatic.RVTBLeak == 1
     self.OpenLeft = not self:Get("PVU2") and (self:Get("OpenLeft") and self.Orientation or self:Get("OpenRight") and not self.Orientation)
     self.OpenRight = not self:Get("PVU2") and (self:Get("OpenRight") and self.Orientation or self:Get("OpenLeft") and not self.Orientation)
+    self.AddressDoors = self:Get("AddressDoors")
+    self.WagIdx = self:Get("WagIdx") or 1
+    self.TrainLen = self:Get("TrainLen") or 1
 
     local command = not self:Get("PVU2") and self:Get("CloseDoors")
     if command and self.CloseDoorsCommand ~= command and Train.DoorsOpened then

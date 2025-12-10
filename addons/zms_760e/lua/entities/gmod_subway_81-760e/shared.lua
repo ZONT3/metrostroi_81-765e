@@ -811,7 +811,7 @@ local function pmvToggle(name, tooltip, x, y, idx, positions, states, default)
     }
 end
 
-pmvToggle("PmvAddressDoors", "(не используется) Индивидуальное открытие дверей", 71.7, 48, 0, {0, 3}, {
+pmvToggle("PmvAddressDoors", "Индивидуальное открытие дверей", 71.7, 48, 0, {0, 3}, {
     "Common.765.Buttons.IOn", "Common.765.Buttons.IOff"
 }, 1)
 pmvToggle("PmvRpdp", "Питание РПДП", 71.7, 48, 1, {0, 3}, {
@@ -971,10 +971,10 @@ ENT.Cameras = {
 -- 2 = Only intherim
 ---------------------------------------------------
 ENT.SubwayTrain = {
-    Type = "81-760",
-    Name = "81-760A",
+    Type = "81-760E",
+    Name = "81-760E",
     WagType = 1,
-    Manufacturer = "MVM",
+    Manufacturer = "PvVZ",
     ALS = {
         HaveAutostop = true,
         TwoToSix = true,

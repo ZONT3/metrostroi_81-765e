@@ -737,7 +737,6 @@ local doorsLabels = {"M", "1", "2", "3", "4", "T", "5", "6", "7", "8", "M"}
 function TRAIN_SYSTEM:DrawDoorsPage(Wag, x, y, w, h)
     local gx, gy = x + posDoorsGridX, y + posDoorsGridY
     local gw, gh = w - posDoorsGridX - sizeMainMargin, h - posDoorsGridY - sizeMainMargin
-    local addr = Wag:GetNW2Bool("AddrDoors", false)
     self:DrawGrid(
         gx, gy, gw, gh, false, sizeMainMargin * 0.75,
         doorsLabels, "Mfdu765.DoorsLabels",
@@ -748,6 +747,7 @@ function TRAIN_SYSTEM:DrawDoorsPage(Wag, x, y, w, h)
             local isHead = Wag:GetNW2Bool("VityazHasCabin" .. wagIdx, false)
             local buvDisabled = not Wag:GetNW2Bool("VityazBUVState" .. wagIdx, false)
             local pvu = not buvDisabled and Wag:GetNW2Bool("VityazPVU" .. wagIdx .. "2", false)
+            local addr = false
             if doorIdx == 1 then
                 color = isHead and Wag:GetNW2Bool("VityazDoorML" .. wagIdx, false) and colorGreen or isHead and colorRed or nil
                 pvu = false
@@ -760,6 +760,7 @@ function TRAIN_SYSTEM:DrawDoorsPage(Wag, x, y, w, h)
             else
                 local left = doorIdx < 6
                 local door = string.format("%d%s%d", left and doorIdx - 1 or 11 - doorIdx, left and "L" or "R", wagIdx)
+                addr = Wag:GetNW2Bool("VityazAddressDoors" .. (left and "L" or "R") .. wagIdx, false)
                 color = not buvDisabled and Wag:GetNW2Bool("VityazDoor" .. door, false) and colorGreen or Wag:GetNW2Bool("VityazDoorReverse" .. door, false) and colorYellow or colorRed
             end
             return color, color and (buvDisabled and "X" or pvu and "Р" or addr and "И" or nil)

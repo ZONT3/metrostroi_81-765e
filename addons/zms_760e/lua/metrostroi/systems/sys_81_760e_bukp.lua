@@ -1013,6 +1013,9 @@ if SERVER then
                             end
                         end
 
+                        Train:SetNW2Bool("VityazAddressDoorsL" .. i, orientation and train.AddressDoorsL or not orientation and train.AddressDoorsR)
+                        Train:SetNW2Bool("VityazAddressDoorsR" .. i, orientation and train.AddressDoorsR or not orientation and train.AddressDoorsL)
+
                         local cab = not not train.HasCabin
                         Train:SetNW2Bool("VityazHasCabin" .. i, cab)
                         if cab then
@@ -1087,9 +1090,12 @@ if SERVER then
                         self.State2 = 21
                         self.MainScreen = false
                     end
-                    if not self.err11 and err11ch and self.AutoChPage then
+                    if not self.err11 and err11ch and self.AutoChPage and not self.AwaitOpenDoors then
                         self.State2 = self.AutoChPage
                         self.MainScreen = true
+                    end
+                    if self.AwaitOpenDoors and (not self.AutoChPage or self.err11) then
+                        self.AwaitOpenDoors = false
                     end
                     self.err11was = self.err11
 
@@ -1477,15 +1483,24 @@ if SERVER then
                 Train:SetNW2Int("VityazWagNum" .. i, self.Trains[i] or 0)
             end
 
+            local addrDoors = Train:GetNW2Bool("AddressDoors", true) and Train.Electric.UPIPower * (1 - Train.PmvAddressDoors.Value) > 0.5
             self:CState("OpenLeft", doorLeft)
             self:CState("OpenRight", doorRight)
             self:CState("CloseDoors", doorClose)
+            self:CState("AddressDoors", addrDoors)
             self:CState("Slope", Train.RV.KRRPosition == 0 and self.Slope)
             self:CState("SlopeSpeed", self.SlopeSpeed)
             if self.WagNum > 0 then
                 self.EnginesStrength = EnginesStrength / self.WagNum
             else
                 self.EnginesStrength = 0
+            end
+
+            if self.MainScreen and not self.LegacyScreen and addrDoors and (Train.DoorLeft.Value + Train.DoorRight.Value) * (1 - Train.DoorClose.Value) > 0 then
+                self.AutoChPage = self.State2
+                self.State2 = 21
+                self.MainScreen = false
+                self.AwaitOpenDoors = true
             end
 
             --[[
@@ -1511,6 +1526,8 @@ if SERVER then
                         "PantDisabled" .. train, "PantDisabled", "BUV", train,
                         (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 2) and t % 2 == 1 or (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 1) and t % 2 == 0
                     )
+                    self:CStateTarget("WagIdx" .. train, "WagIdx", "BUV", train, t)
+                    self:CStateTarget("TrainLen" .. train, "TrainLen", "BUV", train, self.WagNum)
                 end
             end
 

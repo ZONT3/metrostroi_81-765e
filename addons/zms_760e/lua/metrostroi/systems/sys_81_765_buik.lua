@@ -1187,7 +1187,7 @@ else
             local dx, dy
             dx, dy = wagX + sizeWagGap, wagY - sizeWagDoorH / 2
             for di = 1, 4 do
-                local dc = wagDoors[di] and (not doorsClosed and colorActive or colorInactive) or colorRed
+                local dc = wagDoors[5 - di] and (not doorsClosed and colorActive or colorInactive) or colorRed
                 drawOutlinedRect(dx, dy, sizeWagDoorW, sizeWagDoorH, color, dc)
                 dx = dx + sizeWagGap + sizeWagDoorW
             end
