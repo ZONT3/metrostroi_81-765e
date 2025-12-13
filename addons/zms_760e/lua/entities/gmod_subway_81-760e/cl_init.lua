@@ -1230,6 +1230,35 @@ ENT.ButtonMap["PUR2"] = {
     },
 }
 
+ENT.ButtonMap["RVTop"] = {
+    pos = Vector(484.40, 41.3, -18.85),
+    ang = Angle(0, -90, 0), --    ang = Angle(-12,13.5,0),
+    width = 70,
+    height = 40,
+    scale = 0.0625,
+    hideseat = 0.2,
+    buttons = {
+        {
+            ID = "KRR+",
+            x = 0, y = 0, w = 35, h = 20,
+            tooltip = "КРР Вперед",
+        }, {
+            ID = "KRR-",
+            x = 0, y = 20, w = 35, h = 20,
+            tooltip = "КРР Назад",
+        },
+        {
+            ID = "KRO+",
+            x = 35, y = 0, w = 35, h = 20,
+            tooltip = "КРО Вперед",
+        }, {
+            ID = "KRO-",
+            x = 35, y = 20, w = 35, h = 20,
+            tooltip = "КРО Назад",
+        },
+    }
+}
+
 _, _getX, _, _bw = _fncCoord(3, 108, 10)
 _, _getY = _fncCoordFixed(2, 70, _bw * 2)
 ENT.ButtonMap["RV"] = {
@@ -1241,55 +1270,25 @@ ENT.ButtonMap["RV"] = {
     hideseat = 0.2,
     buttons = {
         {
-            ID = "EmergencyControlsToggle",
+            ID = "!EmergencyControls",
             x = _getX(2),
             y = _getY(1),
             radius = _bw,
-            tooltip = "Управление резервное",
+            tooltip = "Управление резервное\nОтладочная сигнализационная лампа\nНе используется как кнопка",
             model = {
                 model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
                 z = 0,
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_red.mdl",
                     var = "EmergencyControlsLamp",
-                    z = 0.5,
+                    z = 0.2,
                     anim = true
                 },
                 var = "EmergencyControls",
                 speed = 12,
                 vmin = 0,
-                vmax = 1,
+                vmax = 0,
                 ang = 180,
-                sndvol = 0.5,
-                snd = function(val) return val and "button_press" or "button_release" end,
-                sndmin = 80,
-                sndmax = 1e3 / 3,
-                sndang = Angle(-90, 0, 0),
-            }
-        },
-        {
-            ID = "EmergencyControlsKToggle",
-            x = _getX(2) - _bw - 10,
-            y = _getY(1) + 2,
-            w = 40,
-            h = 20,
-            tooltip = "Крышка кнопки Управление резервное",
-            model = {
-                model = "models/metrostroi_train/81-760/81_760_glass_cap.mdl",
-                ang = 90,
-                z = 3,
-                x = 2,
-                y = -13,
-                -- var = "EmergencyControlsK",
-                speed = 8,
-                min = 1,
-                max = 0,
-                disable = "EmergencyControlsToggle",
-                sndvol = 1,
-                snd = function(val) return val and "kr_close" or "kr_open" end,
-                sndmin = 90,
-                sndmax = 1e3,
-                sndang = Angle(-90, 0, 0),
             }
         },
         {
@@ -1312,53 +1311,6 @@ ENT.ButtonMap["RV"] = {
                 sndang = Angle(-90, 0, 0),
             }
         },
-        -- {
-        --     ID = "EmergencyDoorsToggle",
-        --     x = 116.5,
-        --     y = 103.5,
-        --     radius = 15,
-        --     tooltip = "Двери резервные",
-        --     model = {
-        --         model = "models/metrostroi_train/81-760/81_760_button_green.mdl",
-        --         z = 0,
-        --         lamp = {
-        --             model = "models/metrostroi_train/81-760/81_760_lamp_green.mdl",
-        --             var = "EmergencyDoorsLamp",
-        --             z = 0.5,
-        --             anim = true
-        --         },
-        --         var = "EmergencyDoors",
-        --         speed = 12,
-        --         vmin = 0,
-        --         vmax = 1,
-        --         ang = 180,
-        --         sndvol = 0.5,
-        --         snd = function(val) return val and "button_press" or "button_release" end,
-        --         sndmin = 80,
-        --         sndmax = 1e3 / 3,
-        --         sndang = Angle(-90, 0, 0),
-        --     }
-        -- },
-        -- {
-        --     ID = "EmerCloseDoorsSet",
-        --     x = 155,
-        --     y = 103.5,
-        --     radius = 15,
-        --     tooltip = "Закрытие дверей резервное",
-        --     model = {
-        --         model = "models/metrostroi_train/81-760/81_760_button_black.mdl",
-        --         z = 0,
-        --         var = "EmerCloseDoors",
-        --         speed = 12,
-        --         vmin = 0,
-        --         vmax = 1,
-        --         sndvol = 0.5,
-        --         snd = function(val) return val and "button_press" or "button_release" end,
-        --         sndmin = 80,
-        --         sndmax = 1e3 / 3,
-        --         sndang = Angle(-90, 0, 0),
-        --     }
-        -- },
         {
             ID = "EmerX1Set",
             x = _getX(1),
@@ -1431,26 +1383,6 @@ ENT.ButtonMap["RV"] = {
                 sndang = Angle(-90, 0, 0),
             }
         },
-        -- {
-        --     ID = "!NEZ4",
-        --     x = _getX(2),
-        --     y = _getY(2),
-        --     radius = _bw,
-        --     tooltip = "",
-        --     model = {
-        --         model = "models/metrostroi_train/81-760/81_760_button_white.mdl",
-        --         z = 0.2,
-        --         var = "",
-        --         speed = 12,
-        --         vmin = 0,
-        --         vmax = 1,
-        --         sndvol = 0.3,
-        --         snd = function(val) return val and "button_square_on" or "button_square_off" end,
-        --         sndmin = 80,
-        --         sndmax = 1e3 / 3,
-        --         sndang = Angle(-90, 0, 0),
-        --     }
-        -- },
     }
 }
 

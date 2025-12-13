@@ -10,6 +10,40 @@ local BTN_ENTER = "VityazF8"
 local BTN_MODE = "VityazF9"
 local BTN_CLEAR = "VityazF5"
 
+local MAINMSG_NONE = 0
+local MAINMSG_RVOFF = 1
+local MAINMSG_REAR = 2
+local MAINMSG_2RV = 3
+local MAINMSG_RVFAIL = 4
+
+local ErrorsA = {
+    {"RvErr", "Сбой РВ."},
+    {"KmErr", "Сбой КМ."},
+    {"BuvDiscon", "Нет связи с БУВ-С.", "Нет связи с БУВ-С на %d вагоне."},
+    {"NoOrient", "Вагон не ориентирован.", "Вагон %d не ориентирован."},
+    {"BrakeLine", "Низкое давление ТМ."},
+    {"DisableDrive", "Запрет ТР от АРС.",},
+    {"EmergencyBrake", "Экстренное торможение."},
+    {"ParkingBrake", "Стояночный тормоз прижат.", "Стояночный тормоз прижат\nна %d вагоне."},
+    {"PneumoBrake", "Пневмотормоз включен.", "Пневмотормоз включен\nна %d вагоне."},
+    {"Doors", "Двери не закрыты.", "Двери не закрыты на %d вагоне."},
+}
+local ErrorsB = {
+    {"HV", "Напряжение КС.",},
+    {"RearCabin", "Открыта кабина ХВ.",},
+}
+local ErrorsC = {
+    {"SF", "Включи автомат.", "Включи автомат на %d вагоне."},
+    {"PassLights", "Освещение не включено.", "Освещение не включено\nна %d вагоне.",},
+}
+
+local Error2id = {}
+for idx, err in ipairs(ErrorsA) do Error2id[ErrorsA[idx][1]] = idx end
+for idx, err in ipairs(ErrorsB) do Error2id[ErrorsB[idx][1]] = idx + #ErrorsA end
+for idx, err in ipairs(ErrorsC) do Error2id[ErrorsC[idx][1]] = idx + #ErrorsB + #ErrorsA end
+local ErrorIdx2Name = {}
+for name, idx in pairs(Error2id) do ErrorIdx2Name[idx] = name end
+
 local kv_765_map = {
     [4] = 100,
     [3] = 80,
@@ -28,105 +62,32 @@ function TRAIN_SYSTEM:Initialize()
     self.PowerCommand = 0
     self.PowerTarget = 0
     self.CurrentCab = false
-    self.Train:LoadSystem("VityazF1", "Relay", "Switch", {
-        bass = true
-    })
 
-    self.Train:LoadSystem("VityazF2", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazF3", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazF4", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("Vityaz1", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("Vityaz4", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("Vityaz7", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("Vityaz2", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("Vityaz5", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("Vityaz8", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("Vityaz0", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("Vityaz3", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("Vityaz6", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("Vityaz9", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazF5", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazF6", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazF7", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazF8", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazF9", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazHelp", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazKontr", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazTV", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazTV1", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazTV2", "Relay", "Switch", {
-        bass = true
-    })
-
-    self.Train:LoadSystem("VityazP", "Relay", "Switch", {
-        bass = true
-    })
+    self.Train:LoadSystem("VityazF1", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazF2", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazF3", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazF4", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Vityaz1", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Vityaz4", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Vityaz7", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Vityaz2", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Vityaz5", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Vityaz8", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Vityaz0", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Vityaz3", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Vityaz6", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Vityaz9", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazF5", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazF6", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazF7", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazF8", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazF9", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazHelp", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazKontr", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazTV", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazTV1", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazTV2", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("VityazP", "Relay", "Switch", { bass = true })
 
     self.TriggerNames = {"VityazF1", "VityazF2", "VityazF3", "VityazF4", "Vityaz1", "Vityaz2", "Vityaz3", "Vityaz4", "Vityaz5", "Vityaz6", "Vityaz7", "Vityaz8", "Vityaz9", "Vityaz0", "VityazKontr", "VityazHelp", "VityazF6", "VityazF7", "VityazF5", "VityazF9", "VityazF8", "VityazTV", "VityazTV1", "VityazTV2", "VityazP", "AttentionMessage"}
     self.Triggers = {}
@@ -140,7 +101,10 @@ function TRAIN_SYSTEM:Initialize()
     self.LegacyScreen = false
     self.Trains = {}
     self.Errors = {}
+    self.WagErrors = {}
+    self.ErrorsLog = {}
     self.Error = 0
+    self.ErrorParams = {}
     self.Counter = 0
     self.Password = ""
     self.Selected = 0
@@ -191,8 +155,8 @@ function TRAIN_SYSTEM:Initialize()
     }
 
     self.PVU = {}
-    local active = false
     self.Active = 0
+    self.MainMsg = 0
     self.Count = 0
     self.EnginesStrength = 0
     self.ControllerState = 0
@@ -200,7 +164,7 @@ function TRAIN_SYSTEM:Initialize()
     self.BTB = 0
     self.CurrentSpeed = 0
     self.ZeroSpeed = 0
-    self.err11 = false
+    self.Errors.Doors = false
     self.Speed = 0
     self.CurTime = CurTime()
     self.Prost = false
@@ -330,7 +294,7 @@ if SERVER then
         end
     end
 
-    TRAIN_SYSTEM.VityazPass = "1488"
+    TRAIN_SYSTEM.VityazPass = "7777"
     TRAIN_SYSTEM.Checks = {
         KAH = false,
         ALS = false,
@@ -369,8 +333,8 @@ if SERVER then
         char = tonumber(char)
         if Train.SF23F8.Value == 0 then return end
         local RV = (1 - Train.RV["KRO5-6"]) + Train.RV["KRR15-16"]
-        if self.State > 0 then if (name == "VityazTV1" or name == "VityazTV2") and value then self.TV = true end end
-        if self.TV and (self.State > 0) then if name == "VityazTV" and value then self.TV = false end end
+        if self.State > 0 and (name == "VityazTV1" or name == "VityazTV2") and value then self.TV = true end
+        if self.TV and (self.State > 0) and name == "VityazTV" and value then self.TV = false end
         if self.State == -3 then
             for k, v in pairs(self.TriggerNames) do
                 if name == v then Train:SetNW2Bool("VityazMNMM" .. k, value) end
@@ -430,7 +394,7 @@ if SERVER then
                     end
 
                     if name == BTN_MODE and value then self.Entering = false end
-                    if char and value then if char and #self.Entering < num and value then self.Entering = self.Entering .. char end end
+                    if char and value and char and #self.Entering < num and value then self.Entering = self.Entering .. char end
                     if name == BTN_CLEAR and value then self.Entering = self.Entering:sub(1, -2) end
                 else
                     if name == BTN_UP and value and self.Selected > 0 then self.Selected = self.Selected - 1 end
@@ -444,7 +408,7 @@ if SERVER then
 
                         self.State = 3
                     end
- 
+
                     if name == BTN_MODE and value then
                         if self.Selected == 0 then self.State2 = 1 end
                         --if self.Selected == 1 then self.State2 = 2 self.Selected = 0 end
@@ -496,10 +460,9 @@ if SERVER then
             self.Prost = true
             self.Kos = true
             self.Ovr = true
-            self.Timer2 = CurTime() + 3
+            self.BErrorsTimer = CurTime() + 3
             self.InitTimer = CurTime() + 1
             self.State = 5
-            --self:CheckError(13,true)
         elseif self.State == 5 and value then
             if self.ProstTimer and CurTime() - self.ProstTimer > 0.5 and char then
                 if char == 3 then
@@ -575,36 +538,115 @@ if SERVER then
         end
 
         if self.State == 5 and name == "AttentionMessage" and value then
-            local currerr = 0
-            for id, err in pairs(self.Errors) do
-                if err and (currerr == 0 or id < currerr) then currerr = id end
+            for idx = #ErrorsA + 1, #ErrorsA + #ErrorsB + #ErrorsC do
+                if self.Errors[idx] then
+                    self.Errors[idx] = false
+                    self.Errors[ErrorIdx2Name[idx]] = false
+                    self.ErrorParams[idx] = nil
+                    break
+                end
+            end
+        end
+    end
+
+    function TRAIN_SYSTEM:BeginWagonsCheck()
+        self.WagChecks = self.WagChecks or {}
+        self.WagErrors = {}
+    end
+
+    function TRAIN_SYSTEM:EndWagonsCheck()
+        for name in pairs(self.WagChecks) do
+            local wag = self.WagErrors[name]
+            self:CheckError(name, wag, wag)
+        end
+    end
+
+    function TRAIN_SYSTEM:CheckWagError(idx, name, cond)
+        local id = Error2id[name] or 0
+        if id < 1 then print("WARN! No BUKP error named " .. (name or "nil")) return end
+        self.WagChecks[name] = true
+        if not cond then return end
+        if not self.WagErrors[name] then self.WagErrors[name] = idx return end
+        self.WagErrors[name] = true
+    end
+
+    function TRAIN_SYSTEM:CheckError(name, cond, param)
+        local id = Error2id[name] or 0
+        if id < 1 then print("WARN! No BUKP error named " .. (name or "nil")) return end
+        if id > #ErrorsA and self.BErrorsTimer and CurTime() - self.BErrorsTimer < 0 then return end
+        if cond then
+            if self.Errors[id] ~= false then
+                self.Errors[id] = CurTime()
+                self.Errors[name] = CurTime()
+                self.ErrorParams[id] = isnumber(param) and param or nil
+            end
+        elseif id <= #ErrorsA and self.Errors[id] and self.Errors[id] ~= CurTime() or self.Errors[id] == false then
+            self.Errors[id] = nil
+            self.Errors[name] = nil
+            self.ErrorParams[id] = nil
+        end
+    end
+
+    local ErrorsCat = { ErrorsA, ErrorsB, ErrorsC }
+    function TRAIN_SYSTEM:CommitError()
+        local errId = 0
+        local category = nil
+        local start = 1
+        for catIdx, cat in ipairs(ErrorsCat) do
+            for idx = start, #cat + start - 1 do
+                if self.Errors[idx] then
+                    errId = idx
+                    break
+                end
+            end
+            if errId > 0 then category = catIdx break end
+            start = start + #cat
+        end
+
+        local param = errId > 0 and self.ErrorParams[errId] or false
+        if errId == 0 then
+            if self.ErrorRing then self.ErrorRing = nil end
+            self.Train:SetNW2Int("VityazErrorCat", 0)
+            self.Train:SetNW2String("VityazErrorStr", "")
+        elseif self.Error ~= errId or self.ErrorParams[0] ~= param then
+            if errId ~= Error2id["Doors"] or self.Train.Speed >= 1.8 then
+                self.ErrorRing = CurTime()
             end
 
-            if (currerr == 10 or currerr > 11) and self.Errors[currerr] then self.Errors[currerr] = false end
+            self.Train:SetNW2Int("VityazErrorCat", category)
+
+            local str = ErrorsCat[category][errId - start + 1]
+            if isnumber(param) and str[3] then
+                self.Train:SetNW2String("VityazErrorStr", string.format(str[3], param))
+            else
+                self.Train:SetNW2String("VityazErrorStr", str[2])
+            end
         end
+
+        self.Error = errId
+        self.ErrorParams[0] = param
     end
 
-    function TRAIN_SYSTEM:CheckError(id, cond)
-        if id > 11 and self.Timer2 and CurTime() - self.Timer2 < 0 then return end
-        if cond then
-            if self.Errors[id] ~= false then self.Errors[id] = CurTime() end
-        elseif id < 12 and self.Errors[id] and self.Errors[id] ~= CurTime() or self.Errors[id] == false then
-            self.Errors[id] = nil
+    function TRAIN_SYSTEM:ClearErrors()
+        for _, idx in pairs(Error2id) do
+            self.Errors[idx] = nil
+            self.Errors[ErrorIdx2Name[idx]] = nil
+            self.ErrorParams[idx] = nil
         end
+        self.Error = 0
+        self.ErrorParams[0] = nil
     end
 
-    function TRAIN_SYSTEM:IsChange(train)
+    function TRAIN_SYSTEM:CheckBuv(train)
         if not train then return false end
         if not train.BUVWork then return false end
-        local find = false
         for i = 1, #self.Train.WagonList do
             local TrainI = self.Train.WagonList[i]
-            if not find and train.WagNumber == TrainI.WagonNumber then
-                find = true
-                break
+            if train.WagNumber == TrainI.WagonNumber then
+                return true
             end
         end
-        return find
+        return false
     end
 
     function TRAIN_SYSTEM:Think(dT)
@@ -614,14 +656,13 @@ if SERVER then
         end
 
         if self.State > 0 and self.Reset and self.Reset ~= 1 then self.Reset = false end
-        if self.WagList ~= #self.Train.WagonList and not (self.Train.BUV.OrientateBUP ~= self.Train:GetWagonNumber()) then
+        if self.WagList ~= #self.Train.WagonList and self.Train.BUV.OrientateBUP == self.Train:GetWagonNumber() then
             self.Reset = 1
             self.InitTimer = CurTime() + 0.5
             self.WagList = #self.Train.WagonList
         end
 
         local Train = self.Train
-        local Panel = Train.Panel
         local Power = Train.Electric.Battery80V > 62
         local VityazWork = (Train.SF23F7.Value + Train.SF23F8.Value > 0) and Power --[[or self.State == 5]]
         if not VityazWork and self.State ~= (Power and -2 or 0) and (not Power or self.State ~= -3) then
@@ -837,7 +878,6 @@ if SERVER then
             if self.State == 4 then
                 local i = 1
                 local num = 0
-                local EnginesStrength = 0
                 for k, v in pairs(self.Checks) do
                     if (Train[k] and Train[k].Value > 0 or k:find("Headlights") and Train.HeadlightsSwitch.Value == tonumber(k[11])) and not self.FirstPressed[k] then
                         Train:SetNW2Bool("VityazBTest" .. k, true)
@@ -859,13 +899,13 @@ if SERVER then
             local stength = 0
             local EnginesStrength = 0
             if self.InitTimer and CurTime() - self.InitTimer > 0 then self.InitTimer = nil end
-            local RV = self.InitTimer and 1 or (1 - Train.RV["KRO5-6"]) * Train.SF23F3.Value + Train.RV["KRR15-16"] * Train.SF23F1.Value
+            local RvKro = (1 - Train.RV["KRO5-6"]) * Train.SF23F3.Value
+            local RvKrr = Train.RV["KRR15-16"] * Train.SF23F1.Value
+            local RvWork = self.InitTimer and true or RvKro + RvKrr > 0.5 and RvKro + RvKrr < 1.5
             local doorLeft, doorRight, doorClose = false, false, false
             if self.State == 5 and (Train.SF23F8.Value == 1) then
                 local Back = false
-                local err3, err4, err6, err7, err10, err11, err12, err16, err13, err14, err18
-                local err19 = false
-                --local err13state = false		
+                local sfBroken = false
                 local HVBad, PantDisabled = false, false
                 for i = 1, self.WagNum do
                     local train = self.Trains[self.Trains[i]]
@@ -876,13 +916,13 @@ if SERVER then
                     if train.PantDisabled then PantDisabled = true end
                 end
 
-                err11 = Train.SF80F1.Value < 0.5
+                local doorsNotClosed = Train.SF80F1.Value < 0.5
 
                 self.PantDisabled = PantDisabled
                 if HVBad and not self.HVBad then self.HVBad = CurTime() end
                 if not HVBad and self.HVBad then self.HVBad = false end
                 self.SchemeEngaged = false
-                if RV > 0 and not Back then
+                if RvWork and not Back then
                     for i = 1, self.WagNum do
                         Train:CANWrite("BUKP", Train:GetWagonNumber(), "BUV", self.Trains[i], "Orientate", i % 2 > 0)
                     end
@@ -892,7 +932,7 @@ if SERVER then
                     local uLvmin, uLvmax
                     local uHvmin, uHvmax
                     local countBL = 0
-                    self.DoorClosed = not err11
+                    self.DoorClosed = not doorsNotClosed
                     for i = 1, self.WagNum do
                         local trainid = self.Trains[i]
                         local train = self.Trains[trainid]
@@ -925,6 +965,8 @@ if SERVER then
                     local schemeAny = false
                     local btbAll = true
 
+                    self:BeginWagonsCheck()
+
                     for i = 1, self.WagNum do
                         local trainid = self.Trains[i]
                         local train = self.Trains[trainid]
@@ -937,21 +979,18 @@ if SERVER then
                         end
 
                         if not doorclose then self.DoorClosed = false end
-                        local working = self:IsChange(train)
-                        err3 = err3 or (not working)
+                        local working = self:CheckBuv(train)
+                        self:CheckWagError(i, "BuvDiscon", not working)
+                        self:CheckWagError(i, "NoOrient", working and train.WagNOrientated)
+                        self:CheckWagError(i, "EmergencyBrake", working and train.EmergencyBrake)
+                        self:CheckWagError(i, "ParkingBrake", working and train.ParkingBrakeEnabled)
+                        self:CheckWagError(i, "Doors", working and not doorclose)
+                        self:CheckWagError(i, "RearCabin", working and train.DoorBack and trainid ~= Train:GetWagonNumber())
+                        self:CheckWagError(i, "PassLights", working and not train.PassLightEnabled)
+
                         if working then
-                            err4 = err4 or train.WagNOrientated
-                            err6 = err6 or train.EmergencyBrake
-                            err7 = err7 or train.ParkingBrakeEnabled
-                            --err7 = err7 or train.WagNOrientated
-                            err10 = err10 or train.PTEnabled
-                            err11 = err11 or not doorclose
-                            err12 = err12 or train.DoorBack and trainid ~= Train:GetWagonNumber()
-                            --err13 = err13 or train.PSNEnabled == 0 and MKNotWork
-                            --err14 = err14 or train.PSNEnabled == 0
-                            err16 = err16 or not train.PassLightEnabled
-                            err18 = err18 or not train.SF47
-                            ptApplied = ptApplied or train.PTEnabled
+                            ptApplied = not ptApplied and train.PTEnabled and i or ptApplied and train.PTEnabled and true or ptApplied
+                            doorsNotClosed = doorsNotClosed or not doorclose
 
                             if train.BVEnabled then bvEnabled = bvEnabled + 1 end
                             if not train.BVEnabled and train.AsyncInverter then bvDisabled = bvDisabled + 1 end
@@ -966,11 +1005,8 @@ if SERVER then
                         end
 
                         --Errors
-                        --self:CheckError(15,not train.MainLights)
-                        --self:CheckError(16,not train.Vent1 or not Train)
                         Train:SetNW2Bool("VityazDoors" .. i, doorclose)
                         Train:SetNW2Bool("VityazBV" .. i, train.BVEnabled)
-                        --print(i,working)
                         Train:SetNW2Bool("VityazBUVState" .. i, working) --"БУВ" --train.BUVWork 
                         Train:SetNW2Bool("VityazBattery" .. i, train.Battery) --Батарея
                         Train:SetNW2Bool("VityazBTBReady" .. i, train.BTBReady) --"БТБ ГОТ"
@@ -1004,13 +1040,18 @@ if SERVER then
                         Train:SetNW2Bool("VityazDoorRight" .. i, doorrightopened)
                         --Train:SetNW2Bool("VityazAKB"..i,train.Electric.Battery80V < 62)
                         self.SchemeEngaged = self.SchemeEngaged or not train.NoAssembly
+
+                        local sfWas = sfBroken
                         for i = 1, 3 do
                             for k = 1, #SFTbl[i] do
                                 if working and not train["SF" .. SFTbl[i][k]] then
-                                    err19 = 10 * i + k
+                                    sfBroken = 10 * i + k
                                     self.err19state = i
                                 end
                             end
+                        end
+                        if sfWas ~= sfBroken then
+                            self:CheckWagError(i, "SF", sfBroken)
                         end
 
                         Train:SetNW2Bool("VityazAddressDoorsL" .. i, orientation and train.AddressDoorsL or not orientation and train.AddressDoorsR)
@@ -1022,17 +1063,19 @@ if SERVER then
                             Train:SetNW2Bool("VityazDoorML" .. i, orientation and train.CabDoorLeft or not orientation and train.CabDoorRight)
                             Train:SetNW2Bool("VityazDoorMR" .. i, orientation and train.CabDoorRight or not orientation and train.CabDoorLeft)
                             Train:SetNW2Bool("VityazDoorT" .. i, train.CabDoorPass)
-                            err11 = err11 or Train.SF80F3.Value == 1 and (not train.CabDoorLeft or not train.CabDoorRight) and trainid ~= Train:GetWagonNumber()
-                            err12 = err12 or (not train.CabDoorLeft or not train.CabDoorRight) and trainid ~= Train:GetWagonNumber()
+                            doorsNotClosed = doorsNotClosed or Train.SF80F3.Value == 1 and (not train.CabDoorLeft or not train.CabDoorRight) and trainid ~= Train:GetWagonNumber()
                             cabDoors = cabDoors or not train.CabDoorLeft or not train.CabDoorRight or not train.CabDoorPass
                         end
 
                         Train:SetNW2Bool("VityazCondK" .. i, train.CondK)
                     end
 
-                    local errPT = self.PTEnabled and CurTime() - self.PTEnabled > 3.5 + (Train.BUV.Slope1 and 1 or 0)
+                    local noOrient = self.Errors.NoOrient
+                    self:EndWagonsCheck()
 
-                    Train:SetNW2Int("VityazDoorsAll", err11 and 0 or cabDoors and 2 or 1)
+                    local errPT = self.PTEnabled and CurTime() - self.PTEnabled > 2 + (Train.BUV.Slope1 and 1.2 or 0)
+
+                    Train:SetNW2Int("VityazDoorsAll", doorsNotClosed and 0 or cabDoors and 2 or 1)
                     Train:SetNW2Int("VityazHvAll", hvGood == 0 and 0 or hvBad == 0 and 1 or 2)
                     Train:SetNW2Int("VityazBvAll", bvEnabled == 0 and 0 or bvDisabled == 0 and 1 or 2)
                     Train:SetNW2Bool("VityazCondAny", condAny)
@@ -1041,15 +1084,15 @@ if SERVER then
                     Train:SetNW2Int("VityazALS", Train.ALS.Value == 1 and 1 or -1)
                     Train:SetNW2Int("VityazBOSD", Train.DoorBlock.Value == 1 and 0 or -1)
 
-                    Train:SetNW2Bool("VityazShowDoors", err11)
+                    Train:SetNW2Bool("VityazShowDoors", doorsNotClosed)
                     Train:SetNW2Bool("VityazShowBV", bvDisabled > 0)
                     Train:SetNW2Bool("VityazShowScheme", self.SchemeTimer and self.SchemeTimer < CurTime())
                     Train:SetNW2Bool("VityazShowPTApply", errPT)
-                    Train:SetNW2Bool("VityazShowPBApply", err7)
-                    Train:SetNW2Bool("VityazShowBUVState", err3)
+                    Train:SetNW2Bool("VityazShowPBApply", self.Errors.ParkingBrake)
+                    Train:SetNW2Bool("VityazShowBUVState", self.Errors.BuvDiscon)
                     Train:SetNW2Bool("VityazShowBTBReady", not btbAll)
 
-                    local schemeShouldAssemble = schemeAny or Train.RV["KRR15-16"] * Train.SF23F1.Value < 0.5 and Train.KV765.Position > 0
+                    local schemeShouldAssemble = schemeAny or RvKro and Train.KV765.Position > 0 and not self.PTEnabled and not self.Errors.EmergencyBrake
                     if not schemeAll and schemeShouldAssemble and not self.SchemeTimer then self.SchemeTimer = CurTime() + 1.8 end
                     if (not schemeShouldAssemble or schemeAll) and self.SchemeTimer then self.SchemeTimer = nil end
 
@@ -1058,78 +1101,55 @@ if SERVER then
                     Train:SetNW2Bool("VityazProst", self.Prost)
                     Train:SetNW2Bool("VityazKos", self.Kos)
                     --Door controls
-                    if not err4 and Train.Electric.DoorsControl > 0 and Train.DoorLeft.Value > 0 and Train.DoorSelectL.Value > 0 and Train.DoorSelectR.Value == 0 and (not Train.Prost_Kos.BlockDoorsL or Train.DoorBlock.Value == 1) then doorLeft = true end
-                    if not err4 and Train.Electric.DoorsControl > 0 and Train.DoorRight.Value > 0 and Train.DoorSelectR.Value > 0 and Train.DoorSelectL.Value == 0 and (not Train.Prost_Kos.BlockDoorsR or Train.DoorBlock.Value == 1) then doorRight = true end
+                    if not self.Errors.NoOrient and Train.Electric.DoorsControl > 0 and Train.DoorLeft.Value > 0 and Train.DoorSelectL.Value > 0 and Train.DoorSelectR.Value == 0 and (not Train.Prost_Kos.BlockDoorsL or Train.DoorBlock.Value == 1) then doorLeft = true end
+                    if not self.Errors.NoOrient and Train.Electric.DoorsControl > 0 and Train.DoorRight.Value > 0 and Train.DoorSelectR.Value > 0 and Train.DoorSelectL.Value == 0 and (not Train.Prost_Kos.BlockDoorsR or Train.DoorBlock.Value == 1) then doorRight = true end
                     Train:SetNW2Bool("VityazCond", self.CondLeto)
                     --Train:SetNW2Bool("VityazCondWork",self.States["Cond1"])		
                     Train:SetNW2Bool("VityazDoorBlockL", self.CurrentSpeed < 1.8 and (not Train.Prost_Kos.BlockDoorsL or Train.DoorBlock.Value == 1))
                     Train:SetNW2Bool("VityazDoorBlockR", self.CurrentSpeed < 1.8 and (not Train.Prost_Kos.BlockDoorsR or Train.DoorBlock.Value == 1))
                     if Train:ReadTrainWire(33) + (1 - Train.Electric.V2) > 0 and self.EmergencyBrake == 1 then self.EmergencyBrake = 0 end
-                    --if max1 and min1 and max1-min1 >= 1.5 and Train.RV.KRRPosition == 0 and Train:ReadTrainWire(33) == 0 then self.EmergencyBrake = 1 end --макс разница давления между тм
+
                     if self.BLTimer and CurTime() - self.BLTimer > 0 and Train.RV.KRRPosition == 0 and Train.Electric.SD == 0 and Train.Electric.V2 > 0 and self.EmergencyBrake == 0 then
                         self.State2 = 52
+                        self.MainScreen = false
                         self.EmergencyBrake = 1
                     end
 
-                    self:CheckError(5.5, self.BLTimer and CurTime() - self.BLTimer > 0)
-                    --print(max1-min1)
-                    self:CheckError(1, false)
-                    self:CheckError(2, Train.SF23F3.Value == 0 and Train.RV.KROPosition ~= 0 or Train.RV.KRRPosition ~= 0 and Train.SF23F1.Value == 0)
-                    self:CheckError(3, err3)
-                    self:CheckError(4, err4 or self.Errors[4] and Train.KV765.Position > 0)
-                    self:CheckError(5, BARS.DisableDrive or self.Errors[5] and Train.KV765.Position > 0)
-                    self:CheckError(6, err6)
-                    self:CheckError(7, err7)
-                    --self:CheckError(7,train.WagNOrientated)
-                    self:CheckError(11, err11 or self.Errors[11] and Train.KV765.Position > 0)
-                    self.err11 = err11 or self.Errors[11] and Train.KV765.Position > 0
+                    self:CheckError("BrakeLine", self.BLTimer and CurTime() - self.BLTimer > 0)
+                    self:CheckError("RvErr", false)
+                    self:CheckError("KmErr", false)
+                    self:CheckError("DisableDrive", BARS.DisableDrive or self.Errors.DisableDrive and Train.KV765.Position > 0)
+                    if not self.Errors.NoOrient then self:CheckError("NoOrient", noOrient and Train.KV765.Position > 0) end
+                    if not self.Errors.Doors then self:CheckError("Doors", doorsNotClosed or self.WasDoors and Train.KV765.Position > 0) end
 
-                    local err11ch = self.err11was ~= self.err11
-                    if self.MainScreen and self.err11 and err11ch then
+                    local err11ch = self.WasDoors ~= not not self.Errors.Doors
+                    if self.MainScreen and self.Errors.Doors and err11ch then
                         self.AutoChPage = self.State2
                         self.State2 = 21
                         self.MainScreen = false
                     end
-                    if not self.err11 and err11ch and self.AutoChPage and not self.AwaitOpenDoors then
+                    if not self.Errors.Doors and err11ch and self.AutoChPage and not self.AwaitOpenDoors then
                         self.State2 = self.AutoChPage
                         self.MainScreen = true
                     end
-                    if self.AwaitOpenDoors and (not self.AutoChPage or self.err11) then
+                    if self.AwaitOpenDoors and (not self.AutoChPage or self.Errors.Doors) then
                         self.AwaitOpenDoors = false
                     end
-                    self.err11was = self.err11
+                    self.WasDoors = not not self.Errors.Doors
 
-                    self:CheckError(12, err12)
-
-                    --if (err14 or err15 and not err14 or not (err15 and not err14) and MKNotWork) and not self.ErrorTimer then
-                    --self.ErrorTimer = CurTime()
-                    --end
-                    --if self.ErrorTimer and CurTime()-self.ErrorTimer > 3 then
-                    if not self.HVBad then
-                        err13 = false
-                        err14 = false
-                        self:CheckError(13, false) -- включи МК и ПСН
-                        self:CheckError(14, false) -- включи ПСН
-                        self:CheckError(15, false) -- включи МК
+                    if not sfBroken then
+                        self:CheckError("SF", false)
+                    end
+                    if sfBroken ~= self.sfBroken and self.err19state and CurTime() - self.BErrorsTimer > 0 then
+                        self.sfBroken = sfBroken
+                        -- if sfBroken then
+                        --     self.State2 = 90 + self.err19state
+                        --     self.LegacyScreen = true
+                        -- end
                     end
 
-                    --end
-                    --if self.Timer2 and CurTime()-self.Timer2 > 0 then
-                    self:CheckError(16, err16)
-                    --end	
-                    --17 конд неиспр
-                    self:CheckError(18, err18) --18 неиспр дв. - адуд
-                    if err19 ~= self.err19 and self.err19state and CurTime() - self.Timer2 > 0 then
-                        self.err19 = err19
-                        if err19 then
-                            self.State2 = 90 + self.err19state
-                            self.LegacyScreen = true
-                        end
-                    end
-
-                    self:CheckError(19, err19 and isnumber(err19))
                     if Train.RV["KRO5-6"] == 0 then
-                        local AllowDriveInput = BARS.Brake == 0 and BARS.Drive > 0 and (self.Error == 0 or self.Error == 5.5 and self.EmergencyBrake == 0 or self.Error >= 9 and self.Error ~= 11 or self.Error == 11 and Train.DoorBlock.Value > 0)
+                        local AllowDriveInput = BARS.Brake == 0 and BARS.Drive > 0
                         if AllowDriveInput or Train.KV765.TractiveSetting <= 0 then
                             stength = Train.KV765.TractiveSetting
                         end
@@ -1140,7 +1160,7 @@ if SERVER then
                         if Train.Prost_Kos.Command ~= 0 and Train.Prost_Kos.ProstActive == 1 and Train.KV765.Position >= 0 then stength = translate_oka_kv_to_765(Train.Prost_Kos.Command) override = true end
                         if Train.Prost_Kos.CommandKos then stength = -100 override = true end
                         if BARS.Brake > 0 then stength = -100 override = true end
-                        if err6 and (Train.KV765.Position > 0 or Train.Speed > 1.6) then stength = -100 override = true end
+                        if self.Errors.EmergencyBrake and (Train.KV765.Position > 0 or Train.Speed > 1.6) then stength = -100 override = true end
                         local sb = not override and (BARS.StillBrake == 1 or Train.Speed < 0.5 and BARS.PN1 == 1)
                         if sb then stength = -50 override = true end
 
@@ -1179,18 +1199,19 @@ if SERVER then
                         Train:SetNW2Int("VityazProstNum", 0)
                     end
 
-                    if err10 and stength > 0 and not self.PTEnabled then self.PTEnabled = CurTime() end
-                    if (not err10 or stength <= 0) and self.PTEnabled then self.PTEnabled = nil end
-                    self:CheckError(9, errPT) --2.7
-                    self:CheckError(10, self.HVBad and CurTime() - self.HVBad > 10)
+                    if ptApplied and stength > 0 and not self.PTEnabled then self.PTEnabled = CurTime() end
+                    if (not ptApplied or stength <= 0) and self.PTEnabled then self.PTEnabled = nil end
+
+                    self:CheckError("PneumoBrake", errPT and ptApplied, ptApplied)
+                    self:CheckError("HV", self.HVBad and CurTime() - self.HVBad > 10)
+
                     Train:SetNW2Int("VityazThrottle", math.Round(stength or 0))
-                    local train = self.Trains[self.Trains[1]]
+                    local buv = self.Trains[self.Trains[1]]
                     Train:SetNW2Int("VityazBUVStrength", math.abs(Train.BUV.Strength))
-                    --Train:SetNW2Int("VityazI",math.abs(Train.AsyncInverter.Current)*100)
-                    if train and train.LV then
-                        Train:SetNW2Int("VityazPNM", train.TLPressure * 10)
-                        Train:SetNW2Int("VityazPTM", train.BLPressure * 10)
-                        Train:SetNW2Int("VityazUbs", train.LV)
+                    if buv and buv.LV then
+                        Train:SetNW2Int("VityazPNM", buv.TLPressure * 10)
+                        Train:SetNW2Int("VityazPTM", buv.BLPressure * 10)
+                        Train:SetNW2Int("VityazUbs", buv.LV)
                         if min then Train:SetNW2Int("VityazPMin", min * 10) end
                         if max then Train:SetNW2Int("VityazPMax", max * 10) end
                         if uLvmin then Train:SetNW2Int("VityazLvMin", uLvmin) end
@@ -1200,58 +1221,30 @@ if SERVER then
                     end
 
                     local speed = 99
-                    -- if Train.Speedometer.State > 0 then
                     self.Speed = math.Round(Train.ALSCoil.Speed * 10) / 10 --math.floor(Train.ALSCoil.Speed)
                     speed = self.Speed
-                    -- elseif self.Speed > 1.8 then
-                    --     speed = self.Speed
-                    -- end
 
-                    --print(BARS.Speed)
                     Train:SetNW2Int("VityazSpeed", BARS.Speed) --Train.Speedometer.State > 0 and math.floor(Train.BARS.Speed) or 99)
                     self.CurrentSpeed = speed == 99 and 0 or speed
-                    --if BARS.NoFreq or BARS.UOS then
-                    --Train:SetNW2Int("VityazSpeedLimit",BARS.UOS and 35 or 19)
-                    --else
-                    --Train:SetNW2Int("VityazSpeedLimit",--[[(BARS.BadFq and (self.F3 or self.F2 or self.F1)) and 40 or]] BARS.NoFreq and 19 or math.floor(BARS.SpeedLimit))
-                    --end
-                    --Train:SetNW2Bool("VityazBadFq",BARS.BadFq)
+
+                    local driveInput = RvKro > 0 and (Train.KV765.Position > 0) or RvKrr > 0 and (Train.EmerX1.Value + Train.EmerX2.Value > 0)
+                    self.DisableDrive = BARS.DisableDrive or self.Errors.DisableDrive and Train.KV765.Position > 0
+                    self.BARS1 = BARS.PN1 < 1 and BARS.ATS1 and (driveInput or speed > 0)
+                    self.BARS2 = BARS.PN1 < 1 and BARS.ATS2 and (driveInput or speed > 0)
+
                     Train:SetNW2Bool("KB", BARS.KB)
                     Train:SetNW2Bool("VityazNextNoFq", BARS.NextNoFq)
                     Train:SetNW2Int("VityazSpeedLimitNext", BARS.NextNoFq and -1 or (BARS.NextLimit or 0))
                     Train:SetNW2Bool("VityazKB", BARS.KB)
                     Train:SetNW2Bool("VityazUOS", BARS.UOS)
-                    Train:SetNW2Bool("DisableDrive", BARS.DisableDrive or self.Errors[5] and Train.KV765.Position > 0)
+                    Train:SetNW2Bool("DisableDrive", self.DisableDrive)
                     Train:SetNW2Bool("VityazBTB", Train.BUV.BTB)
-                    Train:SetNW2Bool("VityazKRR", Train.RV["KRR15-16"] > 0)
-                    Train:SetNW2Bool("VityazEmerActive", err6)
-                    Train:SetNW2Bool("VityazParkEnabled", err7)
-                    Train:SetNW2Bool("VityazPtApplied", ptApplied)
+                    Train:SetNW2Bool("VityazKRR", RvKrr > 0)
+                    Train:SetNW2Bool("VityazEmerActive", self.Errors.EmergencyBrake)
+                    Train:SetNW2Bool("VityazParkEnabled", self.Errors.ParkingBrake)
+                    Train:SetNW2Bool("VityazPtApplied", not not ptApplied)
                     Train:SetNW2Bool("VityazPtAppliedRear", self.Trains[self.WagNum] and self.Trains[self.Trains[self.WagNum]] and self.Trains[self.Trains[self.WagNum]].PTEnabled or false)
-                    self.AO = Train.ALSCoil.AO --[[BARS.Active > 0 and]]
-                    self.err = 0
-                    if Train.SF23F8.Value == 0 and self.err == 0 then
-                        self.err = 2
-                    elseif Train.SF23F7.Value == 0 and self.err == 0 then
-                        self.err = 1
-                    elseif Train.DoorBlock.Value == 1 then
-                        self.err = -1
-                    end
-
-                    if self.err > 0 then self.err = Train.PmvAtsBlock.Value == self.err and 0 or self.err end
-                    if BARS.Active == 0 or Train.RV.KRRPosition ~= 0 then
-                        Train:SetNW2Bool("VityazBARS1", self.err > 0 and (Train.SF23F7.Value > 0.5 or Train.KV765.Position <= 0)) --"АРС"
-                        Train:SetNW2Bool("VityazBARS2", self.err > 0 and (Train.SF23F8.Value > 0.5 or Train.KV765.Position <= 0)) --"АРС"						
-                    else
-                        Train:SetNW2Bool("VityazBARS1",
-                            (BARS.PN1 == 1) and (Train.SF23F7.Value > 0.5 or Train.KV765.Position <= 0))
-
-                        Train:SetNW2Bool("VityazBARS2",
-                            (BARS.PN1 == 1) and (Train.SF23F8.Value > 0.5 or Train.KV765.Position <= 0))
-                    end
-
-                    Train:SetNW2Int("VityazARS1", BARS.Active == 1 and not BARS.ATS1 and -1 or Train:GetNW2Bool("DisableDrive", false) and 2 or Train:GetNW2Bool("VityazBARS1", false) and 0 or 1)
-                    Train:SetNW2Int("VityazARS2", BARS.Active == 1 and not BARS.ATS2 and -1 or Train:GetNW2Bool("DisableDrive", false) and 2 or Train:GetNW2Bool("VityazBARS2", false) and 0 or 1)
+                    self.AO = Train.ALSCoil.AO
 
                     for i = 1, self.WagNum do
                         local train = self.Trains[self.Trains[i]]
@@ -1394,12 +1387,6 @@ if SERVER then
                     end
 
                     Train:SetNW2Int("VityazErr", self.err)
-                    -- if self.err > 0 and not self.wasErr then
-                    --     self.wasErr = true
-                    --     self.MainScreen = false
-                    -- elseif self.err <= 0 and self.wasErr then
-                    --     self.wasErr = false
-                    -- end
 
                     for k = 1, self.WagNum do
                         local train = self.Trains[k]
@@ -1414,8 +1401,6 @@ if SERVER then
                     end
 
                     if self.Slope and (not self.SchemeEngaged or not self.SlopeSpeed and stength ~= 0) then self.Slope = false end
-                    --print(Train.BUV.Scheme)
-                    --print(self.SchemeEngaged)
                 else
                     if not self.InitTimer then self.Reset = nil end
                     self.AO = false
@@ -1424,53 +1409,23 @@ if SERVER then
                     self.EmergencyBrake = 0
                     self.BTB = 0
                     --self.Slope = false
-                    --if Back then self.Timer2 = CurTime()+3 end--self.State2 = 11 
-                    self.Timer2 = CurTime() + 3
+                    --if Back then self.BErrorsTimer = CurTime()+3 end--self.State2 = 11 
+                    self.BErrorsTimer = CurTime() + 3
                     if self.PTEnabled then self.PTEnabled = nil end
                     self.BLTimer = nil
-                    self:CheckError(1, false)
-                    self:CheckError(2, false)
-                    self:CheckError(3, false)
-                    self:CheckError(4, false)
-                    self:CheckError(5, false)
-                    self:CheckError(5.5, false)
-                    self:CheckError(6, false)
-                    self:CheckError(7, false)
-                    self:CheckError(9, false)
-                    self:CheckError(10, false)
-                    --self:CheckError(7,train.WagNOrientated)
-                    self:CheckError(11, false)
-                    self:CheckError(12, false)
-                    self:CheckError(13, false)
-                    self:CheckError(14, false)
-                    self:CheckError(15, false)
-                    self:CheckError(16, false)
-                    self:CheckError(17, false)
-                    self:CheckError(18, false)
-                    self:CheckError(19, false)
-                    if self.Error then self.Errors[self.Error] = false end
+                    self:ClearErrors()
+                    -- if self.Error then self.Errors[self.Error] = false end
                 end
 
                 Train:SetNW2Bool("AOState", self.AO)
-                local currerr = 0
                 if not self.InitTimer then
-                    for id, err in pairs(self.Errors) do
-                        if err and (currerr == 0 or id < currerr) then currerr = id end
-                    end
-
-                    if self.Error ~= currerr then
-                        if currerr > 0 and currerr < 11 and currerr ~= 5 then self.ErrorRing = CurTime() end
-                        self.Error = currerr
-                    end
-
-                    if self.ErrorRing and (currerr == 0 or currerr > 11) then self.ErrorRing = nil end
+                    self:CommitError()
                 end
 
-                Train:SetNW2Int("VityazError", currerr and (currerr == 5.5 and 20 or currerr) or 0)
-                if (1 - Train.RV["KRO5-6"]) + Train.RV["KRR15-16"] == 0 and not Back then
-                    Train:SetNW2Int("VityazMainMsg", 1)
+                if RV == 0 and not Back then
+                    self.MainMsg = MAINMSG_RVOFF
                 else
-                    Train:SetNW2Int("VityazMainMsg", Back and RV > 0 and 3 or Back and 2 or (Train.SF23F3.Value == 0 and Train.RV.KROPosition ~= 0 or Train.RV.KRRPosition ~= 0 and Train.SF23F1.Value == 0) and 4 or RV == 0 and 1 or 0)
+                    self.MainMsg = Back and RvWork and MAINMSG_2RV or Back and MAINMSG_REAR or not RvWork and RV > 0 and MAINMSG_RVFAIL or not RvWork and MAINMSG_RVOFF or MAINMSG_NONE
                 end
 
                 if not (Train.DoorBlock.Value * Train.EmergencyDoors.Value == 1) and (Train.SF23F8.Value * Train.DoorClose.Value) == 1 then doorClose = true end
@@ -1508,7 +1463,7 @@ if SERVER then
                 RunConsoleCommand("say",self.EnginesStrength)
             end]]
             --print(self.EnginesStrength)
-            self:CState("RV", RV > 0, "BUKP")
+            self:CState("RV", RvWork, "BUKP")
             self:CState("Ring", Train.Ring.Value > 0, "BUKP")
             self.ControllerState = stength
             self:CState("DriveStrength", math.abs(stength))
@@ -1516,6 +1471,7 @@ if SERVER then
             self:CState("StrongerBrake", stength < 0 and Train.KV765.Position < -1 and Train.BARS.StillBrake == 0 and 1 or 0)
             self:CState("PN1", Train.BARS.PN1)
             self:CState("PN2", Train.BARS.PN2 + (self.Slope and Train.RV.KROPosition ~= 0 and self.SlopeSpeed and 1 or 0))
+            self:CState("PN3", Train.BARS.PN3)
             for t = 1, self.WagNum do
                 local train = self.Trains[t]
                 if train then
@@ -1524,7 +1480,7 @@ if SERVER then
                     end
                     self:CStateTarget(
                         "PantDisabled" .. train, "PantDisabled", "BUV", train,
-                        (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 2) and t % 2 == 1 or (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 1) and t % 2 == 0
+                        (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 2) and t > self.WagNum / 2 or (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 1) and t <= self.WagNum / 2
                     )
                     self:CStateTarget("WagIdx" .. train, "WagIdx", "BUV", train, t)
                     self:CStateTarget("TrainLen" .. train, "TrainLen", "BUV", train, self.WagNum)
@@ -1537,9 +1493,9 @@ if SERVER then
                 if train and train.Ring then ring = true end
             end
 
-            self.Ring = Train.BARS.Ring > 0 --[[or Train.Prost_Kos.Programm and Train.Speed > 2 or ring]] --or self.ErrorRing and CurTime()-self.ErrorRing < 2 --or self.Error > 11
+            self.Ring = Train.BARS.Ring > 0
             self.ErrorRinging = ring or (Train.Prost_Kos.Programm and Train.Speed > 2) or self.ErrorRing and CurTime() - self.ErrorRing < 2
-            if Train:GetNW2Int("VityazMainMsg", 0) < 2 then
+            if self.MainMsg < 2 then
                 if (Train.SF23F8.Value > 0) and self.State == 5 then
                     self.PSN = true
                 else
@@ -1558,7 +1514,7 @@ if SERVER then
                     self.PassLight = false
                 end
 
-                if (Train.PowerOff.Value * Train.SF23F8.Value * Train.SF30F1.Value > 0) and self.State == 5 and Train:GetNW2Int("VityazMainMsg", 0) == 0 then
+                if (Train.PowerOff.Value * Train.SF23F8.Value * Train.SF30F1.Value > 0) and self.State == 5 and self.MainMsg == 0 then
                     self.PowerOff = true
                 else
                     self.PowerOff = false
@@ -1593,6 +1549,10 @@ if SERVER then
             self.Ring = false
         end
 
+        Train:SetNW2Int("VityazARS1", BARS.ATS1Disabled and -1 or not self.BARS1 and 0 or self.DisableDrive and 2 or 1)
+        Train:SetNW2Int("VityazARS2", BARS.ATS2Disabled and -1 or not self.BARS2 and 0 or self.DisableDrive and 2 or 1)
+        Train:SetNW2Int("VityazMainMsg", self.MainMsg)
+
         self.EmergencyBrake = self.State == 5 and self.EmergencyBrake or 0
         self:CState("BUPWork", self.State > 0)
         Train:SetNW2Int("VityazSelected", self.Selected)
@@ -1616,7 +1576,7 @@ if SERVER then
             Train:SetNW2String("VityazLineName", line)
         end
 
-        self.ZeroSpeed = self.State == 5 and Train:GetNW2Int("VityazMainMsg", 0) == 0 and self.CurrentSpeed < 1.8 and 1 or 0
+        self.ZeroSpeed = self.State == 5 and self.MainMsg == 0 and self.CurrentSpeed < 1.8 and 1 or 0
 
         if self.State > 0 and self.Reset and self.Reset == 1 then self.Reset = false end
     end
@@ -2264,11 +2224,13 @@ else
                 self:PrintText(19, 1, (vityazs < 0 and "-" or "") .. s, Color(128, 128, 128), "right") --Расстояние
             end
 
+            local ars1 = Train:GetNW2Int("VityazARS1", -1)
+            local ars2 = Train:GetNW2Int("VityazARS2", -1)
             self:PrintText(24, 1, "БТБ", yellow, true)
             self:PrintText(28, 1, "█", Train:GetNW2Bool("VityazBTB", false) and red or green)
             self:PrintText(31, 1, "АРС", yellow, true)
-            self:PrintText(35, 1, "█", Train:GetNW2Bool("DisableDrive", false) and yellow or Train:GetNW2Bool("VityazBARS1", false) and red or green)
-            self:PrintText(37, 1, "█", Train:GetNW2Bool("DisableDrive", false) and yellow or Train:GetNW2Bool("VityazBARS2", false) and red or green)
+            self:PrintText(35, 1, "█", ars1 == 0 and red or ars1 == 1 and green or ars1 == 2 and yellow or grey2)
+            self:PrintText(37, 1, "█", ars2 == 0 and red or ars2 == 1 and green or ars2 == 2 and yellow or grey2)
             self:PrintText(24, 9, "РЕЖИМ: " .. (Train:GetNW2Bool("VityazUOS", false) and "УОС" or self.RezhimARS), yellow)
             local nextnofq, KB = Train:GetNW2Bool("VityazNextNoFq", false), Train:GetNW2Bool("VityazKB", false)
             for i = 0, 2 - ((self.RezhimARS == "2/6" or self.RezhimARS == "ДАУ") and 0 or 1) do

@@ -1129,38 +1129,11 @@ function ENT:OnButtonPress(button, ply)
         -- end
     end
 
-    if button == "KRO+" then
-        if self.RV.KRRPosition == 0 then
-            self.RV:TriggerInput("KROSet", self.RV.KROPosition + 1)
-        else
-            --self.RV:TriggerInput("KRRSet",self.RV.KRRPosition+1)
-        end
-    end
+    if button == "KRO+" then self.RV:TriggerInput("KROSet", self.RV.KROPosition + 1) end
+    if button == "KRO-" then self.RV:TriggerInput("KROSet", self.RV.KROPosition - 1) end
 
-    if button == "KRO-" then
-        if self.RV.KRRPosition == 0 then
-            self.RV:TriggerInput("KROSet", self.RV.KROPosition - 1)
-        else
-            --self.RV:TriggerInput("KRRSet",self.RV.KRRPosition-1)
-        end
-    end
-
-    if button == "KRR+" and self.RV.KROPosition == 0 then self.RV:TriggerInput("KRRSet", self.RV.KRRPosition + 1) end
-    if button == "KRR-" and self.RV.KROPosition == 0 then self.RV:TriggerInput("KRRSet", self.RV.KRRPosition - 1) end
-    if button == "WrenchKRO" then
-        if self.RV.KRRPosition == 0 then
-            --self:PlayOnce("kro_in","cabin",1)
-            self.WrenchMode = 1
-        end
-    end
-
-    if button == "WrenchKRR" then
-        if self.RV.KROPosition == 0 and self.WrenchMode ~= 2 then
-            --self:PlayOnce("krr_in","cabin",1)
-            self.WrenchMode = 2
-            RunConsoleCommand("say", ply:GetName() .. " want drive with KRU!")
-        end
-    end
+    if button == "KRR+" then self.RV:TriggerInput("KRRSet", self.RV.KRRPosition + 1) end
+    if button == "KRR-" then self.RV:TriggerInput("KRRSet", self.RV.KRRPosition - 1) end
 
     if button:find("KRO") or button:find("KRR") then self.WrenchMode = self.RV.KROPosition ~= 0 and 1 or (self.RV.KRRPosition ~= 0 and 2) or 0 end
     if button == "Micro" then

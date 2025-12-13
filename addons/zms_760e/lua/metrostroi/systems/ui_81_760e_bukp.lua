@@ -3,9 +3,33 @@ if SERVER then
     return
 end
 
+local MAINMSG_NONE = 0
+local MAINMSG_RVOFF = 1
+local MAINMSG_REAR = 2
+local MAINMSG_2RV = 3
+local MAINMSG_RVFAIL = 4
+local MainMsg = {
+    "РВ Выключены",
+    "Хвостовой ПУ",
+    "Включены 2 РВ",
+    "Сбой РВ"
+}
 
 function TRAIN_SYSTEM:Ui765()
-    self.MainMsg = self.Train:GetNW2Int("VityazMainMsg", 0)
+    local mainMsg = self.Train:GetNW2Int("VityazMainMsg", 0)
+    local rv = self.Train:GetNW2Int("VityazRV", 0)
+    if self.MainMsg and self.MainMsg > 0 and mainMsg == 0 then
+        if not self.ClientInitTimer then
+            self.ClientInitTimer = CurTime() + math.Rand(0.3, 1.4)
+        elseif CurTime() > self.ClientInitTimer then
+            self.MainMsg = 0
+        end
+    elseif self.ClientInitTimer then
+        self.ClientInitTimer = nil
+        self.MainMsg = mainMsg
+    else
+        self.MainMsg = mainMsg
+    end
     if self.MainMsg == 0 and self.State == 5 and not self.LegacyScreen then
         local Wag = self.Train
 
@@ -14,8 +38,8 @@ function TRAIN_SYSTEM:Ui765()
         local vigilance = Wag:GetNW2Bool("VityazKB", false)
         local speedNextNofq = Wag:GetNW2Bool("VityazNextNoFq", false)
         local speedNext = self.AlsArs and (speedNextNofq and "0" or Wag:GetNW2Int("VityazSpeedLimitNext", "0")) or "---"
-        self.SpeedNext = isnumber(speedNext) and speedNext < 30 and "0" or tostring(speedNext)
         local speedLimit = Wag:GetNW2Int("VityazSpeedLimit", 0)
+        self.SpeedNext = isnumber(speedNext) and speedNext < 30 and (speedLimit > 30 and speedNextNofq and "ОЧ" or "0") or tostring(speedNext)
         self.SpeedLimit = ao and "АО" or speedLimit == 19 and (not vigilance and "ОЧ" or "20") or speedLimit < 30 and not vigilance and "0" or tostring(speedLimit)
         self.Speed = Wag:GetNW2Int("VityazSpeed", 0)
 
@@ -54,6 +78,17 @@ function TRAIN_SYSTEM:Ui765()
 
         if self.Page == 0 then
             self:DrawMain(self.Train)
+        end
+
+    elseif self.State == 1 and rv ~= 0 then
+        self:DrawIdle("Идентификация", true)
+
+    elseif self.MainMsg > 0 or self.State >= 1 and self.State < 5 and rv == 0 then
+        local msg = MainMsg[self.MainMsg > 0 and self.MainMsg or 1]
+        if self.MainMsg > 2 then
+            self:DrawErr(msg)
+        else
+            self:DrawIdle(msg)
         end
     else
         return true
@@ -113,8 +148,12 @@ local icons = {
     "zxc765/mfdu_st_kos.png",
     "zxc765/mfdu_st_krr.png",
     "zxc765/mfdu_st_climb.png",
+
+    mvm = "zxc765/mvm.png",
+    niip = "zxc765/niip.png",
+    pivo = "zxc765/PIVO_logo_lt.png",
 }
-for idx, icoPath in ipairs(icons) do
+for idx, icoPath in pairs(icons) do
     local paths = istable(icoPath) and icoPath or {icoPath}
     for pidx, path in ipairs(paths) do
         local ico = Material(path, "smooth")
@@ -319,11 +358,46 @@ surface.CreateFont("Mfdu765.VoLabelBigger", {
     weight = 500,
 })
 
+surface.CreateFont("Mfdu765.IdleMessage", {
+    font = "Open Sans",
+    extended = true,
+    size = 64,
+    weight = 600,
+})
+
 local function drawBox(x, y, w, h, color, bgColor, borderSize)
     surface.SetDrawColor(color)
     surface.DrawRect(x, y, w, h)
     if bgColor then surface.SetDrawColor(bgColor) else surface.SetDrawColor(0, 0, 0) end
     surface.DrawRect(x + borderSize, y + borderSize, w - borderSize * 2, h - borderSize * 2)
+end
+
+function TRAIN_SYSTEM:DrawErr(msg)
+    surface.SetDrawColor(colorMain)
+    surface.DrawRect(scrOffsetX, scrOffsetY, scrW + scrOffsetX, scrH + scrOffsetY)
+    draw.SimpleText(msg, "Mfdu765.IdleMessage", scrW / 2, scrOffsetY + 100, colorBlack, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+end
+
+function TRAIN_SYSTEM:DrawIdle(msg, passwd)
+    surface.SetDrawColor(colorBlack)
+    surface.DrawRect(scrOffsetX, scrOffsetY, scrW + scrOffsetX, scrH + scrOffsetY)
+    draw.SimpleText(msg, "Mfdu765.IdleMessage", scrW / 2, scrOffsetY + 100, passwd and colorMain or colorYellow, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+    surface.SetDrawColor(255, 255, 255)
+    surface.SetMaterial(icons.mvm[1])
+    surface.DrawTexturedRect(0, scrOffsetY + scrH - 270, 300, 300)
+    surface.SetMaterial(icons.niip[1])
+    surface.DrawTexturedRect(340 + 40, scrOffsetY + scrH - 245, 240, 240)
+    surface.SetDrawColor(255, 255, 255)
+    surface.SetMaterial(icons.pivo[1])
+    surface.DrawTexturedRect(scrW - 280, scrOffsetY + scrH - 245, 240, 240)
+
+    if passwd then
+        local passwd = self.Train:GetNW2String("VityazPass", "")
+        local w = draw.SimpleText(passwd, "Mfdu765.IdleMessage", scrW / 2, scrOffsetY + 300, colorBlue, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        if CurTime() % 1.0 > 0.5 then
+            draw.SimpleText("|", "Mfdu765.IdleMessage", scrW / 2 + w / 2 + 4, scrOffsetY + 294, colorBlue, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        end
+    end
 end
 
 local sizeBorder = 2
@@ -467,28 +541,6 @@ local sizeMessageH = sizeStatus - sizeStatusIcon - sizeMainMargin
 local sizeStatusIconsGap = (sizeMessageW - sizeStatusIcon * 10) / 9
 local sizeMessageBorder = 6
 local sizeStatusVoltageMargin = 32
-local LegacyErrors = {
-    {"Сбой КМ.", true},
-    {"Сбой РВ.", true},
-    {"Отс. связь с БУВ-М.", true},
-    {"Вагон не ориентирован.", true},
-    {"Запрет ТР от АРС.",},
-    {"Экстренное торможение.", true},
-    {"Стояночный тормоз прижат.", true},
-    {"Дверной проем.",},
-    {"Пневмотормоз вкл.", true},
-    {"Напряжение КС.",},
-    {"Двери не закрыты.", true},
-    {"Открыта кабина ХВ.",},
-    {"Включи МК и ПСН.",},
-    {"Включи ПСН.",},
-    {"Включи МК.",},
-    {"Освещение не вкл.",},
-    {"Конд. не исправен.",},
-    {"Нет контроля дв.", true},
-    {"Включи автомат.",},
-    {"Низкое давление ТМ.", true},
-}
 local voltageList = {
     {"VityazLvMin", "бс min"},
     {"VityazLvMax", "бс max"},
@@ -559,6 +611,9 @@ local statusGetters = {
     -- Подъем
     function(self, Wag) return Wag:GetNW2Bool("AccelRateLamp", false) and colorGreen or colorMainDisabled end,
 }
+local errorsCat = {
+    {"А", colorRed}, {"Б", colorYellow}, {"В", colorBlue}
+}
 function TRAIN_SYSTEM:DrawStatus(Wag)
     self:DrawThrottle(
         Wag:GetNW2Int("VityazThrottle", 0),
@@ -566,14 +621,19 @@ function TRAIN_SYSTEM:DrawStatus(Wag)
         sizeThrottleBarW - sizeBorder * 2
     )
 
-    local err = Wag:GetNW2Int("VityazError", 0)
-    if err > 0 and LegacyErrors[err] then
-        local msg, isErr = unpack(LegacyErrors[err])
-        local color = not isErr and colorYellow or colorRed
+    local errCat = Wag:GetNW2Int("VityazErrorCat", 0)
+    if errorsCat[errCat] then
+        local cat, color = unpack(errorsCat[errCat])
+        local msg = string.Split(Wag:GetNW2String("VityazErrorStr", ""), "\n")
         local x, y = sizeStatusSide + sizeBorder, scrOffsetY + scrH - sizeFooter - sizeMessageH - sizeMainMargin
         drawBox(x, y, sizeMessageW, sizeMessageH, color, nil, sizeMessageBorder)
-        draw.SimpleText(msg, "Mfdu765.Message", x + sizeMessageW / 2, y + sizeMessageH / 2, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-        draw.SimpleText(isErr and "А" or "Б", "Mfdu765.MessageType", x + sizeMessageW - 12, y + 4, color, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+        if #msg > 1 then
+            draw.SimpleText(msg[1], "Mfdu765.Message", x + sizeMessageW / 2, y +     sizeMessageH / 4 + 6, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText(msg[2], "Mfdu765.Message", x + sizeMessageW / 2, y + 3 * sizeMessageH / 4 - 6, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        else
+            draw.SimpleText(msg[1], "Mfdu765.Message", x + sizeMessageW / 2, y + sizeMessageH / 2, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        end
+        draw.SimpleText(cat, "Mfdu765.MessageType", x + sizeMessageW - 12, y + 4, color, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
     end
 
     local w, h = sizeStatusSide - sizeBorder * 2, sizeStatus - sizeStatusVoltageMargin - sizeBorder * 2
@@ -597,10 +657,12 @@ function TRAIN_SYSTEM:DrawStatus(Wag)
         draw.SimpleText("доп", "Mfdu765.StatusSmall", x + 10, y + 8, colorRed, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
         draw.SimpleText(self.SpeedLimit, "Mfdu765.StatusValueSpeed", x, y - 4, colorRed, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
 
-        x = 5 * w / 6 + sizeBorder
-        draw.SimpleText("V", "Mfdu765.StatusLarge", x - 18, y + 10, colorYellow, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
-        draw.SimpleText("пред", "Mfdu765.StatusSmall", x + 10, y + 8, colorYellow, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
-        draw.SimpleText(self.SpeedNext, "Mfdu765.StatusValueSpeed", x, y - 4, colorYellow, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        if self.AlsArs then
+            x = 5 * w / 6 + sizeBorder
+            draw.SimpleText("V", "Mfdu765.StatusLarge", x - 18, y + 10, colorYellow, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+            draw.SimpleText("пред", "Mfdu765.StatusSmall", x + 10, y + 8, colorYellow, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+            draw.SimpleText(self.SpeedNext, "Mfdu765.StatusValueSpeed", x, y - 4, colorYellow, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        end
 
         x = 1 * w / 2 + sizeBorder
         y = scrOffsetY + scrH - sizeFooter - sizeBorder - 32
@@ -1130,7 +1192,7 @@ function TRAIN_SYSTEM:DrawCondPage(Wag, x, y, w, h)
 end
 
 local mainGridLabels = {
-    "Двери", "БВ", "Сбор схемы", "ПТ включен", "Ст. тормоз", "БУВ", "БТБ гот."
+    "Двери", "БВ", "Сбор схемы", "ПТ вкл", "Ст. тормоз", "БУВ", "БТБ гот."
 }
 local mainGridData = {
     {"VityazDoors", "VityazShowDoors"},

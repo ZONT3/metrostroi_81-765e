@@ -294,7 +294,7 @@ if SERVER then
 
         for idx = 1, self.WagNum do
             local wagon = Wag.BUKP.Trains[Wag.BUKP.Trains[idx]]
-            if not wagon or not wagon.WagNumber or not Wag.BUKP:IsChange(wagon) then
+            if not wagon or not wagon.WagNumber or not Wag.BUKP:CheckBuv(wagon) then
                 for di = 1, 8 do
                     Wag:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), false)
                 end
@@ -1304,7 +1304,7 @@ else
                         highlight = CurTime() % 1.0 < 0.5
                     elseif idx == 7 or idx == 5 or idx == 6 then
                         -- ОЧ, 0, НД (ЛН)
-                        highlight = state == STATE_RED
+                        highlight = highlight or state == STATE_RED
                     end
                     local color = highlight and statesColorsHighlighted[state] or statesColors[state]
                     if not color then print(idx, highlight, state) end

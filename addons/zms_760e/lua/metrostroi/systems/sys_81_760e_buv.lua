@@ -578,6 +578,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.PN1 = (self:Get("PN1") and self:Get("PN1") > 0) or PN and (self:Get("DriveStrength") and self:Get("DriveStrength") > 1) or self:Get("PR") and self.TargetStrength <= 0
         self.PN2 = self.Slope and self:Get("SlopeSpeed") or PN and strongerBrake
     end
+    self.PN3 = self:Get("PN3") and self:Get("PN3") > 0 or false
 
     self.PSN = not self:Get("PVU8") and Train.Electric.Battery80V > 67 and self.PSNSignal and Train.Battery.Value * Train.SF45.Value or 0
     if Train.Electric.Main750V < 550 or Train.Electric.Main750V > 975 then self.PSN = 0 end
@@ -645,7 +646,7 @@ function TRAIN_SYSTEM:Think(dT)
         if IsHead then
             self.BlockTorec = not self:Get("PVU6") and not Train.RearDoor and not Train.FrontDoor and self.BlockSignal and Train.SF42.Value * Train.Battery.Value > 0
         end
-        if (self:Get("PVU4") and Train.SF53.Value > 0 or self:Get("PantDisabled") and Train.Electric.Main750V < 20) and Train.Battery.Value > 0 then -- Train.Electric.Main750V < 20 and (self:Get("TP1") and self.FirstHalf or self:Get("TP2") and not self.FirstHalf) then
+        if (self:Get("PVU4") and Train.SF53.Value > 0 or self:Get("PantDisabled") and Train.SF53.Value > 0) and Train.Battery.Value > 0 then
             self.Pant = true
         else
             self.Pant = false

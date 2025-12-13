@@ -7,9 +7,12 @@
   - [ ] MFDU
       - [x] Change root UI, temporary pages from 760
       - [ ] New pages implementation
-      - [x] 1, 2, 3, 4, 5, 6
-      - [ ] Main message
+        - [x] 1, 2, 3, 4, 5, 6
+      - [x] Main message
       - [ ] Initialization
+        - [x] Password
+        - [ ] Depot mode
+        - [ ] Buttons check
   - [ ] BU-IK
       - [x] Cabin Metrospectekhnika implementation
       - [ ] Salon BNT
@@ -24,7 +27,7 @@
       - [x] Auto-reverse
       - [x] Manual lock
       - [x] Manual open
-      - [ ] Address door open button (.2)
+      - [x] Address door open button (.2)
   - [x] Sounds
       - [x] KATP-3
       - [x] Door alarm
@@ -38,12 +41,11 @@
       - [x] Cabin PMV/PPZ
       - [ ] Salon BNT
       - [ ] Salon CIS
-  - [x] Console model (cringe)
   - [ ] BUKP => SAU Skif
       - [x] ARS1/2, ATS1/2
       - [x] Xod => ARS work logic
-      - [ ] No assemble instead of disable drive in some cases
-      - [ ] Safety loop improvement
+      - [x] No assemble instead of disable drive in some cases
+      - [x] Safety loop improvement
       - [x] Zero speed feature
       - [ ] PrOst KOS activation/deactivation logic improvement
       - [ ] (after MFDU UI done) BUKP legacy cleanup, old UI removal

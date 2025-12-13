@@ -286,7 +286,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.WeightLoadRatio = math.max(0, math.min(1, Train:GetNW2Float("PassengerCount") / 200))
     -- Apply specific rate to equalize pressure
     local V4 = Train.BUKP and (Train.K29.Value == 1 or self.V4 and Train.Electric.V2 > 0)
-    self.V6 = Train.BUKP and (Train.Electric.Battery80V > 62 and V4 and Train.SF23F1.Value ~= 1 or Train.K29.Value == 1 and (Train.Electric.Battery80V > 62 and 1 or 0) * (Train.RV["KRO1-2"] + Train.RV["KRR1-2"] == 0 and 0 or 1) == 0)
+    self.V6 = Train.BUKP and (Train.K29.Value == 1 and (Train.Electric.Battery80V > 62 and 1 or 0) * (Train.RV["KRO1-2"] + Train.RV["KRR1-2"] == 0 and 0 or 1) == 0)
     ----------------------------------------------------------------------------
     -- Accumulate derivatives
     self.TrainLinePressure_dPdT = 0.0
@@ -392,7 +392,7 @@ function TRAIN_SYSTEM:Think(dT)
             self.PrevV4 = self.V4
         end
 
-        if Train.RvtbErr and Train.K9.Value == 1 or Train.K9.Value == 1 and V4 and self.RVTBTimer and CurTime() - self.RVTBTimer > (5 * (Train.BARS.RVTBTimer and CurTime() - Train.BARS.RVTBTimer > 0 and 0 or 1) * (Train.BARS.KBApplyTimer and CurTime() - Train.BARS.KBApplyTimer > 0 and 0 or 1) * (Train.BARS.BrakeEfficiency and CurTime() - Train.BARS.BrakeEfficiency >= 3.6 and 0 or 1) * (Train.BARS.ReadyTimer and CurTime() - Train.BARS.ReadyTimer > 0 and 0 or 1) * Train.SF23F8.Value * (Train.BARS.RollingBraking and 0 or 1) * (Train.BUKP.err > 0 and 0 or 1) * (Train.BARS.UOS and 0 or 1) * (Train.BARS.Ready and 1 or 0) * (1 - Train:ReadTrainWire(5)) * Train.SF23F1.Value * Train.BARS.BTB * (Train.SF45F11.Value == 0 and 0 or 1) * (Train.BUKP.State < 5 and 0 or 1)) or Train.K9.Value == 1 and self.V6 then
+        if Train.RvtbErr and Train.K9.Value == 1 or Train.K9.Value == 1 and V4 and self.RVTBTimer and CurTime() - self.RVTBTimer > (5 * (Train.BARS.RVTBTimer and CurTime() - Train.BARS.RVTBTimer > 0 and 0 or 1) * (Train.BARS.KBApplyTimer and CurTime() - Train.BARS.KBApplyTimer > 0 and 0 or 1) * (Train.BARS.BrakeEfficiency and CurTime() - Train.BARS.BrakeEfficiency >= 3.6 and 0 or 1) * (Train.BARS.ReadyTimer and CurTime() - Train.BARS.ReadyTimer > 0 and 0 or 1) * Train.SF23F8.Value * (Train.BARS.RollingBraking and 0 or 1) * (Train.BARS.UOS and 0 or 1) * (Train.BARS.Ready and 1 or 0) * (1 - Train:ReadTrainWire(5)) * Train.SF23F1.Value * Train.BARS.BTB * (Train.SF45F11.Value == 0 and 0 or 1) * (Train.BUKP.State < 5 and 0 or 1)) or Train.K9.Value == 1 and self.V6 then
             self.RVTBLeak = 1
             leak = self:equalizePressure(dT, "BrakeLinePressure", 0.0, 3 * Train:GetWagonCount(), false, false, 0.55)
             if self.PrevLeak ~= 1 then
@@ -445,7 +445,7 @@ function TRAIN_SYSTEM:Think(dT)
     self:equalizePressure(dT, "AirDistributorPressure", math.Clamp((from - self.BrakeLinePressure) / (from - 3.2), 0, 1) * (2.3 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 1.3), 2.50, 2.50, nil, 1.3)
     self.EmergencyBrakeActive = Train:ReadTrainWire(25) * Train:ReadTrainWire(26) == 0 --*Train.Electric.Battery80V*Train:ReadTrainWire(35) < 62--[[or self.EmerBrake == 3 or Train.BUV.BTB]]
     self.BTBReady = self.AirDistributorPressure > (2.3 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 1.3) - 0.05
-    if self.EmergencyBrakeActive or self.EmerBrake == 3 then
+    if self.EmergencyBrakeActive or self.EmerBrake == 3 or Train.BUV.PN3 then
         PMPressure = self.AirDistributorPressure
         if self.BrakeCylinderPressure < self.AirDistributorPressure and self.AirDistributorPressure - self.BrakeCylinderPressure > 0.1 then self:equalizePressure(dT, "AirDistributorPressure", 0, (self.AirDistributorPressure - self.BrakeCylinderPressure) * 1, (self.AirDistributorPressure - self.BrakeCylinderPressure) * 1, nil, 2) end
     end
@@ -460,9 +460,7 @@ function TRAIN_SYSTEM:Think(dT)
     if Power then
         if self.EmerBrakeWork then --Train:ReadTrainWire(28) > 0 then--and not self.EmergencyBrakeActive then
             if not self.EmergencyBrakeActive then
-                if self.EmerBrake > 2 then
-                    --EPMPressure = 2.2+self.BrakeCylinderRegulationError+self.WeightLoadRatio*1.1 --3 уставка
-                elseif self.EmerBrake > 1 then
+                if self.EmerBrake > 1 and self.EmerBrake <= 2 then
                     EPMPressure = 1.6 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 0.5 --2 уставка
                 elseif self.EmerBrake > 0 then
                     EPMPressure = 1.0 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 0.4 --1 уставка
@@ -472,8 +470,6 @@ function TRAIN_SYSTEM:Think(dT)
             end
         else
             if self.EmerBrake > 0 then self.EmerBrake = 0 end
-            --if Train.BUV.PN3 then
-            --EPMPressure = 2.4+self.BrakeCylinderRegulationError+self.WeightLoadRatio*1.1 --3 уставка		
             if Train.BUV.PN2 then
                 EPMPressure = 1.6 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 0.5 --2 уставка
             elseif Train.BUV.PN1 then
