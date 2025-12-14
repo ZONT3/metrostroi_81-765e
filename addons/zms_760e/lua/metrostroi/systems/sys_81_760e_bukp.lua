@@ -905,7 +905,9 @@ if SERVER then
                 Train:SetNW2Int("VityazBTest", num)
             end
 
-            local stength = 0
+            local kvSetting = 0
+            local overrideKv = true
+
             local EnginesStrength = 0
             if self.InitTimer and CurTime() - self.InitTimer > 0 then self.InitTimer = nil end
             local RvKro = (1 - Train.RV["KRO5-6"]) * Train.PpzPrimaryControls.Value
@@ -1173,18 +1175,18 @@ if SERVER then
                     if Train.RV["KRO5-6"] == 0 then
                         local AllowDriveInput = BARS.Brake == 0 and BARS.Drive > 0
                         if AllowDriveInput or Train.KV765.TractiveSetting <= 0 then
-                            stength = Train.KV765.TractiveSetting
+                            kvSetting = Train.KV765.TractiveSetting
+                            overrideKv = false
                         end
 
                         Train:SetNW2Bool("VityazBARSPN2", not Train.Prost_Kos.CommandKos and BARS.Brake == 0 and BARS.Active == 1 and BARS.StillBrake > 0 and not Train.Pneumatic.EmerBrakeWork)
 
-                        local override = false
-                        if Train.Prost_Kos.Command ~= 0 and Train.Prost_Kos.ProstActive == 1 and Train.KV765.Position >= 0 then stength = translate_oka_kv_to_765(Train.Prost_Kos.Command) override = true end
-                        if Train.Prost_Kos.CommandKos then stength = -100 override = true end
-                        if BARS.Brake > 0 then stength = -100 override = true end
-                        if self.Errors.EmergencyBrake and (Train.KV765.Position > 0 or Train.Speed > 1.6) then stength = -100 override = true end
-                        local sb = not override and (BARS.StillBrake == 1 or Train.Speed < 0.5 and BARS.PN1 == 1)
-                        if sb then stength = -50 override = true end
+                        if Train.Prost_Kos.Command ~= 0 and Train.Prost_Kos.ProstActive == 1 and Train.KV765.Position >= 0 then kvSetting = translate_oka_kv_to_765(Train.Prost_Kos.Command) overrideKv = true end
+                        if Train.Prost_Kos.CommandKos then kvSetting = -100 overrideKv = true end
+                        if BARS.Brake > 0 then kvSetting = -100 overrideKv = true end
+                        if self.Errors.EmergencyBrake and (Train.KV765.Position > 0 or Train.Speed > 1.6) then kvSetting = -100 overrideKv = true end
+                        local sb = not overrideKv and BARS.StillBrake == 1
+                        if sb then kvSetting = -50 overrideKv = true end
 
                         if Train.Prost_Kos.Metka and (Train.Prost_Kos.Metka[2] or Train.Prost_Kos.Metka[3] or Train.Prost_Kos.Metka[4]) and (Train.Prost_Kos.DistToSt ~= 0 or Train.Prost_Kos.ProstActive == 1) then
                             Train:SetNW2Int("VityazS", (Train.Prost_Kos.Dist or -10) * 100) --(Train:ReadCell(49165)-5-5)*100)
@@ -1192,7 +1194,7 @@ if SERVER then
                             Train:SetNW2Int("VityazS", -1000)
                         end
 
-                        if not sb and (Train.KV765.TractiveSetting > 0 or Train.KV765.TargetTractiveSetting > 0) and stength <= 0 then
+                        if not sb and (Train.KV765.TractiveSetting > 0 or Train.KV765.TargetTractiveSetting > 0) and kvSetting <= 0 then
                             Train.KV765:TriggerInput("ResetTractiveSetting", 1)
                         end
 
@@ -1221,13 +1223,12 @@ if SERVER then
                         Train:SetNW2Int("VityazProstNum", 0)
                     end
 
-                    if ptApplied and stength > 0 and not self.PTEnabled then self.PTEnabled = CurTime() end
-                    if (not ptApplied or stength <= 0) and self.PTEnabled then self.PTEnabled = nil end
+                    if ptApplied and kvSetting > 0 and not self.PTEnabled then self.PTEnabled = CurTime() end
+                    if (not ptApplied or kvSetting <= 0) and self.PTEnabled then self.PTEnabled = nil end
 
                     self:CheckError("PneumoBrake", errPT and ptApplied, ptApplied)
                     self:CheckError("HV", self.HVBad and CurTime() - self.HVBad > 10)
 
-                    Train:SetNW2Int("VityazThrottle", math.Round(stength or 0))
                     local buv = self.Trains[self.Trains[1]]
                     Train:SetNW2Int("VityazBUVStrength", math.abs(Train.BUV.Strength))
                     if buv and buv.LV then
@@ -1249,10 +1250,10 @@ if SERVER then
                     Train:SetNW2Int("VityazSpeed", BARS.Speed) --Train.Speedometer.State > 0 and math.floor(Train.BARS.Speed) or 99)
                     self.CurrentSpeed = speed == 99 and 0 or speed
 
-                    local driveInput = RvKro > 0 and (Train.KV765.Position > 0) or RvKrr > 0 and (Train.EmerX1.Value + Train.EmerX2.Value > 0)
+                    local driveInput = RvKro > 0 and (Train.KV765.Position > 0 or kvSetting > 0) or RvKrr > 0 and (Train.EmerX1.Value + Train.EmerX2.Value > 0)
                     self.DisableDrive = BARS.DisableDrive or self.Errors.DisableDrive and Train.KV765.Position > 0
-                    self.BARS1 = BARS.PN1 < 1 and BARS.ATS1 and (driveInput or speed > 0)
-                    self.BARS2 = BARS.PN1 < 1 and BARS.ATS2 and (driveInput or speed > 0)
+                    self.BARS1 = (BARS.StillBrake < 1) and BARS.ATS1 and (driveInput or speed > 0)
+                    self.BARS2 = (BARS.StillBrake < 1) and BARS.ATS2 and (driveInput or speed > 0)
 
                     Train:SetNW2Bool("KB", BARS.KB)
                     Train:SetNW2Bool("VityazNextNoFq", BARS.NextNoFq)
@@ -1417,12 +1418,12 @@ if SERVER then
                         end
                     end
 
-                    if not self.Slope and Train.AccelRate.Value > 0 and (Train.BARS.Speed <= 2 or stength == 0) then
+                    if not self.Slope and Train.AccelRate.Value > 0 and (Train.BARS.Speed <= 2 or kvSetting == 0) then
                         self.Slope = true
                         self.SlopeSpeed = Train.BARS.Speed <= 2
                     end
 
-                    if self.Slope and (not self.SchemeEngaged or not self.SlopeSpeed and stength ~= 0) then self.Slope = false end
+                    if self.Slope and (not self.SchemeEngaged or not self.SlopeSpeed and kvSetting ~= 0) then self.Slope = false end
                 else
                     if not self.InitTimer then self.Reset = nil end
                     self.AO = false
@@ -1477,17 +1478,15 @@ if SERVER then
                 self.AwaitOpenDoors = true
             end
 
-            --[[
-            if CurTime()%1 < 0.035 and self.EnginesStrength ~= 0 then
-                RunConsoleCommand("say",self.EnginesStrength)
-            end]]
-            --print(self.EnginesStrength)
+            self.ControllerState = kvSetting
+            Train:SetNW2Int("VityazThrottle", overrideKv and kvSetting or Train.KV765.TargetTractiveSetting)
+            Train:SetNW2Bool("VityazOverrideKv", overrideKv)
+
             self:CState("RV", RvWork, "BUKP")
             self:CState("Ring", Train.Ring.Value > 0, "BUKP")
-            self.ControllerState = stength
-            self:CState("DriveStrength", math.abs(stength))
-            self:CState("Brake", stength < 0 and 1 or 0)
-            self:CState("StrongerBrake", stength < 0 and Train.KV765.Position < -1 and Train.BARS.StillBrake == 0 and 1 or 0)
+            self:CState("DriveStrength", math.abs(kvSetting))
+            self:CState("Brake", kvSetting < 0 and 1 or 0)
+            self:CState("StrongerBrake", kvSetting < 0 and Train.KV765.Position < -1 and Train.BARS.StillBrake == 0 and 1 or 0)
             self:CState("PN1", Train.BARS.PN1)
             self:CState("PN2", Train.BARS.PN2 + (self.Slope and Train.RV.KROPosition ~= 0 and self.SlopeSpeed and 1 or 0))
             self:CState("PN3", Train.BARS.PN3)
@@ -1627,7 +1626,7 @@ else
     createFont("VityazB", "DejaVu Sans Mono", 36, 0, 0, 0, false)
     createFont("VityazD", "DejaVu Sans Mono", 31, 0, 0, 0, false)
     --createFont("Vityaz1","DejaVu Sans Mono",80,1000,0,0,false)
-    function TRAIN_SYSTEM:ClientThink()
+    function TRAIN_SYSTEM:ClientThink(dT)
         if not self.Train:ShouldDrawPanel("Vityaz") then return end
         if not self.DrawTimer then
             render.PushRenderTarget(self.Train.Vityaz, 0, 0, 1024, 1024)
@@ -1635,27 +1634,31 @@ else
             render.PopRenderTarget()
         end
 
-        if self.DrawTimer and CurTime() - self.DrawTimer < 0.1 then return end
-        self.DrawTimer = CurTime()
-        local state = self.Train:GetNW2Int("PpzUpi") * self.Train:GetNW2Int("VityazState", 0)
-        local counter = self.Train:GetNW2Int("VityazCounter", 0)
-        if self.Counter ~= counter or (state <= 0 and state ~= -2) and self.State ~= state then
-            self.Counter = counter
-            if state ~= -2 then
-                self.State = state
-                self.State2 = self.Train:GetNW2Int("VityazState2", 0)
-                self.MainScreen = self.State2 == 0
-                self.LegacyScreen = self.Train:GetNW2Bool("VityazLegacyScreen", false)
-            end
-            render.PushRenderTarget(self.Train.Vityaz, 0, 0, 1024, 1024)
-            render.Clear(0, 0, 0, 0)
-            cam.Start2D()
-            if self:Ui765() then
-                self:VityazMonitor(self.Train)
-            end
-            cam.End2D()
-            render.PopRenderTarget()
+        local drawThrottle = self.NormalWork and self.DrawMainThrottle
+        local skipOther = self.DrawTimer and CurTime() - self.DrawTimer < 0.1
+        if not drawThrottle and skipOther then return end
+        if not skipOther then self.DrawTimer = CurTime() end
+
+        local state = self.Train:GetNW2Int("SF23F8") * self.Train:GetNW2Int("VityazState", 0)
+        if state ~= -2 then
+            self.State = state
+            self.State2 = self.Train:GetNW2Int("VityazState2", 0)
+            self.MainScreen = self.State2 == 0
+            self.LegacyScreen = self.Train:GetNW2Bool("VityazLegacyScreen", false)
         end
+        render.PushRenderTarget(self.Train.Vityaz, 0, 0, 1024, 1024)
+        if not skipOther then
+            render.Clear(0, 0, 0, 0)
+        end
+        cam.Start2D()
+        if not skipOther and self:Ui765(dT) then
+            self:VityazMonitor(self.Train)
+        end
+        if drawThrottle then
+            self:DrawMainThrottle()
+        end
+        cam.End2D()
+        render.PopRenderTarget()
     end
 
     function TRAIN_SYSTEM:PrintText(x, y, text, col, align, fix)

@@ -1,13 +1,10 @@
 Metrostroi.DefineSystem("81_765_Controller")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
--- TODO:
--- Revise visual position (both before and after model change)
--- Revise systems:
-    -- BUKP
-    -- BARS
-    -- PrOst KOS
-    -- Speedometer
+
+local SettingSpeed = 80  -- Per second
+local SettingDelay = 0.2  -- Seconds
+local ZeroTimer = 1.6  -- Seconds
 
 function TRAIN_SYSTEM:Initialize()
     self.Position = -3
@@ -20,6 +17,9 @@ function TRAIN_SYSTEM:Initialize()
     self.TractiveSetting = 0
     self.TargetTractiveSetting = 0
     self.IsOverriden = 0
+    self.DelayBypass = 0
+
+    self.Train.KvSettingSpeed = SettingSpeed
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -107,10 +107,6 @@ function TRAIN_SYSTEM:TriggerInput(name, value)
     end
 end
 
-
-local SettingSpeed = 45  -- Per second
-local ZeroTimer = 1.6  -- Seconds
-
 function TRAIN_SYSTEM:Think(dT)
     if self.ControllerTimer and CurTime() - self.ControllerTimer > 0.06 and self.Position ~= self.TargetPosition then
         local previousPosition = self.Position
@@ -167,38 +163,47 @@ function TRAIN_SYSTEM:Think(dT)
                     self.TractiveSetting = 0
                 end
 
-                -- Fast descend: fast controller move from M to 0 - M sets traction from 100 to 40
-                if self.TractiveSetting == 100 and self.Position == 1 then
-                    self.WasPos1 = true
-                elseif self.WasPos1 and self.Position == 0 then
-                    self.LastDescend = CurTime()
-                    self.WasPos1 = false
-                else
-                    self.WasPos1 = false
+                if self.TargetTractiveSetting == 0 and (self.Position > 0.5 or self.Position < -0.5) then
+                    self.TargetTractiveSetting = self.Position > 0 and 20 or -20
+                    self.DelayBypass = CurTime() + SettingDelay + 0.05
                 end
-                if self.Position == 1 and self.LastDescend and CurTime() - self.LastDescend < 0.2 then
-                    self.LastDescend = nil
-                    self.TargetTractiveSetting = 40
+
+                if math.abs(self.TargetTractiveSetting) > 10 then
+                    local target = math.abs(self.TargetTractiveSetting)
+                    local current = math.abs(self.TractiveSetting)
+                    local direction = math.abs(self.Position)
+                    direction = direction > 1.2 and 1 or direction < 0.8 and -1 or 0
+
+                    local new = target + (math.abs(target - current) < 5 and 10 * direction or 0)
+                    if direction ~= 0 then
+                        if not self.DeltaDelay then
+                            self.DeltaDelay = CurTime() + SettingDelay
+                            self.DeltaDir = direction
+                            self.Accel40 = self.TractiveSetting == 100 and direction == -1
+                        end
+                    else
+                        if self.DeltaDelay then
+                            direction = self.DeltaDir or direction
+                            if self.Accel40 and CurTime() < self.DeltaDelay then
+                                new = 40
+                            else
+                                new = target + math.max(10, math.floor((self.DeltaDelay - CurTime()) * SettingSpeed / 10) * 10) * direction
+                            end
+                            self.DeltaDelay = nil
+                            self.DeltaDir = nil
+                            self.Accel40 = nil
+                        end
+                    end
+
+                    if new ~= target and (not self.DeltaDelay or direction < 0 or self.DelayBypass > CurTime() or CurTime() >= self.DeltaDelay) then
+                        target = new
+                        if target > 100 then target = 100
+                        elseif target < 20 then target = 0 end
+                        self.TargetTractiveSetting = target * (self.TargetTractiveSetting > 0 and 1 or -1)
+                    end
                 end
 
                 local delta = self.TargetTractiveSetting - self.TractiveSetting
-                if math.abs(delta) < 2 then  -- Update target setting when actual is near current target
-                    if self.Position == 0 and self.TargetTractiveSetting > 0 then
-                        self.TargetTractiveSetting = math.max(0, self.TargetTractiveSetting - 10)
-                    elseif self.Position == 0 and self.TargetTractiveSetting < 0 then
-                        self.TargetTractiveSetting = math.min(0, self.TargetTractiveSetting + 10)
-                    elseif self.Position == 1 then
-                        self.TargetTractiveSetting = math.min(100, math.max(20, self.TargetTractiveSetting))
-                    elseif self.Position == -1 then
-                        self.TargetTractiveSetting = math.max(-100, math.min(-20, self.TargetTractiveSetting))
-                    elseif self.Position == 2 then
-                        self.TargetTractiveSetting = math.min(100, self.TargetTractiveSetting + 10)
-                    elseif self.Position == -2 then
-                        self.TargetTractiveSetting = math.max(-100, self.TargetTractiveSetting - 10)
-                    end
-                    delta = self.TargetTractiveSetting - self.TractiveSetting
-                end
-
                 local sgn = delta > 0 and 1 or delta < 0 and -1 or 0
                 if sgn ~= 0 then
                     local newDelta = dT * SettingSpeed * sgn

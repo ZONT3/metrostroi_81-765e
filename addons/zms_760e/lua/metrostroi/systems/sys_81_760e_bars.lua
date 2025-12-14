@@ -139,11 +139,10 @@ function TRAIN_SYSTEM:Think(dT)
     if self.RVTB == 0 then self.BTB = 0 end
     local Emer = Train.RV["KRR15-16"] * Train.PpzPrimaryControls.Value > 0.5
     local KMState = Train.KV765.Position
-    local ThrottleState = Train.KV765.TractiveSetting
     local BUPKMState = Train.BUKP.ControllerState
     if Emer then
         KMState = (Train.EmerX1.Value > 0 or Train.EmerX2.Value > 0) and 20 or 0
-        BUPKMState = (Train.EmerX1.Value > 0 or Train.EmerX2.Value > 0) and 20 or 0
+        BUPKMState = KMState
     end
 
     if EnableALS and Train.BUKP.Active > 0 and PowerALS then
@@ -252,7 +251,7 @@ function TRAIN_SYSTEM:Think(dT)
 
             if not Brake and (SpeedLimit > 20 or self.Speed > 0 or ALS.AO) then self.Ringing = true end
             Brake = true
-        elseif (self.Speed < SpeedLimit or self.Speed == 0) and not self.Braking and KMState <= 0 then
+        elseif (self.Speed < SpeedLimit or self.Speed == 0) and not self.Braking and KMState <= 0 and BUPKMState <= 0 then
             Brake = false
         end
 
@@ -289,12 +288,12 @@ function TRAIN_SYSTEM:Think(dT)
         if self.BrakeEfficiency and KMState <= 0 and self.Speed < 0.1 then self.BrakeEfficiency = nil end
         --Disable PN1 if not braking or passed 1.5s
         if self.PN1Timer and (CurTime() - self.PN1Timer > 1.5 or not Brake) then self.PN1Timer = nil end
-        if self.Speed > SpeedLimit - 1.1 and (KMState > 0 or ThrottleState > 0) and not Emer then
+        if self.Speed > SpeedLimit - 1.1 and (KMState > 0 or BUPKMState > 0) and not Emer then
             self.DisableDrive = true
             self.ControllerInDrive = KMState > 0
         end
 
-        if self.Speed < SpeedLimit - 3 and KMState <= 0 or SpeedLimit < 10 and KMState <= 0 or Emer then
+        if self.Speed < SpeedLimit - 3 and KMState <= 0 and BUPKMState <= 0 or SpeedLimit < 10 and KMState <= 0 and BUPKMState <= 0 or Emer then
             self.DisableDrive = false
             self.ControllerInDrive = false
         end
@@ -364,7 +363,7 @@ function TRAIN_SYSTEM:Think(dT)
             end
 
             if not Emer then
-                if (self.NoFreq or self.SpeedLimit < 21) and not self.KB and KMState > 0 and self.KBApply then
+                if (self.NoFreq or self.SpeedLimit < 21) and not self.KB and (KMState > 0 or BUPKMState > 0) and self.KBApply then
                     --self.RVTB = 0
                     self.DisableDrive = true
                     self.ControllerInDrive = true
@@ -620,7 +619,7 @@ function TRAIN_SYSTEM:Think(dT)
         end
 
         --if Emer then
-        if Power and Train.BUKP.State == 5 and KMState <= 0 and self.Speed < 1.8 then
+        if Power and Train.BUKP.State == 5 and (KMState <= 0 and BUPKMState <= 0) and self.Speed < 1.8 then
             --self.BTB = 1
             self.PN1 = 1
             if not self.SBTimer then self.SBTimer = CurTime() end

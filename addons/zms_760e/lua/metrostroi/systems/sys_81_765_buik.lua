@@ -165,7 +165,7 @@ local ars_states = {
 if SERVER then
     util.AddNetworkString("BUIK765.AnnouncerCmd")
 
-    local BOOT_SEQ = { 3, 5, 2, 1, 1, 3, 2 }
+    local BOOT_SEQ = { 3, 5, 2, 1, 1, 3, 2, 1 }
 
     function TRAIN_SYSTEM:Think(dT)
         self:CheckTriggers()
@@ -215,7 +215,7 @@ if SERVER then
             return
         end
 
-        if self.State == STATE_NORMAL and (not Wag.BUKP or Wag.BUKP.State ~= 5 or Wag.PpzUpi.Value < 1) then self.State = STATE_INACTIVE end
+        if self.State == STATE_NORMAL and (not Wag.BUKP or Wag.BUKP.State ~= 5) then self.State = STATE_INACTIVE end
 
         self.WagNum = Wag.BUKP and Wag.BUKP.WagNum or 0
         if self.State == STATE_NORMAL and (not isnumber(self.WagNum) or self.WagNum < 1) then self.State = STATE_INACTIVE end
@@ -1404,10 +1404,12 @@ else
         draw.SimpleText(tostring(math.floor(speed)), "BUIKSpeedometer", x0 + (speed < 10 and 64 or 0), y0 - 80, colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
-    function TRAIN_SYSTEM:DrawBuik()
-        local state = self.Train:GetNW2Int("BUIK:State", -1)
+    function TRAIN_SYSTEM:DrawBuik(state)
+        state = state or self.Train:GetNW2Int("BUIK:State", -1)
+        if state ~= STATE_INACTIVE then
+            self.LastState = state
+        end
 
-        -- Normal
         if state == STATE_NORMAL then
             surface.SetDrawColor(colorBackground)
             surface.DrawRect(0, 0, scr_w, scr_h)
@@ -1423,18 +1425,22 @@ else
             drawSpeedometer(self.Train)
             drawList(self.Train)
 
-        -- Disabled
         elseif state == STATE_INACTIVE then
-            surface.SetDrawColor(colorDisabled)
-            surface.DrawRect(0, 0, scr_w, scr_h)
-            draw.SimpleText("БЛОК НЕАКТИВЕН", "BUIKSystemHeader", scr_w / 2, scr_h / 2, colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            if not self.LastState then
+                surface.SetDrawColor(colorDisabled)
+                surface.DrawRect(0, 0, scr_w, scr_h)
+                draw.SimpleText("БЛОК НЕАКТИВЕН", "BUIKSystemHeader", scr_w / 2, scr_h / 2, colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            else
+                self:DrawBuik(self.LastState)
+            end
+
         elseif state == STATE_INACTIVE_CABIN then
             surface.SetDrawColor(colorDisabled)
             surface.DrawRect(0, 0, scr_w, scr_h)
             draw.SimpleText("НЕАКТИВНАЯ КАБИНА", "BUIKSystemHeader", scr_w / 2, scr_h / 2, colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
         elseif state == STATE_BOOTING then
-            local bootState = self.Train:GetNW2Int("BUIK:BootState", 1)
+            local bootState = self.Train:GetNW2Int("BUIK:State", -1) == STATE_INACTIVE and 8 or self.Train:GetNW2Int("BUIK:BootState", 1)
             surface.SetDrawColor(colorDisabled)
             surface.DrawRect(0, 0, scr_w, scr_h)
             if bootState == 2 then
@@ -1443,8 +1449,8 @@ else
                 surface.SetDrawColor(255, 255, 255, 255)
                 surface.SetMaterial(logo)
                 surface.DrawTexturedRectRotated(scr_w / 2 - 700, scr_h / 2, 300, 300, (CurTime() % 10) * 360 / 10)
-                draw.SimpleText("ver. 1.5.0", "BUIKSystem", scr_w - 20, scr_h - 20, colorWhite, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
-            elseif bootState == 4 then
+                draw.SimpleText("ver. " .. self.Train.IkVersion, "BUIKSystem", scr_w - 20, scr_h - 20, colorWhite, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
+            elseif bootState == 4 or bootState == 8 then
                 draw.SimpleText("БЛОК НЕАКТИВЕН", "BUIKSystemHeader", scr_w / 2, scr_h / 2, colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             elseif bootState == 6 then
                 draw.SimpleText("ПОИСК ОБОРУДОВАНИЯ...", "BUIKSystemHeader", scr_w / 2, scr_h / 2, colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)

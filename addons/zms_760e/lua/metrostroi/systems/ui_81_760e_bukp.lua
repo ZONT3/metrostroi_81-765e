@@ -15,9 +15,10 @@ local MainMsg = {
     "Сбой РВ"
 }
 
-function TRAIN_SYSTEM:Ui765()
+function TRAIN_SYSTEM:Ui765(dT)
     local mainMsg = self.Train:GetNW2Int("VityazMainMsg", 0)
     local rv = self.Train:GetNW2Int("VityazRV", 0)
+    self.dT = dT
     if self.MainMsg and self.MainMsg > 0 and mainMsg == 0 then
         if not self.ClientInitTimer then
             self.ClientInitTimer = CurTime() + math.Rand(0.3, 1.4)
@@ -30,7 +31,9 @@ function TRAIN_SYSTEM:Ui765()
     else
         self.MainMsg = mainMsg
     end
-    if self.MainMsg == 0 and self.State == 5 and not self.LegacyScreen then
+
+    self.NormalWork = self.MainMsg == 0 and self.State == 5 and not self.LegacyScreen
+    if self.NormalWork then
         local Wag = self.Train
 
         self.AlsArs = Wag:GetNW2Bool("PmvFreq")
@@ -392,7 +395,7 @@ function TRAIN_SYSTEM:DrawIdle(msg, passwd)
     surface.DrawTexturedRect(scrW - 280, scrOffsetY + scrH - 245, 240, 240)
 
     if passwd then
-        local passwd = self.Train:GetNW2String("VityazPass", "")
+        passwd = self.Train:GetNW2String("VityazPass", "")
         local w = draw.SimpleText(passwd, "Mfdu765.IdleMessage", scrW / 2, scrOffsetY + 300, colorBlue, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
         if CurTime() % 1.0 > 0.5 then
             draw.SimpleText("|", "Mfdu765.IdleMessage", scrW / 2 + w / 2 + 4, scrOffsetY + 294, colorBlue, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
@@ -429,25 +432,6 @@ function TRAIN_SYSTEM:DrawStatic()
             drawBox(x, y, sizeButtonW, sizeFooter, idx == self.Page and colorBlue or colorMain, nil, sizeButtonBorder)
             x = x + sizeButtonGap + sizeButtonW
         end
-    end
-
-    do
-        drawBox(sizeThrottleMeasure, scrOffsetY + sizeTopBar + sizeMainMargin + sizeThrottleLabelsH, sizeThrottleBarW, sizeThrottleBarH, colorMain, colorMainDarker, sizeBorder)
-        surface.SetDrawColor(colorMain)
-        local x, y = sizeThrottleMeasure - sizeThrottleMeasureLine, scrOffsetY + sizeTopBar + sizeMainMargin + sizeThrottleLabelsH
-        local h = (sizeThrottleBarH - sizeBorder / 1.5) / 20
-        for idx = -10, 10 do
-            local label = math.abs(idx) * 10
-            local even = label == 0 or label % 20 == 0
-            surface.DrawRect(even and x - sizeThrottleMeasureLine or x, y, sizeThrottleMeasureLine * (even and 2 or 1), sizeBorder)
-            if even then
-                draw.SimpleText(tostring(label), "Mfdu765.Throttle", x - sizeThrottleMeasureLine - 3, y - 1, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-            end
-            y = y + h
-        end
-
-        draw.SimpleText("ХОД", "Mfdu765.ThrottleLabel", sizeThrottleW - 4, scrOffsetY + sizeTopBar + sizeMainMargin + sizeBorder, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
-        draw.SimpleText("ТОРМОЗ", "Mfdu765.ThrottleLabel", sizeThrottleW - 4, y + sizeBorder * 2 - h, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
     end
 end
 
@@ -615,12 +599,6 @@ local errorsCat = {
     {"А", colorRed}, {"Б", colorYellow}, {"В", colorBlue}
 }
 function TRAIN_SYSTEM:DrawStatus(Wag)
-    self:DrawThrottle(
-        Wag:GetNW2Int("VityazThrottle", 0),
-        sizeThrottleMeasure + sizeBorder, scrOffsetY + sizeTopBar + sizeMainMargin + sizeThrottleLabelsH,
-        sizeThrottleBarW - sizeBorder * 2
-    )
-
     local errCat = Wag:GetNW2Int("VityazErrorCat", 0)
     if errorsCat[errCat] then
         local cat, color = unpack(errorsCat[errCat])
@@ -718,6 +696,50 @@ function TRAIN_SYSTEM:DrawStatus(Wag)
         surface.SetMaterial(icon[1])
         surface.DrawTexturedRect(x, y, sizeStatusIcon, sizeStatusIcon)
     end
+end
+
+function TRAIN_SYSTEM:DrawMainThrottle()
+    local Wag = self.Train
+    local thr = Wag:GetNW2Int("VityazThrottle", 0)
+    if Wag:GetNW2Bool("VityazOverrideKv") or not self.LastThrUpd or thr * (self.Throttle or 0) < 0 then
+        self.Throttle = thr
+    else
+        local dT = CurTime() - self.LastThrUpd
+        if self.Throttle ~= thr then
+            local sgn = (thr > self.Throttle and 1 or -1)
+            self.Throttle = (self.Throttle or 0) + sgn * (Wag.KvSettingSpeed or 80) * dT
+            if self.Throttle > thr and sgn > 0 or self.Throttle < thr and sgn < 0 then
+                self.Throttle = thr
+            end
+        end
+    end
+    self.LastThrUpd = CurTime()
+
+    surface.SetDrawColor(0, 0, 0)
+    surface.DrawRect(0, scrOffsetY + sizeTopBar + sizeMainMargin, sizeThrottleBarW + sizeThrottleMeasure, sizeThrottleBarH + sizeThrottleLabelsH * 2)
+
+    drawBox(sizeThrottleMeasure, scrOffsetY + sizeTopBar + sizeMainMargin + sizeThrottleLabelsH, sizeThrottleBarW, sizeThrottleBarH, colorMain, colorMainDarker, sizeBorder)
+    surface.SetDrawColor(colorMain)
+    local x, y = sizeThrottleMeasure - sizeThrottleMeasureLine, scrOffsetY + sizeTopBar + sizeMainMargin + sizeThrottleLabelsH
+    local h = (sizeThrottleBarH - sizeBorder / 1.5) / 20
+    for idx = -10, 10 do
+        local label = math.abs(idx) * 10
+        local even = label == 0 or label % 20 == 0
+        surface.DrawRect(even and x - sizeThrottleMeasureLine or x, y, sizeThrottleMeasureLine * (even and 2 or 1), sizeBorder)
+        if even then
+            draw.SimpleText(tostring(label), "Mfdu765.Throttle", x - sizeThrottleMeasureLine - 3, y - 1, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+        end
+        y = y + h
+    end
+
+    draw.SimpleText("ХОД", "Mfdu765.ThrottleLabel", sizeThrottleW - 4, scrOffsetY + sizeTopBar + sizeMainMargin + sizeBorder, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+    draw.SimpleText("ТОРМОЗ", "Mfdu765.ThrottleLabel", sizeThrottleW - 4, y + sizeBorder * 2 - h, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+
+    self:DrawThrottle(
+        self.Throttle or 0,
+        sizeThrottleMeasure + sizeBorder, scrOffsetY + sizeTopBar + sizeMainMargin + sizeThrottleLabelsH,
+        sizeThrottleBarW - sizeBorder * 2
+    )
 end
 
 local sizeCellBorderRadius = 8

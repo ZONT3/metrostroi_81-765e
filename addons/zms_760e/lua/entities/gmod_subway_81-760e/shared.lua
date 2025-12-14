@@ -12,6 +12,9 @@ ENT.Spawnable = true
 ENT.AdminSpawnable = false
 ENT.DontAccelerateSimulation = false
 
+ENT.Version = "0.7.0"
+ENT.IkVersion = "1.7.0"
+
 
 local function GetDoorPosition(i, k, j)
     if j == 0 then
