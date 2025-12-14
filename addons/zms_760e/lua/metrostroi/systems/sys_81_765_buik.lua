@@ -215,7 +215,7 @@ if SERVER then
             return
         end
 
-        if self.State == STATE_NORMAL and (not Wag.BUKP or Wag.BUKP.State ~= 5 or Wag.SF23F8.Value < 1) then self.State = STATE_INACTIVE end
+        if self.State == STATE_NORMAL and (not Wag.BUKP or Wag.BUKP.State ~= 5 or Wag.PpzUpi.Value < 1) then self.State = STATE_INACTIVE end
 
         self.WagNum = Wag.BUKP and Wag.BUKP.WagNum or 0
         if self.State == STATE_NORMAL and (not isnumber(self.WagNum) or self.WagNum < 1) then self.State = STATE_INACTIVE end
@@ -227,7 +227,7 @@ if SERVER then
 
         else
             self.Active = self.State == STATE_INACTIVE_CABIN and Wag:GetNW2Int("VityazMainMsg", 1) == 0 or false
-            if self.State == STATE_INACTIVE and Wag.BUKP and Wag.BUKP.State == 5 and Wag.SF23F8.Value > 0.5 and isnumber(self.WagNum) and self.WagNum >= 1 then
+            if self.State == STATE_INACTIVE and Wag.BUKP and Wag.BUKP.State == 5 and Wag.PpzUpi.Value > 0.5 and isnumber(self.WagNum) and self.WagNum >= 1 then
                 self.State = STATE_INACTIVE_CABIN
             end
             if self.State == STATE_INACTIVE_CABIN and self.Active then self.State = STATE_NORMAL end

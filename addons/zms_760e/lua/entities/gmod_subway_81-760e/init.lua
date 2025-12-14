@@ -344,6 +344,42 @@ function ENT:Initialize()
     self:TrainSpawnerUpdate()
 end
 
+function ENT:InitializeSystemsServer()
+    self.PpzAsnp = self.SF42F1
+    self.PpzBsControl = self.SF30F1
+    self.PpzActiveCabin = self.SF23F2
+    self.PpzPrimaryControls = self.SF23F3
+    self.PpzEmerControls = self.SF23F1
+    self.PpzOrient = self.SF23F13
+    self.PpzAts1 = self.SF23F8
+    self.PpzAts2 = self.SF23F7
+    self.PpzUpi = self.SF23F8
+    self.PpzKm = self.SF22F2
+    self.PpzParkingBrakeControl = self.SF22F3
+    self.PpzRvtb = self.SF22F5
+    self.PpzDoorsControl = self.SF80F5
+    self.PpzDoorsSignal = self.SF80F1
+    self.PpzCabinDoors = self.SF80F3
+    self.PpzAoVent = self.SF62F1
+    self.PpzCounter = self.SF42F2
+    self.PpzPpp = self.SF30F5
+    self.PpzRvs = self.SF70F1
+    self.PpzCik = self.SF45F11
+    self.PpzVideo = self.SF45F1
+    self.PpzSmartdrive = self.SF43F3
+    self.PpzAsotpCbki = self.SF90F1
+    self.PpzHeadlights = self.SF51F1
+    self.PpzBattLights = self.SF51F2
+    self.PpzCabinLights = self.SF52F1
+    self.PpzCabinAc = self.SF62F3
+    self.PpzCabinEpra = self.SF62F4
+    self.PpzSalonAc = self.SF61F8
+    self.PpzAuxCabin = self.SF70F4
+    self.PpzWiper = self.SF70F3
+    self.PpzPurLamps = self.SF70F3
+    self.PpzWindshieldHead = self.SF70F2
+end
+
 function ENT:NonSupportTrigger()
     self.ALS:TriggerInput("Set", 1)
     self.ALSk:TriggerInput("Set", 0)
@@ -1142,7 +1178,7 @@ function ENT:OnButtonPress(button, ply)
     end
 
     if button == "ALSToggle" then
-        if self.ALS.Value * self.SF23F8.Value == 1 then --выключается
+        if self.ALS.Value * self.PpzUpi.Value == 1 then --выключается
             if self.ALSVal == 2 then
                 self.ALSVal = 0
             else

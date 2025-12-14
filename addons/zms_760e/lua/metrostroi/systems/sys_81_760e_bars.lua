@@ -72,7 +72,7 @@ end
 function TRAIN_SYSTEM:Think(dT)
     local Train = self.Train
     local ALS = Train.ALSCoil
-    local ALSVal = Train.ALS.Value * (Train.ALSVal == 2 and 1 or 0) * Train.SF23F8.Value
+    local ALSVal = Train.ALS.Value * (Train.ALSVal == 2 and 1 or 0) * Train.PpzUpi.Value
     local UOS = (Train.PmvAtsBlock.Value == 3) and (Train.RV["KRO5-6"] == 0 or Train.RV["KRR15-16"] > 0) --and ALSVal == 0
     local EnableALS = Train.Electric.Battery80V > 62 and (1 - Train.RV["KRO5-6"]) + Train.RV["KRR15-16"] > 0
     local DAU = Train.PmvFreq.Value == 0
@@ -80,14 +80,14 @@ function TRAIN_SYSTEM:Think(dT)
     if EnableALS ~= (ALS.Enabled == 1) then ALS:TriggerInput("Enable", EnableALS and 1 or 0) end
 
     -- Kolhoz tipa 81-765 (skoree vsego huinya)
-    local Power = Train.Electric.Battery80V > 62 and (Train.RV["KRO5-6"] == 0 or Train.RV["KRR15-16"] > 0)
-    self.ATS1Disabled = not Power or UOS or Train.PmvAtsBlock.Value == 2
-    self.ATS2Disabled = not Power or UOS or Train.PmvAtsBlock.Value == 1
-    self.ATS1 = Power and (self.ATS1Disabled or Train.SF23F8.Value > 0.5)
-    self.ATS2 = Power and (self.ATS2Disabled or Train.SF23F7.Value > 0.5)
+    self.BarsPower = Train.Electric.Battery80V > 62 and (Train.RV["KRO5-6"] == 0 or Train.RV["KRR15-16"] > 0)
+    self.ATS1Bypass = not self.BarsPower or UOS or Train.PmvAtsBlock.Value == 2
+    self.ATS2Bypass = not self.BarsPower or UOS or Train.PmvAtsBlock.Value == 1
+    self.ATS1 = self.BarsPower and (self.ATS1Bypass or Train.PpzAts1.Value > 0.5)
+    self.ATS2 = self.BarsPower and (self.ATS2Bypass or Train.PpzAts2.Value > 0.5)
 
     local PowerALS = self.ATS1 and self.ATS2
-    Power = PowerALS and ALSVal == 0
+    local Power = PowerALS and ALSVal == 0
 
     self.NoFreq = not self.AB and ALS.NoFreq > 0
     self.BINoFreq = not self.AB and 0 or ALS.NoFreq
@@ -137,7 +137,7 @@ function TRAIN_SYSTEM:Think(dT)
     if not self.Ready then Active = false end
     --if not self.Ready and Train.BUKP.State == 5 and Power then self.RVTB = 0 end
     if self.RVTB == 0 then self.BTB = 0 end
-    local Emer = Train.RV["KRR15-16"] * Train.SF23F1.Value > 0.5
+    local Emer = Train.RV["KRR15-16"] * Train.PpzPrimaryControls.Value > 0.5
     local KMState = Train.KV765.Position
     local ThrottleState = Train.KV765.TractiveSetting
     local BUPKMState = Train.BUKP.ControllerState
@@ -357,7 +357,7 @@ function TRAIN_SYSTEM:Think(dT)
             --self.BrakeEfficiency = nil
         end
 
-        if Train.BUKP.State * Train.SF23F8.Value == 5 then
+        if Train.BUKP.State * Train.PpzUpi.Value == 5 then
             if self.BUKPState ~= 5 then
                 self.RVTB = 1
                 self.BUKPState = 5
@@ -411,7 +411,7 @@ function TRAIN_SYSTEM:Think(dT)
             self.RVTB = 0
         end
 
-        if Train.SF23F13.Value == 0 and Train.RV.KROPosition ~= 0 then self.PN2 = 1 end
+        if Train.PpzPrimaryControls.Value == 0 and Train.RV.KROPosition ~= 0 then self.PN2 = 1 end
         --print(self.RVTB)
         if Train.BUKP.State == 5 then
             if Emer then
@@ -529,7 +529,7 @@ function TRAIN_SYSTEM:Think(dT)
             self.UOS = true
             self.BTB = 1
             local Speed = self.Speed --math.Round(Train.Speed*10)/10
-            if Train.RV["KRO9-10"] * Train.SF23F3.Value > 0.5 then
+            if Train.RV["KRO9-10"] * Train.PpzPrimaryControls.Value > 0.5 then
                 self.BTB = self.KB and 1 or 0
                 if self.KB then
                     self.UOSActive = true
@@ -570,8 +570,8 @@ function TRAIN_SYSTEM:Think(dT)
                 end
 
                 self.Drive = (self.KB and Train.KAH.Value == 1 and (ALSVal == 1 or Speed < 35.5)) and 1 or 0
-                self.RVTB = (Train.SF23F7.Value + Train.SF23F8.Value == 0 or self.RollingBraking and CurTime() - self.RollingBraking > 0 or self.UOSBraking) and 0 or 1
-            elseif Train.RV["KRR15-16"] * Train.SF23F1.Value > 0.5 then
+                self.RVTB = (Train.PpzAts2.Value + Train.PpzAts1.Value == 0 or self.RollingBraking and CurTime() - self.RollingBraking > 0 or self.UOSBraking) and 0 or 1
+            elseif Train.RV["KRR15-16"] * Train.PpzPrimaryControls.Value > 0.5 then
                 if not self.KB then self.BTB = 0 end
                 self.UOSActive = self.KB
                 self.RVTB = self.KB and 1 or 0
@@ -581,49 +581,11 @@ function TRAIN_SYSTEM:Think(dT)
                 self.BTB = 0
             end
 
-            --print(Train.RV["KRR7-8"]*Train.BARS.BTB*Train.EmerX1.Value*((Train.SF23F8.Value+(Train.BARS.UOS and 1 or 0) > 0) and 1 or 0),Train.Pneumatic.SD2 )
             self.PN1 = 0
             self.PN2 = 0
-            --self.DisableDrive = false
             self.Brake = 0
-            --[[
-            local NeedPB = ((Train.RV["KRO9-10"] > 0.5 or self.SpeedLimit < 21) and Train.PB.Value or 1) > 0.5-- or 1--PB или KB ?
-            --self.UOSNeedPB = NeedPB
-            local RVTB = (Train.SF23F8.Value > 0 or Train.RV.KRRPosition ~= 0) and (Train.RV["KRO9-10"]+Train.RV["KRR15-16"] > 0.5) and NeedPB and 1 or 0 --(Train.SF23F8.Value > 0 or Train.RV.KRRPosition ~= 0) and (self.SpeedLimit < 21 and self.KB or self.SpeedLimit > 21) and 1 or 0
-            self.RVTB = RVTB
-            self.BTB = 1
-            self.Brake = 0
-            
-            self.SpeedLimit = (Train.RV["KRO9-10"] > 0.5 or self.SpeedLimit < 21) and NeedPB and 35.5 or self.SpeedLimit 
-            if Train.RV["KRO9-10"] > 0.5 then
-                if self.Speed > 35.5 then self.UOSBrake = true self.UOSBraking = true end
-                if self.Speed < 35 and self.UOSBrake and KMState <= 0 then self.UOSBrake = false end
-                if self.UOSBraking and self.Speed == 0 then self.UOSBraking = false end
-            elseif Train.RV["KRR15-16"] > 0.5 then
-                if self.Speed > self.SpeedLimit then self.UOSBrake = true self.UOSBraking = true end
-                if self.Speed < self.SpeedLimit-0.5 and self.UOSBrake and Train:ReadTrainWire(19)+Train:ReadTrainWire(45) == 0 then self.UOSBrake = false end
-                if self.UOSBraking and self.Speed == 0 then self.UOSBraking = false end
-            end
-
-            self.Drive = (self.UOSBrake or RVTB == 0) and 0 or (Train.RV["KRO9-10"] > 0.5 and Train.SF23F8.Value*Train.KAH.Value or (Train.RV["KRR15-16"] > 0.5 and 1 or 0))
-            self.PN2 = 0
-            --self.Ring = 0
-            self.PN1 = 0
-            self.RVTB = self.UOSBraking and 0 or self.RVTB
-            
-            if ALS.AO then
-                self.RingingAO = (ALS.F5 == 0)
-                self.Ringing = not self.RingingAO
-            elseif not self.RingingAO then
-                self.RingingAO = true
-                self.Ringing = false
-            end			
-            self.Ring = self.Ringing and 1 or 0]]
-            --self.DisableDrive = self.Speed > 33.9 or self.DisableDrive and KMState > 0
-            --self.PN2 = self.UOSBraking and 1 or 0
         elseif ALSVal > 0 then
             self.PN2 = 1
-            --self.RVTB = 0			
         else
             self.BTB = 0
             self.Brake = 0
@@ -682,32 +644,23 @@ function TRAIN_SYSTEM:Think(dT)
             self.PN1 = 1
             self.StillBrake = 1
         end
-        --end
     end
 
-    if Power and Train.SF23F8.Value == 0 and Train.RV.KROPosition ~= 0 then
+    if Power and Train.PpzUpi.Value == 0 and Train.RV.KROPosition ~= 0 then
         self.RVTB = 0
-        --print("NOPOWER")
     end
 
     if self.PN1 + self.PN2 == 0 and self.StillBrake > 0 then self.StillBrake = 0 end
-    --[[
-    if Power and Train.BUKP.State == 5 and KMState <=0 and self.Speed < 0.1 then
-        self.PN2 = 1
-        self.PN2T = true
-    end
-    if Power and Train.BUKP.State == 5 and KMState > 0 and self.PN2T then self.PN2T = false end
-    if Power and Train.BUKP.State == 5 and KMState <=0 and self.PN2T then
-        self.PN2 = 1
-    end
-    ]]
+
     if Train.Electric.V2 ~= self.ElectricBTB then
         self.RVTB = 1
         self.BTB = 1
         self.ElectricBTB = Train.Electric.V2
     end
 
-    self.BTB = self.BTB * (1 - Train:ReadTrainWire(41))
+    -- SD TB Restore fix
+    -- Said to be unrealistic, meaning the SD TB restore behaivor IS realistic, not a bug.
+    -- self.BTB = self.BTB * (1 - Train:ReadTrainWire(41))
 
     self.RVTB = Train.Electric.V2 == 0 and 1 or self.RVTB * Train.SF22F5.Value
     self.Active = Active and 1 or 0

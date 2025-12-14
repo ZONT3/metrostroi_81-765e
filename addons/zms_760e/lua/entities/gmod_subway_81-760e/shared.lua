@@ -472,16 +472,33 @@ function ENT:InitializeSounds()
     }
 
     self.SoundPositions["horn"] = {1100, 1e9, Vector(500, 0, -30)}
-    self.SoundNames["KV_-3_-2"] = "subway_trains/722/kuau/x_xp.mp3"
-    self.SoundNames["KV_-2_-1"] = "subway_trains/722/kuau/xp_x2.mp3"
-    self.SoundNames["KV_-1_0"] = "subway_trains/722/kuau/x_xp.mp3"
-    self.SoundNames["KV_0_1"] = "subway_trains/722/kuau/0_x.mp3"
-    self.SoundNames["KV_1_2"] = "subway_trains/722/kuau/x_xp.mp3"
-    self.SoundNames["KV_2_1"] = "subway_trains/722/kuau/xp_x2.mp3"
-    self.SoundNames["KV_1_0"] = "subway_trains/722/kuau/x_xp.mp3"
-    self.SoundNames["KV_0_-1"] = "subway_trains/722/kuau/0_x.mp3"
-    self.SoundNames["KV_-1_-2"] = "subway_trains/722/kuau/x_xp.mp3"
-    self.SoundNames["KV_-2_-3"] = "subway_trains/722/kuau/xp_x.mp3"
+
+    local kvType = self:GetNW2Int("KvType", 1)
+    if kvType == 1 then kvType = math.random(2) else kvType = kvType - 1 end
+    if kvType == 1 then
+        self.SoundNames["KV_-3_-2"] = "subway_trains/722/kuau/x_xp.mp3"
+        self.SoundNames["KV_-2_-1"] = "subway_trains/722/kuau/xp_x2.mp3"
+        self.SoundNames["KV_-1_0"] = "subway_trains/722/kuau/x_xp.mp3"
+        self.SoundNames["KV_0_1"] = "subway_trains/722/kuau/0_x.mp3"
+        self.SoundNames["KV_1_2"] = "subway_trains/722/kuau/x_xp.mp3"
+        self.SoundNames["KV_2_1"] = "subway_trains/722/kuau/xp_x2.mp3"
+        self.SoundNames["KV_1_0"] = "subway_trains/722/kuau/x_xp.mp3"
+        self.SoundNames["KV_0_-1"] = "subway_trains/722/kuau/0_x.mp3"
+        self.SoundNames["KV_-1_-2"] = "subway_trains/722/kuau/x_xp.mp3"
+        self.SoundNames["KV_-2_-3"] = "subway_trains/722/kuau/xp_x.mp3"
+    else
+        self.SoundNames["KV_-3_-2"] = "subway_trains/765/controller2/e-tp.mp3"
+        self.SoundNames["KV_-2_-1"] = "subway_trains/765/controller2/tp-t.mp3"
+        self.SoundNames["KV_-1_0"] = "subway_trains/765/controller2/t-0.mp3"
+        self.SoundNames["KV_0_1"] = "subway_trains/765/controller2/0-x.mp3"
+        self.SoundNames["KV_1_2"] = "subway_trains/765/controller2/x-xp.mp3"
+        self.SoundNames["KV_2_1"] = "subway_trains/765/controller2/xp-x.mp3"
+        self.SoundNames["KV_1_0"] = "subway_trains/765/controller2/x-0.mp3"
+        self.SoundNames["KV_0_-1"] = "subway_trains/765/controller2/0-t.mp3"
+        self.SoundNames["KV_-1_-2"] = "subway_trains/765/controller2/t-tp.mp3"
+        self.SoundNames["KV_-2_-3"] = "subway_trains/765/controller2/tp-e.mp3"
+    end
+
     self.SoundPositions["KV_-3_-2"] = {80, 1e9, Vector(461.8, 25.3, -27.7)}
     self.SoundPositions["KV_-2_-1"] = self.SoundPositions["KV_-3_-2"]
     self.SoundPositions["KV_-1_0"] = self.SoundPositions["KV_-3_-2"]
@@ -492,6 +509,7 @@ function ENT:InitializeSounds()
     self.SoundPositions["KV_0_-1"] = self.SoundPositions["KV_-3_-2"]
     self.SoundPositions["KV_-1_-2"] = self.SoundPositions["KV_-3_-2"]
     self.SoundPositions["KV_-2_-3"] = self.SoundPositions["KV_-3_-2"]
+
     self.SoundNames["kro_in"] = {"subway_trains/717/kru/kru_insert1.mp3", "subway_trains/717/kru/kru_insert2.mp3"}
     self.SoundNames["kro_out"] = {"subway_trains/717/kru/kru_eject1.mp3", "subway_trains/717/kru/kru_eject2.mp3", "subway_trains/717/kru/kru_eject3.mp3",}
     self.SoundNames["kro_-1_0"] = {"subway_trains/717/kru/kru0-1_1.mp3", "subway_trains/717/kru/kru0-1_2.mp3", "subway_trains/717/kru/kru0-1_3.mp3", "subway_trains/717/kru/kru0-1_4.mp3",}
@@ -936,6 +954,10 @@ function ENT:InitializeSystems()
     self:LoadSystem("CAMS", "81_760_CAMS")
     self:LoadSystem("Prost_Kos", "81_760E_Prost_Kos")
     --self:LoadSystem("MEZHWAG")
+
+    if self.InitializeSystemsServer then
+        self:InitializeSystemsServer()
+    end
 end
 
 ENT.AnnouncerPositions = {}
@@ -1101,6 +1123,7 @@ ENT.Spawner = {
     { "SarmatBeep", "Звук теста аппаратуры от \"Сармат\"", "Boolean" },
     { "AnnouncerClicks", "Звук клика в оповещениях", "Boolean" },
     { "HornType", "Тифон", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5 },
+    { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 1 },
     {
         "VVVFSound",
         "Spawner.720a.VVVFSound",
@@ -1156,15 +1179,6 @@ ENT.Spawner = {
                 if ent.SA1 then
                     local leaveOff = {
                         PPZUU1 = true,
-                        SF43F3 = true,
-                        SF70F2 = true,
-                        SF51F2 = val ~= 3,
-                        SF70F4 = val > 2,
-                        SF62F3 = val > 2,
-                        SF62F4 = val > 2,
-                        SF30F1 = val > 2,
-                        SF23F7 = val > 2,
-                        SF23F8 = val > 2,
                     }
 
                     for _, cfg in ipairs(ent.PpzToggles or {}) do
