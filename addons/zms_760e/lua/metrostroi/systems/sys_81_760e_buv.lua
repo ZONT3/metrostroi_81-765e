@@ -124,25 +124,32 @@ function TRAIN_SYSTEM:TriggerInput(name, value)
 end
 
 local SFTbl = {
-    [11] = "31",
-    [12] = "32",
-    [13] = "47", --АДУД
-    [14] = "45",
-    [15] = "43",
-    [16] = "33",
-    [17] = "36",
-    [18] = "48", --АДУВ
-    [21] = "49",
-    [22] = "34",
-    [23] = "50",
-    [24] = "51",
-    [25] = "39",
-    [26] = "40",
-    [27] = "52",
-    [31] = "41",
-    [32] = "53",
-    [33] = "54",
-    [34] = "42",
+    SF23F12 = "SF", -- Счетчик
+    SF23F4 = "SF52", -- Инвертор
+    SF23F6 = "SF51", -- Управ. рез.
+    SF30F4 = "SF45", -- ПСН
+    SF52F3 = "SF44", -- Освещение авар.
+    SF52F2 = "SF43", -- Освещение осн.
+    SF90F2 = "SF36", -- АСОТП
+    SF45F3 = "SF", -- Питание ESM
+    SF80F6 = "SF40", -- Двери откр.
+    SF80F7 = "SF41", -- Двери откр.
+    SF21F1 = "SF53", -- ТКПР
+    SF45F5 = "SF54", -- Видео
+    SF52F4 = "SF", -- Подсветка дверей
+    SF23F10 = "SF", -- Противоюз
+    SF30F3 = "SF34", -- Осушитель
+    SF23F5 = "SF50", -- Цепи упрв. осн.
+    SF30F7 = "SF31", -- Питание ЦУ
+    SF30F9 = "SF32", -- Питание ЦУ
+    SF30F6 = "SF33", -- Питание ЦУ
+    SF30F8 = "SF46", -- Питание ЦУ
+    SF30F2 = "SF58", -- БС управл.
+    SF45F2 = "SF", -- БУТ БВМ
+    SF45F4 = "SF", -- БУТ БВМ
+    SF45F7 = "SF37", -- БНТ-ИК
+    SF45F8 = "SF38", -- БНТ-ИК
+    SF22F1 = "SF55", -- БУФТ
 }
 
 local function PrevTrain(Train, front)
@@ -357,8 +364,8 @@ function TRAIN_SYSTEM:Think(dT)
             self:CState("DPBT" .. i, self.ADUVWork and Train:GetPackedBool("BC" .. i) or not self.ADUVWork and self.States["DPBT" .. i])
         end
 
-        for k, v in pairs(SFTbl) do
-            self:CState("SF" .. v, Train["SF" .. v] and Train["SF" .. v].Value == 1)
+        for sfn, sf in pairs(SFTbl) do
+            self:CState(sfn, not Train[sf] or Train[sf].Value == 1)  -- FIXME implement all SFs and remove this
         end
 
         self:CState("EmergencyBrakeGood", Train.Pneumatic.BrakeCylinderPressure > ((HasEngine and 2.3 or 1.75) + Train.Pneumatic.BrakeCylinderRegulationError + Train.Pneumatic.WeightLoadRatio * 1.3) - 0.05)

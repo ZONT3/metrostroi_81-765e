@@ -48,11 +48,13 @@ function TRAIN_SYSTEM:SkifMonitor()
                 self.Page = 1
                 self.SubPage = self.State2 % 10
                 local title = "Вагонное оборудование"
-                if self.SubPage > 5 then self.SubPage = 1 end
+                if self.SubPage > 8 then self.SubPage = 1 end
                 if self.SubPage == 2 then title = "УККЗ"
                 elseif self.SubPage == 3 then title = "ДПБТ"
                 elseif self.SubPage == 4 then title = "Токоприемники"
                 elseif self.SubPage == 5 then title = "Буксы"
+                elseif self.SubPage == 6 then title = "Автоматы 1"
+                elseif self.SubPage == 7 then title = "Автоматы 2"
                 end
                 self:DrawPage(self.DrawVoPage, title)
             elseif page == 2 then
@@ -1169,12 +1171,18 @@ local voDefaultValGetter = function(Wag, idx, k) return Wag:GetNW2Bool(k .. idx,
 local voDefaultGetter = function(val) return val and colorGreen or colorRed end
 function TRAIN_SYSTEM:DrawVoPage(Wag, x, y, w, h)
     local voPage = self.SubPage
-    if voPage == 1 then
+    if voPage == 1 or voPage > 5 then
         draw.SimpleText("Параметр", "Mfdu765.VoLabel", x + sizeVoIndexW / 2, y + sizeVoIndexH - sizeVoCellMargin / 2, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
     end
 
-    local indexW = voPage > 1 and 0 or sizeVoIndexW
+    local indexW = voPage > 1 and voPage < 6 and 0 or sizeVoIndexW
     local gx, gy, gw, gh = x + indexW, y + sizeVoIndexH, w - indexW, h - sizeVoIndexH - 4
+
+    if voPage > 5 then
+        self:DrawSfPage(Wag, gx, gy, gw, gh, voPage - 5)
+        return
+    end
+
     self:DrawGrid(
         gx, gy, gw, gh, true, {2, sizeVoCellMargin},
         voLabels[voPage] or {}, "Mfdu765.VoLabel",
@@ -1305,6 +1313,42 @@ function TRAIN_SYSTEM:DrawAutodrive(Wag, x, y, w, h)
         end,
         function(field)
             return field > 2 and Wag:GetNW2Int("SkifSelected", 0) == field - 2 and colorBlue or true
+        end
+    )
+end
+
+function TRAIN_SYSTEM:DrawSfPage(Wag, x, y, w, h, pg)
+    if not self.SfLabels then
+        self.SfLabels = {}
+        self.SfGetters = {}
+        for p, sfs in ipairs(self.SFTbl) do
+            self.SfLabels[p] = {}
+            self.SfGetters[p] = {}
+            local prevName = nil
+            for sf, name in pairs(sfs) do
+                if prevName and name == prevName and name ~= "Питание ЦУ" then
+                    table.insert(self.SfGetters[p][#self.SfGetters[p]], sf)
+                else
+                    table.insert(self.SfGetters[p], {sf})
+                    table.insert(self.SfLabels[p], name)
+                    prevName = name
+                end
+            end
+        end
+    end
+
+    self:DrawGrid(
+        x, y, w, h, true, {2, sizeVoCellMargin},
+        self.SfLabels[pg], "Mfdu765.VoLabel",
+        true, "Mfdu765.VoLabel",
+        0, sizeVoCellMargin / 2,
+        function(idx, field)
+            for _, sf in ipairs(self.SfGetters[pg][field]) do
+                if not Wag:GetNW2Bool("SkifSf" .. sf .. idx, false) then
+                    return colorRed
+                end
+            end
+            return colorGreen
         end
     )
 end
