@@ -389,12 +389,12 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("AddressDoorsR", Train.BUD.AddressReadyR)
 
         if HasEngine then
-            self:CState("EnginesBroken", not self:Get("PVU9") and Train.Battery.Value * Train.SF52.Value == 1)
-            self:CState("PSNWork", not self:Get("PVU8") and Train.Battery.Value * Train.SF45.Value == 1)
+            self:CState("EnginesBroken", not self:Get("PVU5") and Train.Battery.Value * Train.SF52.Value == 1)
+            self:CState("PSNWork", not self:Get("PVU6") and Train.Battery.Value * Train.SF45.Value == 1)
             self:CState("PSNBroken", false)
             self:CState("BVEnabled", Train.BV.Value > 0)
             self:CState("MKCurrent", math.Round(Train.Electric.MK * math.Round(math.Rand(12, 15) * (Train.Pneumatic.Compressor and (CurTime() - Train.Pneumatic.Compressor > 0 and 1 or CurTime() - Train.Pneumatic.Compressor > -4 and (4 + (CurTime() - Train.Pneumatic.Compressor)) / 4) or 0))))
-            self:CState("MKWork", not self:Get("PVU3") and Train.SF34.Value == 1)
+            self:CState("MKWork", not self:Get("PVU2") and Train.SF34.Value == 1)
             self:CState("DriveStrength", math.min(0, Train.AsyncInverter.Torque + Train.AsyncInverter.Torque * math.Rand(0, 0.05)))
             self:CState("BrakeStrength", math.max(0, Train.AsyncInverter.Torque + Train.AsyncInverter.Torque * math.Rand(0, 0.05)))
             self:CState("I", Train.AsyncInverter.Current)
@@ -445,8 +445,8 @@ function TRAIN_SYSTEM:Think(dT)
     if self.Reset and self.Reset ~= CurTime() then self.Reset = nil end
     self.IVO = Train.Electric.Battery80V > 67 and self.PSN > 0 and self.I * 10 + math.Round(math.Rand(2, 6), 1) or -00.1
     if HasEngine then
-        local bv_off = (self:Get("BVOff") or Train.Battery.Value * Train.SF52.Value == 0 or Train.Electric.Battery80V <= 67) and (Train:ReadTrainWire(19) + Train:ReadTrainWire(45) == 0) or self:Get("PVU1")
-        local bv_on = Train.Battery.Value > 0 and (self:Get("BVOn") or Train:ReadTrainWire(2) > 0 or self:Get("BVInit") or Train:ReadTrainWire(19) + Train:ReadTrainWire(45) > 0) and not self:Get("PVU1")
+        local bv_off = (self:Get("BVOff") or Train.Battery.Value * Train.SF52.Value == 0 or Train.Electric.Battery80V <= 67) and (Train:ReadTrainWire(19) + Train:ReadTrainWire(45) == 0) or self:Get("PVU7")
+        local bv_on = Train.Battery.Value > 0 and (self:Get("BVOn") or Train:ReadTrainWire(2) > 0 or self:Get("BVInit") or Train:ReadTrainWire(19) + Train:ReadTrainWire(45) > 0) and not self:Get("PVU7")
         if Train.BV.Value ~= self.PrevBV and Train:ReadTrainWire(5) == 0 and Train:ReadTrainWire(6) == 1 then self.PrevBV = Train.BV.Value end
         if Train:ReadTrainWire(5) ~= self.PrevBV1 then
             if Train:ReadTrainWire(5) == 0 then
@@ -474,7 +474,7 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     if self.PSN > 0 or self.MainLights == 0 or self.MainLightsTimer and CurTime() - self.MainLightsTimer > 20 then self.MainLightsTimer = nil end
-    self.MainLights = not self:Get("PVU5") and (self.PSN > 0 or self.MainLightsTimer) and self.PassLight and 1 or 0
+    self.MainLights = not self:Get("PVU3") and (self.PSN > 0 or self.MainLightsTimer) and self.PassLight and 1 or 0
     if self:Get("Slope") then
         self.Slope = CurTime()
     elseif Train:ReadTrainWire(5) > 0 and self.Slope then
@@ -491,9 +491,9 @@ function TRAIN_SYSTEM:Think(dT)
     if self.Slope1 and Train.Pneumatic.BrakeCylinderPressure < 0.1 then self.Slope1 = false end
     self.Reverser = Train:ReadTrainWire(12)
     local brake = self:Get("Brake") or 0
-    local strength = not self:Get("PVU9") and (self.Slope1 and true or brake > 0 and Train.Pneumatic.BrakeCylinderPressure < 1.7 + Train.Pneumatic.WeightLoadRatio * 0.5 + Train.Pneumatic.BrakeCylinderRegulationError or brake == 0 and (self:Get("Slope") or Train.Pneumatic.BrakeCylinderPressure < 0.7)) and self:Get("DriveStrength") or 0
-    if not self:Get("PVU9") and brake == 0 and Train.Pneumatic.BrakeCylinderPressure < 0.4 then self.DriveTimer = CurTime() end
-    if brake == 0 and not self:Get("PVU9") then
+    local strength = not self:Get("PVU5") and (self.Slope1 and true or brake > 0 and Train.Pneumatic.BrakeCylinderPressure < 1.7 + Train.Pneumatic.WeightLoadRatio * 0.5 + Train.Pneumatic.BrakeCylinderRegulationError or brake == 0 and (self:Get("Slope") or Train.Pneumatic.BrakeCylinderPressure < 0.7)) and self:Get("DriveStrength") or 0
+    if not self:Get("PVU5") and brake == 0 and Train.Pneumatic.BrakeCylinderPressure < 0.4 then self.DriveTimer = CurTime() end
+    if brake == 0 and not self:Get("PVU5") then
         if Train:ReadTrainWire(45) == 1 then
             strength = 4
             self.SchemeSlope = true
@@ -525,7 +525,7 @@ function TRAIN_SYSTEM:Think(dT)
         if HasEngine then
             if (self:Get("Brake") or 0) == 0 then
                 self.EnginesDone = false
-            elseif Train.AsyncInverter.Brake == 1 and Train.Speed < 7 or self:Get("PVU9") then
+            elseif Train.AsyncInverter.Brake == 1 and Train.Speed < 7 or self:Get("PVU5") then
                 self.EnginesDone = true
             end
         else
@@ -583,26 +583,26 @@ function TRAIN_SYSTEM:Think(dT)
     if HasEngine then
         self.PN1 = (self:Get("PN1") and self:Get("PN1") > 0) or PN and (self:Get("DriveStrength") and self:Get("DriveStrength") > 0) or self:Get("PR") and self.TargetStrength <= 0
         self.PN2 = self.Slope and self:Get("SlopeSpeed") or (self:Get("PN2") and self:Get("PN2") > 0) or PN and strongerBrake
-        self.MK = not self:Get("PVU3") and self.MKSignal and 1 or 0
+        self.MK = not self:Get("PVU2") and self.MKSignal and 1 or 0
     else
         self.PN1 = (self:Get("PN1") and self:Get("PN1") > 0) or PN and (self:Get("DriveStrength") and self:Get("DriveStrength") > 1) or self:Get("PR") and self.TargetStrength <= 0
         self.PN2 = self.Slope and self:Get("SlopeSpeed") or PN and strongerBrake
     end
     self.PN3 = self:Get("PN3") and self:Get("PN3") > 0 or false
 
-    self.PSN = not self:Get("PVU8") and Train.Electric.Battery80V > 67 and self.PSNSignal and Train.Battery.Value * Train.SF45.Value or 0
+    self.PSN = not self:Get("PVU6") and Train.Electric.Battery80V > 67 and self.PSNSignal and Train.Battery.Value * Train.SF45.Value or 0
     if Train.Electric.Main750V < 550 or Train.Electric.Main750V > 975 then self.PSN = 0 end
     if self.PSN == 0 and self.PassLight and self.MainLights == 1 and not self.MainLightsTimer then self.MainLightsTimer = CurTime() end
     self.Recurperation = not self:Get("ReccOff") and 1 or 0
 
     self.BTB = Train.Pneumatic.RVTBLeak == 1
-    self.OpenLeft = not self:Get("PVU2") and (self:Get("OpenLeft") and self.Orientation or self:Get("OpenRight") and not self.Orientation)
-    self.OpenRight = not self:Get("PVU2") and (self:Get("OpenRight") and self.Orientation or self:Get("OpenLeft") and not self.Orientation)
+    self.OpenLeft = not self:Get("PVU1") and (self:Get("OpenLeft") and self.Orientation or self:Get("OpenRight") and not self.Orientation)
+    self.OpenRight = not self:Get("PVU1") and (self:Get("OpenRight") and self.Orientation or self:Get("OpenLeft") and not self.Orientation)
     self.AddressDoors = self:Get("AddressDoors")
     self.WagIdx = self:Get("WagIdx") or 1
     self.TrainLen = self:Get("TrainLen") or 1
 
-    local command = not self:Get("PVU2") and self:Get("CloseDoors")
+    local command = not self:Get("PVU1") and self:Get("CloseDoors")
     if command and self.CloseDoorsCommand ~= command and Train.DoorsOpened then
         self.CloseDoorsCommandAt = CurTime()
     end
@@ -654,7 +654,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.PrevRevOrientation = self.Train:ReadTrainWire(4) > 0
     if self.ADUVWork then
         if IsHead then
-            self.BlockTorec = not self:Get("PVU6") and not Train.RearDoor and not Train.FrontDoor and self.BlockSignal and Train.SF42.Value * Train.Battery.Value > 0
+            self.BlockTorec = not Train.RearDoor and not Train.FrontDoor and self.BlockSignal and Train.SF42.Value * Train.Battery.Value > 0
         end
         if (self:Get("PVU4") and Train.SF53.Value > 0 or self:Get("PantDisabled") and Train.SF53.Value > 0) and Train.Battery.Value > 0 then
             self.Pant = true

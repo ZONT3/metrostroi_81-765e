@@ -803,6 +803,15 @@ function ENT:InitializeSounds()
         self.SoundNames["horn"] = { loop = 0.6, "subway_trains/765/tifon/tifon_start.mp3","subway_trains/765/tifon/tifon_loop.mp3", "subway_trains/765/tifon/tifon_end.mp3" }
         self.SoundPositions["horn"] = {1100,1e9,Vector(450,0,-55),1}
     end
+
+    self.SoundNames["mfdu_down"] = {
+        "subway_trains/717/switches/tumbler_triple_0-up_1.mp3",
+        "subway_trains/717/switches/tumbler_triple_0-up_2.mp3",
+    }
+    self.SoundNames["mfdu_up"] = {
+        "subway_trains/717/switches/tumbler_triple_up-0_1.mp3",
+        "subway_trains/717/switches/tumbler_triple_up-0_2.mp3",
+    }
 end
 
 
@@ -1234,6 +1243,9 @@ ENT.Spawner = {
                     ent.PmvLights:TriggerInput("Set", val <= 2 and 0 or 1)
                     ent.PmvCond:TriggerInput("Set", val <= 2 and 0 or 1)
 
+                    local yd = os.date("!*t").yday
+                    ent.BUKP.CondLeto = yd > 115 and yd < 300
+
                     _LastSpawner = CurTime()
                     ent.CabinDoorLeft = val == 4 and first
                     ent.CabinDoorRight = val == 4 and first
@@ -1269,8 +1281,6 @@ ENT.Spawner = {
                             ent.CAMS.State = -1
                             ent.CAMS.StateTimer = CurTime() + 6
                             ent.VentTimer = -20
-                            -- ent.Speedometer.State = 1
-                            -- ent.BMCIS.State = 1
                         end)
 
                         if first then

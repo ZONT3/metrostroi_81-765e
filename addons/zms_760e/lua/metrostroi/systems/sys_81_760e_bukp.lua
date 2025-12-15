@@ -125,6 +125,8 @@ function TRAIN_SYSTEM:Initialize()
     self.ErrorParams = {}
     self.Password = ""
     self.Selected = 0
+    self.PvuWag = 0
+    self.PvuCursor = 1
     self.MsgPage = 1
     self.MsgVer = 0
     self.Messages = {}
@@ -285,7 +287,6 @@ if SERVER then
             if name == BTN_CLEAR and value then self.Password = self.Password:sub(1, -2) end
             if name == BTN_ENTER and value then
                 if self.Password == self.SkifPass then
-                    --self.PassedState2 = false
                     self.State = 2
                     self.State2 = 0
                     self.Selected = 0
@@ -390,12 +391,13 @@ if SERVER then
         elseif self.State == 3 and name == BTN_ENTER and value and RV ~= 0 then
             self.State = 2
         elseif self.State == 5 and value and RV ~= 0 then
-            if char and self.State2 ~= 01 then
+            if char and self.PvuWag == 0 then
                 self.State2 = tonumber(char .. "1")
                 self.Select = false
                 self.AutoChPage = nil
 
                 if self.State2 == 81 then self.MsgPage = 1 self:PrepareMessages() end
+                if self.State2 == 91 then self.State2 = 0 end
             end
 
             local page = math.floor(self.State2 / 10)
@@ -417,32 +419,57 @@ if SERVER then
                     elseif self.MsgPage > max then self.MsgPage = 1 end
                     self:PrepareMessages()
                 end
-            elseif not self.Select and name == BTN_MODE and (page == 6 or page == 7 or page == 8 or page == 0) then
-                self.Select = 1
+            elseif not self.Select and name == BTN_MODE and (page == 6 or page == 7 or page == 8) then
+                if page == 6 then
+                    self.Select = self.CondLeto and 1 or 2
+                else
+                    self.Select = 1
+                end
+            else
+                if page == 7 and name == BTN_MODE then
+                    if self.Select == 1 then
+                        self.Kos = not self.Kos
+                        if self.Prost and not self.Kos then self.Prost = false end
+                    else
+                        self.Prost = not self.Prost
+                        if self.Prost and not self.Kos then self.Kos = true end
+                    end
+                end
+            end
+
+            if page == 6 and self.Select and (name == BTN_DOWN or name == BTN_UP) then
+                self.CondLeto = self.Select == 1
+            end
+
+            if page == 0 then
+                if name == BTN_DOWN or name == BTN_UP then
+                    self.PvuCursor = self.PvuCursor + (name == BTN_DOWN and 1 or -1)
+                    if self.PvuCursor < 1 then self.PvuCursor = 7
+                    elseif self.PvuCursor > 7 then self.PvuCursor = 1 end
+                end
+                if self.PvuWag > 0 and name == BTN_MODE then
+                    local train = self.Trains[self.PvuWag]
+                    if not self.PVU[train] then self.PVU[train] = {} end
+                    self.PVU[train][self.PvuCursor] = not self.PVU[train][self.PvuCursor]
+                elseif name == BTN_MODE then
+                    self.PvuWag = 1
+                end
+                if char and self.PvuWag > 0 then
+                    local sel = tonumber(char)
+                    if sel and sel > 0 and sel <= self.WagNum then self.PvuWag = sel end
+                end
             end
 
             if name == BTN_CLEAR then
                 if self.Select then
                     self.Select = false
+                elseif self.PvuWag > 0 then
+                    self.PvuWag = 0
                 else
                     self.State2 = 0
                     self.AutoChPage = nil
                 end
             end
-        end
-
-        if self.State == 5 and self.State2 == 01 and value then
-            local train = self.Trains[self.Selected]
-            if not self.PVU[train] then self.PVU[train] = {} end
-            if self.Trains[train] and not self.Trains[train].AsyncInverter then
-                if char and (char == 2 or char == 4 or char == 5) then self.PVU[train][char] = not self.PVU[train][char] end
-            else
-                if char and char ~= 6 then self.PVU[train][char] = not self.PVU[train][char] end
-            end
-
-            if name == BTN_UP and self.Selected > 1 then self.Selected = self.Selected - 1 end
-            if name == BTN_DOWN and self.Selected < self.WagNum then self.Selected = self.Selected + 1 end
-            if name == BTN_ENTER then self.State2 = 0 self.Select = false end
         end
 
         if self.State == 5 and name == "AttentionMessage" and value then
@@ -664,6 +691,7 @@ if SERVER then
 
         local RV = (1 - Train.RV["KRO5-6"]) + Train.RV["KRR15-16"]
         Train:SetNW2Int("SkifRV", RV * Train.Electric.UPIPower)
+        if self.State ~= 5 then self.MainMsg = RV * Train.Electric.UPIPower > 0 and MAINMSG_NONE or MAINMSG_RVOFF end
         self.Active = (RV * Train.PpzActiveCabin.Value ~= 0) and 1 or 0
 
         if self.State < 5 and self.Prost then
@@ -736,10 +764,10 @@ if SERVER then
             if self.State >= 2 then
                 Train:SetNW2String("SkifTime", self.Time)
                 Train:SetNW2String("SkifDate", self.DateStr)
+                Train:SetNW2Int("SkifWagNum", self.WagNum)
             end
             if self.State == 2 then
                 Train:SetNW2String("SkifRouteNumber", self.RouteNumber)
-                Train:SetNW2Int("SkifWagNum", self.WagNum)
                 Train:SetNW2String("SkifDepotCode", self.DepotCode)
                 Train:SetNW2String("SkifDepeatStation", self.DepeatStation)
                 Train:SetNW2String("SkifPath", self.Path)
@@ -1154,10 +1182,10 @@ if SERVER then
 
                     for i = 1, self.WagNum do
                         local train = self.Trains[self.Trains[i]]
-                        Train:SetNW2Bool("SkifSF" .. i .. "52", train.SF52)
+                        Train:SetNW2Bool("SkifInvSf" .. i, train.SF23F4)
                     end
 
-                    if self.State2 == 11 then
+                    if self.State2 == 11 or self.State2 == 01 then
                         for i = 1, self.WagNum do
                             local train = self.Trains[self.Trains[i]]
                             Train:SetNW2Bool("SkifBuksGood" .. i, true)
@@ -1168,14 +1196,6 @@ if SERVER then
                             Train:SetNW2Bool("SkifPUGood" .. i, true)
                             Train:SetNW2Bool("SkifBUDWork" .. i, train.BUDWork)
                             Train:SetNW2Bool("SkifWagOr" .. i, train.Orientation)
-                        end
-                    elseif self.State2 == 12 then
-                        for i = 1, self.WagNum do
-                            local train = self.Trains[self.Trains[i]]
-                            Train:SetNW2Bool("SkifEKKGood" .. i, train.WagType == 2)
-                            Train:SetNW2Bool("SkifEDTBroken" .. i, train.I < 0)
-                            Train:SetNW2Bool("SkifPTGood" .. i, train.PTEnabled)
-                            Train:SetNW2Bool("SkifPantDisabled" .. i, not train.PantDisabled)
                         end
                     elseif self.State2 == 13 then
                         for i = 1, self.WagNum do
@@ -1255,22 +1275,19 @@ if SERVER then
                             end
                             Train:SetNW2Bool("SkifDPBT" .. i, green)
                         end
-                    elseif self.State2 == 81 then
-                        
 
-                    elseif self.State2 == 01 then
-                        local train = self.Trains[self.Selected]
-                        for i = 1, 9 do
-                            Train:SetNW2Bool("SkifPVU" .. i, self.PVU[train] and self.PVU[train][i])
-                        end
                     end
 
+                    local pvu = false
                     for k = 1, self.WagNum do
                         local train = self.Trains[k]
                         for i = 1, 9 do
-                            Train:SetNW2Bool("SkifPVU" .. k .. i, self.PVU[train] and self.PVU[train][i])
+                            local val = self.PVU[train] and self.PVU[train][i]
+                            Train:SetNW2Bool("SkifPVU" .. i .. k, val)
+                            pvu = pvu or val
                         end
                     end
+                    Train:SetNW2Bool("SkifPvu", pvu)
 
                     if not self.Slope and Train.AccelRate.Value > 0 and (Train.BARS.Speed <= 2 or kvSetting == 0) then
                         self.Slope = true
@@ -1410,6 +1427,8 @@ if SERVER then
         if Train.PpzAts2.Value + Train.PpzAts1.Value > 0 and Train:GetNW2Int("SkifState") == 5 or Train:GetNW2Int("SkifState") < 5 or not Power then
             Train:SetNW2Int("SkifState", self.State * Train.Electric.UPIPower)
             Train:SetNW2Int("SkifState2", self.State2)
+            Train:SetNW2Int("SkifPvuWag", self.PvuWag)
+            Train:SetNW2Int("SkifPvuSel", self.PvuCursor)
             Train:SetNW2Int("SkifSelect", self.Select or 0)
             Train:SetNW2Bool("SkifLegacyScreen", self.LegacyScreen)
 
@@ -1429,6 +1448,7 @@ if SERVER then
         self.ZeroSpeed = self.State == 5 and self.MainMsg == 0 and self.CurrentSpeed < 1.8 and 1 or 0
 
         if self.State > 0 and self.Reset and self.Reset == 1 then self.Reset = false end
+        if self.PvuWag > 0 and not (self.State == 5 and self.State2 == 01) then self.PvuWag = 0 end
     end
 else
 
@@ -1446,22 +1466,24 @@ else
         if not skipOther then self.DrawTimer = CurTime() end
 
         local state = self.Train:GetNW2Int("SkifState", 0)
-        skipOther = skipOther or state == -2
+        local poweroff = state == 0
+        skipOther = skipOther or state == -2 or poweroff
         if not skipOther then
             self.State = state
             self.State2 = self.Train:GetNW2Int("SkifState2", 0)
             self.Select = self.Train:GetNW2Int("SkifSelect", 0)
+            self.WagNum = self.Train:GetNW2Int("SkifWagNum", 0)
             self.MainScreen = self.State2 == 0
         end
         render.PushRenderTarget(self.Train.MFDU, 0, 0, 1024, 1024)
-        if not skipOther then
+        if not skipOther or poweroff then
             render.Clear(0, 0, 0, 0)
         end
         cam.Start2D()
         if not skipOther then
             self:SkifMonitor(self.Train)
         end
-        if state ~= -2 and drawThrottle and self.NormalWork then
+        if state == 5 and drawThrottle and self.NormalWork then
             self:DrawMainThrottle()
         end
         cam.End2D()

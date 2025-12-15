@@ -383,14 +383,14 @@ function TRAIN_SYSTEM:Think(dT, iter)
         end
 
         self.ZeroSpeed = S["RV"] * min(1, Train.BUKP.ZeroSpeed * Train.BUKP.Active + C(Train.PmvAtsBlock.Value == 3) * (1 - Train.SF22F3.Value) * Train.PmvParkingBrake.Value)
-        self.DoorsControl = self.ZeroSpeed * Train.SF80F5.Value * min(1, Train.BUKP.ZeroSpeed * Train.BUKP.Active + Train.EmergencyDoors.Value)
+        self.DoorsControl = Train.SF80F5.Value * min(1, Train.BUKP.ZeroSpeed * Train.BUKP.Active + Train.EmergencyDoors.Value)
 
         Train:WriteTrainWire(10, P * Train.Battery.Value * Train.EmergencyCompressor.Value)
         local EmergencyDoors = self.DoorsControl * Train.EmergencyDoors.Value
         Train:WriteTrainWire(40, EmergencyDoors)
         Train:WriteTrainWire(39, EmergencyDoors * Train.EmerCloseDoors.Value)
-        Train:WriteTrainWire(38, EmergencyDoors * Train.DoorLeft.Value)
-        Train:WriteTrainWire(37, EmergencyDoors * Train.DoorRight.Value)
+        Train:WriteTrainWire(38, EmergencyDoors * self.ZeroSpeed * Train.DoorLeft.Value)
+        Train:WriteTrainWire(37, EmergencyDoors * self.ZeroSpeed * Train.DoorRight.Value)
         local ASNP_VV = Train.ASNP_VV
         ASNP_VV.Power = P * Train.SF42F1.Value * Train.R_ASNPOn.Value
         Panel.AppLights = --[[P * Train.SF15.Value * Train.SA8.Value]] 0

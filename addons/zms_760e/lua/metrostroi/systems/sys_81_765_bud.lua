@@ -77,6 +77,11 @@ function TRAIN_SYSTEM:Think(dT)
     working = self.Working
     poweron = working or self.Starting and self.Starting - CurTime() < 0.3
 
+    if poweron and not working then
+        self.DoorLeft = false
+        self.DoorRight = false
+    end
+
     local workingLeft = working and BUV.Orientation and Wag.SF40.Value > 0 or not BUV.Orientation and Wag.SF41.Value > 0
     local workingRight = working and BUV.Orientation and Wag.SF41.Value > 0 or not BUV.Orientation and Wag.SF40.Value > 0
     local reserveLeft = Wag:ReadTrainWire(38) > 0
@@ -262,7 +267,7 @@ function TRAIN_SYSTEM:Think(dT)
             else
                 Wag.RightDoorsOpen = true
             end
-            if not zeroSpeed or Wag.BUV.CloseDoorsCommand and not manual then
+            if not zeroSpeed or Wag.BUV.CloseDoorsCommand or not commandOpen then
                 announceState = "Closing"
             elseif zeroSpeed and state[i] < 1 and commandOpen and not block then
                 announceState = (not addrMode or forceOpen) and "Opening" or "Open"
@@ -274,7 +279,7 @@ function TRAIN_SYSTEM:Think(dT)
             announceState = "Open"
         end
 
-        if poweron and self.Starting and self.Starting - CurTime() < 0.3 then announceState = "Closing" end
+        if poweron and not working then announceState = "Closing" end
 
         if self.AutoReverse[idx] then
             self.ReverseWork = true

@@ -2408,7 +2408,7 @@ ENT.ButtonMap["MfduButtons"] = {
         --     y = 10,
         --     w = 15,
         --     h = 15,
-        --     tooltip = "Витязь: Упр ТВ",
+        --     tooltip = "Скиф: Упр ТВ",
         --     model = {
         --         var = "MfduTv",
         --         speed = 16,
@@ -2420,7 +2420,7 @@ ENT.ButtonMap["MfduButtons"] = {
         --     y = 28,
         --     w = 15,
         --     h = 15,
-        --     tooltip = "Витязь: ТВ1",
+        --     tooltip = "Скиф: ТВ1",
         --     model = {
         --         var = "MfduTv1",
         --         speed = 16,
@@ -2432,7 +2432,7 @@ ENT.ButtonMap["MfduButtons"] = {
         --     y = 46,
         --     w = 15,
         --     h = 15,
-        --     tooltip = "Витязь: ТВ2",
+        --     tooltip = "Скиф: ТВ2",
         --     model = {
         --         var = "MfduTv2",
         --         speed = 16,
@@ -2444,7 +2444,7 @@ ENT.ButtonMap["MfduButtons"] = {
         --     y = 64,
         --     w = 15,
         --     h = 15,
-        --     tooltip = "Витязь: ",
+        --     tooltip = "Скиф: ",
         --     model = {
         --         var = "SkifP",
         --         speed = 16,
@@ -2456,10 +2456,13 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 165,
             w = 15,
             h = 15,
-            tooltip = "Витязь: 1",
+            tooltip = "Скиф: 1",
             model = {
                 var = "Mfdu1",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0),
+                vmin = 0, vmax = 1
             }
         },
         {
@@ -2468,10 +2471,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 165,
             w = 15,
             h = 15,
-            tooltip = "Витязь: 2",
+            tooltip = "Скиф: 2",
             model = {
                 var = "Mfdu2",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2480,10 +2485,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 165,
             w = 15,
             h = 15,
-            tooltip = "Витязь: 3",
+            tooltip = "Скиф: 3",
             model = {
                 var = "Mfdu3",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2492,10 +2499,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 165,
             w = 15,
             h = 15,
-            tooltip = "Витязь: 4",
+            tooltip = "Скиф: 4",
             model = {
                 var = "Mfdu4",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2504,10 +2513,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 165,
             w = 15,
             h = 15,
-            tooltip = "Витязь: 5",
+            tooltip = "Скиф: 5",
             model = {
                 var = "Mfdu5",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2516,10 +2527,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 165,
             w = 15,
             h = 15,
-            tooltip = "Витязь: 6",
+            tooltip = "Скиф: 6",
             model = {
                 var = "Mfdu6",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2528,10 +2541,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 165,
             w = 15,
             h = 15,
-            tooltip = "Витязь: 7",
+            tooltip = "Скиф: 7",
             model = {
                 var = "Mfdu7",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2540,10 +2555,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 165,
             w = 15,
             h = 15,
-            tooltip = "Витязь: 8",
+            tooltip = "Скиф: 8",
             model = {
                 var = "Mfdu8",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2552,10 +2569,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 165,
             w = 15,
             h = 15,
-            tooltip = "Витязь: 9",
+            tooltip = "Скиф: 9",
             model = {
                 var = "Mfdu9",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2564,10 +2583,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 165,
             w = 15,
             h = 15,
-            tooltip = "Витязь: 0",
+            tooltip = "Скиф: 0",
             model = {
                 var = "Mfdu0",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2576,10 +2597,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 80,
             w = 20,
             h = 20,
-            tooltip = "Витязь: Сброс",
+            tooltip = "Скиф: Сброс",
             model = {
                 var = "MfduF5",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2588,10 +2611,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 45,
             w = 20,
             h = 20,
-            tooltip = "Витязь: Вверх",
+            tooltip = "Скиф: Вверх",
             model = {
                 var = "MfduF6",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2600,10 +2625,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 65,
             w = 20,
             h = 20,
-            tooltip = "Витязь: Вниз",
+            tooltip = "Скиф: Вниз",
             model = {
                 var = "MfduF7",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2612,10 +2639,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 120,
             w = 20,
             h = 20,
-            tooltip = "Витязь: Ввод",
+            tooltip = "Скиф: Ввод",
             model = {
                 var = "MfduF8",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2624,10 +2653,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 100,
             w = 20,
             h = 20,
-            tooltip = "Витязь: Выбор",
+            tooltip = "Скиф: Выбор",
             model = {
                 var = "MfduF9",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2636,10 +2667,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 25,
             w = 20,
             h = 20,
-            tooltip = "Витязь: ?",
+            tooltip = "Скиф: ?",
             model = {
                 var = "MfduHelp",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {
@@ -2648,10 +2681,12 @@ ENT.ButtonMap["MfduButtons"] = {
             y = 5,
             w = 20,
             h = 20,
-            tooltip = "Витязь: КОНТР",
+            tooltip = "Скиф: КОНТР",
             model = {
                 var = "MfduKontr",
                 speed = 16,
+                snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
+                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
             }
         },
         {

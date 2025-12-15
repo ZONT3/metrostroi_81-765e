@@ -78,23 +78,14 @@ function TRAIN_SYSTEM:SkifMonitor()
             elseif page == 8 then
                 self.Page = 8
                 self:DrawPage(self.DrawMessages, "Журнал")
+            elseif page == 0 then
+                self.Page = 10
+                self:DrawPage(self.DrawPvu, "Повагонное управление")
             end
         end
 
         if self.Page == 0 then
             self:DrawMain(self.Train)
-        end
-
-    elseif rv ~= 0 then
-
-        if self.State == 1 then
-            self:DrawIdle("Идентификация", true)
-        elseif self.State == 2 then
-            self:DrawIdle("Режим депо", true)
-        elseif self.State == 4 then
-            self:DrawIdle("Проверка кнопок", true)
-        else
-            self:DrawIdle("Вагоны не идентифицированы", true)
         end
 
     elseif self.MainMsg > 0 or self.State >= 1 and self.State < 5 and rv == 0 then
@@ -103,6 +94,15 @@ function TRAIN_SYSTEM:SkifMonitor()
             self:DrawErr(msg)
         else
             self:DrawIdle(msg)
+        end
+
+    elseif rv ~= 0 then
+        if self.State == 1 then
+            self:DrawIdle("Идентификация", true)
+        elseif self.State == 2 then
+            -- self:DrawDepot("Режим депо")
+        else
+            self:DrawIdent()
         end
     end
 end
@@ -136,7 +136,7 @@ local colorMainDisabled = Color(31, 31, 31)
 local colorGreen = Color(165, 255, 21)
 local colorYellow = Color(238, 224, 25)
 local colorRed = Color(223, 28, 28)
-local colorBlue = Color(27, 174, 219)
+local colorBlue = Color(31, 200, 230)
 
 local icons = {
     "zxc765/mfdu_vo.png",
@@ -405,6 +405,20 @@ surface.CreateFont("Mfdu765.MsgTextBold", {
     weight = 600,
 })
 
+surface.CreateFont("Mfdu765.PvuWag", {
+    font = "Open Sans",
+    extended = true,
+    size = 38,
+    weight = 500,
+})
+
+surface.CreateFont("Mfdu765.PvuVal", {
+    font = "Open Sans",
+    extended = true,
+    size = 24,
+    weight = 500,
+})
+
 local function drawBox(x, y, w, h, color, bgColor, borderSize)
     surface.SetDrawColor(color)
     surface.DrawRect(x, y, w, h)
@@ -598,7 +612,7 @@ local statusGetters = {
     -- Сервис
     function(self, Wag) return colorMain end,
     -- ПВУ
-    function(self, Wag) return colorMain end,
+    function(self, Wag) return Wag:GetNW2Bool("SkifPvu", false) and colorYellow or colorMain end,
 
     -- Противоюз
     function(self, Wag) return colorMainDisabled end,
@@ -715,7 +729,7 @@ function TRAIN_SYSTEM:DrawStatus(Wag)
         local x, y = (idx - 1) * (sizeButtonW + sizeButtonGap), scrOffsetY + scrH - sizeFooter
         local getter = statusGetters[idx]
         icon = idx == 6 and icon[Wag:GetNW2Bool("SkifCond", false) and 2 or 1] or icon[1]
-        surface.SetDrawColor(getter and getter(self, Wag) or colorMainDisabled)
+        surface.SetDrawColor(self.Page == idx and (self.Select > 0 or Wag:GetNW2Int("SkifPvuWag", 0) > 0) and colorBlue or getter and getter(self, Wag) or colorMain)
         surface.SetMaterial(icon)
         surface.DrawTexturedRect(x + sizeButtonBorder, y + sizeButtonBorder, sizeButtonW - sizeButtonBorder * 2, sizeFooter - sizeButtonBorder * 2)
     end
@@ -783,7 +797,7 @@ function TRAIN_SYSTEM:DrawGrid(x, y, w, h, vertical, cellGap, labels, labelFont,
     if not istable(wagNumbers) then
         local ind = not wagNumbers
         wagNumbers = {}
-        for idx = 1, self.Train:GetNW2Int("SkifWagNum", 0) do
+        for idx = 1, self.WagNum do
             table.insert(wagNumbers, tostring(ind and idx or self.Train:GetNW2Int("SkifWagNum" .. idx, "?????")))
         end
     end
@@ -851,6 +865,24 @@ function TRAIN_SYSTEM:DrawGrid(x, y, w, h, vertical, cellGap, labels, labelFont,
     end
 end
 
+local sizeIdentCw, sizeIdentCh = 40, 80
+local sizeIdentGap = 4
+function TRAIN_SYSTEM:DrawIdent()
+    surface.SetDrawColor(colorBlack)
+    surface.DrawRect(scrOffsetX, scrOffsetY, scrW + scrOffsetX, scrH + scrOffsetY)
+    draw.SimpleText("Вагоны не идентифицированы", "Mfdu765.IdleMessage", scrW / 2, scrOffsetY + 100, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+    surface.SetDrawColor(255, 255, 255)
+
+    local cw, ch = sizeIdentCw, sizeIdentCh
+    local linew = cw * self.WagNum + sizeIdentGap * (self.WagNum - 1)
+    local cx, cy = scrW / 2 - linew / 2, 400
+    for idx = 1, self.WagNum do
+        draw.SimpleText(idx, "Mfdu765.DoorsSide", cx + cw / 2, cy - 2, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+        draw.RoundedBox(sizeCellBorderRadius, cx, cy, cw, ch, self.Train:GetNW2Bool("SkifWagI" .. idx, false) and colorGreen or colorRed)
+        cx = cx + sizeIdentGap + cw
+    end
+end
+
 function TRAIN_SYSTEM:DrawPage(func, title, ...)
     self:DrawStatic()
     self:DrawTopBar(self.Train, title)
@@ -874,7 +906,7 @@ function TRAIN_SYSTEM:DrawDoorsPage(Wag, x, y, w, h)
             local color
             local isHead = Wag:GetNW2Bool("SkifHasCabin" .. wagIdx, false)
             local buvDisabled = not Wag:GetNW2Bool("SkifBUVState" .. wagIdx, false)
-            local pvu = not buvDisabled and Wag:GetNW2Bool("SkifPVU" .. wagIdx .. "2", false)
+            local pvu = not buvDisabled and Wag:GetNW2Bool("SkifPVU1" .. wagIdx, false)
             local addr = false
             if doorIdx == 1 then
                 color = isHead and Wag:GetNW2Bool("SkifDoorML" .. wagIdx, false) and colorGreen or isHead and colorRed or nil
@@ -926,9 +958,9 @@ function TRAIN_SYSTEM:DrawAsyncPage(Wag, x, y, w, h)
             local k = asyncStates[idx]
             local text = nil
             if idx == 2 then
-                if not Wag:GetNW2Bool("SkifBattery" .. wagIdx, false) or not Wag:GetNW2Bool("SkifBUVState" .. wagIdx, false) or not Wag:GetNW2Bool("SkifSF" .. wagIdx .. "52", false) then
+                if not Wag:GetNW2Bool("SkifBattery" .. wagIdx, false) or not Wag:GetNW2Bool("SkifBUVState" .. wagIdx, false) or not Wag:GetNW2Bool("SkifInvSf" .. wagIdx, false) then
                     text = "X"
-                elseif Wag:GetNW2Bool("SkifPVU" .. wagIdx .. "1", false) then
+                elseif Wag:GetNW2Bool("SkifPVU7" .. wagIdx, false) then
                     text = "Р"
                 end
             end
@@ -1254,7 +1286,7 @@ function TRAIN_SYSTEM:DrawCondPage(Wag, x, y, w, h)
     draw.SimpleText("Внешняя:", "Mfdu765.BodyTextSmall", x + cw * 2 + cw / 2, gy + gh + 128, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     draw.SimpleText("18.5 ℃", "Mfdu765.BodyTextSmallBold", x + cw * 2 + cw / 2 + 100, gy + gh + 128, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
 
-    draw.SimpleText("Режим: " .. (Wag:GetNW2Bool("SkifCond", false) and "Лето" or "Зима"), "Mfdu765.BodyTextLarge", x + w / 2 - sizeButtonW / 2, gy + gh + 212, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.SimpleText("Режим: " .. (Wag:GetNW2Bool("SkifCond", false) and "Лето" or "Зима"), "Mfdu765.BodyTextLarge", x + w / 2 - sizeButtonW / 2, gy + gh + 212, self.Select > 0 and colorBlue or colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     surface.SetDrawColor(Wag:GetNW2Bool("SkifCondAny", false) and (Wag:GetNW2Bool("SkifCond", false) and colorYellow or colorBlue) or colorMain)
     surface.SetMaterial(icons[6][Wag:GetNW2Bool("SkifCond", false) and 2 or 1])
     local icw, ich = sizeButtonW * 0.7, sizeFooter * 0.7
@@ -1331,7 +1363,7 @@ function TRAIN_SYSTEM:DrawAutodrive(Wag, x, y, w, h)
             end
         end,
         function(field)
-            return field > 2 and Wag:GetNW2Int("SkifSelected", 0) == field - 2 and colorBlue or true
+            return field > 2 and self.Select == field - 2 and colorBlue or true
         end
     )
 end
@@ -1447,5 +1479,47 @@ function TRAIN_SYSTEM:DrawMessages(Wag, x, y, w, h)
     else
         draw.SimpleText("Устранен:", "Mfdu765.MsgHeader", x - 2, y - 2, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
         draw.SimpleText(msg.timeSolved, "Mfdu765.MsgTextBold", x + 2, y - 2, colorGreen, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+    end
+end
+
+local pvuTable = {
+    { "SkifDoors", "Двери" },
+    { function(Wag, idx) return Wag:GetNW2Int("SkifMKState" .. idx, -1) >= 0 end, "МК" },
+    { "SkifLightsWork", "Свет" },
+    { "SkifPantDisabled", "ТкПр" },
+    { "SkifTPEnabled", "ТП" },
+    { "SkifPSNEnabled", "ПСН" },
+    { "SkifBV", "БВ" },
+}
+function TRAIN_SYSTEM:DrawPvu(Wag, x, y, w, h)
+    local x0 = x + sizeMainMargin
+    x = x0
+    y = y + sizeMainMargin
+
+    local cw, ch = (w - sizeMainMargin - sizeBorder - sizeMainMargin * 7) / 8, 45
+    local selWag = Wag:GetNW2Int("SkifPvuWag", 0)
+    local sel = Wag:GetNW2Int("SkifPvuSel", 0)
+
+    for idx = 1, self.WagNum do
+        drawBox(x, y, cw, ch, colorMain, colorBlack, sizeBorder)
+        draw.SimpleText(tostring(Wag:GetNW2Int("SkifWagNum" .. idx, "?????")), "Mfdu765.PvuWag", x + cw / 2 - 2, y + ch / 2, selWag == idx and colorBlue or colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        x = x + cw + sizeMainMargin
+    end
+    x = x0
+    y = y + ch + sizeMainMargin
+
+    for pvu, pv in ipairs(pvuTable) do
+        local getter, name = unpack(pv)
+        for idx = 1, self.WagNum do
+            if Wag:GetNW2Bool("SkifAsyncInverter" .. idx, false) or (pvu ~= 2 and pvu ~= 5 and pvu ~= 7) then
+                local val = isfunction(getter) and getter(Wag, idx) or not isfunction(getter) and Wag:GetNW2Bool(getter .. idx, false)
+                local pvuVal = Wag:GetNW2Bool("SkifPVU" .. pvu .. idx, false)
+                drawBox(x, y, cw, ch, pvuVal and colorRed or colorMain, idx == selWag and sel == pvu and colorBlue or colorBlack, sizeButtonBorder)
+                draw.SimpleText(name, "Mfdu765.PvuVal", x + cw / 2 - 2, y + ch / 2, val and colorGreen or colorRed, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            end
+            x = x + cw + sizeMainMargin
+        end
+        x = x0
+        y = y + ch + sizeMainMargin
     end
 end
