@@ -44,6 +44,8 @@ function TRAIN_SYSTEM:Initialize()
         self:CheckTriggers(true)
         self:InitInformer()
     end
+
+    self.NextThink = CurTime()
 end
 
 function TRAIN_SYSTEM:InitTrigger(name)
@@ -169,6 +171,10 @@ if SERVER then
 
     function TRAIN_SYSTEM:Think(dT)
         self:CheckTriggers()
+
+        if CurTime() < self.NextThink then return end
+        self.NextThink = CurTime() + 0.2
+
         self:AnnouncerWork()
 
         local Wag = self.Train

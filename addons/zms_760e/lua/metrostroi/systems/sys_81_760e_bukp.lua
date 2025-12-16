@@ -24,7 +24,7 @@ local ErrorsA = {
     {"NoOrient", "Вагон не ориентирован.", "Вагон %d не ориентирован."},
     {"BrakeLine", "Низкое давление ТМ."},
     {"DisableDrive", "Запрет ТР от АРС.",},
-    {"EmergencyBrake", "Экстренное торможение.", "Стояночный тормоз прижат\nна %d вагоне."},
+    {"EmergencyBrake", "Экстренное торможение.", "Экстренное торможение\nна %d вагоне."},
     {"ParkingBrake", "Стояночный тормоз прижат.", "Стояночный тормоз прижат\nна %d вагоне."},
     {"PneumoBrake", "Пневмотормоз включен.", "Пневмотормоз включен\nна %d вагоне."},
     {"Doors", "Двери не закрыты.", "Двери не закрыты на %d вагоне."},
@@ -40,8 +40,9 @@ local ErrorsC = {
     {"PassLights", "Освещение не включено.", "Освещение не включено\nна %d вагоне.",},
 }
 
+local ErrorsCat = { ErrorsA, ErrorsB, ErrorsC }
 local function errById(idx)
-    for catIdx, tbl in ipairs({ErrorsA, ErrorsB, ErrorsC}) do
+    for catIdx, tbl in ipairs(ErrorsCat) do
         if idx <= #tbl then
             return tbl[idx], catIdx
         end
@@ -52,9 +53,10 @@ end
 local ErrRingContinuous = {
     RightBlock = true,
     LeftBlock = true,
+    DisableDrive = true,
 }
 local NoLogErr = {
-    "Doors"
+    Doors = true
 }
 
 local Error2id = {}
@@ -167,6 +169,7 @@ function TRAIN_SYSTEM:Initialize()
     self.DoorClosed = false
     self.CurTime1 = CurTime()
     self.FirstPressed = {}
+    self.NextThink = CurTime()
 
     self:InitShared()
 end
@@ -522,9 +525,9 @@ if SERVER then
             if self.Errors[id] ~= false then
                 self.Errors[id] = CurTime()
                 self.Errors[name] = CurTime()
-                self.ErrorParams[id] = isnumber(param) and (not self.ErrorParams[id] and param or self.ErrorParams[id] and true) or self.ErrorParams[id]
+                self.ErrorParams[id] = isnumber(param) and (not self.ErrorParams[id] and param or self.ErrorParams[id] ~= param and true) or self.ErrorParams[id]
             end
-        elseif (id <= #ErrorsA or ErrRingContinuous[name]) and self.Errors[id] and self.Errors[id] ~= CurTime() or self.Errors[id] == false and (not self.WagErrors[name] or not self.WagErrors[name].any) then
+        elseif (not self.WagErrors[name] or not self.WagErrors[name].any) and ((id <= #ErrorsA or ErrRingContinuous[name]) and self.Errors[id] and self.Errors[id] ~= CurTime() or self.Errors[id] == false) then
             self.Errors[id] = nil
             self.Errors[name] = nil
             self.ErrorParams[id] = nil
@@ -537,7 +540,6 @@ if SERVER then
         end
     end
 
-    local ErrorsCat = { ErrorsA, ErrorsB, ErrorsC }
     function TRAIN_SYSTEM:CommitError()
         local errId = 0
         local category = nil
@@ -565,10 +567,12 @@ if SERVER then
             if (changed or ErrRingContinuous[str[1]]) and (str[1] ~= "Doors" or self.Train.Speed >= 1.8) then
                 self.ErrorRing = CurTime()
             end
+            if str[1] == "DisableDrive" and self.Train.KV765.Position <= 0 then
+                self.ErrorRing = nil
+            end
 
             if changed then
                 self.Train:SetNW2Int("SkifErrorCat", category)
-
                 if isnumber(param) and str[3] then
                     self.Train:SetNW2String("SkifErrorStr", string.format(str[3], param))
                 else
@@ -602,7 +606,7 @@ if SERVER then
             if msgIdx < 1 then break end
             local name, param, appeared, solved = unpack(self.Messages[msgIdx])
             local err, cat = errById(Error2id[name])
-            local text = err[3] and param and string.format(err[3], param) or err[2]
+            local text = err[3] and isnumber(param) and string.format(err[3], param) or err[2]
             text = string.Replace(text, "\n", " ")
             self.Train:SetNW2String("SkifLogMsg" .. idx, text)
             self.Train:SetNW2String("SkifLogCat" .. idx, cat == 1 and "А" or cat == 2 and "Б" or "В")
@@ -630,6 +634,20 @@ if SERVER then
     end
 
     function TRAIN_SYSTEM:Think(dT)
+        local Train = self.Train
+
+        if self.State > 0 then
+            for k, v in pairs(self.TriggerNames) do
+                if Train[v] and (Train[v].Value > 0.5) ~= self.Triggers[v] then
+                    self:Trigger(v, Train[v].Value > 0.5)
+                    self.Triggers[v] = Train[v].Value > 0.5
+                end
+            end
+        end
+
+        if CurTime() < self.NextThink then return end
+        self.NextThink = CurTime() + 0.1
+
         if self.State > 0 and self.Reset and self.Reset ~= 1 then self.Reset = false end
         if self.WagList ~= #self.Train.WagonList and self.Train.BUV.OrientateBUP == self.Train:GetWagonNumber() then
             self.Reset = 1
@@ -637,7 +655,6 @@ if SERVER then
             self.WagList = #self.Train.WagonList
         end
 
-        local Train = self.Train
         local Power = Train.Electric.Battery80V > 62
         local SkifWork = (Train.PpzAts2.Value + Train.PpzAts1.Value > 0) and Power
         if not SkifWork then
@@ -677,15 +694,6 @@ if SERVER then
             end
             self.PTEnabled = nil
             self.HVBad = CurTime()
-        end
-
-        if self.State > 0 then
-            for k, v in pairs(self.TriggerNames) do
-                if Train[v] and (Train[v].Value > 0.5) ~= self.Triggers[v] then
-                    self:Trigger(v, Train[v].Value > 0.5)
-                    self.Triggers[v] = Train[v].Value > 0.5
-                end
-            end
         end
 
         local RV = (1 - Train.RV["KRO5-6"]) + Train.RV["KRR15-16"]
@@ -896,8 +904,8 @@ if SERVER then
                         local trainid = self.Trains[i]
                         local train = self.Trains[trainid]
                         local doorclose = true
-                        for i = 1, 8 do
-                            if not train["Door" .. i .. "Closed"] then
+                        for d = 1, 8 do
+                            if not train["Door" .. d .. "Closed"] then
                                 doorclose = false
                                 break
                             end

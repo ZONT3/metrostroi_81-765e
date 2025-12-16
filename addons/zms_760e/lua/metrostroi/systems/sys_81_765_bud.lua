@@ -191,7 +191,7 @@ function TRAIN_SYSTEM:Think(dT)
             self.OpenButton[idx] = true
         end
 
-        local announceState = zeroSpeed and (self.Depart and "Depart" or (commandOpen or readyToOpen) and "Open" or not sideOpen and "Closed") or "Moving"
+        local announceState = zeroSpeed and BUV.ZeroSpeed and (self.Depart and "Depart" or (commandOpen or readyToOpen) and "Open" or not sideOpen and "Closed") or "Moving"
 
         if block then
             if state[i] > 0 then
