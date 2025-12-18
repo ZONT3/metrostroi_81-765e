@@ -700,8 +700,7 @@ function ENT:SetLightPower(index, power, brightness)
 end
 
 function ENT:TriggerLightSensor(coil, plate)
-    --self.Prost_Kos:TriggerSensor(coil,plate)
-    self.Prost_Kos:Think()
+    self.ProstKos:TriggerSensor(plate)
 end
 
 function ENT:TrainSpawnerUpdate()

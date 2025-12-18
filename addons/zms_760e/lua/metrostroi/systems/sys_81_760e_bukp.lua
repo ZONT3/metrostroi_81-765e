@@ -32,6 +32,7 @@ local ErrorsA = {
 local ErrorsB = {
     {"RightBlock", "Правые двери заблокированы.",},
     {"LeftBlock", "Левые двери заблокированы.",},
+    {"RedLightsAkb", "Выключи габаритные огни."},
     {"HV", "Напряжение КС.",},
     {"RearCabin", "Открыта кабина ХВ.",},
 }
@@ -162,6 +163,8 @@ function TRAIN_SYSTEM:Initialize()
     self.CurrentSpeed = 0
     self.ZeroSpeed = 0
     self.Speed = 0
+    self.MotorWagc = 1
+    self.TrailerWagc = 0
     self.CurTime = CurTime()
     self.Prost = false
     self.Kos = false
@@ -431,10 +434,8 @@ if SERVER then
                 if page == 7 and name == BTN_MODE then
                     if self.Select == 1 then
                         self.Kos = not self.Kos
-                        if self.Prost and not self.Kos then self.Prost = false end
                     else
                         self.Prost = not self.Prost
-                        if self.Prost and not self.Kos then self.Kos = true end
                     end
                 end
             end
@@ -840,6 +841,7 @@ if SERVER then
                 local Back = false
                 local sfBroken = false
                 local HVBad, PantDisabled = false, false
+                local motor, trailer = 0, 0
                 for i = 1, self.WagNum do
                     local train = self.Trains[self.Trains[i]]
                     if train.DriveStrength then EnginesStrength = EnginesStrength + train.DriveStrength end
@@ -847,7 +849,9 @@ if SERVER then
                     if train.RV and self.Trains[i] ~= Train:GetWagonNumber() then Back = true end
                     if train.HVBad and train.AsyncInverter then HVBad = true end
                     if train.PantDisabled then PantDisabled = true end
+                    if train.AsyncInverter then motor = motor + 1 else trailer = trailer + 1 end
                 end
+                self.MotorWagc, self.TrailerWagc = motor, trailer
 
                 local doorsNotClosed = Train.SF80F1.Value < 0.5
 
@@ -1041,18 +1045,20 @@ if SERVER then
                     Train:SetNW2Bool("SkifProst", self.Prost)
                     Train:SetNW2Bool("SkifKos", self.Kos)
 
-                    if not self.Errors.NoOrient and Train.Electric.DoorsControl > 0 and Train.DoorLeft.Value > 0 and Train.DoorSelectL.Value > 0 and Train.DoorSelectR.Value == 0 and (not Train.Prost_Kos.BlockDoorsL or Train.DoorBlock.Value == 1) then doorLeft = true end
-                    if not self.Errors.NoOrient and Train.Electric.DoorsControl > 0 and Train.DoorRight.Value > 0 and Train.DoorSelectR.Value > 0 and Train.DoorSelectL.Value == 0 and (not Train.Prost_Kos.BlockDoorsR or Train.DoorBlock.Value == 1) then doorRight = true end
+                    if not self.Errors.NoOrient and Train.Electric.DoorsControl > 0 and Train.DoorLeft.Value > 0 and Train.DoorSelectL.Value > 0 and Train.DoorSelectR.Value == 0 and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1) then doorLeft = true end
+                    if not self.Errors.NoOrient and Train.Electric.DoorsControl > 0 and Train.DoorRight.Value > 0 and Train.DoorSelectR.Value > 0 and Train.DoorSelectL.Value == 0 and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1) then doorRight = true end
 
                     Train:SetNW2Bool("SkifCond", self.CondLeto)
-                    Train:SetNW2Bool("SkifDoorBlockL", self.CurrentSpeed < 1.8 and (not Train.Prost_Kos.BlockDoorsL or Train.DoorBlock.Value == 1))
-                    Train:SetNW2Bool("SkifDoorBlockR", self.CurrentSpeed < 1.8 and (not Train.Prost_Kos.BlockDoorsR or Train.DoorBlock.Value == 1))
+                    Train:SetNW2Bool("SkifDoorBlockL", self.CurrentSpeed < 1.8 and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1))
+                    Train:SetNW2Bool("SkifDoorBlockR", self.CurrentSpeed < 1.8 and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1))
                     if Train:ReadTrainWire(33) + (1 - Train.Electric.V2) > 0 and self.EmergencyBrake == 1 then self.EmergencyBrake = 0 end
 
                     if self.BLTimer and CurTime() - self.BLTimer > 0 and Train.RV.KRRPosition == 0 and Train.Electric.SD == 0 and Train.Electric.V2 > 0 and self.EmergencyBrake == 0 then
                         self.State2 = 52
                         self.EmergencyBrake = 1
                     end
+
+                    self:CheckError("RedLightsAkb", Train.PpzBattLights.Value > 0.5)
 
                     self:CheckError("RightBlock", (not doorRight or Train.DoorClose.Value > 0) and Train.DoorRight.Value > 0)
                     self:CheckError("LeftBlock", (not doorLeft or Train.DoorClose.Value > 0) and Train.DoorLeft.Value > 0)
@@ -1094,48 +1100,34 @@ if SERVER then
                             overrideKv = false
                         end
 
-                        Train:SetNW2Bool("SkifBARSPN2", not Train.Prost_Kos.CommandKos and BARS.Brake == 0 and BARS.Active == 1 and BARS.StillBrake > 0 and not Train.Pneumatic.EmerBrakeWork)
-
-                        if Train.Prost_Kos.Command ~= 0 and Train.Prost_Kos.ProstActive == 1 and Train.KV765.Position >= 0 then kvSetting = translate_oka_kv_to_765(Train.Prost_Kos.Command) overrideKv = true end
-                        if Train.Prost_Kos.CommandKos then kvSetting = -100 overrideKv = true end
+                        if Train.ProstKos.Command < -10 and Train.ProstKos.ProstActive == 1 and Train.KV765.Position >= 0 then kvSetting = Train.ProstKos.Command end
+                        if Train.ProstKos.CommandKos > 0 then kvSetting = -100 overrideKv = true end
                         if BARS.Brake > 0 then kvSetting = -100 overrideKv = true end
-                        if self.Errors.EmergencyBrake and (Train.KV765.Position > 0 or Train.Speed > 1.6) then kvSetting = -100 overrideKv = true end
+                        if self.Errors.EmergencyBrake and (Train.Speed > 1.6) then kvSetting = -100 overrideKv = true end
+
                         local sb = not overrideKv and BARS.StillBrake == 1
                         if sb then kvSetting = -50 overrideKv = true end
 
-                        if Train.Prost_Kos.Metka and (Train.Prost_Kos.Metka[2] or Train.Prost_Kos.Metka[3] or Train.Prost_Kos.Metka[4]) and (Train.Prost_Kos.DistToSt ~= 0 or Train.Prost_Kos.ProstActive == 1) then
-                            Train:SetNW2Int("SkifS", (Train.Prost_Kos.Dist or -10) * 100) --(Train:ReadCell(49165)-5-5)*100)
-                        elseif Train:GetNW2Int("SkifS", -1000) ~= -1000 then
-                            Train:SetNW2Int("SkifS", -1000)
-                        end
-
+                        if kvSetting < -10 and not sb and Train.KV765.Position > 0 then kvSetting = -100 overrideKv = true end
                         if not sb and (Train.KV765.TractiveSetting > 0 or Train.KV765.TargetTractiveSetting > 0) and kvSetting <= 0 then
                             Train.KV765:TriggerInput("ResetTractiveSetting", 1)
                         end
-
-                        local find = false
-                        for k, v in pairs(Train.Prost_Kos.Metka) do
-                            if v and not find then
-                                find = true
-                                break
-                            end
-                        end
-
-                        Train:SetNW2Bool("SkifProstMetka", find)
-                        Train:SetNW2Bool("SkifProstActive", Train.Prost_Kos.ProstActive == 1 and math.abs(Train.Prost_Kos.Dist or -1000) < 200)
-                        Train:SetNW2Bool("SkifProstKos", not Train.Prost_Kos.Stop1 and not Train.Prost_Kos.WrongPath) --or Train.Prost_Kos.PrKos)
-                    elseif Train:GetNW2Int("SkifS", -1000) ~= -1000 or Train:GetNW2Bool("SkifProstMetka", false) or Train:GetNW2Bool("SkifProstActive", false) then
-                        Train:SetNW2Int("SkifS", -1000)
-                        Train:SetNW2Bool("SkifProstMetka", false)
-                        Train:SetNW2Bool("SkifProstActive", false)
                     end
 
-                    if Train.Prost_Kos.Programm then
-                        Train:SetNW2Int("SkifProstNum", math.random(1, 0xFF))
-                    elseif Train.Prost_Kos.Metka1 then
-                        Train:SetNW2Int("SkifProstNum", 0xDC)
-                    else
-                        Train:SetNW2Int("SkifProstNum", 0)
+                    Train:SetNW2Bool("SkifProstActive", Train.ProstKos.ProstActive > 0)
+                    Train:SetNW2Bool("SkifKosActive", Train.ProstKos.KosActive > 0)
+                    Train:SetNW2Bool("SkifKosCommand", Train.ProstKos.CommandKos > 0)
+                    Train:SetNW2Int("SkifProstReadings", Train.ProstKos.Readings)
+                    Train:SetNW2Int("SkifProstDist", 100 * (Train.ProstKos.Distance or 0))
+                    if Train.ProstKos.LastTag then
+                        Train:SetNW2Int("SkifProstData1", Train.ProstKos.LastTag.id % 0x100)
+                        Train:SetNW2Int("SkifProstData2", Train.ProstKos.LastTag.typ)
+                        Train:SetNW2Int("SkifProstData3", math.floor(Train.ProstKos.LastTag.dist / 0x100))
+                        Train:SetNW2Int("SkifProstData4", math.floor(Train.ProstKos.LastTag.dist % 0x100))
+                        Train:SetNW2Int("SkifProstData5", math.floor(Train.ProstKos.LastTag.station / 0x100))
+                        Train:SetNW2Int("SkifProstData6", math.floor(Train.ProstKos.LastTag.station % 0x100))
+                        Train:SetNW2Int("SkifProstData7", Train.ProstKos.LastTag.path)
+                        Train:SetNW2Int("SkifProstData8", Train.ProstKos.LastTag.doors and 1 or 0)
                     end
 
                     if ptApplied and kvSetting > 0 and not self.PTEnabled then self.PTEnabled = CurTime() end
@@ -1359,14 +1351,14 @@ if SERVER then
             end
 
             self.ControllerState = kvSetting
-            Train:SetNW2Int("SkifThrottle", overrideKv and kvSetting or Train.KV765.TargetTractiveSetting)
+            Train:SetNW2Int("SkifThrottle", (overrideKv or Train.ProstKos.Command < 10) and kvSetting or Train.KV765.TargetTractiveSetting)
             Train:SetNW2Bool("SkifOverrideKv", overrideKv)
 
             self:CState("RV", RvWork, "BUKP")
             self:CState("Ring", Train.Ring.Value > 0, "BUKP")
             self:CState("DriveStrength", math.abs(kvSetting))
             self:CState("Brake", kvSetting < 0 and 1 or 0)
-            self:CState("StrongerBrake", kvSetting < 0 and Train.KV765.Position < -1 and Train.BARS.StillBrake == 0 and 1 or 0)
+            self:CState("StrongerBrake", kvSetting < 0 and (kvSetting < -80 or Train.KV765.Position < -1) and Train.BARS.StillBrake == 0 and 1 or 0)
             self:CState("PN1", Train.BARS.PN1)
             self:CState("PN2", Train.BARS.PN2 + (self.Slope and Train.RV.KROPosition ~= 0 and self.SlopeSpeed and 1 or 0))
             self:CState("PN3", Train.BARS.PN3)
@@ -1392,7 +1384,7 @@ if SERVER then
             end
 
             self.Ring = Train.BARS.Ring > 0
-            self.ErrorRinging = ring or (Train.Prost_Kos.Programm and Train.Speed > 2) or self.ErrorRing and CurTime() - self.ErrorRing < 2
+            self.ErrorRinging = ring or (Train.ProstKos.Receiving and Train.Speed > 2 or Train.ProstKos.CommandKos > 0) or self.ErrorRing and CurTime() - self.ErrorRing < 2
             if self.MainMsg < 2 then
                 self.PSN = (Train.PpzUpi.Value > 0) and self.State == 5
                 self.Compressor = (Train.PpzUpi.Value * Train.SF45.Value * Train.Battery.Value > 0) and self.State == 5 and Train.AK.Value > 0

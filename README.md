@@ -6,13 +6,12 @@
       <!-- - [ ] Modify model/material -->
   - [ ] MFDU
       - [x] Change root UI, temporary pages from 760
-      - [ ] New pages implementation
-        - [x] 1, 2, 3, 4, 5, 6
+      - [x] New pages implementation (without 9th)
       - [x] Main message
       - [ ] Initialization
         - [x] Password
         - [ ] Depot mode
-        - [ ] Buttons check
+        <!-- - [ ] Buttons check -->
   - [ ] BU-IK
       - [x] Cabin Metrospectekhnika implementation
       - [ ] Salon BNT
@@ -41,31 +40,43 @@
       - [x] Cabin PMV/PPZ
       - [ ] Salon BNT
       - [ ] Salon CIS
-  - [ ] BUKP => SAU Skif
+  - [x] BUKP => SAU Skif
       - [x] ARS1/2, ATS1/2
       - [x] Xod => ARS work logic
       - [x] No assemble instead of disable drive in some cases
       - [x] Safety loop improvement
       - [x] Zero speed feature
-      - [ ] PrOst KOS activation/deactivation logic improvement
-      - [ ] (after MFDU UI done) BUKP legacy cleanup, old UI removal
+      - [x] PrOst KOS activation/deactivation logic improvement
+      - [x] (after MFDU UI done) BUKP legacy cleanup, old UI removal
   - [ ] Electric
       - [x] BS normalization
-      - [ ] PSN normalization
+      - [ ] PSN normalization (zaryad AKB)
       - [ ] No HV (ATZ)
       - [ ] Short circuit (ATZ)
       - [ ] kW/h normalization
+  - [ ] Overall logic polishing
+    - [ ] BUD per-door work (and rewrite)
+    - [ ] Still brake PN1/PN2 revise
+    - [ ] Pneumatic weight load PN setting adjustment
+    - [ ] UOS on MFDU
+    - [ ] Rewrite speed limit logics in BUKP
 - [ ] 81-765/766/767/.2/.4 (modeling 765, maybe getting rest from 760A code, maybe dependencies (systems) too)
   - [ ] Models
-      - [ ] Mask
-      - [ ] Body
-      - [ ] Cabin
-      - [ ] Console (remake)
+    - [ ] Mask
+    - [ ] Body
+    - [ ] Cabin
+    - [ ] Console (remake)
   - [ ] Improve sounds
-      - [ ] KATP-3
-      - [ ] Remove RUMBLE dependency
-      - [ ] Door Alarm
-      - [ ] Door drive
-      - [x] Early variant
-      - [ ] Improved variant
+    - [ ] KATP-3
+    - [ ] Remove RUMBLE dependency
+    - [ ] Door Alarm
+    - [ ] Door drive
+    - [x] Early variant
+    - [ ] Improved variant
+  - [ ] Variations
+    - [ ] Base entity class 81-765
+    - [ ] Derived entities 81-765.0, 766.0, 767.0, .2, .4
+    - [ ] TKL/FL/Normal ARS options
+      - [ ] TKL/FL option only for admins, ulx permission and/or per-map
+    - [ ] Entity "Custom" for spawner that spawns base entity
   

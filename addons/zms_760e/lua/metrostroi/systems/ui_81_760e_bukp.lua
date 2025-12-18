@@ -628,14 +628,17 @@ local statusGetters = {
     function(self, Wag) return colorMainDisabled end,
     -- Пр.Ост.
     function(self, Wag)
-        if not Wag:GetNW2Bool("SkifProst", false) then return colorMainDisabled end
-        local metka = Wag:GetNW2Bool("SkifProstMetka", false)
-        local vityazs = Wag:GetNW2Int("SkifS", -1000) / 100
-        local prostact = vityazs ~= -1000 and metka and vityazs > 200
-        return Wag:GetNW2Bool("SkifProstActive", false) and (CurTime() % 1 < 0.4 and colorGreen or colorMain) or prostact and colorGreen or colorMain
+        return
+            not Wag:GetNW2Bool("SkifProst", false) and colorMainDisabled or
+            Wag:GetNW2Bool("SkifProstActive", false) and CurTime() % 0.5 < 0.25 and colorGreen or colorMain
     end,
     -- Кос
-    function(self, Wag) return not Wag:GetNW2Bool("SkifKos", false) and colorMainDisabled or Wag:GetNW2Bool("SkifProstKos", false) and Wag:GetNW2Bool("SkifProstMetka", false) and colorGreen or colorMain end,
+    function(self, Wag)
+        return
+            not Wag:GetNW2Bool("SkifKos", false) and colorMainDisabled or
+            Wag:GetNW2Bool("SkifKosActive", false) and not Wag:GetNW2Bool("SkifKosCommand", false) and colorGreen or
+            Wag:GetNW2Bool("SkifKosCommand", false) and CurTime() % 0.5 < 0.25 and colorYellow or colorMain
+    end,
     -- КРР
     function(self, Wag) return Wag:GetNW2Bool("SkifKRR", false) and colorYellow or colorMainDisabled end,
     -- Подъем
@@ -1364,7 +1367,7 @@ function TRAIN_SYSTEM:DrawAutodrive(Wag, x, y, w, h)
         autodriveTagHeader, "Mfdu765.AsyncLabels",
         sizeMainMargin, 6,
         function(idx)
-            return nil, "00", colorMain, "Mfdu765.AutodriveVals"
+            return nil, string.format("%02X", Wag:GetNW2Int("SkifProstData" .. idx, 0)), colorMain, "Mfdu765.AutodriveVals"
         end
     )
 
@@ -1376,9 +1379,9 @@ function TRAIN_SYSTEM:DrawAutodrive(Wag, x, y, w, h)
         sizeMainMargin * 2, 0,
         function(_, field)
             if field == 1 then
-                return nil, "00000000", colorMain, "Mfdu765.AutodriveVals"
+                return nil, string.format("%08d", Wag:GetNW2Int("SkifProstDist", 0)), colorMain, "Mfdu765.AutodriveVals"
             elseif field == 2 then
-                return nil, "0", colorMain, "Mfdu765.AutodriveVals"
+                return nil, Wag:GetNW2Int("SkifProstReadings", 0), colorMain, "Mfdu765.AutodriveVals"
             else
                 return "toggle", field == 3 and Wag:GetNW2Bool("SkifKos", false) or field == 4 and Wag:GetNW2Bool("SkifProst", false)
             end

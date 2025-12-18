@@ -966,7 +966,7 @@ function ENT:InitializeSystems()
     self:LoadSystem("BUIK", "81_765_BUIK")
     self:LoadSystem("RouteNumber", "81_760_RouteNumber")
     self:LoadSystem("CAMS", "81_760_CAMS")
-    self:LoadSystem("Prost_Kos", "81_760E_Prost_Kos")
+    self:LoadSystem("ProstKos", "81_765_ProstKos")
     --self:LoadSystem("MEZHWAG")
 
     if self.InitializeSystemsServer then
