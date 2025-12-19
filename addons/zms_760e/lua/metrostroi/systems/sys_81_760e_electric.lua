@@ -392,6 +392,8 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Train:WriteTrainWire(38, EmergencyDoors * self.ZeroSpeed * Train.DoorLeft.Value)
         Train:WriteTrainWire(37, EmergencyDoors * self.ZeroSpeed * Train.DoorRight.Value)
 
+        Train:WriteTrainWire(42, P * Train.BatteryCharge.Value)
+
         local EmerBattPower = Train.PmvEmerPower.Value * PBatt
         local ASNP_VV = Train.ASNP_VV
         ASNP_VV.Power = P * Train.SF42F1.Value * Train.R_ASNPOn.Value
@@ -420,7 +422,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Panel.GlassHeatingl = PowerReserve * Train.SF70F2.Value * Train.GlassHeating.Value
         Panel.PowerOnl = PBatt * Train.SF30F1.Value * min(1, Train:ReadTrainWire(75) + Train.PowerOn.Value)
         Panel.PowerOffl = PBatt * Train.SF30F1.Value * min(1, Train:ReadTrainWire(74) + Train.PowerOff.Value)
-        Panel.BatteryChargel = P * Train.BatteryCharge.Value
+        Panel.BatteryChargel = Train:ReadTrainWire(42)
         Panel.LV = Train.Battery.Value * self.Battery80V --/150
     else
         Panel.LV = Train.Battery.Value * self.KM2 * Train.SF44.Value * self.Battery80V --/150

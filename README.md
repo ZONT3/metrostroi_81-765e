@@ -50,8 +50,8 @@
       - [x] (after MFDU UI done) BUKP legacy cleanup, old UI removal
   - [ ] Electric
       - [x] BS normalization
-      - [ ] Cabin light from emergency switch
-      - [ ] PSN normalization (zaryad AKB)
+      - [x] Cabin light from emergency switch
+      - [x] PSN normalization (zaryad AKB)
       - [ ] No HV (ATZ)
       - [ ] Short circuit (ATZ)
       - [ ] kW/h normalization
