@@ -28,8 +28,10 @@ local ErrorsA = {
     {"ParkingBrake", "Стояночный тормоз прижат.", "Стояночный тормоз прижат\nна %d вагоне."},
     {"PneumoBrake", "Пневмотормоз включен.", "Пневмотормоз включен\nна %d вагоне."},
     {"Doors", "Двери не закрыты.", "Двери не закрыты на %d вагоне."},
+    {"Short", "КЗ нескольких вагонов.", "КЗ %d вагона."},
 }
 local ErrorsB = {
+    {"BvDisabled", "БВ отключен.", "БВ отключен на %d вагоне."},
     {"RightBlock", "Правые двери заблокированы.",},
     {"LeftBlock", "Левые двери заблокированы.",},
     {"RedLightsAkb", "Выключи габаритные огни."},
@@ -839,6 +841,7 @@ if SERVER then
             if self.State == 5 and (Train.PpzUpi.Value == 1) then
                 local Back = false
                 local sfBroken = false
+                local shortAny = false
                 local HVBad, PantDisabled = false, false
                 local motor, trailer = 0, 0
                 for i = 1, self.WagNum do
@@ -923,6 +926,7 @@ if SERVER then
                         self:CheckWagError(i, "Doors", working and not doorclose)
                         self:CheckWagError(i, "RearCabin", working and train.DoorBack and trainid ~= Train:GetWagonNumber())
                         self:CheckWagError(i, "PassLights", working and not train.PassLightEnabled)
+                        self:CheckWagError(i, "BvDisabled", working and train.AsyncInverter and not train.BVEnabled)
 
                         if working then
                             ptApplied = not ptApplied and train.PTEnabled and i or ptApplied and train.PTEnabled and true or ptApplied
@@ -974,6 +978,14 @@ if SERVER then
                         Train:SetNW2Bool("Skif:DoorLeft" .. i, doorleftopened)
                         Train:SetNW2Bool("Skif:DoorRight" .. i, doorrightopened)
                         self.SchemeEngaged = self.SchemeEngaged or not train.NoAssembly
+
+                        local short = false
+                        for idx = 1, 4 do
+                            short = short or not train["UKKZ" .. idx]
+                            Train:SetNW2Bool("Skif:UKKZ" .. idx .. i, train["UKKZ" .. idx])
+                        end
+                        shortAny = shortAny or working and short
+                        self:CheckWagError(i, "Short", working and short)
 
                         for sfp, sfs in ipairs(self.SFTbl) do
                             for sf in pairs(sfs) do
@@ -1084,11 +1096,20 @@ if SERVER then
                     end
                     self.WasDoors = not not self.Errors.Doors
 
-                    if sfBroken ~= self.sfBroken and CurTime() - self.BErrorsTimer > 0 then
-                        self.sfBroken = sfBroken
-                        if sfBroken then
-                            self.State2 = 15 + tonumber(sfBroken[1])
-                            self.Select = false
+                    if CurTime() - self.BErrorsTimer > 0 then
+                        if sfBroken ~= self.sfBroken then
+                            self.sfBroken = sfBroken
+                            if sfBroken and not shortAny then
+                                self.State2 = 15 + tonumber(sfBroken[1])
+                                self.Select = false
+                            end
+                        end
+                        if shortAny ~= self.shortAny then
+                            self.shortAny = shortAny
+                            if shortAny then
+                                self.State2 = 12
+                                self.Select = false
+                            end
                         end
                     end
 

@@ -37,6 +37,17 @@ function TRAIN_SYSTEM:Initialize()
         bass = true
     })
 
+    for idx = 1, 4 do
+        -- UKKZ per-pant
+        self.Train:LoadSystem("UKKZ" .. idx, "Relay", "Switch", { normally_closed = true })
+        -- short circuit in pant
+        self.Train:LoadSystem("PantShort" .. idx, "Relay", "Switch")
+    end
+    -- short circuit in inverter / engine
+    self.Train:LoadSystem("AsyncShort", "Relay", "Switch")
+    -- master UKKZ
+    self.Train:LoadSystem("UKKZ", "Relay", "Switch")
+
     self.BTB = 0
     self.Brake = 0
     self.Drive = 0
@@ -440,7 +451,47 @@ function TRAIN_SYSTEM:Think(dT, iter)
     Panel.PassSchemes = P * min(1, Train.SF37.Value + Train.SF38.Value) * BUV.Power --*C(Train.CIS.BMCISInit)
     Panel.PassSchemesL = P * BUV.Power * Train.SF37.Value
     Panel.PassSchemesR = P * BUV.Power * Train.SF38.Value
+
+    local ukkz = 1
+    local kzx, pkz, val, short, timerId
+    local hvInput = Train.TR.Main750V >= 550
+    for idx = 1, 4 do
+        kzx = Train["UKKZ" .. idx]
+        pkz = Train["PantShort" .. idx]
+        if kzx and pkz then
+            val = kzx.Value
+            short = kzx.Value == 1 and (pkz.Value + Train.AsyncShort.Value) > 0
+            timerId = "UkkzTimer" .. idx
+            if val < 1 and not (short or hvInput) then
+                if not self[timerId] then
+                    self[timerId] = CurTime() + 10
+                elseif self[timerId] < CurTime() then
+                    kzx:TriggerInput("Close", 1)
+                    self[timerId] = nil
+                end
+            elseif hvInput and short then
+                kzx:TriggerInput("Open", 1)
+                val = 0
+            elseif self[timerId] then
+                self[timerId] = nil
+            end
+            ukkz = ukkz * val
+        end
+    end
+    Train.UKKZ:TriggerInput("Set", ukkz)
+    if ukkz < 1 and Train.BV.Value > 0 then
+        if not self.BvSoundTimer then
+            Train:PlayOnce("bv_off", "", 1, 1)
+            self.BvSoundTimer = CurTime() + 1
+        end
+        Train.BV:TriggerInput("Open", 1)
+    end
+    if self.BvSoundTimer and self.BvSoundTimer < CurTime() then
+        self.BvSoundTimer = nil
+    end
+
     if not Async then return end
+
     self.MK = Train.Battery.Value * PowerPSN * BUV.PSN * HV * self.KM2 * Train.SF34.Value * (BUV.MK > 0 and 1 or Train:ReadTrainWire(10))
     local command = BUV.Strength or 0 --+0.5*(BUV.Strength > 0 and BUV.Slope1 and 1 or 0)
     local speed = Async.Speed

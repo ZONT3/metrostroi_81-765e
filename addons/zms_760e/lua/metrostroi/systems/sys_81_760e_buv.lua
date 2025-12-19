@@ -404,6 +404,13 @@ function TRAIN_SYSTEM:Think(dT)
             self:CState("I", 0)
         end
 
+        for idx = 1, 4 do
+            local r = Train["UKKZ" .. idx]
+            if r then
+                self:CState("UKKZ" .. idx, r.Value == 1)
+            end
+        end
+
         self:CState("LV", Train.Electric.Battery80V)
         self:CState("HVBad", P < 550)
         self:CState("LVBad", Train.Electric.Battery80V < 62)
@@ -453,7 +460,9 @@ function TRAIN_SYSTEM:Think(dT)
                 if self.PrevBV == 0 then
                     Train.BV:TriggerInput("Open", 1)
                 else
-                    Train.BV:TriggerInput("Close", 1)
+                    if Train.UKKZ.Value == 1 then
+                        Train.BV:TriggerInput("Close", 1)
+                    end
                 end
             end
 
@@ -468,7 +477,9 @@ function TRAIN_SYSTEM:Think(dT)
         end
 
         if self.BVTimer and CurTime() - self.BVTimer > 0 then
-            Train.BV:TriggerInput("Close", 1)
+            if Train.UKKZ.Value == 1 then
+                Train.BV:TriggerInput("Close", 1)
+            end
             self.BVTimer = nil
         end
     end

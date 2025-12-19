@@ -52,8 +52,8 @@
       - [x] BS normalization
       - [x] Cabin light from emergency switch
       - [x] PSN normalization (zaryad AKB)
-      - [ ] No HV (ATZ)
-      - [ ] Short circuit (ATZ)
+      - [x] No HV (ATZ)
+      - [x] Short circuit (ATZ)
       - [ ] kW/h normalization
   - [ ] Overall logic polishing
     - [ ] BUD per-door work (and rewrite)
@@ -82,4 +82,8 @@
     - [ ] TKL/FL/Normal ARS options
       - [ ] TKL/FL option only for admins, ulx permission and/or per-map
     - [ ] Entity "Custom" for spawner that spawns base entity
+  - [ ] Improvements
+    - [ ] Rewrite pant logic
+      - [ ] HV per-pant
+      - [ ] UKKZ per-pant
   
