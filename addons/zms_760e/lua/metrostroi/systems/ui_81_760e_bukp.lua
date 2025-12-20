@@ -127,10 +127,10 @@ local sizeMainH = scrH - sizeFooter - sizeStatus - sizeMainMargin * 3 - sizeTopB
 local sizeThrottleBarH = sizeMainH - sizeThrottleLabelsH * 2
 
 local colorBlack = Color(0, 0, 0)
-local colorMain = Color(255, 255, 255)
-local colorMainDarker = Color(61, 61, 61)
-local colorMainDisabled = Color(31, 31, 31)
-local colorGreen = Color(165, 255, 21)
+local colorMain = Color(190, 190, 190)
+local colorMainDarker = Color(46, 46, 46)
+local colorMainDisabled = Color(26, 26, 26)
+local colorGreen = Color(159, 245, 20)
 local colorYellow = Color(238, 224, 25)
 local colorRed = Color(223, 28, 28)
 local colorBlue = Color(31, 200, 230)
@@ -163,10 +163,14 @@ local icons = {
     pivo = "zxc765/PIVO_logo_lt.png",
 }
 for idx, icoPath in pairs(icons) do
-    local paths = istable(icoPath) and icoPath or {icoPath}
+    local paths = istable(icoPath) and icoPath or {icoPath, isnumber(idx) and idx > 10 and idx <= 20 and icoPath or nil}
     for pidx, path in ipairs(paths) do
-        local ico = Material(path, "smooth")
-        ico:SetInt("$flags", bit.bor(ico:GetInt("$flags"), 32768))
+        -- if isnumber(idx) and idx > 10 and idx <= 20 and pidx == 2 then
+        --     path = string.Explode(".", path)
+        --     path[1] = path[1] .. "_b"
+        --     path = table.concat(path, ".")
+        -- end
+        local ico = Material(path, "smooth ignorez")
         paths[pidx] = ico
     end
     icons[idx] = paths
@@ -778,9 +782,17 @@ function TRAIN_SYSTEM:DrawStatus(Wag)
         if idx <= 10 then continue end
         local x, y = sizeStatusSide + sizeBorder + (idx - 11) * (sizeStatusIcon + sizeStatusIconsGap), scrOffsetY + scrH - sizeFooter - sizeStatus - sizeMainMargin + sizeBorder * 2
         local getter = statusGetters[idx]
-        surface.SetDrawColor(getter and getter(self, Wag) or colorMainDisabled)
-        surface.SetMaterial(icon[1])
+        local color = getter and getter(self, Wag) or colorMainDisabled
+        local light = color ~= colorMainDisabled and color ~= colorMain
+        -- if light then
+        --     render.SuppressEngineLighting(true)
+        -- end
+        surface.SetDrawColor(color)
+        surface.SetMaterial(icon[light and 2 or 1])
         surface.DrawTexturedRect(x, y, sizeStatusIcon, sizeStatusIcon)
+        -- if light then
+        --     render.SuppressEngineLighting(false)
+        -- end
     end
 end
 
