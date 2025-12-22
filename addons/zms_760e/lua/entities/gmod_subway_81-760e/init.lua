@@ -866,7 +866,7 @@ function ENT:Think()
     --self:SetNW2Bool("NoFrequency",power and self.BARS.NoFreq)
     --print(self.BARS.NoFreq)
     for idx = 1, 8 do
-        self:SetNW2Bool("DoorButtonLed" .. idx, self.Electric.BSPowered > 0 and self.BUD.OpenButton[idx])
+        self:SetNW2Bool("DoorButtonLed" .. idx, self.Electric.BSPowered > 0 and self.BUD.OpenButton[idx] and true)
     end
     self:SetNW2Bool("BIForward", power and self.SpeedSign == 1 and self.BARS.Speed > 0.2)
     self:SetNW2Bool("BIBack", power and self.SpeedSign == -1 and self.BARS.Speed > 0.2)

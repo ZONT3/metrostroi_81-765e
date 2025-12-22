@@ -1119,6 +1119,10 @@ if SERVER then
                         local AllowDriveInput = BARS.Brake == 0 and BARS.Drive > 0
                         if AllowDriveInput or Train.KV765.TractiveSetting <= 0 then
                             kvSetting = Train.PpzKm.Value > 0 and Train.KV765.TractiveSetting or self.ControllerState or kvSetting
+                            if kvSetting ~= 0 then
+                                if kvSetting < 0 and kvSetting > -20 then kvSetting = -20 end
+                                if kvSetting > 0 and kvSetting <  20 then kvSetting =  20 end
+                            end
                             overrideKv = false
                         end
 

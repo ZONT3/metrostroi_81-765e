@@ -220,7 +220,7 @@ function ENT:Think()
     --self:SetPackedBool("Vent1Work",self.Electric.Vent1>0)
     --self:SetPackedBool("Vent2Work",self.Electric.Vent2>0)
     for idx = 1, 8 do
-        self:SetNW2Bool("DoorButtonLed" .. idx, self.Electric.BSPowered > 0 and self.BUD.OpenButton[idx])
+        self:SetNW2Bool("DoorButtonLed" .. idx, self.Electric.BSPowered > 0 and self.BUD.OpenButton[idx] and true)
     end
     self:SetNW2Int("PassSchemesLED",self.CIS.PassSchemeCurr)
     self:SetNW2Int("PassSchemesLEDN",self.CIS.PassSchemeArr)

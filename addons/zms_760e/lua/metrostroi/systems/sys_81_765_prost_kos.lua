@@ -191,7 +191,10 @@ function TRAIN_SYSTEM:Think()
     end
 
     self.Active = math.min(1, self.ProstActive + self.KosActive)
-    if self.Active < 1 and self.Distance then --[[print(Wag:GetWagonNumber(), "reset", self.Distance)]] self.Distance = nil end
+    if self.Active < 1 and self.Distance and self.Distance < -5 then
+        -- print(Wag:GetWagonNumber(), "reset", self.Distance)
+        self.Distance = nil
+    end
 
     if self.KosActive > 0 and self.CommandKos < 1 and rv then
         if self.WrongDirection then

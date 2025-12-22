@@ -30,6 +30,8 @@ function TRAIN_SYSTEM:Initialize()
     self.Triggers = {}
     self.StatusStates = {}
 
+    self.MsgDelay = 0.4 + math.random() * 0.4
+
     -- Конфиг
     -- БУ-ИК активен только в активной кабине
     self.ActiveOnly = false
@@ -279,7 +281,7 @@ if SERVER then
         Wag:SetNW2Int("BUIK:MaxSpeed", Wag:GetNW2Int("Skif:SpeedLimit", 0))
         Wag:SetNW2Int("BUIK:NextSpeed", Wag:GetNW2Int("Skif:NextSpeedLimit", 0))
         Wag:SetNW2Bool("BUIK:SpeedometerBlink", Wag:GetNW2Bool("Skif:NoFreqReal", false) or Wag:GetNW2Bool("Skif:BarsBrake", false))
-        Wag:SetNW2Bool("BUIK:MaxSpeedBlink", Wag:GetNW2Bool("Skif:NoFreq", false))
+        Wag:SetNW2Bool("BUIK:NoMaxSpeed", Wag:GetNW2Bool("Skif:NoFreq", false))
         Wag:SetNW2Int("BUIK:Odometer", math.floor((Wag.Odometer or 0) / 1000))
     end
 
@@ -572,7 +574,6 @@ if SERVER then
                     if self:IsCurrentlyPlaying() then
                         self:StopMessage()
                         self.DoorAlarm = false
-                        return
                     end
                     self:Play()
 
@@ -687,6 +688,7 @@ if SERVER then
             self.RouteChanged = true
         end
         self.LastStationDraft = lastStation.name
+        self.AnnounceNotLast = not not lastStation.not_last
     end
 
     function TRAIN_SYSTEM:UpdateLastStation()
@@ -827,7 +829,7 @@ if SERVER then
         if clicks then
             self:QueueAnnounce("click1")
         else
-            self:QueueAnnounce({0.5})
+            self:QueueAnnounce({self.MsgDelay})
         end
 
         local lastSt = self.LastStations[self.LastStationIdx]
@@ -1381,7 +1383,7 @@ else
         local maxSpeed = Wag:GetNW2Int("BUIK:MaxSpeed", 0)
         local nextSpeed = Wag.BuikAlsArs and Wag:GetNW2Bool("BUIK:ActiveCabin", false) and Wag:GetNW2Int("BUIK:NextSpeed", 0) or nil
 
-        local maxSpeedColor = maxSpeed > 0 and (not Wag:GetNW2Bool("BUIK:MaxSpeedBlink", false) or CurTime() % 1.2 < 0.6) and colorRed or colorBackground
+        local maxSpeedColor = not Wag:GetNW2Bool("BUIK:NoMaxSpeed", false) and colorRed or colorBackground
         drawCircle(x0, y0, r2, maxSpeedColor, maxSpeed / 100, true)
         drawCircle(x0, y0, r2, colorGreen, speed / 100)
         drawCircle(x0, y0, r12, colorBackground, 1)

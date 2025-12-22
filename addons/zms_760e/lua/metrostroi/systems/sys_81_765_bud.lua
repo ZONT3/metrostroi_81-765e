@@ -91,7 +91,7 @@ function TRAIN_SYSTEM:Think(dT)
 
     local stuckEmpty = true
     local zeroSpeed = Wag.SF80F9.Value > 0 and Wag.Speed < 1.8
-    local buvZeroSpeed = BUV.ZeroSpeed
+    local buvZeroSpeed = zeroSpeed and BUV.ZeroSpeed
     local addrMode = BUV.AddressDoors
     local addrForceOpen = false
 
@@ -172,13 +172,13 @@ function TRAIN_SYSTEM:Think(dT)
             readyToOpen = false
         end
 
-        if addrMode and working and readyToOpen then
+        if self.OpenButton[idx] and not buvZeroSpeed and CurTime() >= self.OpenButton[idx] then
+            self.OpenButton[idx] = false
+        elseif addrMode and working and selected then
             local btn = Wag["DoorAddressButton" .. idx]
             if state[i] == 0 and self.ForeignObject[idx] or btn and btn.Value > 0.5 then
-                self.OpenButton[idx] = true
+                self.OpenButton[idx] = CurTime() + 8
             end
-        else
-            self.OpenButton[idx] = false
         end
 
         if readyToOpen and working then
@@ -292,7 +292,7 @@ function TRAIN_SYSTEM:Think(dT)
             end
 
             if commandOpen or not self.DoorClosed[idx] and self.CloseDelay[idx] and CurTime() >= self.CloseDelay[idx] then
-                dir[i] = math.Clamp(dir[i] + dT * (not stuck and 0.5 or -1.5) * (commandOpen and 1 or -1), -1 / speed, not stuck and (1 / speed) or 0)
+                dir[i] = math.Clamp(dir[i] + dT * (not stuck and 0.5 or -1.5) * (commandOpen and 1 or -1), -1 / speed, 1 / (not stuck and speed or 10))
             elseif not commandOpen and not self.DoorClosed[idx] and not self.CloseDelay[idx] then
                 self.CloseDelay[idx] = self.DoorOpen[idx] and CurTime() + 1.8 or 0
             elseif self.DoorClosed[idx] and self.CloseDelay[idx] then
