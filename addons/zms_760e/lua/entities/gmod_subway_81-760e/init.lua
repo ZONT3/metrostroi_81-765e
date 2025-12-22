@@ -704,50 +704,14 @@ function ENT:TriggerLightSensor(coil, plate)
 end
 
 function ENT:TrainSpawnerUpdate()
-    --for k in pairs(self:GetMaterials()) do self:SetSubMaterial(k-1,"") end
-    --self:SetSubMaterial(0,"models/metrostroi_train/81-760/hull_baklajan")
-    --if not IsValid(self.SBPPSensor) then
-    --self.SBPPSensor = self:AddLightSensor(Vector(0,65,-30),Angle(0,0,-90),"models/metrostroi_train/81-717/dkp_reader.mdl")
-    --self.SBPPSensor:SetRenderMode(RENDERMODE_TRANSALPHA)
-    --self.SBPPSensor:SetColor(Color(0,0,0,0))
-    --self.SBPPSensor:DrawShadow(false)
-    --self.SBPPSensor = self:AddLightSensor(Vector(0,0,0),Angle(0,0,0),"models/metrostroi_train/81-717/dkp_reader.mdl")
-    --end
-    if not IsValid(self.ladderbaseL) then
-        --self:CreateLadder()
-    end
-
-    if not IsValid(self.ladderbaseR) then
-        --self:CreateLadder(true)
-    end
-
     self:SetNW2Bool("STL", self.STL)
     self:SetNW2Bool("BKL", self.BKL)
-    -- for i = 1, 4 do
-    --     self:SetNW2Int("DoorRBR" .. i, math.random(0, 1)) --math.random(0,1))				
-    --     self:SetNW2Int("DoorLBR" .. i, math.random(0, 1)) --math.random(0,1))				
-    -- end
 
-    --self.CISConfig = 0
     local Announcer = {}
     for k, v in pairs(Metrostroi.AnnouncementsASNP or {}) do
         if not v.riu then Announcer[k] = v.name or k end
     end
 
-    if #Metrostroi.CISConfig == 1 then
-        self.CISConfig = 1
-    else
-        self.CISConfig = self:GetNW2Int("CISConfig", 1)
-    end
-    --[[
-	for k,v in pairs(Metrostroi.CISConfig) do
-		for k2,v2 in pairs(Announcer) do
-			if v2 == v.name then
-				self.CISConfig = k
-			end
-		end
-	end]]
-    --self:SetNW2Int("CISConfig",self.CISConfig)
     if self.InitializeSounds then
         self:InitializeSounds()
     end
@@ -756,18 +720,6 @@ end
 --------------------------------------------------------------------------------
 function ENT:Think()
     local retVal = self.BaseClass.Think(self)
-    --Entity(1):SetPos(self.ladderbase:GetPos())
-    --self.Fence:ManipulateBonePosition( 0, Vector(0214,0,0))	
-    --self.DoorCabLeft:ResetSequence("open")
-    --self.DoorCabLeft:ResetSequence( self.DoorCabLeft:LookupSequence("open") )	
-    --self.DoorCabLeft:SetKeyValue("hardware",1)
-    --PrintTable(self.DoorCabLeft:GetSequenceList())
-    --self.DoorCabLeft:ResetSequenceInfo()
-    --self.DoorCabLeft:SetPoseParameter("position",1)
-    --self.DoorCabLeft:ResetSequence(0)
-    --self.DoorCabLeft:LookupSequence(0)
-    --print(Metrostroi.FindNextStation()[1].start)
-    --print(Metrostroi.GetReverserID(self:GetOwner(),true))
     local Panel = self.Panel
     local power = self.Electric.UPIPower > 0
     local power1 = self.Electric.BSPowered > 0
@@ -784,10 +736,9 @@ function ENT:Think()
     self:SetPackedRatio("KRR", (self.RV.KRRPosition + 1) / 2)
     self:SetPackedRatio("VentCondMode", self.VentCondMode.Value / 3)
     self:SetPackedRatio("VentStrengthMode", self.VentStrengthMode.Value / 3)
-    self:SetPackedBool("PowerOnLamp", Panel.PowerOnl > 0) -- and self.Electric.Power == 1)
-    self:SetPackedBool("PowerOffLamp", Panel.PowerOffl > 0) --and self.Electric.Power == 0)
+    self:SetPackedBool("PowerOnLamp", Panel.PowerOnl > 0)
+    self:SetPackedBool("PowerOffLamp", Panel.PowerOffl > 0)
     self:SetPackedBool("BatteryChargeLamp", Panel.BatteryChargel > 0)
-    --print(self:ReadTrainWire(75),self:ReadTrainWire(74))
     local fB, rB = self.FrontBogey, self.RearBogey
     local validfB, validrB = IsValid(fB), IsValid(rB)
     for i = 1, 4 do
@@ -801,9 +752,6 @@ function ENT:Think()
         end
     end
 
-    --self:CreateShadow()
-    --self:DrawShadow()
-    --self:DestroyShadow()
     self:SetPackedBool("SK1", self.EmergencyValveTimer and CurTime() - self.EmergencyValveTimer < 1)
     if self.Pneumatic.EmergencyValve and not self.EmergencyValveTimer then
         self.EmergencyValveTimer = CurTime()
@@ -888,7 +836,7 @@ function ENT:Think()
     self:SetNW2Bool("WiperPower", Panel.WiperPower > 0)
     self:SetNW2Bool("AccelRateLamp", power and self.BUKP.Slope)
     self:SetNW2Bool("RS", power and self.BARS.F6)
-    self:SetNW2Bool("DoorAlarm", self.CIS.DoorAlarm)
+    self:SetNW2Bool("DoorAlarm", self.IK.DoorAlarm)
     self:SetNW2Bool("EmergencyControlsLamp", Panel.EmergencyControlsl > 0)
     self:SetNW2Bool("EmergencyDoorsLamp", Panel.EmergencyDoorsl > 0)
     self:SetNW2Bool("GlassHeatingLamp", Panel.GlassHeatingl > 0)
@@ -901,8 +849,6 @@ function ENT:Think()
     self:SetPackedRatio("LV", Panel.LV / 150)
     self:SetPackedRatio("HV", (self.SF42F2.Value * self.Electric.BSPowered > 0.5 and self.Electric.Main750V or 0) / 1000)
     self:SetPackedRatio("IVO", 0.5 + self.BUV.IVO / 150)
-    --self:SetPackedRatio("I13",(self.Electric.I13+500)/1000)
-    --self:SetPackedRatio("I24",(self.Electric.I24+500)/1000)
     self:SetPackedBool("PassengerDoor", self.PassengerDoor)
     self:SetPackedBool("CabinDoorLeft", self.CabinDoorLeft)
     self:SetPackedBool("CabinDoorRight", self.CabinDoorRight)
@@ -912,8 +858,6 @@ function ENT:Think()
     self:SetPackedBool("door_k31", self.door_k31)
     self:SetPackedBool("cab_chair_add", self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
     self:SetPackedBool("CompressorWork", self.Pneumatic.Compressor and CurTime() - self.Pneumatic.Compressor > 0)
-    --self:SetPackedBool("Vent1Work",self.Electric.Vent1>0)
-    --self:SetPackedBool("Vent2Work",self.Electric.Vent2>0)
     if self.FrontTrain ~= self.PrevFrontTrain then
         self:SetNW2Entity("FrontTrain", self.FrontTrain)
         self.PrevFrontTrain = self.FrontTrain
@@ -924,12 +868,6 @@ function ENT:Think()
         self.PrevRearTrain = self.RearTrain
     end
 
-    self:SetNW2Int("PassSchemesLED", self.CIS.PassSchemeCurr)
-    self:SetNW2Int("PassSchemesLEDN", self.CIS.PassSchemeArr)
-    self:SetPackedBool("PassSchemesLEDO", self.CIS.PassSchemePath)
-    self:SetPackedBool("PassSchemes", Panel.PassSchemes > 0)
-    self:SetPackedBool("PassSchemesL", Panel.PassSchemesL > 0)
-    self:SetPackedBool("PassSchemesR", Panel.PassSchemesR > 0)
     self:SetPackedRatio("Cran", self.Pneumatic.DriverValvePosition)
     self:SetPackedRatio("BL", self.Pneumatic.BrakeLinePressure / 16.0)
     self:SetPackedRatio("TL", self.Pneumatic.TrainLinePressure / 16.0)
@@ -944,22 +882,7 @@ function ENT:Think()
         end
     end
 
-    --self.Engines:TriggerInput("Speed",self.Speed)
-    --[[
-	if CurTime()-self.SpeedTimer >= 1 and self.Speed > 0.5 then
-		self.SpeedTimer = CurTime()
-		self.a = self.Speed/3.6-(self.aSpeed or 0)
-		self.aSpeed = self.Speed/3.6 or 0
-		self.sec = (self.sec or 0)+1
-		self.aitog = self.a+(self.aitog or 0)
-	elseif self.Speed < 0.5 then
-		self.aitog = 0
-		self.sec = 0
-	end
-	--RunConsoleCommand("say",self.a or 0)
-	--RunConsoleCommand("say",self.aitog/self.sec or 0)]]
     self.AsyncInverter:TriggerInput("Speed", self.Speed)
-    --self.AsyncInverter:TriggerInput("Speed1",self.Speed)	
     if validfB and validrB and not self.IgnoreEngine then
         local A = self.AsyncInverter.Torque
         local add = 1
@@ -976,13 +899,13 @@ function ENT:Think()
         rB.MotorPower = P * 0.5 * ((A > 0) and 1 or -1)
         fB.MotorPower = P * 0.5 * ((A > 0) and 1 or -1)
         -- Apply brakes
-        fB.PneumaticBrakeForce = 50000.0 --3000 --40000
-        fB.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure --math.max(self.Pneumatic.BrakeCylinderPressure,(3.85-self.Pneumatic.ParkingBrakePressure))
+        fB.PneumaticBrakeForce = 50000.0
+        fB.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
         fB.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
         fB.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
         fB.DisableContacts = self.BUV.Pant
-        rB.PneumaticBrakeForce = 50000.0 --3000 --40000
-        rB.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure --math.max(self.Pneumatic.BrakeCylinderPressure,(3.85-self.Pneumatic.ParkingBrakePressure))
+        rB.PneumaticBrakeForce = 50000.0
+        rB.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
         rB.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
         rB.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
         rB.DisableContacts = self.BUV.Pant
@@ -1070,12 +993,7 @@ function ENT:OnButtonPress(button, ply)
         local cfg = self.PakToggles and self.PakToggles[k] or nil
         local r = cfg and self[k] or nil
         if r and r.Value then
-            local prev = r.Value
-            local max = #cfg.positions - 1
-            r:TriggerInput("Set", r.Value + (pakDn and 1 or -1), 0, max)
-            -- if r.Value ~= prev then
-            --     self:PlayOnce(r.Value == 0 and "multiswitch_panel_min" or r.Value == max and "multiswitch_panel_max" or "multiswitch_panel_mid", "", 1, 0.85)
-            -- end
+            r:TriggerInput("Set", r.Value + (pakDn and 1 or -1), 0, #cfg.positions - 1)
             return
         end
     end

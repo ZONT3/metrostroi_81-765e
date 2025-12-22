@@ -381,11 +381,9 @@ function ENT:InitializeSystems()
     self:LoadSystem("BUD", "81_765_BUD")
     self:LoadSystem("Pneumatic", "81_760E_Pneumatic")
     self:LoadSystem("Panel", "81_761E_Panel")
-    self:LoadSystem("CIS", "81_760E_CIS")
-    self:LoadSystem("BackTicker", "81_760_Ticker")
-    self:LoadSystem("BNT", "81_760_BNT") --Монитор блока наддверного табло
+    self:LoadSystem("IK", "81_765_IK")
+    self:LoadSystem("BNT", "81_765_BNT")
     self:LoadSystem("IGLA_PCBK", "81_760_IGLA_PCBK")
-    --self:LoadSystem("MEZHWAG")
 end
 
 ENT.AnnouncerPositions = {}

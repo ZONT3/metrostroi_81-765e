@@ -1982,62 +1982,6 @@ ENT.ButtonMap["IGLAButtons"] = {
     }
 }
 
---[[
-			{ID = "!IGLAFire",x=151, y=51, radius=3, tooltip="ИГЛА: Пожар", model = {
-				lamp = {speed=16,model = "models/metrostroi_train/common/lamps/svetodiod2.mdl", var="IGLA:Fire", color=Color(255,56,30),z=-2.5},
-			}},
-			{ID = "!IGLAErr",x=151, y=57, radius=3, tooltip="ИГЛА: Неисправность", model = {
-				lamp = {speed=16,model = "models/metrostroi_train/common/lamps/svetodiod2.mdl", var="IGLA:Error", color=Color(255,168,000),z=-2.5},
-			}},]]
-for i = 1, 2 do
-    ENT.ButtonMap["Tickers" .. i] = {
-        pos = Vector((i == 1 and 1 or -0.92) * 4.35, (i == 1 and 1 or -1) * -18.15, 54.2), --446 -- 14 -- -0,5
-        ang = Angle(0, (i == 1 and 1 or -1) * 90, 95),
-        width = 492,
-        height = 64,
-        scale = 0.074,
-        hide = 2,
-    }
-end
-
---[[
-ENT.ButtonMap["BackVent"] = {
-    pos = Vector(407.5,20,27.6), --446 -- 14 -- -0,5
-    ang = Angle(0,83,90),
-    width = 400,
-    height = 150,
-    scale = 0.0625,
-
-    buttons = {
-    {ID = "!VentCondMode",x=173, y=33, radius=0, model = {
-        model = "models/metrostroi_train/81-720/rc_rotator1.mdl",z=10,ang=-91,
-        sndvol = 0.8, snd = function(val) return val and "switch_batt_on" or "switch_batt_off" end,sndmin = 80, sndmax = 1e3/3, sndang = Angle(-90,0,0),
-        getfunc = function(ent) return ent:GetPackedRatio("VentCondMode") end,var="VentCondMode",
-        speed=4, min=0.76,max=0.0
-    }},
-    {ID = "VentCondMode-",x=143,y=13,w=30,h=40,tooltip="Режим работы вентилятора: +"},
-    {ID = "VentCondMode+",x=173,y=13,w=30,h=40,tooltip="Режим работы вентилятора: -"},
-    {ID = "!VentHeatMode",x=80, y=60.5, radius=0,model = {
-        model = "models/metrostroi_train/81-720/rc_rotator1.mdl",z=10,ang=-91,
-        sndvol = 0.8, snd = function(val) return val and "switch_batt_on" or "switch_batt_off" end,sndmin = 80, sndmax = 1e3/3, sndang = Angle(-90,0,0),
-        --getfunc = function(ent) return ent:GetPackedRatio("VentHeatMode") end,
-        var="VentHeatMode",
-        speed=4, min=0.25,max=0.75
-    }},
-    {ID = "VentHeatMode+",x=50,y=40.5,w=30,h=40,tooltip="+"},
-    {ID = "VentHeatMode-",x=80,y=40.5,w=30,h=40,tooltip="-"},
-    {ID = "!VentStrengthMode",x=173, y=108, radius=0, model = {
-        model = "models/metrostroi_train/81-720/rc_rotator1.mdl",z=10,ang=-91,
-        sndvol = 0.8, snd = function(val) return val and "switch_batt_on" or "switch_batt_off" end,sndmin = 80, sndmax = 1e3/3, sndang = Angle(-90,0,0),
-        getfunc = function(ent) return ent:GetPackedRatio("VentStrengthMode") end,var="VentStrengthMode",
-        speed=4, min=0.76,max=0.0
-    }},
-    {ID = "VentStrengthMode-",x=143,y=88,w=30,h=40,tooltip="Сила вентилятора: +"},
-    {ID = "VentStrengthMode+",x=173,y=88,w=30,h=40,tooltip="Сила вентилятора: -"},
-    }
-}
-]]
-
 ENT.ButtonMap["BackPPZ"] = {
     pos = Vector(410.45, 34.915, 13.0),
     ang = Angle(0, 90, 90),
@@ -3917,55 +3861,6 @@ ENT.ClientProps["fan_r"] = {
     hide = 1.5,
 }
 
-ENT.ClientProps["PassSchemes"] = {
-    model = "models/metrostroi_train/81-760/81_760_panel_l.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 1.5,
-}
-
-ENT.ClientProps["PassSchemesR"] = {
-    model = "models/metrostroi_train/81-760/81_760_panel_r.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 1.5,
-}
-
-for i = 1, 5 do
-    ENT.ClientProps["led_l_f" .. i] = {
-        model = "models/metrostroi_train/81-760/81_760_bnt_led_l_rev.mdl", --"models/metrostroi_train/81-720/720_led_l_r.mdl",
-        pos = Vector((i - 1) * 6.73), --Vector((i-1)*10.5+0.2,0,0),
-        ang = Angle(0, 0, 0),
-        skin = 6,
-        hideseat = 1.5,
-    }
-
-    ENT.ClientProps["led_l_b" .. i] = {
-        --b
-        model = "models/metrostroi_train/81-760/81_760_bnt_led_l.mdl", --"models/metrostroi_train/81-720/720_led_l.mdl",
-        pos = Vector(-(i - 1) * 6.73, 0, 0),
-        ang = Angle(0, 0, 0),
-        skin = 6,
-        hideseat = 1.5,
-    }
-
-    ENT.ClientProps["led_r_f" .. i] = {
-        model = "models/metrostroi_train/81-760/81_760_bnt_led_r_rev.mdl", --"models/metrostroi_train/81-720/720_led_l_r.mdl",
-        pos = Vector((i - 1) * 6.73 - 26.93), --Vector((i-1)*10.5+0.2,0,0),
-        ang = Angle(0, 0, 0),
-        skin = 6,
-        hideseat = 1.5,
-    }
-
-    ENT.ClientProps["led_r_b" .. i] = {
-        model = "models/metrostroi_train/81-760/81_760_bnt_led_r.mdl", --"models/metrostroi_train/81-720/720_led_l_r.mdl",
-        pos = Vector(-(i - 1) * 6.73 + 26.93), --Vector((i-1)*10.5+0.2,0,0),
-        ang = Angle(0, 0, 0),
-        skin = 6,
-        hideseat = 1.5,
-    }
-end
-
 ENT.ButtonMap["GV"] = {
     pos = Vector(-166.9, 42, -52 - 15),
     ang = Angle(0, 90, 90),
@@ -4151,13 +4046,7 @@ ENT.ClientProps["PB"] = {
 
 if not ENT.ClientSounds["PB"] then ENT.ClientSounds["PB"] = {} end
 table.insert(ENT.ClientSounds["PB"], {"PB", function(ent, var) return var > 0 and "pb_on" or "pb_off" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)})
---[[
-ENT.ClientProps["mezhvag"] = {
-    model = "models/metrostroi_train/81-760/81_760_fence.mdl",--"models/metrostroi/mezhvag.mdl",
-    pos = Vector(-470.8,0,-15),-- -474.7 1.27 -467
-    ang = Angle(0,90,0),
-	hide=2,
-}]]
+
 ENT.ClientProps["fence"] = {
     model = "models/metrostroi_train/81-760/81_760_fence_corrugated_platform.mdl", --"models/metrostroi/mezhvag.mdl",
     pos = Vector(-480.15, 0, 0), -- -474.7 1.27 -467
@@ -4435,46 +4324,26 @@ ENT.ButtonMap["MFDU"] = {
 
 --239.3 расстояние между
 for i = 1, 4 do
-    ENT.ButtonMap["BNT" .. i] = {
+    ENT.ButtonMap["BNTL" .. i] = {
         pos = Vector(321.63 - 229.975 * (i - 1), 47.1, 52.5),
         ang = Angle(0, 0, 119.9),
         width = 640,
         height = 480,
-        scale = 0.0134, --0.018
-        system = "BNT",
+        scale = 0.0134,
+        system = "LBnt",
         hide = 1,
     }
 
-    ENT.ButtonMap["BNT" .. i + 4] = {
+    ENT.ButtonMap["BNTR" .. i] = {
         pos = Vector(-321.31 - 229.975 * (i - 4), -47.1, 52.5),
         ang = Angle(180, 0, -60.1),
         width = 640,
         height = 480,
-        scale = 0.0134, --0.018
-        system = "BNT",
+        scale = 0.0134,
+        system = "RBnt",
         hide = 1,
     }
 end
-
--- ENT.ButtonMap["Speedometer"] = {
---     pos = Vector(515.5 + 21, 26, -20.5) + Vector(-41.5, 0, 17.5),
---     ang = Angle(0, -90, 62),
---     width = 800,
---     height = 600,
---     scale = 0.0105,
---     system = "Speedometer",
---     hide = 0.5,
--- }
-
--- ENT.ButtonMap["BMCIS"] = {
---     pos = Vector(514.97 + 21, 18, -21.5) + Vector(-41.5, 0, 17.5), --+Vector(32.3,19,-8.5),
---     ang = Angle(0, -90, 62),
---     width = 800,
---     height = 795,
---     scale = 0.0105,
---     system = "BMCIS",
---     hide = 0.5,
--- }
 
 ENT.ButtonMap["BUIK"] = {
     pos = Vector(490.4, 26.35, -8.856),
@@ -4651,19 +4520,14 @@ ENT.PakPositions = {
 function ENT:Initialize()
     self.BaseClass.Initialize(self)
     self.MFDU = self:CreateRT("765MFDU", 1024, 1024)
-    self.BNTScreen = self:CreateRT("760BNT", 1024, 1024)
-    -- self.Speedometer = self:CreateRT("760Speedometer", 1024, 1024)
-    -- self.BMCIS = self:CreateRT("760BMCIS", 1024, 1024)
     self.BUIK = self:CreateRT("765BUIK", 2485, 480)
+    self.LBnt = self:CreateRT("765LBnt", 1024, 1024)
+    self.RBnt = self:CreateRT("765RBnt", 1024, 1024)
     self.CAMS = self:CreateRT("760CAMS", 1024 * 1.2, 768 * 1.2)
     self.ASNP = self:CreateRT("760ASNP", 512, 128)
     self.IGLA = self:CreateRT("760IGLA", 512, 128)
     self.RVSScr = self:CreateRT("760RVS", 256, 256)
-    self.Tickers = self:CreateRT("760Ticker", 2 * 1024, 2 * 64)
     self.RouteNumbers = self:CreateRT("760RouteNumber", 552, 128)
-    render.PushRenderTarget(self.Tickers, 0, 0, 1024 * 2, 2 * 64)
-    render.Clear(0, 0, 0, 0)
-    render.PopRenderTarget()
     self.ReleasedPdT = 0
     self.PreviousRingState = false
     self.PreviousCompressorState = false
@@ -4714,48 +4578,8 @@ function ENT:UpdateTextures()
         end
     end
 
-    self.Scheme = self:GetNW2Int("Scheme", 1)
-    self.InvertSchemes = self:GetNW2Bool("PassSchemesInvert", false)
-    local sarmat, sarmatr = self.ClientEnts.PassSchemes, self.ClientEnts.PassSchemesR
-    if IsValid(sarmat) and IsValid(sarmatr) and Metrostroi.Skins["760_schemes"] and Metrostroi.Skins["760_schemes"][self.Scheme] then
-        local scheme = Metrostroi.Skins["760_schemes"][self.Scheme]
-        --[[
-        if self:GetNW2Bool("PassSchemesInvert") then
-            sarmat:SetSubMaterial(0,scheme[2])
-            sarmatr:SetSubMaterial(0,scheme[1])
-		else
-            sarmat:SetSubMaterial(0,scheme[1])
-            sarmatr:SetSubMaterial(0,scheme[2])
-        end]]
-        --print(scheme[1])
-        sarmat:SetSubMaterial(0, scheme[1])
-        sarmatr:SetSubMaterial(0, scheme[1])
-    end
-
     self.keyval = -1
-    self.CISConfig = self:GetNW2Int("CISConfig", 1)
-    local Announcer = {}
-    for k, v in pairs(Metrostroi.AnnouncementsASNP or {}) do
-        if not v.riu then Announcer[k] = v.name or k end
-    end
 
-    if #Metrostroi.CISConfig == 1 then self.CISConfig = 1 end
-    --[[
-	for k,v in pairs(Metrostroi.CISConfig) do
-		for k2,v2 in pairs(Announcer) do
-			if v2 == v.name then
-				self.CISConfig = k
-			end
-		end
-	end	]]
-    --[[
-	Metrostroi.Skins["train"][self.Texture] = {}	
-	Metrostroi.Skins["train"][self.Texture].textures = {
-		["hull"] = "models/metrostroi_train/81-760/hull_baklajan"
-	}
-    for k in pairs(self:GetMaterials()) do self:SetSubMaterial(k-1,"") end
-	self:SetSubMaterial(0,"models/metrostroi_train/81-760/hull_baklajan") 	
-	--self:SetSubMaterial(0,"models/metrostroi_train/81-760/hull_baklajan")]]
     for i = 0, 4 do
         local num = tostring(self.Number)[i + 1]
         if not num or num == "" then num = "3" end
@@ -5155,119 +4979,7 @@ function ENT:Think()
     --self:ShowHideSmooth("cab_full",self:Animate("CabFull",self:GetPackedBool("CabinEnabledFull") and 1 or 0,0,1,5,false))
     self:ShowHideSmooth("zoomer_lamps", self:Animate("zoomerl", self:GetNW2Bool("DoorAlarmState") and 1 or 0, 0, 1, 16, false))
     self:ShowHide("micro", not self:GetNW2Bool("Micro", false))
-    local led_back = not self:GetPackedBool("PassSchemesLEDO", false)
-    --if self:GetPackedBool("PassSchemesInvert",false)  then led_back = not led_back end
-    --if self.InvertSchemes then led_back = not led_back end
-    local extraled = self:GetPackedBool("BMCISExtra", false)
-    local extradir = self:GetPackedBool("BMCISExtraDir", false)
-    for i = 1, 5 do
-        self:ShowHide("led_l_f" .. i, not led_back)
-        self:ShowHide("led_l_b" .. i, led_back)
-        self:ShowHide("led_r_f" .. i, not led_back)
-        self:ShowHide("led_r_b" .. i, led_back)
-    end
 
-    local scurr = self:GetNW2Int("PassSchemesLED")
-    local snext = self:GetNW2Int("PassSchemesLEDN")
-    local led = scurr
-    if snext ~= 0 and CurTime() % 2 > 1 then led = led + snext end
-    local ledwork = scurr >= 0 and self:GetPackedBool("PassSchemes")
-    if led_back then
-        for i = 1, 5 do
-            if IsValid(self.ClientEnts["led_l_b" .. i]) then
-                local skin = 0
-                if (ledwork and self:GetPackedBool("PassSchemesL", false)) and extraled then
-                    local num = extradir and 1 + math.floor(CurTime() % 0.8 * 10) or math.floor(CurTime() % 0.9 * 10) --(math.floor(CurTime()%0.9*10))
-                    local tbl
-                    if not extradir then
-                        tbl = {num, num + 8, num + 16, num + 24}
-                    else
-                        tbl = {31 - num, 23 - num, 15 - num, 7 - num}
-                    end
-
-                    local min, max = (i - 1) * 6 + 1, i * 6
-                    for k, v in pairs(tbl) do
-                        if v >= min and v <= max then skin = v == min and 1 or v - min + 6 end
-                    end
-                elseif ledwork and self:GetPackedBool("PassSchemesL", false) then
-                    skin = math.Clamp(led - ((i - 1) * 6), 0, 6)
-                end
-
-                self.ClientEnts["led_l_b" .. i]:SetSkin(skin)
-            end
-
-            if IsValid(self.ClientEnts["led_r_b" .. i]) then
-                local skin = 0
-                if (ledwork and self:GetPackedBool("PassSchemesR", false)) and extraled then
-                    local num = extradir and 1 + math.floor(CurTime() % 0.8 * 10) or math.floor(CurTime() % 0.9 * 10) --(math.floor(CurTime()%0.9*10))
-                    local tbl
-                    if not extradir then
-                        tbl = {num, num + 8, num + 16, num + 24}
-                    else
-                        tbl = {31 - num, 23 - num, 15 - num, 7 - num}
-                    end
-
-                    local min, max = (i - 1) * 6 + 1, i * 6
-                    for k, v in pairs(tbl) do
-                        if v >= min and v <= max then skin = v == min and 1 or v - min + 6 end
-                    end
-                elseif ledwork and self:GetPackedBool("PassSchemesR", false) then
-                    skin = math.Clamp(led - ((i - 1) * 6), 0, 6)
-                end
-
-                self.ClientEnts["led_r_b" .. i]:SetSkin(skin)
-            end
-        end
-    else
-        for i = 1, 5 do
-            if IsValid(self.ClientEnts["led_l_f" .. i]) then
-                local skin = 0
-                if (ledwork and self:GetPackedBool("PassSchemesL", false)) and extraled then
-                    local num = not extradir and 1 + math.floor(CurTime() % 0.8 * 10) or math.floor(CurTime() % 0.9 * 10) --(math.floor(CurTime()%0.9*10))
-                    local tbl
-                    if extradir then
-                        tbl = {num, num + 8, num + 16, num + 24}
-                    else
-                        tbl = {31 - num, 23 - num, 15 - num, 7 - num}
-                    end
-
-                    local min, max = (i - 1) * 6 + 1, i * 6
-                    for k, v in pairs(tbl) do
-                        if v >= min and v <= max then skin = v == min and 1 or v - min + 6 end
-                    end
-                elseif ledwork and self:GetPackedBool("PassSchemesL", false) then
-                    skin = math.Clamp(led - ((i - 1) * 6), 0, 6)
-                end
-
-                self.ClientEnts["led_l_f" .. i]:SetSkin(skin)
-            end
-
-            if IsValid(self.ClientEnts["led_r_f" .. i]) then
-                local skin = 0
-                if (ledwork and self:GetPackedBool("PassSchemesR", false)) and extraled then
-                    local num = not extradir and 1 + math.floor(CurTime() % 0.8 * 10) or math.floor(CurTime() % 0.9 * 10) --(math.floor(CurTime()%0.9*10))
-                    local tbl
-                    if extradir then
-                        tbl = {num, num + 8, num + 16, num + 24}
-                    else
-                        tbl = {31 - num, 23 - num, 15 - num, 7 - num}
-                    end
-
-                    local min, max = (i - 1) * 6 + 1, i * 6
-                    for k, v in pairs(tbl) do
-                        if v >= min and v <= max then skin = v == min and 1 or v - min + 6 end
-                    end
-                elseif ledwork and self:GetPackedBool("PassSchemesR", false) then
-                    skin = math.Clamp(led - ((i - 1) * 6), 0, 6)
-                end
-
-                self.ClientEnts["led_r_f" .. i]:SetSkin(skin)
-            end
-        end
-    end
-
-    --
-    --print(self:GetPackedRatio("async2vol"), self:GetPackedRatio("async2"))
     if not self.DoorStates then self.DoorStates = {} end
     if not self.DoorLoopStates then self.DoorLoopStates = {} end
     for i = 0, 3 do
@@ -5864,58 +5576,22 @@ function ENT:DrawPost(special)
         surface.DrawTexturedRectRotated(128, 128, 256, 256, 0)
     end)
 
-    self.RTMaterial:SetTexture("$basetexture", self.Tickers)
-    for i = 1, 2 do
-        self:DrawOnPanel("Tickers" .. i, function(...)
+    self.RTMaterial:SetTexture("$basetexture", self.LBnt)
+    for i = 1, 4 do
+        self:DrawOnPanel("BNTL" .. i, function(...)
             surface.SetMaterial(self.RTMaterial)
-            surface.SetDrawColor(255, 255, 255)
-            surface.DrawTexturedRectRotated(512 * 2, 32 * 2, 2 * 1024, 64 * 2, 0)
+            surface.SetDrawColor(255, 255, 255, 170)
+            surface.DrawTexturedRectRotated(512, 512, 1024, 1024, 0)
         end)
     end
-
-    self.RTMaterial:SetTexture("$basetexture", self.BNTScreen)
-    for i = 1, 8 do
-        self:DrawOnPanel("BNT" .. i, function(...)
-            if not self:GetPackedBool("PassSchemesL", false) and i <= 4 or i > 4 and not self:GetPackedBool("PassSchemesR", false) then return end
-            if self:GetNW2Bool("BMCISExtra", false) then
-                local dir = self:GetNW2Bool("BMCISExtraDir", false)
-                if i > 4 and dir or not dir and i <= 4 then
-                    if dir then
-                        surface.SetTexture(surface.GetTextureID("bnt/bnt_evac_forward_l"))
-                    else
-                        surface.SetTexture(surface.GetTextureID("bnt/bnt_evac_back_l"))
-                    end
-                elseif i > 4 and not dir or dir and i <= 4 then
-                    if dir then
-                        surface.SetTexture(surface.GetTextureID("bnt/bnt_evac_forward_r"))
-                    else
-                        surface.SetTexture(surface.GetTextureID("bnt/bnt_evac_back_r"))
-                    end
-                end
-
-                surface.SetDrawColor(255, 255, 255, 170)
-                surface.DrawTexturedRectRotated(512, 512, 1024, 1024, 0)
-            else
-                surface.SetMaterial(self.RTMaterial)
-                surface.SetDrawColor(255, 255, 255, 170)
-                surface.DrawTexturedRectRotated(512, 512, 1024, 1024, 0)
-            end
+    self.RTMaterial:SetTexture("$basetexture", self.RBnt)
+    for i = 1, 4 do
+        self:DrawOnPanel("BNTR" .. i, function(...)
+            surface.SetMaterial(self.RTMaterial)
+            surface.SetDrawColor(255, 255, 255, 170)
+            surface.DrawTexturedRectRotated(512, 512, 1024, 1024, 0)
         end)
     end
-
-    -- self.RTMaterial:SetTexture("$basetexture", self.Speedometer)
-    -- self:DrawOnPanel("Speedometer", function(...)
-    --     surface.SetMaterial(self.RTMaterial)
-    --     surface.SetDrawColor(255, 255, 255)
-    --     surface.DrawTexturedRectRotated(512, 512, 1024, 1024, 0)
-    -- end)
-
-    -- self.RTMaterial:SetTexture("$basetexture", self.BMCIS)
-    -- self:DrawOnPanel("BMCIS", function(...)
-    --     surface.SetMaterial(self.RTMaterial)
-    --     surface.SetDrawColor(255, 255, 255)
-    --     surface.DrawTexturedRectRotated(512, 512, 1024, 1024, 0)
-    -- end)
 
     self.RTMaterial:SetTexture("$basetexture", self.CAMS)
     self:DrawOnPanel("CAMS", function(...)

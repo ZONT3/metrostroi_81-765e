@@ -935,13 +935,13 @@ ENT.PpzToggles = {
 
 
 function ENT:InitializeSystems()
-    self:LoadSystem("TR", "TR_3B") --"81_760_TR_7B")
+    self:LoadSystem("TR", "TR_3B")
     self:LoadSystem("Electric", "81_760E_Electric")
     self:LoadSystem("AsyncInverter", "81_760_AsyncInverter")
     self:LoadSystem("KV765", "81_765_Controller")
     self:LoadSystem("RV", "81_720_RV")
     self:LoadSystem("BUKP", "81_760E_BUKP")
-    self:LoadSystem("BUV", "81_760E_BUV") --БКВУ
+    self:LoadSystem("BUV", "81_760E_BUV")
     self:LoadSystem("BUD", "81_765_BUD")
     self:LoadSystem("BARS", "81_760E_BARS")
     self:LoadSystem("SD3", "Relay", "Switch")
@@ -949,25 +949,18 @@ function ENT:InitializeSystems()
     self:LoadSystem("Horn", "81_720_Horn")
     self:LoadSystem("Panel", "81_760E_Panel")
 
-    -- Deprecated, candidate for removal
-    self:LoadSystem("Announcer", "81_71_Announcer", "AnnouncementsASNP")
-
     self:LoadSystem("ASNP", "81_760_ASNP")
     self:LoadSystem("ASNP_VV", "81_760_ASNP_VV")
-    self:LoadSystem("BackTicker", "81_760_Ticker")
     self:LoadSystem("IGLA_CBKI", "81_760_IGLA_CBKI1")
     self:LoadSystem("IGLA_PCBK", "81_760_IGLA_PCBK")
-    self:LoadSystem("CIS", "81_760E_CIS")
+    self:LoadSystem("IK", "81_765_IK")
     self:LoadSystem("RVS", "81_760A_RVS_1")
     self:LoadSystem("RPDP", "81_760_RPDP")
-    self:LoadSystem("BNT", "81_760_BNT") --Монитор блока наддверного табло
-    -- self:LoadSystem("Speedometer", "81_760E_Speedometer")
-    -- self:LoadSystem("BMCIS", "81_760E_BMCIS")
+    self:LoadSystem("BNT", "81_765_BNT")
     self:LoadSystem("BUIK", "81_765_BUIK")
     self:LoadSystem("RouteNumber", "81_760_RouteNumber")
     self:LoadSystem("CAMS", "81_760_CAMS")
     self:LoadSystem("ProstKos", "81_765_ProstKos")
-    --self:LoadSystem("MEZHWAG")
 
     if self.InitializeSystemsServer then
         self:InitializeSystemsServer()

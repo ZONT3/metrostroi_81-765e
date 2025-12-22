@@ -20,9 +20,6 @@ function TRAIN_SYSTEM:Initialize()
 
     self.SalonLighting1 = 0
     self.SalonLighting2 = 0
-    self.PassSchemes = 0
-    self.PassSchemesL = 0
-    self.PassSchemesR = 0
     self.LV = 0
     if self.Train.AsyncInverter then self.WorkFan = 0 end
 end
@@ -32,5 +29,5 @@ function TRAIN_SYSTEM:Inputs()
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {"SalonLighting1", "SalonLighting2", "PassSchemes", "PassSchemesL", "PassSchemesR", "WorkFan", "LV"}
+    return {"SalonLighting1", "SalonLighting2", "WorkFan", "LV"}
 end

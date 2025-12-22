@@ -448,10 +448,6 @@ function TRAIN_SYSTEM:Think(dT, iter)
     Panel.SalonLighting2 = P * self.KM2 * Train.Battery.Value * Train.SF43.Value * BUV.MainLights
     -- end
 
-    Panel.PassSchemes = P * min(1, Train.SF37.Value + Train.SF38.Value) * BUV.Power --*C(Train.CIS.BMCISInit)
-    Panel.PassSchemesL = P * BUV.Power * Train.SF37.Value
-    Panel.PassSchemesR = P * BUV.Power * Train.SF38.Value
-
     local ukkz = 1
     local kzx, pkz, val, short, timerId
     local hvInput = Train.TR.Main750V >= 550

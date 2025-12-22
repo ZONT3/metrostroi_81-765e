@@ -184,15 +184,6 @@ if SERVER then
         local battery = Wag.Electric.Battery80V > 62
         local power = battery and Wag.SF45F11.Value > 0.5
         if not power then
-            if self.State ~= STATE_POWEROFF then
-                self.Train.CIS:Trigger("Restart", 0)
-                for i = 1, #self.Train.WagonList do
-                    local wag = self.Train.WagonList[i]
-                    if not wag.BUV then break end
-                    wag:SetNW2Bool("BMCISExtra", false)
-                end
-                self.Train.CIS:Trigger("BMCISInit", false)
-            end
             self.State = STATE_POWEROFF
         elseif self.State == STATE_POWEROFF then
             self.State = STATE_BOOTING
@@ -405,7 +396,7 @@ if SERVER then
         end
 
         if self.DoorAlarm and Wag.BUKP.DoorClosed then self.DoorAlarm = false end
-        Wag.CIS:Trigger("DoorAlarm", self.DoorAlarm)
+        Wag.CIS.DoorAlarm = self.DoorAlarm
 
         if self.InformerState == STATE_SETUP then
             if self.RnScrollTimer and CurTime() >= self.RnScrollTimer then
@@ -431,13 +422,18 @@ if SERVER then
             end
         end
 
+        if self.UpdateIkTimer and CurTime() > self.UpdateIkTimer then
+            self.UpdateIkTimer = nil
+            self:UpdateIk()
+        end
+
         Wag:SetNW2Int("BUIK:InformerState", self.InformerState)
         Wag:SetNW2String("BUIK:LastStation", toUpperCase(self.LastStationDraft))
         Wag:SetNW2String("BUIK:Page", self.Page)
         Wag:SetNW2String("BUIK:RouteNumber", self.RouteNumber >= 0 and string.format("%03d", math.floor(self.RouteNumber)) or "---")
     end
 
-    function TRAIN_SYSTEM:UpdatePage(displayOnly)
+    function TRAIN_SYSTEM:UpdatePage(displayOnly, ikNow)
         if (self.Page == PAGE_MAIN or self.Page == PAGE_LAST_ST) and (
             not self.Stations or #self.Stations < 2 or not self.Station or self.Station < 1 or self.Station > #self.Stations
         ) then
@@ -450,7 +446,12 @@ if SERVER then
             self:SetListLine(1, self.Station > 1 and self.Stations[self.Station - 1].name or "")
             self:SetListLine(2, self.Stations[self.Station].name)
             self:SetListLine(3, #self.Stations > self.Station and self.Stations[self.Station + 1].name or "")
-            self:UpdateCis()
+            if not ikNow then
+                self.UpdateIkTimer = CurTime() + 5
+            else
+                self.UpdateIkTimer = nil
+                self:UpdateIk()
+            end
         elseif self.Page == PAGE_LAST_ST then
             if #self.LastStations > 0 or self.LastStations[0] then
                 self:SetListLine(1, self.LastStationIdx > 0 and self.LastStations[self.LastStationIdx - 1].name or "Выберите станцию оборота:")
@@ -580,7 +581,7 @@ if SERVER then
                 elseif val and name == "Buik_Return" then
                     self:ReturnInformer()
                     if not self.ServiceRoute then self.Station = 2 end
-                    self:UpdatePage(true)
+                    self:UpdatePage(true, true)
 
                 end
             end
@@ -729,63 +730,8 @@ if SERVER then
         self.Train:SetNW2String("RouteNumber", self.RouteNumber)
     end
 
-    function TRAIN_SYSTEM:UpdateCis()
-        if self.IsServiceRoute then return end
-        local CIS = self.Train.CIS
-        local tbl = Metrostroi.CISConfig[self.Train.CISConfig] and Metrostroi.CISConfig[self.Train.CISConfig][self.Route] or Metrostroi.ASNPSetup[self.Train:GetNW2Int("Announcer", 1)][self.Route]
-        local stbl = tbl.LED
-        local curr = 0
-
-        local station = self.Stations[self.Station]
-        local stationId = station.tbl_id
-        local isLast = station.idx == self.LastStations[self.LastStationIdx].idx
-
-        if self.Path then
-            for i = #stbl, stationId + 1, -1 do
-                curr = curr + stbl[i]
-            end
-        else
-            for i = 1, stationId - 1 do
-                curr = curr + stbl[i]
-            end
-        end
-
-        local nxt = 0
-        if self.Arrived and stbl[stationId] then
-            curr = curr + stbl[stationId]
-        else
-            nxt = stbl[stationId]
-        end
-
-        CIS:Trigger("BMCISInit", true)
-        CIS:Trigger("Line", self.Route)
-
-        CIS:Trigger("PassSchemeCurr", curr, nil, true)
-        CIS:Trigger("PassSchemeArr", nxt, nil, true)
-        if not tbl or not tbl[stationId] or not tbl[stationId][2] then return end
-        CIS:Trigger("PassSchemePath", self.Path, nil, true)
-        CIS:Trigger("LastSt", isLast, nil, true)
-        CIS:Trigger("TickerNext", not self.Arrived, nil, true)
-        CIS:Trigger("TickerCurr", tbl[stationId][2], nil, true)
-        CIS:Trigger("TickerEn", tbl[stationId][3] or tbl[stationId][2], nil, true)
-        CIS:Trigger("TickerLine", tbl.Line, nil, true)
-        CIS:Trigger("TickerLineColor", tbl.Color, nil, true)
-        if tbl[stationId][4] then
-            CIS:Trigger("TickerIn", tbl[stationId][5], nil, true)
-            CIS:Trigger("TickerInToLine", tbl[stationId][6], nil, true)
-            CIS:Trigger("TickerInEn", tbl[stationId][7], nil, true)
-            CIS:Trigger("TickerInToLineColor", tbl[stationId][8], nil, true)
-        else
-            CIS:Trigger("TickerIn", tbl[stationId][5] or nil, nil, true)
-            CIS:Trigger("TickerInToLine", tbl[stationId][6] or nil, nil, true)
-            CIS:Trigger("TickerInEn", tbl[stationId][7] or nil, nil, true)
-            CIS:Trigger("TickerInToLineColor", tbl[stationId][8] or nil, nil, true)
-        end
-
-        CIS:Trigger("TickerIn1", tbl[stationId][9] or nil, nil, true)
-        CIS:Trigger("TickerInToLine1", tbl[stationId][10] or nil, nil, true)
-        CIS:Trigger("TickerInEn1", tbl[stationId][11] or nil, nil, true)
-        CIS:Trigger("TickerInToLineColor1", tbl[stationId][12] or nil, nil, true)
+    function TRAIN_SYSTEM:UpdateIk()
+        print(self.Train:GetWagonNumber(), "update ik")
     end
 
     function TRAIN_SYSTEM:CANReceive(source, sourceid, target, targetid, textdata, numdata)
@@ -814,7 +760,7 @@ if SERVER then
         if self.Station < #self.Stations then
             self.Station = self.Station + 1
             self:Highlight("List")
-            self:UpdatePage()
+            self:UpdatePage(false, true)
         end
 
         local recordings = not station.is_dep and (station.arr or station.arrlast) or station.is_dep and station.dep or nil

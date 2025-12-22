@@ -591,35 +591,24 @@ for i = 0, 4 do
     }
 end
 
-for i = 1, 2 do
-    ENT.ButtonMap["Tickers" .. i] = {
-        pos = Vector((i == 1 and 1 or -0.92) * 4.35, (i == 1 and 1 or -1) * -18.15, 54.2), --446 -- 14 -- -0,5
-        ang = Angle(0, (i == 1 and 1 or -1) * 90, 95),
-        width = 492,
-        height = 64,
-        scale = 0.074,
-        hide = 2,
-    }
-end
-
 for i = 1, 4 do
-    ENT.ButtonMap["BNT" .. i] = {
+    ENT.ButtonMap["BNTL" .. i] = {
         pos = Vector(321.63 - 229.975 * (i - 1), 47.1, 52.5),
         ang = Angle(0, 0, 119.9),
         width = 640,
         height = 480,
-        scale = 0.0134, --0.018
-        system = "BNT",
+        scale = 0.0134,
+        system = "LBnt",
         hide = 1,
     }
 
-    ENT.ButtonMap["BNT" .. i + 4] = {
+    ENT.ButtonMap["BNTR" .. i] = {
         pos = Vector(-321.31 - 229.975 * (i - 4), -47.1, 52.5),
         ang = Angle(180, 0, -60.1),
         width = 640,
         height = 480,
         scale = 0.0134, --0.018
-        system = "BNT",
+        system = "RBnt",
         hide = 1,
     }
 end
@@ -749,99 +738,6 @@ ENT.ClientProps["brake_line"] = {
     hideseat = 0.2,
 }
 
---[[
-table.insert(ENT.ClientProps,{
-    model = "models/metrostroi_train/81-720/720_tablo.mdl",
-    pos = Vector(0,0,0),
-    ang = Angle(0,0,0),
-})
-ENT.ClientProps["lamps_emer"] = {
-    model = "models/metrostroi_train/81-720/720_lamps_emer.mdl",
-    pos = Vector(0,0,0),
-    ang = Angle(0,0,0),
-    color = Color(245,238,223)
-}
-ENT.ClientProps["lamps_full"] = {
-    model = "models/metrostroi_train/81-720/720_lamps_full.mdl",
-    pos = Vector(0,0,0),
-    ang = Angle(0,0,0),
-    color = Color(245,238,223)
-}]]
-ENT.ClientProps["PassSchemes"] = {
-    model = "models/metrostroi_train/81-760/81_760_panel_l.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 1.5,
-}
-
-ENT.ClientProps["PassSchemesR"] = {
-    model = "models/metrostroi_train/81-760/81_760_panel_r.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 1.5,
-}
-
-for i = 1, 5 do
-    ENT.ClientProps["led_l_f" .. i] = {
-        model = "models/metrostroi_train/81-760/81_760_bnt_led_l_rev.mdl", --"models/metrostroi_train/81-720/720_led_l_r.mdl",
-        pos = Vector((i - 1) * 6.73), --Vector((i-1)*10.5+0.2,0,0),
-        ang = Angle(0, 0, 0),
-        skin = 6,
-        hideseat = 1.5,
-    }
-
-    ENT.ClientProps["led_l_b" .. i] = {
-        --b
-        model = "models/metrostroi_train/81-760/81_760_bnt_led_l.mdl", --"models/metrostroi_train/81-720/720_led_l.mdl",
-        pos = Vector(-(i - 1) * 6.73, 0, 0),
-        ang = Angle(0, 0, 0),
-        skin = 6,
-        hideseat = 1.5,
-    }
-
-    ENT.ClientProps["led_r_f" .. i] = {
-        model = "models/metrostroi_train/81-760/81_760_bnt_led_r_rev.mdl", --"models/metrostroi_train/81-720/720_led_l_r.mdl",
-        pos = Vector((i - 1) * 6.73 - 26.93), --Vector((i-1)*10.5+0.2,0,0),
-        ang = Angle(0, 0, 0),
-        skin = 6,
-        hideseat = 1.5,
-    }
-
-    ENT.ClientProps["led_r_b" .. i] = {
-        model = "models/metrostroi_train/81-760/81_760_bnt_led_r.mdl", --"models/metrostroi_train/81-720/720_led_l_r.mdl",
-        pos = Vector(-(i - 1) * 6.73 + 26.93), --Vector((i-1)*10.5+0.2,0,0),
-        ang = Angle(0, 0, 0),
-        skin = 6,
-        hideseat = 1.5,
-    }
-end
-
---[[
-ENT.ClientProps["mezhvag"] = {
-    model = "models/metrostroi_train/81-760/81_760_fence.mdl",--"models/metrostroi/mezhvag.mdl",
-    pos = Vector(-470.8,0,-15),-- -474.7 1.27 -467
-    ang = Angle(0,90,0),
-	hide = 2,
-}
-ENT.ClientProps["mezhvag1"] = {
-    model = "models/metrostroi_train/81-760/81_760_fence.mdl",--"models/metrostroi/mezhvag.mdl",
-    pos = Vector(470.8,0,-15),-- -474.7 1.27 -467
-    ang = Angle(0,-90,0),
-	hideseat = 1000,
-	hide = 2,
-}
-ENT.ClientProps["fence"] = {
-    model = "models/metrostroi_train/81-760/81_760_fence_corrugated.mdl",--"models/metrostroi/mezhvag.mdl",
-    pos = Vector(-480.3,0,0),-- -474.7 1.27 -467
-    ang = Angle(0,90,0),
-	hide=2,
-}
-ENT.ClientProps["fence1"] = {
-    model = "models/metrostroi_train/81-760/81_760_fence_corrugated.mdl",--"models/metrostroi/mezhvag.mdl",
-    pos = Vector(480.3,0,0),-- -474.7 1.27 -467
-    ang = Angle(0,-90,0),
-	hide=2,
-}]]
 ENT.ClientProps["fence"] = {
     model = "models/metrostroi_train/81-760/81_760_fence_corrugated_platform.mdl", --"models/metrostroi/mezhvag.mdl",
     pos = Vector(-480.15, 0, 0), -- -474.7 1.27 -467
@@ -1222,11 +1118,8 @@ ENT.Lights = {}
 --[2] = { "dynamiclight",   Vector( 300, 0, 40), Angle(0,0,0), Color(255,255,255), brightness = 4, distance = 550 },
 function ENT:Initialize()
     self.BaseClass.Initialize(self)
-    self.Tickers = self:CreateRT("760Ticker", 2 * 1024, 2 * 64)
-    self.BNTScreen = self:CreateRT("760BNT", 1024, 1024)
-    render.PushRenderTarget(self.Tickers, 0, 0, 1024, 64)
-    render.Clear(0, 0, 0, 0)
-    render.PopRenderTarget()
+    self.LBnt = self:CreateRT("765LBnt", 1024, 1024)
+    self.RBnt = self:CreateRT("765RBnt", 1024, 1024)
     self.ReleasedPdT = 0
     self.PreviousCompressorState = false
     self.FrontLeak = 0
@@ -1265,45 +1158,11 @@ function ENT:UpdateTextures()
         end
     end
 
-    self.Scheme = self:GetNW2Int("Scheme", 1)
-    self.InvertSchemes = self:GetNW2Bool("SarmatInvert", false)
-    local sarmat, sarmatr = self.ClientEnts.PassSchemes, self.ClientEnts.PassSchemesR
-    if IsValid(sarmat) and IsValid(sarmatr) and Metrostroi.Skins["760_schemes"] and Metrostroi.Skins["760_schemes"][self.Scheme] then
-        local scheme = Metrostroi.Skins["760_schemes"][self.Scheme]
-        --[[
-        if self:GetNW2Bool("PassSchemesInvert") then
-            sarmat:SetSubMaterial(0,scheme[2])
-            sarmatr:SetSubMaterial(0,scheme[1])
-        else
-            sarmat:SetSubMaterial(0,scheme[1])
-            sarmatr:SetSubMaterial(0,scheme[2])
-        end]]
-        sarmat:SetSubMaterial(0, scheme[1])
-        sarmatr:SetSubMaterial(0, scheme[1])
-    end
-
-    self.CISConfig = self:GetNW2Int("CISConfig", 1)
     local Announcer = {}
     for k, v in pairs(Metrostroi.AnnouncementsASNP or {}) do
         if not v.riu then Announcer[k] = v.name or k end
     end
 
-    if #Metrostroi.CISConfig == 1 then self.CISConfig = 1 end
-    --[[
-	for k,v in pairs(Metrostroi.CISConfig) do
-		for k2,v2 in pairs(Announcer) do
-			if v2 == v.name then
-				self.CISConfig = k
-			end
-		end
-	end]]
-    --[[
-	Metrostroi.Skins["train"][self.Texture] = {}	
-	Metrostroi.Skins["train"][self.Texture].textures = {
-		["hull"] = "models/metrostroi_train/81-760/hull_baklajan"
-	}
-    for k in pairs(self:GetMaterials()) do self:SetSubMaterial(k-1,"") end
-	--self:SetSubMaterial(0,"models/metrostroi_train/81-760/hull_baklajan")]]
     for i = 0, 4 do
         local num = tostring(self.Number)[i + 1]
         if not num or num == "" then num = "3" end
@@ -1539,15 +1398,12 @@ function ENT:Think()
         return
     end
 
-    --local refresh = true
     if IsValid(self.FrontBogey) and self.FrontBogey.SoundNames and (self.FrontBogey.SoundNames["ted1_720"] ~= "subway_trains/760/engines/engine_8.wav" or self.FrontBogey.EngineSNDConfig and self.FrontBogey.EngineSNDConfig[1] and self.FrontBogey.EngineSNDConfig[1][5] ~= 0.14) or refresh then self:ReInitBogeySounds(self.FrontBogey) end
     if IsValid(self.RearBogey) and self.RearBogey.SoundNames and (self.RearBogey.SoundNames["ted1_720"] ~= "subway_trains/760/engines/engine_8.wav" or self.RearBogey.EngineSNDConfig and self.RearBogey.EngineSNDConfig[1] and self.RearBogey.EngineSNDConfig[1][5] ~= 0.14) or refresh then self:ReInitBogeySounds(self.RearBogey) end
     if self.Number ~= self:GetWagonNumber() then self:UpdateTextures() end
     if self.Texture ~= self:GetNW2String("texture") then self:UpdateTextures() end
     if self.PassTexture ~= self:GetNW2String("passtexture") then self:UpdateTextures() end
     if self.CabinTexture ~= self:GetNW2String("cabtexture") then self:UpdateTextures() end
-    if self.Scheme ~= self:GetNW2Int("Scheme", 1) then self:UpdateTextures() end
-    if self.InvertSchemes ~= self:GetNW2Bool("PassSchemesInvert", false) then self:UpdateTextures() end
     if self:IsNumberError() then self:UpdateTextures() end
     local ValidfB, ValidrB = IsValid(self.FrontBogey), IsValid(self.RearBogey)
     self:ShowHide("SK1", ValidfB)
@@ -1560,35 +1416,6 @@ function ENT:Think()
         self:Animate("brake_shoe" .. (i + 4), self:GetPackedBool("BC" .. (i + 4)) and 1 or 0, 1, 0.722, 32, 2)
     end
 
-    --[[
-	local RearTrain,FrontTrain = self:GetNW2Entity("RearTrain"),self:GetNW2Entity("FrontTrain")
-	self:ShowHide("fence",IsValid(RearTrain) and (RearTrain:GetClass():find("760") and false or (RearTrain:GetClass():find("761") or RearTrain:GetClass():find("763")) and (RearTrain:GetNW2Entity("RearTrain") == self and not IsValid(RearTrain.ClientEnts["fence"]) or RearTrain:GetNW2Entity("FrontTrain") == self and not IsValid(RearTrain.ClientEnts["fence1"])) and true))
-	self:ShowHide("fence1",IsValid(FrontTrain) and (FrontTrain:GetClass():find("760") and false or (FrontTrain:GetClass():find("761") or FrontTrain:GetClass():find("763")) and (FrontTrain:GetNW2Entity("RearTrain") == self and not IsValid(FrontTrain.ClientEnts["fence"]) or FrontTrain:GetNW2Entity("FrontTrain") == self and not IsValid(FrontTrain.ClientEnts["fence1"])) and true))
-	local fence,fence1 = self.ClientEnts["fence"],self.ClientEnts["fence1"]
-	if IsValid(fence) and IsValid(RearTrain) then
-		local a = 1
-		if RearTrain:GetNW2Entity("RearTrain") == self then
-			a = -1
-		end
-		local ang1 = fence:WorldToLocalAngles(RearTrain:LocalToWorldAngles(Angle(0,90*a,0)))		
-		local vec = fence:WorldToLocal(RearTrain:LocalToWorld(Vector(480.1*a,a*ang1.p*1.585,0)))
-		fence:ManipulateBonePosition(1,vec)
-		fence:ManipulateBoneAngles(1,Angle(-ang1.r,ang1.y,ang1.p))
-		fence:ManipulateBoneAngles(2,Angle(-ang1.r/2,ang1.y/2,ang1.p/2))
-		fence:ManipulateBonePosition(2,Vector(vec.x/2,vec.y/2,vec.z/2))	
-	end
-	if IsValid(fence1) and IsValid(FrontTrain) then
-		local a = 1
-		if FrontTrain:GetNW2Entity("RearTrain") == self then
-			a = -1
-		end
-		local ang1 = fence1:WorldToLocalAngles(FrontTrain:LocalToWorldAngles(Angle(0,90*a,0)))		
-		local vec = fence1:WorldToLocal(FrontTrain:LocalToWorld(Vector(480.1*a,0,2)))
-		fence1:ManipulateBonePosition(1,vec)
-		fence1:ManipulateBoneAngles(1,Angle(-ang1.r,ang1.y,ang1.p))
-		fence1:ManipulateBoneAngles(2,Angle(-ang1.r/2,ang1.y/2,ang1.p/2))
-		fence1:ManipulateBonePosition(2,Vector(vec.x/2,vec.y/2,vec.z/2))	
-	end]]
     local RearTrain, FrontTrain = self:GetNW2Entity("RearTrain"), self:GetNW2Entity("FrontTrain")
     self:ShowHide("fence", IsValid(RearTrain) and (RearTrain:GetClass():find("760") and false or (RearTrain:GetClass():find("761a") or RearTrain:GetClass():find("763a") or RearTrain:GetClass():find("761e") or RearTrain:GetClass():find("763e")) and (RearTrain:GetNW2Entity("RearTrain") == self and not IsValid(RearTrain.ClientEnts["fence"]) or RearTrain:GetNW2Entity("FrontTrain") == self and not IsValid(RearTrain.ClientEnts["fence1"])) and true))
     self:ShowHide("fence1", IsValid(FrontTrain) and (FrontTrain:GetClass():find("760") and false or (FrontTrain:GetClass():find("761a") or FrontTrain:GetClass():find("763a") or FrontTrain:GetClass():find("761e") or FrontTrain:GetClass():find("763e")) and (FrontTrain:GetNW2Entity("RearTrain") == self and not IsValid(FrontTrain.ClientEnts["fence"]) or FrontTrain:GetNW2Entity("FrontTrain") == self and not IsValid(FrontTrain.ClientEnts["fence1"])) and true))
@@ -1635,7 +1462,6 @@ function ENT:Think()
     self:Animate("brake_line", self:GetPackedRatio("BL"), 0, 0.78, 256, 2)
     self:Animate("train_line", self:GetPackedRatio("TL"), 0, 0.78, 256, 2)
     self:Animate("brake_cylinder", self:GetPackedRatio("BC"), 0, 0.78, 256, 2)
-    --self:Animate("trihedral", (self:GetPackedBool("WorkBeep") and 1 or 0), 0,1,64,2)
     local box_door_l = self:Animate("box_door_l", self:GetPackedBool("CouchCapL") and 1 or 0, 0, 1, 2, 2)
     local box_door_r = self:Animate("box_door_r", self:GetPackedBool("CouchCapR") and 1 or 0, 0, 1, 2, 2)
     self:HidePanel("couch_capL", box_door_l > 0)
@@ -1667,116 +1493,6 @@ function ENT:Think()
     self:ShowHide("K31", K31_cap > 0)
     self:HidePanel("K31", K31_cap < 1)
     self:Animate("K31", self:GetPackedBool("K31") and 0 or 1, 0, 1, 16, 0.5)
-    local led_back = not self:GetPackedBool("PassSchemesLEDO", false)
-    --if self:GetPackedBool("PassSchemesInvert",false)  then led_back = not led_back end
-    --if self.InvertSchemes then led_back = not led_back end
-    local extraled = self:GetPackedBool("BMCISExtra", false)
-    local extradir = self:GetPackedBool("BMCISExtraDir", false)
-    for i = 1, 5 do
-        self:ShowHide("led_l_f" .. i, not led_back)
-        self:ShowHide("led_l_b" .. i, led_back)
-        self:ShowHide("led_r_f" .. i, not led_back)
-        self:ShowHide("led_r_b" .. i, led_back)
-    end
-
-    local scurr = self:GetNW2Int("PassSchemesLED")
-    local snext = self:GetNW2Int("PassSchemesLEDN")
-    local led = scurr
-    if snext ~= 0 and CurTime() % 2 > 1 then led = led + snext end
-    local ledwork = scurr >= 0 and self:GetPackedBool("PassSchemes")
-    if led_back then
-        for i = 1, 5 do
-            if IsValid(self.ClientEnts["led_l_b" .. i]) then
-                local skin = 0
-                if (ledwork and self:GetPackedBool("PassSchemesL", false)) and extraled then
-                    local num = extradir and 1 + math.floor(CurTime() % 0.8 * 10) or math.floor(CurTime() % 0.9 * 10) --(math.floor(CurTime()%0.9*10))
-                    local tbl
-                    if not extradir then
-                        tbl = {num, num + 8, num + 16, num + 24}
-                    else
-                        tbl = {31 - num, 23 - num, 15 - num, 7 - num}
-                    end
-
-                    local min, max = (i - 1) * 6 + 1, i * 6
-                    for k, v in pairs(tbl) do
-                        if v >= min and v <= max then skin = v == min and 1 or v - min + 6 end
-                    end
-                elseif ledwork and self:GetPackedBool("PassSchemesL", false) then
-                    skin = math.Clamp(led - ((i - 1) * 6), 0, 6)
-                end
-
-                self.ClientEnts["led_l_b" .. i]:SetSkin(skin)
-            end
-
-            if IsValid(self.ClientEnts["led_r_b" .. i]) then
-                local skin = 0
-                if (ledwork and self:GetPackedBool("PassSchemesR", false)) and extraled then
-                    local num = extradir and 1 + math.floor(CurTime() % 0.8 * 10) or math.floor(CurTime() % 0.9 * 10) --(math.floor(CurTime()%0.9*10))
-                    local tbl
-                    if not extradir then
-                        tbl = {num, num + 8, num + 16, num + 24}
-                    else
-                        tbl = {31 - num, 23 - num, 15 - num, 7 - num}
-                    end
-
-                    local min, max = (i - 1) * 6 + 1, i * 6
-                    for k, v in pairs(tbl) do
-                        if v >= min and v <= max then skin = v == min and 1 or v - min + 6 end
-                    end
-                elseif ledwork and self:GetPackedBool("PassSchemesR", false) then
-                    skin = math.Clamp(led - ((i - 1) * 6), 0, 6)
-                end
-
-                self.ClientEnts["led_r_b" .. i]:SetSkin(skin)
-            end
-        end
-    else
-        for i = 1, 5 do
-            if IsValid(self.ClientEnts["led_l_f" .. i]) then
-                local skin = 0
-                if (ledwork and self:GetPackedBool("PassSchemesL", false)) and extraled then
-                    local num = not extradir and 1 + math.floor(CurTime() % 0.8 * 10) or math.floor(CurTime() % 0.9 * 10) --(math.floor(CurTime()%0.9*10))
-                    local tbl
-                    if extradir then
-                        tbl = {num, num + 8, num + 16, num + 24}
-                    else
-                        tbl = {31 - num, 23 - num, 15 - num, 7 - num}
-                    end
-
-                    local min, max = (i - 1) * 6 + 1, i * 6
-                    for k, v in pairs(tbl) do
-                        if v >= min and v <= max then skin = v == min and 1 or v - min + 6 end
-                    end
-                elseif ledwork and self:GetPackedBool("PassSchemesL", false) then
-                    skin = math.Clamp(led - ((i - 1) * 6), 0, 6)
-                end
-
-                self.ClientEnts["led_l_f" .. i]:SetSkin(skin)
-            end
-
-            if IsValid(self.ClientEnts["led_r_f" .. i]) then
-                local skin = 0
-                if (ledwork and self:GetPackedBool("PassSchemesR", false)) and extraled then
-                    local num = not extradir and 1 + math.floor(CurTime() % 0.8 * 10) or math.floor(CurTime() % 0.9 * 10) --(math.floor(CurTime()%0.9*10))
-                    local tbl
-                    if extradir then
-                        tbl = {num, num + 8, num + 16, num + 24}
-                    else
-                        tbl = {31 - num, 23 - num, 15 - num, 7 - num}
-                    end
-
-                    local min, max = (i - 1) * 6 + 1, i * 6
-                    for k, v in pairs(tbl) do
-                        if v >= min and v <= max then skin = v == min and 1 or v - min + 6 end
-                    end
-                elseif ledwork and self:GetPackedBool("PassSchemesR", false) then
-                    skin = math.Clamp(led - ((i - 1) * 6), 0, 6)
-                end
-
-                self.ClientEnts["led_r_f" .. i]:SetSkin(skin)
-            end
-        end
-    end
 
     if not self.DoorStates then self.DoorStates = {} end
     if not self.DoorLoopStates then self.DoorLoopStates = {} end
@@ -2205,42 +1921,20 @@ function ENT:Draw()
 end
 
 function ENT:DrawPost(special)
-    self.RTMaterial:SetTexture("$basetexture", self.Tickers)
-    for i = 1, 2 do
-        self:DrawOnPanel("Tickers" .. i, function(...)
+    self.RTMaterial:SetTexture("$basetexture", self.LBnt)
+    for i = 1, 4 do
+        self:DrawOnPanel("BNTL" .. i, function(...)
             surface.SetMaterial(self.RTMaterial)
-            surface.SetDrawColor(255, 255, 255)
-            surface.DrawTexturedRectRotated(512 * 2, 32 * 2, 2 * 1024, 64 * 2, 0)
+            surface.SetDrawColor(255, 255, 255, 170)
+            surface.DrawTexturedRectRotated(512, 512, 1024, 1024, 0)
         end)
     end
-
-    self.RTMaterial:SetTexture("$basetexture", self.BNTScreen)
-    for i = 1, 8 do
-        self:DrawOnPanel("BNT" .. i, function(...)
-            if not self:GetPackedBool("PassSchemesL", false) and i <= 4 or i > 4 and not self:GetPackedBool("PassSchemesR", false) then return end
-            if self:GetNW2Bool("BMCISExtra", false) then
-                local dir = self:GetNW2Bool("BMCISExtraDir", false)
-                if i > 4 and dir or not dir and i <= 4 then
-                    if dir then
-                        surface.SetTexture(surface.GetTextureID("bnt/bnt_evac_forward_l"))
-                    else
-                        surface.SetTexture(surface.GetTextureID("bnt/bnt_evac_back_l"))
-                    end
-                elseif i > 4 and not dir or dir and i <= 4 then
-                    if dir then
-                        surface.SetTexture(surface.GetTextureID("bnt/bnt_evac_forward_r"))
-                    else
-                        surface.SetTexture(surface.GetTextureID("bnt/bnt_evac_back_r"))
-                    end
-                end
-
-                surface.SetDrawColor(255, 255, 255, 170)
-                surface.DrawTexturedRectRotated(512, 512, 1024, 1024, 0)
-            else
-                surface.SetMaterial(self.RTMaterial)
-                surface.SetDrawColor(255, 255, 255, 170)
-                surface.DrawTexturedRectRotated(512, 512, 1024, 1024, 0)
-            end
+    self.RTMaterial:SetTexture("$basetexture", self.RBnt)
+    for i = 1, 4 do
+        self:DrawOnPanel("BNTR" .. i, function(...)
+            surface.SetMaterial(self.RTMaterial)
+            surface.SetDrawColor(255, 255, 255, 170)
+            surface.DrawTexturedRectRotated(512, 512, 1024, 1024, 0)
         end)
     end
 end
