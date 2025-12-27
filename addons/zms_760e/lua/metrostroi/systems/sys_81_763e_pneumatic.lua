@@ -292,7 +292,9 @@ function TRAIN_SYSTEM:Think(dT)
             end
         else
             if self.EmerBrake > 0 then self.EmerBrake = 0 end
-            if Train.BUV.PN2 then
+            if Train.BUV.PN3 then
+                EPMPressure = 2.4 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 0.5 --3 уставка
+            elseif Train.BUV.PN2 then
                 EPMPressure = 1.2 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 0.5 --2 уставка
             elseif Train.BUV.PN1 then
                 EPMPressure = 0.7 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 0.4 --1 уставка
@@ -304,7 +306,7 @@ function TRAIN_SYSTEM:Think(dT)
     self:equalizePressure(dT, "AirDistributorPressure", math.Clamp((from - self.BrakeLinePressure) / (from - 3.2), 0, 1) * (1.75 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 1.3), 2.50, 2.50, nil, 1.3)
     self.EmergencyBrakeActive = Train:ReadTrainWire(25) * Train:ReadTrainWire(26) == 0 --*Train.Electric.Battery80V*Train:ReadTrainWire(35) < 62--[[or self.EmerBrake == 3 or Train.BUV.BTB]]
     self.BTBReady = self.AirDistributorPressure > (1.75 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 1.3) - 0.05
-    if self.EmergencyBrakeActive or self.EmerBrake == 3 or Train.BUV.PN3 then
+    if self.EmergencyBrakeActive or self.EmerBrake == 3 then
         PMPressure = self.AirDistributorPressure
         if self.BrakeCylinderPressure < self.AirDistributorPressure and self.AirDistributorPressure - self.BrakeCylinderPressure > 0.1 then self:equalizePressure(dT, "AirDistributorPressure", 0, (self.AirDistributorPressure - self.BrakeCylinderPressure) * 1, (self.AirDistributorPressure - self.BrakeCylinderPressure) * 1, nil, 2) end
     end

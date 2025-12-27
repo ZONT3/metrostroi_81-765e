@@ -585,9 +585,10 @@ function TRAIN_SYSTEM:Think(dT)
         self.PowerOff = (self:Get("PowerOff") or Train.SF35 and Train.SF35.Value == 0) and 1 or 0
         self.PassLight = self:Get("PassLight")
         self.ZeroSpeed = self:Get("ZeroSpeed")
-    elseif Train.Electric.Power == 0 then
+    else
         self.PassLight = false
         self.PSNSignal = false
+        self.MKSignal = false
         self.PowerOff = 0
         self.ZeroSpeed = false
     end

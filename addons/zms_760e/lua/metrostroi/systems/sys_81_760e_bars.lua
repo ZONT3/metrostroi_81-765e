@@ -137,7 +137,7 @@ function TRAIN_SYSTEM:Think(dT)
     if not self.Ready then Active = false end
     --if not self.Ready and Train.BUKP.State == 5 and Power then self.RVTB = 0 end
     if self.RVTB == 0 then self.BTB = 0 end
-    local Emer = Train.RV["KRR15-16"] * Train.PpzPrimaryControls.Value > 0.5
+    local Emer = Train.RV["KRR15-16"] * Train.PpzEmerControls.Value > 0.5
     local KMState = Train.KV765.Position
     local BUPKMState = Train.BUKP.ControllerState
     if Emer then
@@ -238,7 +238,7 @@ function TRAIN_SYSTEM:Think(dT)
         local Brake = self.Brake > 0
         local SpeedLimit = self.SpeedLimit
         if TwoToSix and (not self.LN or self.NextLimit == math.max(20, SpeedLimit) and self.F6 == 0) then SpeedLimit = math.min(40, SpeedLimit) end
-        if self.KB and Train.RV.KRRPosition == 0 then SpeedLimit = 20 end
+        if self.KB then SpeedLimit = 20 end
         if self.Speed > SpeedLimit or (self.NoFreq or self.RealF5) and not self.KB and self.Speed > 0.1 or self.Braking and not Brake or ALS.AO and KMState > 0 and self.KB then --or (self.F1 or self.F2 or self.F3 or self.F4) and self.KB and speed > 20
             if not Brake and (SpeedLimit > 20 or self.Speed > 0) then
                 self.Braking = CurTime()
@@ -284,12 +284,12 @@ function TRAIN_SYSTEM:Think(dT)
         if self.BrakeEfficiency and KMState <= 0 and self.Speed < 0.1 then self.BrakeEfficiency = nil end
         --Disable PN1 if not braking or passed 1.5s
         if self.PN1Timer and (CurTime() - self.PN1Timer > 1.5 or not Brake) then self.PN1Timer = nil end
-        if self.Speed > SpeedLimit - 1.1 and (KMState > 0 or BUPKMState > 0) and not Emer then
+        if self.Speed > SpeedLimit - 1.1 and (KMState > 0 or BUPKMState > 0) then
             self.DisableDrive = true
             self.ControllerInDrive = KMState > 0
         end
 
-        if self.Speed < SpeedLimit - 3 and KMState <= 0 and BUPKMState <= 0 or SpeedLimit < 10 and KMState <= 0 and BUPKMState <= 0 or Emer then
+        if self.Speed < SpeedLimit - 3 and KMState <= 0 and BUPKMState <= 0 or SpeedLimit < 10 and KMState <= 0 and BUPKMState <= 0 then
             self.DisableDrive = false
             self.ControllerInDrive = false
         end
@@ -335,7 +335,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.Brake = Brake and 1 or 0
         self.Brake2 = Brake2 and 1 or 0
         self.Drive = Drive and 1 or 0]]
-        Drive = not self.DisableDrive and ((self.NoFreq or self.RealF5) and self.KB or not self.NoFreq and not self.RealF5) and not Brake and not Brake2
+        Drive = not self.DisableDrive and self.PN3 < 1 and ((self.NoFreq or self.RealF5) and self.KB or not self.NoFreq and not self.RealF5) and not Brake and not Brake2
         self.PN1 = (ALS.AO or self.PN1Timer) and 1 or 0
         self.Ring = self.Ringing and 1 or 0
         self.Brake = Brake and 1 or 0
@@ -477,9 +477,11 @@ function TRAIN_SYSTEM:Think(dT)
             if ALS.NoFreq == 0 or not self.KVT then self.ABPressed2 = nil end
             if self.AB and EnableALS and ALS.F1 + ALS.F2 + ALS.F3 + ALS.F4 + ALS.F5 + ALS.F6 > 0 then self.AB = false end
 
-            self.PN3 = KMState > 0 and (
-                Train.BUKP.Errors.Doors or
-                Train.BUKP.Errors.NoOrient
+            self.PN3 = (KMState > 0 or self.Speed > 1.8) and (
+                not Train.BUKP.DoorClosed and Train.DoorBlock.Value < 1 or
+                Train.BUKP.Errors.NoOrient or
+                -- Train.BUKP.Errors.BuvDiscon or
+                Train.BUKP.Errors.RvErr
             ) and 1 or 0
 
             if self.Speed < 1.8 and not self.DisableDrive and KMState > 0 and ALS.NoFreq < 1 then

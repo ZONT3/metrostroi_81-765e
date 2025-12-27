@@ -581,7 +581,7 @@ if SERVER then
             local str = ErrorsCat[category][errId - start + 1]
             local changed = self.Error ~= errId or self.ErrorParams[0] ~= param
 
-            if (changed or ErrRingContinuous[str[1]]) and (str[1] ~= "Doors" or self.Train.Speed >= 1.8) then
+            if (changed or ErrRingContinuous[str[1]]) and (str[1] ~= "Doors" or self.Train.Speed >= 1.8) and str[1] ~= "RvErr" then
                 self.ErrorRing = CurTime()
             end
             if str[1] == "DisableDrive" and self.Train.KV765.Position <= 0 then
@@ -849,7 +849,7 @@ if SERVER then
             local EnginesStrength = 0
             if self.InitTimer and CurTime() - self.InitTimer > 0 then self.InitTimer = nil end
             local RvKro = (1 - Train.RV["KRO5-6"]) * Train.PpzPrimaryControls.Value
-            local RvKrr = Train.RV["KRR15-16"] * Train.PpzPrimaryControls.Value
+            local RvKrr = Train.RV["KRR15-16"] * Train.PpzEmerControls.Value
             local RvWork = self.InitTimer and true or RvKro + RvKrr > 0.5 and RvKro + RvKrr < 1.5
             local doorLeft, doorRight, selectLeft, selectRight, doorClose = false, false, false
             if self.State == 5 and (Train.PpzUpi.Value == 1) then
@@ -869,7 +869,7 @@ if SERVER then
                 end
                 self.MotorWagc, self.TrailerWagc = motor, trailer
 
-                local doorsNotClosed = Train.SF80F1.Value < 0.5
+                local doorsNotClosed = false
 
                 self.PantDisabled = PantDisabled
                 if HVBad and not self.HVBad then self.HVBad = CurTime() end
@@ -885,7 +885,6 @@ if SERVER then
                     local uLvmin, uLvmax
                     local uHvmin, uHvmax
                     local countBL = 0
-                    self.DoorClosed = not doorsNotClosed
                     for i = 1, self.WagNum do
                         local trainid = self.Trains[i]
                         local train = self.Trains[trainid]
@@ -931,7 +930,6 @@ if SERVER then
                             end
                         end
 
-                        if not doorclose then self.DoorClosed = false end
                         local working = self:CheckBuv(train)
                         self:CheckWagError(i, "BuvDiscon", not working)
                         self:CheckWagError(i, "NoOrient", working and train.WagNOrientated)
@@ -1041,10 +1039,11 @@ if SERVER then
                             self.DoorControlTimer = nil
                         end
                     end
+                    self.DoorClosed = Train.SF80F1.Value > 0.5 and not doorsNotClosed
 
                     local errPT = self.PTEnabled and CurTime() - self.PTEnabled > 2 + (Train.BUV.Slope1 and 1.2 or 0)
 
-                    Train:SetNW2Int("Skif:DoorsAll", doorsNotClosed and 0 or cabDoors and 2 or 1)
+                    Train:SetNW2Int("Skif:DoorsAll", not self.DoorClosed and 0 or cabDoors and 2 or 1)
                     Train:SetNW2Int("Skif:HvAll", hvGood == 0 and 0 or hvBad == 0 and 1 or 2)
                     Train:SetNW2Int("Skif:BvAll", bvEnabled == 0 and 0 or bvDisabled == 0 and 1 or 2)
                     Train:SetNW2Bool("Skif:CondAny", condAny)
@@ -1094,10 +1093,10 @@ if SERVER then
                     self:CheckError("RvErr", false)
                     self:CheckError("KmErr", false)
                     self:CheckError("DisableDrive", BARS.DisableDrive or self.Errors.DisableDrive and Train.KV765.Position > 0)
-                    if not self.Errors.NoOrient then self:CheckError("NoOrient", noOrient and Train.KV765.Position > 0) end
-                    if not self.Errors.Doors then self:CheckError("Doors", doorsNotClosed or self.WasDoors and Train.KV765.Position > 0) end
+                    -- if not self.Errors.NoOrient then self:CheckError("NoOrient", noOrient and Train.KV765.Position > 0) end
+                    -- if not self.Errors.Doors then self:CheckError("Doors", self.DoorsNotClosed and Train.KV765.Position > 0) end
 
-                    local err11ch = self.WasDoors ~= not not self.Errors.Doors
+                    local err11ch = self.DoorsNotClosed ~= doorsNotClosed
                     if self.Errors.Doors and err11ch then
                         if not self.AutoChPage then self.AutoChPage = self.State2 end
                         self.State2 = 21
@@ -1110,7 +1109,7 @@ if SERVER then
                     if self.AwaitOpenDoors and (not self.AutoChPage or self.Errors.Doors) then
                         self.AwaitOpenDoors = false
                     end
-                    self.WasDoors = not not self.Errors.Doors
+                    self.DoorsNotClosed = doorsNotClosed
 
                     if CurTime() - self.BErrorsTimer > 0 then
                         if sfBroken ~= self.sfBroken then
@@ -1130,7 +1129,7 @@ if SERVER then
                     end
 
                     if Train.RV["KRO5-6"] == 0 then
-                        local AllowDriveInput = BARS.Brake == 0 and BARS.Drive > 0
+                        local AllowDriveInput = BARS.Brake == 0 and BARS.Drive > 0 and not self.Errors.BuvDiscon
                         if AllowDriveInput or Train.KV765.TractiveSetting <= 0 then
                             kvSetting = Train.PpzKm.Value > 0 and Train.KV765.TractiveSetting or self.ControllerState or kvSetting
                             if kvSetting ~= 0 then
@@ -1144,6 +1143,7 @@ if SERVER then
                         if Train.ProstKos.CommandKos > 0 then kvSetting = -100 overrideKv = true end
                         if BARS.Brake > 0 then kvSetting = -100 overrideKv = true end
                         if self.Errors.EmergencyBrake and (Train.Speed > 1.6) then kvSetting = -100 overrideKv = true end
+                        if Train.KV765.Position > 0 and BARS.PN3 > 0 then kvSetting = -100 overrideKv = true end
 
                         local sb = not overrideKv and BARS.StillBrake == 1
                         if sb then kvSetting = -50 overrideKv = true end
@@ -1170,8 +1170,9 @@ if SERVER then
                         Train:SetNW2Int("Skif:ProstData8", Train.ProstKos.LastTag.doors and 1 or 0)
                     end
 
-                    if ptApplied and kvSetting > 0 and not self.PTEnabled then self.PTEnabled = CurTime() end
-                    if (not ptApplied or kvSetting <= 0) and self.PTEnabled then self.PTEnabled = nil end
+                    local checkPt = ptApplied and (kvSetting > 0 or Train.KV765.Position > 0 and not self.Errors.EmergencyBrake)
+                    if not self.PTEnabled and checkPt then self.PTEnabled = CurTime() end
+                    if self.PTEnabled and not checkPt then self.PTEnabled = nil end
 
                     self:CheckError("PneumoBrake", errPT and ptApplied, ptApplied)
                     self:CheckError("HV", self.HVBad and CurTime() - self.HVBad > 10)
@@ -1200,7 +1201,7 @@ if SERVER then
                     self.BARS1 = (BARS.StillBrake < 1) and BARS.ATS1 and (driveInput or speed > 0.5)
                     self.BARS2 = (BARS.StillBrake < 1) and BARS.ATS2 and (driveInput or speed > 0.5)
 
-                    self:CheckError("ArsFail", BARS.Active < 1, BARS.ATS1 and 1 or BARS.ATS2 and 2 or nil)
+                    self:CheckError("ArsFail", Train.PmvAtsBlock.Value < 3 and BARS.Active < 1, BARS.ATS1 and not BARS.ATS2 and 1 or BARS.ATS2 and not BARS.ATS1 and 2 or nil)
                     self:CheckError("KmErr", Train.KV765.Online < 1)
 
                     Train:SetNW2Bool("Skif:NoFreq", BARS.NoFreq and not BARS.KB)
@@ -1357,6 +1358,7 @@ if SERVER then
 
                 Train:SetNW2Bool("AOState", self.AO)
 
+                self:CheckError("RvErr", not RvWork and not Back)
                 if not self.InitTimer then
                     self:CommitError()
                 end

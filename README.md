@@ -62,12 +62,7 @@
     - [x] Rewrite speed limit logics in BUKP
     - [x] BU-IK Return informer reset 'notlast' message
     - [x] BUKP background initialization right after identification
-    - [ ] ATZ Fixes
-      - [ ] Fix no brake at NOrient and BUV discon
-      - [ ] Fix main controls work on NOrient and BUV discon
-      - [ ] Fix no KM behavior
-      - [ ] Fix throttle setting on doors not closed
-    - [ ] Make RVTB recover in some cases
+    - [ ] ~~Make RVTB recover in some cases~~
     - [ ] Uhv without GV behaivor
     - [ ] Still brake PN1/PN2 revise
     - [ ] Pneumatic weight load PN setting adjustment
@@ -80,7 +75,7 @@
   - [ ] Improve sounds
     - [ ] KATP-3
     - [ ] Remove RUMBLE dependency
-    - [ ] Door Alarm
+    - [x] Door Alarm
     - [ ] Door drive
       - [x] Early variant
       - [ ] Improved variant
@@ -94,4 +89,5 @@
     - [ ] Rewrite pant logic
       - [ ] HV per-pant
       - [ ] UKKZ per-pant
+    - [ ] Rewrite BARS
   
