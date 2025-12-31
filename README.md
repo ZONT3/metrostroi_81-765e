@@ -63,6 +63,7 @@
     - [x] BU-IK Return informer reset 'notlast' message
     - [x] BUKP background initialization right after identification
     - [ ] ~~Make RVTB recover in some cases~~
+    - [ ] PB/KB acts as KVT as well
     - [ ] Uhv without GV behaivor
     - [ ] Still brake PN1/PN2 revise
     - [ ] Pneumatic weight load PN setting adjustment

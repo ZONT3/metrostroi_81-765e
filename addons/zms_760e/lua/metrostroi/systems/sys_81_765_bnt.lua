@@ -35,44 +35,26 @@ if SERVER then
         Wag:SetNW2Bool("BNT:PowerRight", PowerRight)
         Wag:SetNW2Bool("BNT:SelectLeft", Wag.BUV.SelectLeft)
         Wag:SetNW2Bool("BNT:SelectRight", Wag.BUV.SelectRight)
-        Wag:SetNW2Bool("BNT:Working", (PowerLeft or PowerRight) and self.Working)
+        Wag:SetNW2Bool("BNT:Working", self.ActiveRoute and (PowerLeft or PowerRight) and self.Working)
         Wag:SetNW2Bool("BNT:FirstStation", self.Station == 1)
         Wag:SetNW2Bool("BNT:SecondStation", self.Station == 2)
-        Wag:SetNW2String("BNT:LineColor", self.LineColor)
         Wag:SetNW2Bool("BNT:Terminus", self.Terminus)
+    end
+
+    function TRAIN_SYSTEM:SetStation(stIdx)
+        self.Station = stIdx
+        self:SetString("BNT:Stations", self.Stations)
+        self:SetInt("BNT:Station", stIdx)
+        self:SetInt("BNT:LastStation", self.LastStation)
+        self:SetString("BNT:RouteId", self.ActiveRoute or "")
+        self:SetInt("BNT:Route", self.Route)
+        self:SetInt("BNT:CfgIdx", self.CfgIdx)
+        self:SetInt("BNT:StationAnim", 0)
     end
 
     function TRAIN_SYSTEM:AnimateNext()
         self:SetStation((self.Station or 1) + 1)
         self:SetInt("BNT:StationAnim", CurTime() + 7)
-    end
-
-    function TRAIN_SYSTEM:SetStation(stIdx)
-        self.Station = stIdx
-        for idx = 1, 10 do
-            local cfgIdx = idx + stIdx - 2
-            local st = self.Stations and self.Stations[cfgIdx]
-            if idx < 10 and cfgIdx <= self.LastStation and st then
-                self:SetString("BNT:Station" .. idx, st.name)
-                self:SetString("BNT:StationEng" .. idx, st.nameEng)
-                self:SetInt("BNT:Station%dChangeCount", #st.changes, idx)
-                for cidx, ch in ipairs(st.changes) do
-                    self:SetString("BNT:Station%dChangeName%d", ch.name, idx, cidx)
-                    self:SetString("BNT:Station%dChangeNameEng%d", ch.nameEng, idx, cidx)
-                    self:SetInt("BNT:Station%dChange%dIconCount", #ch.icons, idx, cidx)
-                    for iidx, icon in ipairs(ch.icons) do
-                        self:SetInt("BNT:Station%dChange%dIconType%d", icon.typ, idx, cidx, iidx)
-                        self:SetString("BNT:Station%dChange%dIconSymbol%d", icon.symbol, idx, cidx, iidx)
-                        self:SetString("BNT:Station%dChange%dIconColor%d", icon.color, idx, cidx, iidx)
-                        self:SetString("BNT:Station%dChange%dIconPath%d", icon.path, idx, cidx, iidx)
-                    end
-                end
-            elseif idx > 1 then
-                self:SetInt("BNT:StationCount", idx - 1)
-                break
-            end
-        end
-        self:SetInt("BNT:StationAnim", 0)
     end
 
     function TRAIN_SYSTEM:AnimateDepart()
@@ -104,17 +86,14 @@ if SERVER then
 else
     local scw, sch = 3840, 512
 
-    local ScreenFps = 60
-    local ScreenFt = 1 / ScreenFps
     local StationAnimDuration = 0.4
     local SlideDuration = 0.2
     local GifDuration = 2.6
-    local FontTransitionFrames = math.ceil(ScreenFps * StationAnimDuration)
 
     function TRAIN_SYSTEM:ClientThink()
         local Wag = self.Train
         if self.NextDraw and CurTime() < self.NextDraw then return end
-        self.NextDraw = CurTime() + ScreenFt
+        self.NextDraw = CurTime() + (self.ScreenFt or (1 / 12))
         self.Working = Wag:GetNW2Bool("BNT:Working", false)
         if Wag:ShouldDrawPanel("BNTL") then
             render.PushRenderTarget(self.Train.LBnt, 0, 0, 3840, 512)
@@ -136,6 +115,7 @@ else
 
     function TRAIN_SYSTEM:ClientInitialize()
         self.colors = {}
+        self.Stations = {}
     end
 
     local changeMat = Material("zxc765/bnt/changeNormal.png", "smooth ignorez")
@@ -254,6 +234,12 @@ else
 
     local anims = {"DepartAnim", "ArrivedAnim"}
 
+    local NullStation = {
+        name = "",
+        nameEng = "",
+        changes = {}
+    }
+
     local function animate(start, offset, duration)
         return math.Clamp((CurTime() - start / 10 - offset) / duration, 0, 1)
     end
@@ -299,31 +285,35 @@ else
             return
         end
 
-        ScreenFps = Wag:GetNW2Int("BNT:ScreenFps", 60)
-        if self.Fps ~= ScreenFps then
-            ScreenFt = 1 / ScreenFps
-            FontTransitionFrames = math.ceil(ScreenFps * StationAnimDuration)
-            for idx = 0, FontTransitionFrames do
-                surface.CreateFont("BNT.StationBig" .. idx, {
+        local fps = Wag:GetNW2Int("BNT:ScreenFps", 12)
+        if self.Fps ~= fps then
+            self.ScreenFt = 1 / fps
+            self.FontTransitionFrames = math.ceil(fps * StationAnimDuration)
+            for idx = 0, self.FontTransitionFrames do
+                surface.CreateFont("BNT.StationBig." .. fps .. "." .. idx, {
                     extended = true,
                     font = "Moscow Sans Regular",
-                    size = Lerp(idx / FontTransitionFrames, 72, 140),
+                    size = Lerp(idx / self.FontTransitionFrames, 72, 140),
                     weight = 600,
                 })
-                surface.CreateFont("BNT.StationBigEng" .. idx, {
+                surface.CreateFont("BNT.StationBigEng." .. fps .. "." .. idx, {
                     extended = true,
                     font = "Moscow Sans Regular",
-                    size = Lerp(idx / FontTransitionFrames, 48, 70),
+                    size = Lerp(idx / self.FontTransitionFrames, 48, 70),
                     weight = 500,
                 })
-                surface.CreateFont("BNT.ChangeSymbol" .. idx, {
+                surface.CreateFont("BNT.ChangeSymbol." .. fps .. "." .. idx, {
                     extended = true,
                     font = "Moscow Sans Regular",
-                    size = Lerp(idx / FontTransitionFrames, 54, 76),
+                    size = Lerp(idx / self.FontTransitionFrames, 54, 76),
                     weight = 600,
                 })
             end
-            self.Fps = ScreenFps
+            self.Fps = fps
+        end
+
+        if self.RouteId ~= Wag:GetNW2String("BNT:RouteId", "") then
+            self:InitializeRoute()
         end
 
         surface.SetDrawColor(12, 12, 12)
@@ -364,7 +354,7 @@ else
         local changesInline2 = animName == "DepartAnim" and 1 - animate(anim, 9.8, SlideDuration) or 0
         local changesFooter = animName == "DepartAnim" and animate(anim, 10, SlideDuration) + (1 - animate(anim, 3.8, SlideDuration)) or 1
         local terminusAnim = Wag:GetNW2Bool("BNT:Terminus", false) and animate(Wag:GetNW2Int("BNT:TerminusAnim"), oppositeExit and 6 or 0, SlideDuration * 1.4) or 0
-        local lineColor = self:GetCachedColor(Wag:GetNW2String("BNT:LineColor", "#6e6e6e"))
+        local lineColor = self:GetCachedColor(self.LineColor)
 
         x, y = 0, 0
         if gifSlideOut < 1 then
@@ -388,32 +378,34 @@ else
         local x0, y0 = 100, 290 + y * 0.75
         local firstStation = Wag:GetNW2Bool("BNT:FirstStation", false)
         local secondStation = Wag:GetNW2Bool("BNT:SecondStation", false)
-        local stcount = Wag:GetNW2Int("BNT:StationCount", 0)
+        local station = Wag:GetNW2Int("BNT:Station", 1)
+        local stcount = math.min(#self.Stations, Wag:GetNW2Int("BNT:LastStation", 0)) - station + 1
         local termx, termy = scw - sizeTrminusBanner * terminusAnim, y
         local linex, liney = (firstStation and x0 or 0), y0 + 40
         local lineEnd = scw
         x, y = x0, y0
 
         local circles1, circles2 = {}, {}
-        for idx = 1, math.min(8, stcount) do
-            local station = Wag:GetNW2String("BNT:Station" .. idx, "Неизвестно")
+        for idx = 0, math.min(7, stcount) do
+            local cfg = self.Stations[station + idx - 1] or NullStation
+            local stationName = cfg.name
             local boxW, boxH
             local font = "BNT.StationSmall"
             local fontEng = "BNT.StationSmallEng"
             local minBoxW = sizeMinBoxW
-            local gap = idx == 1 and Lerp(stationAnim, sizeBoxBigGap, sizeBoxGap) or idx == 2 and Lerp(stationAnim, sizeBoxGap, sizeBoxBigGap) or sizeBoxGap
-            local offsetY = idx == 1 and Lerp(stationAnim, 6, 0) or idx == 2 and Lerp(stationAnim, 0, 6) or 0
-            local offsetEngY = idx == 1 and Lerp(stationAnim, 24, 0) or idx == 2 and Lerp(stationAnim, 0, 24) or 0
-            local offsetChangeY = idx == 1 and Lerp(stationAnim, 24, 6) or idx == 2 and Lerp(stationAnim, 6, 24) or 6
-            local changeScale = idx == 1 and Lerp(stationAnim, 1.4, 1) or idx == 2 and Lerp(stationAnim, 1, 1.4) or 1
-            local fontFrame = math.floor((idx == 1 and 1 - stationAnim or stationAnim) * FontTransitionFrames)
-            if idx < 3 then
-                font = "BNT.StationBig" .. fontFrame
-                fontEng = "BNT.StationBigEng" .. fontFrame
-                minBoxW = Lerp(idx == 1 and 1 - stationAnim or stationAnim, sizeMinBoxW, sizeMinBigBoxW)
-                if idx == 1 then
+            local gap = idx == 0 and Lerp(stationAnim, sizeBoxBigGap, sizeBoxGap) or idx == 1 and Lerp(stationAnim, sizeBoxGap, sizeBoxBigGap) or sizeBoxGap
+            local offsetY = idx == 0 and Lerp(stationAnim, 6, 0) or idx == 1 and Lerp(stationAnim, 0, 6) or 0
+            local offsetEngY = idx == 0 and Lerp(stationAnim, 24, 0) or idx == 1 and Lerp(stationAnim, 0, 24) or 0
+            local offsetChangeY = idx == 0 and Lerp(stationAnim, 24, 6) or idx == 1 and Lerp(stationAnim, 6, 24) or 6
+            local changeScale = idx == 0 and Lerp(stationAnim, 1.4, 1) or idx == 1 and Lerp(stationAnim, 1, 1.4) or 1
+            local fontFrame = math.floor((idx == 0 and 1 - stationAnim or stationAnim) * self.FontTransitionFrames)
+            if idx < 2 then
+                font = "BNT.StationBig." .. fps .. "." .. fontFrame
+                fontEng = "BNT.StationBigEng." .. fps .. "." .. fontFrame
+                minBoxW = Lerp(idx == 0 and 1 - stationAnim or stationAnim, sizeMinBoxW, sizeMinBigBoxW)
+                if idx == 0 then
                     surface.SetFont(font)
-                    boxW, boxH = surface.GetTextSize(station)
+                    boxW, boxH = surface.GetTextSize(stationName)
                     boxW = math.max(minBoxW, boxW + gap)
                     x = x0 - (boxW + x0) * stationAnim
                     if secondStation and stationAnim < 1 then
@@ -422,18 +414,20 @@ else
                 end
             end
 
-            boxW, boxH = draw.SimpleText(station, font, x, y + offsetY, colorBlack, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
-            draw.SimpleText(Wag:GetNW2String("BNT:StationEng" .. idx, ""), fontEng, x, y + offsetEngY - boxH, colorEng, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+            boxW, boxH = draw.SimpleText(stationName, font, x, y + offsetY, colorBlack, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+            draw.SimpleText(cfg.nameEng, fontEng, x, y + offsetEngY - boxH, colorEng, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
 
             local change = false
             local prevIcon = nil
-            for cidx = 1, Wag:GetNW2Int("BNT:Station" .. idx .. "ChangeCount", 0) do
-                local fade = idx == 1 and changesInline1 or idx == 2 and changesInline2 or 1
-                for iidx = 1, Wag:GetNW2Int("BNT:Station" .. idx .. "Change" .. cidx .. "IconCount", 0) do
-                    local typ = Wag:GetNW2Int("BNT:Station" .. idx .. "Change" .. cidx .. "IconType" .. iidx, 0)
-                    local symbol = Wag:GetNW2String("BNT:Station" .. idx .. "Change" .. cidx .. "IconSymbol" .. iidx, "?")
-                    local color = Wag:GetNW2String("BNT:Station" .. idx .. "Change" .. cidx .. "IconColor" .. iidx, "#6e6e6e")
-                    local path = Wag:GetNW2String("BNT:Station" .. idx .. "Change" .. cidx .. "IconPath" .. iidx, "zxc765/bnt/changeNormal.png")
+            for cidx = 1, #cfg.changes do
+                local chCfg = cfg.changes[cidx]
+                local fade = idx == 0 and changesInline1 or idx == 1 and changesInline2 or 1
+                for iidx = 1, #chCfg.icons do
+                    local icCfg = chCfg.icons[iidx]
+                    local typ = icCfg.typ
+                    local symbol = icCfg.symbol
+                    local color = icCfg.color
+                    local path = icCfg.path
                     local sz = sizeChange * changeScale
                     local ix, iy = x + boxW + sizeChangeGap, y - boxH + offsetChangeY + (boxH - sz) / 2 + 20 * (1 - fade)
                     local iconIdent = (typ > 1 and path or symbol)
@@ -443,9 +437,9 @@ else
                         surface.SetDrawColor(color)
                         surface.DrawTexturedRect(ix, iy, sz, sz)
                         if typ <= 2 then
-                            draw.SimpleText(symbol, "BNT.ChangeSymbol" .. (idx > 2 and "" or fontFrame), math.floor(ix + sz / 2), iy + sz / 2 - 2, self:GetCachedColor(color.a > 20 and isLight(color) and colorBlack or colorBackground, fade), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+                            draw.SimpleText(symbol, "BNT.ChangeSymbol" .. (idx > 1 and "" or ("." .. fps .. "." .. fontFrame)), math.floor(ix + sz / 2), iy + sz / 2 - 2, self:GetCachedColor(color.a > 20 and isLight(color) and colorBlack or colorBackground, fade), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
                         end
-                        boxW = boxW + (sizeChangeGap + sz) * (idx == 1 and 1 - stationAnim or 1)
+                        boxW = boxW + (sizeChangeGap + sz) * (idx == 0 and 1 - stationAnim or 1)
                         change = change or typ < 4
                         prevIcon = iconIdent
                     end
@@ -463,27 +457,29 @@ else
             if idx == stcount then
                 lineEnd = x
             end
-            if not change and (idx == stcount or idx <= 2 and firstStation or idx == 1 and secondStation) then
+            if not change and (idx == stcount or idx <= 1 and firstStation or idx == 0 and secondStation) then
                 surface.SetDrawColor(lineColor)
                 surface.DrawRect(x, liney, 24, 44)
             end
-            x = x + boxW + (idx == 1 and Lerp(stationAnim, 0, x0) or 0)
+            x = x + boxW + (idx == 0 and Lerp(stationAnim, 0, x0) or 0)
             if x > scw then break end
         end
 
         if changesFooter > 0 then
             x, y = x0, liney + 120 - 20 * (1 - changesFooter)
-            local idx = stationAnim < 1 and 1 or 2
+            local cfg = self.Stations[station + (stationAnim < 1 and -1 or 0)] or NullStation
             local sz = sizeChange * 1.4
-            for cidx = 1, Wag:GetNW2Int("BNT:Station" .. idx .. "ChangeCount", 0) do
-                local text = Wag:GetNW2String("BNT:Station" .. idx .. "ChangeName" .. cidx, "")
-                local textEng = Wag:GetNW2String("BNT:Station" .. idx .. "ChangeNameEng" .. cidx, "")
-                for iidx = 1, Wag:GetNW2Int("BNT:Station" .. idx .. "Change" .. cidx .. "IconCount", 0) do
+            for cidx = 1, #cfg.changes do
+                local chCfg = cfg.changes[cidx]
+                local text = chCfg.name
+                local textEng = chCfg.nameEng
+                for iidx = 1, #chCfg.icons do
                     local ix, iy = x, y - sz / 2
-                    local typ = Wag:GetNW2Int("BNT:Station" .. idx .. "Change" .. cidx .. "IconType" .. iidx, 0)
-                    local symbol = Wag:GetNW2String("BNT:Station" .. idx .. "Change" .. cidx .. "IconSymbol" .. iidx, "?")
-                    local color = Wag:GetNW2String("BNT:Station" .. idx .. "Change" .. cidx .. "IconColor" .. iidx, "#6e6e6e")
-                    local path = Wag:GetNW2String("BNT:Station" .. idx .. "Change" .. cidx .. "IconPath" .. iidx, "zxc765/bnt/changeNormal.png")
+                    local icCfg = chCfg.icons[iidx]
+                    local typ = icCfg.typ
+                    local symbol = icCfg.symbol
+                    local color = icCfg.color
+                    local path = icCfg.path
                     color = self:GetCachedColor(color, changesFooter)
                     surface.SetMaterial(typ ~= 1 and self:GetCachedMaterial(path) or changeMat)
                     surface.SetDrawColor(color)
@@ -538,5 +534,88 @@ else
             self.colors[path] = Material(path, "smooth ignorez")
         end
         return self.colors[path]
+    end
+
+    function TRAIN_SYSTEM:InitializeRoute()
+        local Wag = self.Train
+        self.RouteId = Wag:GetNW2String("BNT:RouteId", "")
+        self.Stations = {}
+        if self.RouteId == "" then return end
+
+        local cfg = Metrostroi.CISConfig[Wag:GetNW2Int("CISConfig", 1)]
+        cfg = cfg and cfg[Wag:GetNW2Int("BNT:Route", -1)] or {}
+        local fallbackCfg = Metrostroi.ASNPSetup[Wag:GetNW2Int("Announcer", 1)]
+        fallbackCfg = fallbackCfg and fallbackCfg[Wag:GetNW2Int("BNT:Route", -1)] or {}
+
+        self.LineColor = cfg.Color or "#6e6e6e"
+
+        local stations = Wag:GetNW2String("BNT:Stations", "")
+        stations = #stations > 0 and string.Explode(",", stations) or {}
+        for idx, index in ipairs(stations) do
+            index = tonumber(index)
+            if index then
+                local cisIdx = nil
+                for curCisIdx, cisCfg in ipairs(cfg) do
+                    if cisCfg[1] == index then
+                        cisIdx = curCisIdx
+                        break
+                    end
+                end
+                if cisIdx then
+                    local cisCfg = cfg[cisIdx]
+                    local ikCfg = cfg.changes and cfg.changes[cisIdx] or nil
+                    local changes = {}
+                    if ikCfg then
+                        changes = ikCfg
+                    else
+                        local ccIdx = 4
+                        while cisCfg[ccIdx] do
+                            table.insert(changes, {
+                                icons = {
+                                    {
+                                        typ = 1,
+                                        symbol = tostring(cisCfg[ccIdx + 2] or "?"),
+                                        color = cisCfg[ccIdx + 4]
+                                    }
+                                },
+                                name = cisCfg[ccIdx + 1],
+                                nameEng = cisCfg[ccIdx + 3],
+                            })
+                            ccIdx = isstring(cisCfg[ccIdx + 5]) and ccIdx + 4 or ccIdx + 5
+                        end
+                    end
+                    self.Stations[idx] = {
+                        name = cisCfg[2] or "ОШИБКА",
+                        nameEng = cisCfg[3] or "",
+                        changes = changes
+                    }
+                else
+                    local asnpIdx = nil
+                    for curAsnpIdx, asnpCfg in ipairs(fallbackCfg) do
+                        if asnpCfg[1] == index then
+                            asnpIdx = curAsnpIdx
+                            break
+                        end
+                    end
+                    if asnpIdx then
+                        self.Stations[idx] = {
+                            name = fallbackCfg[asnpIdx][2] or "ОШИБКА",
+                            nameEng = "",
+                            changes = {},
+                        }
+                    else
+                        self.Stations[idx] = {
+                            name = "Неизвестно",
+                            nameEng = "Unknown",
+                            changes = {},
+                        }
+                    end
+                end
+            else
+                self.Stations = {}
+                ErrorNoHalt("Corrupted data from IK", Wag:GetNW2String("BNT:Stations", ""))
+                return
+            end
+        end
     end
 end

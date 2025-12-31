@@ -5,8 +5,8 @@ timer.Simple(1, function()
         restrict_desc = "только 760Э/761Э/763Э",
         on_run = function(wagon, args, case)
             case.door_idx = math.random(8)
-            case.lever = wagon["DoorManualOpenLever" .. idx]
-            case.pl = wagon["DoorManualOpenLeverPl" .. idx]
+            case.lever = wagon["DoorManualOpenLever" .. case.door_idx]
+            case.pl = wagon["DoorManualOpenLeverPl" .. case.door_idx]
             if case.lever and case.pl then
                 case.pl:TriggerInput("Close", 1)
                 case.lever:TriggerInput("Close", 1)

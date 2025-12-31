@@ -651,6 +651,7 @@ if SERVER then
                 station = table.Copy(station)
                 station.idx = idx
                 station.tbl_id = self.Path and (#routeStationsCfg - idx + 1) or idx
+                station.index = station[1] or -1
                 station.name = station[2] or station[1] or "ОШИБКА"
                 if idx < #routeStationsCfg then
                     table.insert(lastStations, station)
@@ -670,6 +671,7 @@ if SERVER then
                 station = table.Copy(station)
                 station.idx = idx
                 station.tbl_id = self.Path and (#routeStationsCfg - idx + 1) or idx
+                station.index = station[1] or -1
                 station.name = station[2] or station[1] or "ОШИБКА"
                 station.is_terminus = self.LastStations[0].idx == station.idx
                 table.insert(routeStations, station)
@@ -714,7 +716,7 @@ if SERVER then
 
         if self.IsServiceRoute then self:ResetIk() return end
         local lastStation = self.LastStations[self.LastStationIdx]
-        self:InitIk(lastStation.tbl_id)
+        self:InitIk(lastStation.idx)
         self.AnnounceNotLast = not not lastStation.not_last
         if self.Station == 1 then self.Station = 2 end
         self:UpdatePage(true, true)
@@ -739,75 +741,20 @@ if SERVER then
 
     function TRAIN_SYSTEM:InitIk(lastSt)
         local BUP = self.Train.BUKP
-        local cfg = self.CisCfg and self.CisCfg[self.Route]
-        if cfg and BUP.State == 5 then
+        if BUP.State == 5 then
             self:WriteToIk("Time", BUP.Time)
             self:WriteToIk("Date", BUP.DateStr)
 
             self:WriteToIk("RouteId", string.format("%d.%d.%s", self.CisCfgIdx, self.Route, self.Path and "II" or "I"))
+            self:WriteToIk("Route", self.Route)
+            self:WriteToIk("CfgIdx", self.CisCfgIdx)
             self:WriteToIk("LastStation", lastSt)
             self:WriteToIk("Path", self.Path)
             self:WriteToIk("LineName", self.RouteCfg.Name)
 
-            local lineColor = "#6e6e6e"
-            if cfg.Color then
-                lineColor = string.format("#%08X",
-                    math.floor(cfg.Color.a or 0xff) +
-                    math.floor(cfg.Color.b * 0x100) +
-                    math.floor(cfg.Color.g * 0x10000) +
-                    math.floor(cfg.Color.r * 0x1000000)
-                )
-            end
-            self:WriteToIk("LineColor", lineColor)
-            self:WriteToIk("LineSymbol", tostring(cfg.Line or 1))
-
-            self:WriteToIk("StationCount", #cfg)
-            for idx, st in ipairs(cfg) do
-                self:WriteToIk("StationName" .. idx, st[2])
-                self:WriteToIk("StationNameEng" .. idx, st[3])
-                self:WriteToIk("StationLedCount" .. idx, cfg.LED[idx])
-
-                local count = 0
-                if cfg.changes and cfg.changes[idx] then
-                    count = #cfg.changes[idx]
-                    for cidx, ch in ipairs(cfg.changes[idx]) do
-                        self:WriteToIk("Station%dChange%dName", ch.name, idx, cidx)
-                        self:WriteToIk("Station%dChange%dNameEng", ch.nameEng, idx, cidx)
-                        self:WriteToIk("Station%dChange%dIconCount", #ch.icons, idx, cidx)
-                        for iidx, icon in ipairs(ch.icons) do
-                            self:WriteToIk("Station%dChange%dIconType%d", icon.typ or 1, idx, cidx, iidx)
-                            self:WriteToIk("Station%dChange%dIconSymbol%d", icon.symbol or "1", idx, cidx, iidx)
-                            self:WriteToIk("Station%dChange%dIconColor%d", icon.color or "#6e6e6e", idx, cidx, iidx)
-                            self:WriteToIk("Station%dChange%dIconPath%d", icon.path, idx, cidx, iidx)
-                        end
-                    end
-                end
-                if count == 0 then
-                    local cisIdx = 5
-                    while cfg[idx][cisIdx] do
-                        count = count + 1
-                        if not isstring(cfg[idx][cisIdx]) then cisIdx = cisIdx + 1 end
-                        self:WriteToIk("Station%dChange%dName", cfg[idx][cisIdx], idx, count)
-                        self:WriteToIk("Station%dChange%dNameEng", cfg[idx][cisIdx + 2], idx, count)
-                        self:WriteToIk("Station%dChange%dIconCount", 1, idx, count)
-                        self:WriteToIk("Station%dChange%dIconType%d", 1, idx, count, 1)
-                        self:WriteToIk("Station%dChange%dIconSymbol%d", cfg[idx][cisIdx + 1], idx, count, 1)
-                        local color = "#6e6e6e"
-                        if cfg[idx][cisIdx + 3] then
-                            color = string.format("#%08X",
-                                math.floor(cfg[idx][cisIdx + 3].a or 0xff) +
-                                math.floor(cfg[idx][cisIdx + 3].b * 0x100) +
-                                math.floor(cfg[idx][cisIdx + 3].g * 0x10000) +
-                                math.floor(cfg[idx][cisIdx + 3].r * 0x1000000)
-                            )
-                        end
-                        self:WriteToIk("Station%dChange%dIconColor%d", color, idx, count, 1)
-                        cisIdx = cisIdx + 4
-                    end
-                end
-                self:WriteToIk("Station%dChangeCount", count, idx)
-
-            end
+            local stations = {}
+            for _, st in ipairs(self.Stations) do if not st.is_dep then stations[st.idx] = st.index end end
+            self:WriteToIk("Stations", table.concat(stations, ","))
 
             self:WriteToIk("Init", true)
         end
@@ -818,7 +765,7 @@ if SERVER then
         if not station then return end
         local lastSt = self.LastStations[self.LastStationIdx]
         self:WriteToIk("RouteId", string.format("%d.%d.%s", self.CisCfgIdx, self.Route, self.Path and "II" or "I"))
-        self:WriteToIk("Station", station.tbl_id)
+        self:WriteToIk("Station", station.idx)
         self:WriteToIk("Depart", station.is_dep and canBeDepart or false)
         self:WriteToIk("Terminus", station.is_terminus or lastSt and lastSt.idx == station.idx and station.arrlast and true or false)
         self:WriteToIk("Execute", true)

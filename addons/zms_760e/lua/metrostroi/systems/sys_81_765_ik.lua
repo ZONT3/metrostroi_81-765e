@@ -50,44 +50,18 @@ if SERVER then
     end
 
     function TRAIN_SYSTEM:RunInit()
-        self.Stations = {}
-        for idx = 1, self.StationCount do
-            local changes = {}
-            for cidx = 1, self:Get("Station%dChangeCount", idx) or 0 do
-                local icons = {}
-                for iidx = 1, self:Get("Station%dChange%dIconCount", idx, cidx) or 0 do
-                    icons[iidx] = {
-                        typ = self:Get("Station%dChange%dIconType%d", idx, cidx, iidx),
-                        symbol = self:Get("Station%dChange%dIconSymbol%d", idx, cidx, iidx),
-                        color = self:Get("Station%dChange%dIconColor%d", idx, cidx, iidx),
-                        path = self:Get("Station%dChange%dIconPath%d", idx, cidx, iidx),
-                    }
-                end
-                changes[cidx] = {
-                    icons = icons,
-                    name = self:Get("Station%dChange%dName", idx, cidx),
-                    nameEng = self:Get("Station%dChange%dNameEng", idx, cidx),
-                }
-            end
-            self.Stations[idx] = {
-                name = self["StationName" .. idx],
-                nameEng = self["StationNameEng" .. idx],
-                ledCount = self["StationLedCount" .. idx],
-                changes = changes,
-            }
-        end
-
         local BNT = self.Train.BNT
-        BNT.Stations = not self.Path and self.Stations or table.Reverse(self.Stations)
-        BNT.LastStation = self.Path and #self.Stations - self.LastStation + 1 or self.LastStation
-        BNT.LineColor = self.LineColor
-        BNT.LineSymbol = self.LineSymbol
-
+        BNT.Stations = self.Stations
+        BNT.LastStation = self.LastStation
+        BNT.Route = self.Route
+        BNT.CfgIdx = self.CfgIdx
+        BNT.ActiveRoute = self.RouteId
         self.ActiveRoute = self.RouteId
         BNT:SetStation(1)
     end
 
     function TRAIN_SYSTEM:RunReset()
+        self.Train.BNT.ActiveRoute = nil
         self.ActiveRoute = nil
         self.Train.BNT.Working = false
     end
@@ -99,11 +73,10 @@ if SERVER then
         end
 
         local BNT = self.Train.BNT
-        local curSt = self.Path and #self.Stations - self.Station + 1 or self.Station
-        if curSt == BNT.Station and self.Depart then
+        if self.Station == BNT.Station and self.Depart then
             BNT:AnimateNext()
         else
-            BNT:SetStation(curSt)
+            BNT:SetStation(self.Station)
             if self.Depart then
                 BNT:AnimateNext()
             end

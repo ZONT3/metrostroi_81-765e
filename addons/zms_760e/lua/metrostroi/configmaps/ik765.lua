@@ -480,6 +480,126 @@ elseif map:find("chapaevskaya") then
             }
         }
     }})
+
+elseif map:find("tkl") then
+    Metrostroi.AddCISConfig("[ИК] Таганский радиус", {{
+        LED = {3, 3, 3, 3, 3, 3, 3, 4, 5},
+        Name = "Котельники - Пролетарская",
+        Loop = false,
+        Line = 7,
+        Color = Color(163,93,148),
+        English = true,
+        { 701, "Пролетарская","Proletarskaya",true,"Крестьянская Застава",10,"Krestyanskaya Zastava",Color(190,209,38) },
+        { 702, "Волгоградский проспект","Volgogradskiy prospekt",true,"Угрешская МЦК",14,"Ugreshskaya MCC",Color(237,26,45) },
+        { 703, "Текстильщики","Tekstilshiki",true,"Текстильщики",11,"Tekstilshiki",Color(136,204,207),"Текстильщики",2,"Tekstilshiki",Color(234, 64, 131), },
+        { 704, "Кузьминки","Kuzminki", },
+        { 705, "Рязанский проспект","Ryazanskiy prospekt",true,"Вешняки",3,"Veshnyaki",Color(225,93,41), },
+        { 706, "Выхино","Vykhino",true,"Выхино",3,"Vykhino",Color(225,93,41), },
+        { 707, "Лермонтовский проспект","Lermontovskiy prospekt",true,"Косино",15,"Kosino",Color(208,126,167),"Косино",3,"Kosino",Color(225,93,41), },
+        { 708, "Жулебино","Zhulebino", },
+        { 709, "Котельники","Kotelniki", },
+        changes = {
+            [7] = {
+                {
+                    name = "Косино",
+                    nameEng = "Kosino",
+                    icons = {
+                        {
+                            typ = IK_CHANGE_TYPE_NORMAL,
+                            symbol = "15",
+                            color = "#FFC0CB",
+                        }
+                    }
+                }, {
+                    name = "Косино",
+                    nameEng = "Kosino",
+                    icons = {
+                        {
+                            typ = IK_CHANGE_TYPE_CUSTOM,
+                            color = "#ffffff",
+                            path = IK_ICON_MCD3,
+                        }
+                    }
+                },
+            },
+            [6] = {
+                {
+                    name = "Выхино",
+                    nameEng = "Vykhino",
+                    icons = {
+                        {
+                            typ = IK_CHANGE_TYPE_CUSTOM,
+                            color = "#ffffff",
+                            path = IK_ICON_MCD3,
+                        }
+                    }
+                }
+            },
+            [5] = {
+                {
+                    name = "Вешняки",
+                    nameEng = "Veshnyaki",
+                    icons = {
+                        {
+                            typ = IK_CHANGE_TYPE_CUSTOM,
+                            color = "#ffffff",
+                            path = IK_ICON_MCD3,
+                        }
+                    }
+                }
+            },
+            [3] = {
+                {
+                    name = "Текстильщики",
+                    nameEng = "Tekstilshiki",
+                    icons = {
+                        {
+                            typ = IK_CHANGE_TYPE_NORMAL,
+                            symbol = "11",
+                            color = "#82C0C0",
+                        }
+                    }
+                }, {
+                    name = "Текстильщики",
+                    nameEng = "Tekstilshiki",
+                    icons = {
+                        {
+                            typ = IK_CHANGE_TYPE_CUSTOM,
+                            color = "#ffffff",
+                            path = IK_ICON_MCD2,
+                        }
+                    }
+                },
+            },
+            [2] = {
+                {
+                    name = "Угрешская",
+                    nameEng = "Ugreshskaya",
+                    icons = {
+                        {
+                            typ = IK_CHANGE_TYPE_CUSTOM,
+                            color = "#ffffff",
+                            path = IK_ICON_MCC,
+                        }
+                    }
+                }
+            },
+            [1] = {
+                {
+                    name = "Крестьянская Застава",
+                    nameEng = "Krestyanskaya Zastava",
+                    icons = {
+                        {
+                            typ = IK_CHANGE_TYPE_NORMAL,
+                            symbol = "10",
+                            color = "#99CC00",
+                        }
+                    }
+                }
+            }
+        }
+    }})
+
 -- elseif map:find("minsk_1984") then
 --     Metrostroi.AddCISConfig("[ИК] Минск 2025", {{
 --         LED = {3, 4, 4, 4, 4, 4, 4, 3},
