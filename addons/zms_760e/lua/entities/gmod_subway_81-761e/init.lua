@@ -6,7 +6,7 @@ ENT.SyncTable = {"SF31", "SF32", "SF33", "SF34", "SF36", "SF37", "SF38", "SF39",
 --------------------------------------------------------------------------------
 function ENT:Initialize()
     -- Set model and initialize
-    self:SetModel("models/metrostroi_train/81-760/81_761a_body.mdl")
+    self:SetModel("models/metrostroi_train/81-760e/81_761e_body.mdl")
     self.BaseClass.Initialize(self)
     self:SetPos(self:GetPos() + Vector(0, 0, 140))
     -- Create seat entities

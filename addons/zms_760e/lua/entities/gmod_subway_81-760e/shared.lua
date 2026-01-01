@@ -7,7 +7,7 @@ ENT.Purpose = ""
 ENT.Instructions = ""
 ENT.Category = "Metrostroi (trains)"
 ENT.SkinsType = "81-760e"
-ENT.Model = "models/metrostroi_train/81-760/81_760a_body.mdl"
+ENT.Model = "models/metrostroi_train/81-760e/81_760e_body.mdl"
 ENT.Spawnable = true
 ENT.AdminSpawnable = false
 ENT.DontAccelerateSimulation = false
@@ -1041,7 +1041,7 @@ end
 
 
 ENT.Spawner = {
-    model = {"models/metrostroi_train/81-760/81_760a_body.mdl", "models/metrostroi_train/81-760/81_760a_int.mdl", "models/metrostroi_train/81-760/81_760_cockpit.mdl", "models/metrostroi_train/81-760/81_760_headlamps.mdl",},
+    model = {"models/metrostroi_train/81-760e/81_760e_body.mdl", "models/metrostroi_train/81-760/81_760a_int.mdl", "models/metrostroi_train/81-760/81_760_cockpit.mdl", "models/metrostroi_train/81-760/81_760_headlamps.mdl",},
     spawnfunc = function(i, tbls, tblt)
         local WagNum = tbls.WagNum
         if i > 1 and i < WagNum then

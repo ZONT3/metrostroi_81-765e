@@ -58,7 +58,7 @@ function ENT:Initialize()
     }
 
     -- Set model and initialize
-    self:SetModel("models/metrostroi_train/81-760/81_760a_body.mdl")
+    self:SetModel("models/metrostroi_train/81-760e/81_760e_body.mdl")
     self.BaseClass.Initialize(self)
     self:SetPos(self:GetPos() + Vector(0, 0, 140))
     -- Create seat entities

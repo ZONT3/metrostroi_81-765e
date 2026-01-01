@@ -68,7 +68,7 @@ function TRAIN_SYSTEM:Initialize()
     self.commandTimer = 0
     self.EmerXod = 0
     self.UPIPower = 0
-    self.Power = 1
+    self.Power = nil
     self.BSPowered = 0
     self.PowerReserve = 0
     self.ZeroSpeed = 0
