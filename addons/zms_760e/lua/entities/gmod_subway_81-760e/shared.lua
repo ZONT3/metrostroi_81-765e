@@ -12,8 +12,8 @@ ENT.Spawnable = true
 ENT.AdminSpawnable = false
 ENT.DontAccelerateSimulation = false
 
-ENT.Version = "0.7.24"
-ENT.IkVersion = "1.7.24"
+ENT.Version = "0.9.06"
+ENT.IkVersion = "1.9.06"
 
 
 local function GetDoorPosition(i, k, j)
@@ -1171,7 +1171,20 @@ ENT.Spawner = {
         a.Disable = d
     end},
     {"BLIK:Anim", "Анимация БЛ-ИК", "Boolean"},
-    {"KdLongerDelay", "Задержка контроля дверей", "Boolean"},
+    {"KdLongerDelay", "Задержка контроля дверей", "Boolean", false},
+    {"BreakRedChance", "Шанс сломать габ. огни", "Slider", 0, 0, 35, 0, function(ent, val, rot, i)
+        if ent.SA1 then
+            local any = false
+            for idx = 1, 4 do
+                local broke = math.random() < (val / 100)
+                any = any or broke
+                ent:SetNW2Bool("RlBroken" .. idx, broke)
+            end
+            if not any and val > 20 and i ~= 1 then
+                ent:SetNW2Bool("RlBroken" .. math.random(4), true)
+            end
+        end
+    end},
     {"NoTrailers", "Без прицепных 763Э", "Boolean", false, nil, function(self, stbl)
         local wagnField = stbl.WagNum
         if self.TrainInjected == wagnField then return end
@@ -1224,6 +1237,8 @@ ENT.Spawner = {
                         SF62F3 = val > 2,  -- PpzCabinAc
                         SF62F4 = val > 2,  -- PpzCabinEpra
                         SF70F4 = val > 2,  -- PpzAuxCabin
+                        SF51F1 = val > 2,  -- PpzHeadlights
+                        SF52F1 = val > 2,  -- PpzCabinLights
                     }
                     for _, cfg in ipairs(ent.PpzToggles or {}) do
                         if not leaveOff[cfg.relayName] then
@@ -1238,7 +1253,7 @@ ENT.Spawner = {
                         ent.PmvFreq:TriggerInput("Set", 1)
                     end
 
-                    ent.HeadlightsSwitch:TriggerInput("Set", val <= 2 and 2 or 0)
+                    ent.HeadlightsSwitch:TriggerInput("Set", 2)
                     ent.DoorClose:TriggerInput("Set", first and val == 1 and 1 or 0)
                     ent.R_ASNPOn:TriggerInput("Set", 1)
                     ent.CabinLight:TriggerInput("Set", 1)

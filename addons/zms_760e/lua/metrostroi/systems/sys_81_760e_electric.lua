@@ -410,7 +410,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         ASNP_VV.Power = P * Train.SF42F1.Value * Train.R_ASNPOn.Value
         Panel.AppLights = --[[P * Train.SF15.Value * Train.SA8.Value]] 0
         Panel.CabLight = min(1, P + EmerBattPower) * Train.SF52F1.Value * min(2 - (1 - P) * EmerBattPower, Train.CabinLight.Value)
-        Panel.PanelLights = PowerReserve * Train.SF51F1.Value
+        Panel.PanelLights = min(1, P + EmerBattPower) * Train.SF52F1.Value
         Panel.HeadlightsFull = UPIPower * Train.SF51F1.Value * RV["KRO11-12"] * max(0, Train.HeadlightsSwitch.Value - 1) + Train.EmergencyControls.Value * P
         Panel.HeadlightsHalf = UPIPower * Train.SF51F1.Value * RV["KRO11-12"] * Train.HeadlightsSwitch.Value + Train.EmergencyControls.Value * P
         Panel.RedLights = min(1, Train.SF51F2.Value * PBatt + RV["KRO7-8"] * Train.SF51F1.Value * P + Train.EmergencyControls.Value * P)

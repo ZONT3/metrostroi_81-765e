@@ -320,6 +320,11 @@ function ENT:Initialize()
             Radius = 48,
             ID = "CabinDoorRight"
         },
+        {
+            Pos = Vector(428, -52, -60),
+            Radius = 10,
+            ID = "CraneNM"
+        },
     }
 
     for k, tbl in ipairs({self.LeftDoorPositions or {}, self.RightDoorPositions or {}}) do
@@ -1081,6 +1086,10 @@ function ENT:OnButtonPress(button, ply)
     end
     if button == "CabinWindowRight" then
         self.CabinWindowRight = not self.CabinWindowRight
+    end
+
+    if button == "CraneNM" then
+        self.FrontTrainLineIsolation:TriggerInput("Set", self.FrontTrainLineIsolation.Value > 0.5 and 0 or 1)
     end
 
     if button == "DoorLeft" then

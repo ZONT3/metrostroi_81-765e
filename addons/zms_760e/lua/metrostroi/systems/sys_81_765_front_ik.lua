@@ -19,12 +19,28 @@ end
 if TURBOSTROI then return end
 
 if SERVER then
-    function TRAIN_SYSTEM:TriggerInput(name, val1, val2)
-        if name ~= "SetRoute" then return end
-        self.Train:SetNW2String("BMIK:Station", val1)
-        if val2 then
-            self.RouteNumber = tonumber(val2)
-            self.Train:SetNW2Int("BMIK:RouteNumber", self.RouteNumber)
+    function TRAIN_SYSTEM:TriggerInput(name, val1, val2, val3)
+        local Wag = self.Train
+        if name == "SetRoute" then
+            if val2 then
+                self.RouteNumber = tonumber(val2)
+                Wag:SetNW2Int("BNMIK:RouteNumber", self.RouteNumber)
+            end
+            local station = val1
+            if val3 and val3 > 0 then
+                local cfg = Metrostroi.CISConfig[Wag:GetNW2Int("CISConfig", -1)]
+                cfg = cfg and cfg[Wag:GetNW2Int("IK:Route", -1)]
+                for _, cisCfg in ipairs(cfg or {}) do
+                    if cisCfg[1] == val3 then
+                        station = cisCfg[2] and utf8.len(cisCfg[2]) < 26 and cisCfg[2] or station
+                        break
+                    end
+                end
+            end
+            Wag:SetNW2String("BMIK:Station", station)
+        elseif name == "SetRouteNum" then
+            self.RouteNumber = tonumber(val1)
+            Wag:SetNW2Int("BNMIK:RouteNumber", self.RouteNumber)
         end
     end
 
@@ -33,7 +49,16 @@ if SERVER then
         self.Train:SetNW2Bool("BMIK:Power", power)
         if not power then
             self.Train:SetNW2String("BMIK:Station", "")
-            self.Train:SetNW2Int("BMIK:RouteNumber", 0)
+            self.Train:SetNW2Int("BNMIK:RouteNumber", 0)
+        else
+            local ply = self.Train.Owner
+            if IsValid(ply) then
+                local str = ply:GetInfo("760_last")
+                if str and #str > 0 and self.LastLast ~= str then
+                    self.Train:SetNW2String("BMIK:Station", str)
+                    self.LastLast = str
+                end
+            end
         end
     end
 
@@ -41,6 +66,7 @@ else
     local scw_bm, sch_bm = 1380, 230
     local scw_bnm, sch_bnm = 380, 190
     local scw_bl, sch_bl = 380, 380
+    local line_w = 1340
     local blFt = 1 / 25
 
     function TRAIN_SYSTEM:ClientThink()
@@ -101,17 +127,10 @@ else
         antialias = true,
     })
     surface.CreateFont("BMIK:Size2", {
-        font = "Moscow2017_EMU",
+        font = "Moscow2017_EMU Light",
         extended = true,
-        size = 200,
-        weight = 500,
-        antialias = true,
-    })
-    surface.CreateFont("BMIK:Size3", {
-        font = "Moscow2017_EMU",
-        extended = true,
-        size = 160,
-        weight = 500,
+        size = 146,
+        weight = 400,
         antialias = true,
     })
     surface.CreateFont("BNMIK", {
@@ -122,32 +141,63 @@ else
         antialias = true,
     })
 
+    local function getLen(font, text)
+        surface.SetFont(font)
+        return surface.GetTextSize(text)
+    end
+
     function TRAIN_SYSTEM:DrawBm()
         local curText = self.Train:GetNW2String("BMIK:Station", "")
-        if self.BmText ~= curText then
+        if true then
             self.BmText = curText
+            self.BmLines = 1
             surface.SetFont("BMIK:Size1")
             local len = surface.GetTextSize(curText)
-            self.BmFont = len >= 1290 and "BMIK:Size2" or "BMIK:Size1"
-            if len >= 1290 then
+            self.BmFont = len >= line_w and "BMIK:Size2" or "BMIK:Size1"
+            if len >= line_w then
                 surface.SetFont("BMIK:Size2")
                 len = surface.GetTextSize(curText)
-                self.BmFont = len >= 1290 and "BMIK:Size3" or "BMIK:Size2"
             end
-            if len >= 1290 then
-                surface.SetFont(self.BmFont)
-                len = surface.GetTextSize(curText)
-                if len >= 1290 then
-                    curText = utf8.sub(curText, 1, 16) .. "."
+            if len >= line_w then
+                local lines = string.Split(curText, " ")
+                self.BmDisplText = table.remove(lines, 1)
+                local buffer = #lines > 0 and string.format("%s %s", self.BmDisplText, lines[1]) or nil
+                while buffer and getLen(self.BmFont, buffer) < line_w do
+                    table.remove(lines, 1)
+                    self.BmDisplText = buffer
+                    if #lines > 0 then
+                        buffer = string.format("%s %s", self.BmDisplText, lines[1])
+                    else
+                        break
+                    end
                 end
+                if #lines > 0 then
+                    self.BmLines = 2
+                    self.BmDisplText2 = table.concat(lines, " ")
+                end
+
+                if len >= line_w then
+                    local toTurncate = self.BmLines > 1 and self.BmDisplText2 or self.BmDisplText
+                    surface.SetFont(self.BmFont)
+                    len = surface.GetTextSize(toTurncate)
+                    if len >= line_w then
+                        self[self.BmLines > 1 and "BmDisplText2" or "BmDisplText"] = utf8.sub(toTurncate, 1, 15) .. "."
+                    end
+                end
+            else
+                self.BmDisplText = curText
             end
-            self.BmDisplText = curText
         end
-        draw.SimpleText(self.BmDisplText, self.BmFont, scw_bm / 2, sch_bm / 2 + 24, self.Color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        if self.BmLines == 1 then
+            draw.SimpleText(self.BmDisplText, self.BmFont, scw_bm / 2 + 12, sch_bm / 2 + 24, self.Color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        else
+            draw.SimpleText(self.BmDisplText, self.BmFont, scw_bm / 2 + 12, sch_bm / 2 - 56 + 12, self.Color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText(self.BmDisplText2, self.BmFont, scw_bm / 2 + 12, sch_bm / 2 + 56 + 12, self.Color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        end
     end
 
     function TRAIN_SYSTEM:DrawBnm()
-        local curText = self.Train:GetNW2Int("BMIK:RouteNumber", 0)
+        local curText = self.Train:GetNW2Int("BNMIK:RouteNumber", 0)
         if self.BnmText ~= curText then
             self.BnmText = curText
             self.BnmDisplText = Format("%03d", curText)

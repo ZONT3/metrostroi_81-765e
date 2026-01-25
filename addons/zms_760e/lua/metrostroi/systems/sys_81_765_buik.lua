@@ -733,10 +733,11 @@ if SERVER then
 
         local lastStation = self.IsServiceRoute and self.LastStation or self.Stations[1][2] or self.Stations[1][1]
         self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "LastStation", lastStation)
-        self.Train.FrontIK:TriggerInput("SetRoute", self.LastStation, self.RouteNumber)
+        self.Train:SetNW2Int("IK:Route", self.Route)
+        self.Train.FrontIK:TriggerInput("SetRoute", self.LastStation, self.RouteNumber, not self.IsServiceRoute and self.Stations[#self.Stations].index or nil)
         self.Train:SetNW2String("RouteNumber", self.RouteNumber)
 
-        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "UpdateBmt", true)
+        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "UpdateBmt", not self.IsServiceRoute and self.Stations[1].index)
     end
 
     function TRAIN_SYSTEM:InitIk(lastSt)
@@ -786,7 +787,7 @@ if SERVER then
             self.LastStationDraft = numdata
         end
         if textdata == "UpdateRn" or textdata == "UpdateBmt" then
-            self.Train.FrontIK:TriggerInput("SetRoute", self.LastStation, self.RouteNumber)
+            self.Train.FrontIK:TriggerInput("SetRouteNum", self.RouteNumber)
             self.Train:SetNW2String("RouteNumber", self.RouteNumber)
             if textdata == "UpdateRn" then
                 self.Train.BUKP.RouteNumber = self.RouteNumber
@@ -795,6 +796,8 @@ if SERVER then
         end
         if textdata == "UpdateBmt" then
             self.InformerState = STATE_INACTIVE
+            self.Train:SetNW2Int("IK:Route", self.Route)
+            self.Train.FrontIK:TriggerInput("SetRoute", self.LastStation, self.RouteNumber, numdata)
         end
     end
 

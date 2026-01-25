@@ -5003,19 +5003,11 @@ function ENT:Think()
         self:Animate("brake_shoe" .. (i + 4), self:GetPackedBool("BC" .. (i + 4)) and 1 or 0, 1, 0.722, 32, 2)
     end
 
-    --[[
-		fence:ManipulateBonePosition(0,Vector(vec.x/2,vec.y/2,vec.z/2)+Vector(0,0,0))
-		fence:ManipulateBoneAngles(0,Angle(ang1.r/2,ang1.y/2,ang1.p/2)+Angle(0,90,0))]]
-    --fence:ManipulateBonePosition(0,Vector(vec.x/2,vec.y/2,vec.z/2))		
-    --fence:ManipulateBoneAngles(0,Angle(ang1.r,ang1.y,ang1.p)+Angle(0,90,0))
-    --fence:ManipulateBoneAngles(0,Angle(ang1.r/2,ang1.y/2,ang1.p/2)+Angle(0,90,0))
-    --fence:ManipulateBonePosition(0,Vector(vec.x/2,vec.y/2,vec.z/2))	
     local RearTrain, fence = self:GetNW2Entity("RearTrain"), self.ClientEnts["fence"]
     self:ShowHide("fence", IsValid(RearTrain) and ((RearTrain:GetClass():find("760a") or RearTrain:GetClass():find("760e")) and not IsValid(RearTrain.ClientEnts["fence"]) and RearTrain:GetNW2Entity("FrontTrain") ~= self or RearTrain:GetClass():find("761a") or RearTrain:GetClass():find("763a") or RearTrain:GetClass():find("761e") or RearTrain:GetClass():find("763e")) and true)
     if IsValid(fence) and IsValid(RearTrain) then
         local a = 1
         if RearTrain:GetNW2Entity("RearTrain") == self then a = -1 end
-        --local ang1 = RearTrain:GetAngles()
         local ang1 = fence:WorldToLocalAngles(RearTrain:LocalToWorldAngles(Angle(0, 0 * a, 0)))
         local vec = fence:WorldToLocal(RearTrain:LocalToWorld(Vector(480.15 * a, 0, 0)))
         local a = 1
@@ -5211,7 +5203,7 @@ function ENT:Think()
     -- self:HidePanel("Door_pvz", door_pvz > 0)
     -- self:HidePanel("Door_pvzo", door_pvz < 1)
     self:ShowHide("ampermetr", door_pvz > 0)
-    self:SetLightPower(15, self:GetPackedBool("AppLights") and door_pvz > 0)
+    -- self:SetLightPower(15, self:GetPackedBool("AppLights") and door_pvz > 0)
     local K31_cap = self:Animate("K31_cap", self:GetPackedBool("door_k31") and 1 or 0, 0, 1, 4, 0.5)
     self:ShowHide("K31", K31_cap > 0)
     self:HidePanel("K31", K31_cap < 1)

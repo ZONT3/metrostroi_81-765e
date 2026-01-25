@@ -615,7 +615,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.SelectRight = not self:Get("PVU1") and (self:Get("SelectRight") and self.Orientation or self:Get("SelectLeft") and not self.Orientation) and true or false
     self.OpenLeft = not self:Get("PVU1") and (self:Get("OpenLeft") and self.Orientation or self:Get("OpenRight") and not self.Orientation) and true or false
     self.OpenRight = not self:Get("PVU1") and (self:Get("OpenRight") and self.Orientation or self:Get("OpenLeft") and not self.Orientation) and true or false
-    self.CloseDoors = not self:Get("PVU1") and self:Get("CloseDoors") and true or false
+    self.CloseDoors = (self:Get("PVU1") or self:Get("CloseDoors")) and true or false
     self.AddressDoors = self:Get("AddressDoors") and true or false
 
     self.WagIdx = self:Get("WagIdx") or 1
