@@ -507,6 +507,7 @@ if SERVER then
 
     function TRAIN_SYSTEM:BeginWagonsCheck()
         self.WagErrors = {}
+        self.ErrorParams = {[0] = self.ErrorParams[0]}
     end
 
     function TRAIN_SYSTEM:EndWagonsCheck()
@@ -582,8 +583,9 @@ if SERVER then
         else
             local str = ErrorsCat[category][errId - start + 1]
             local changed = self.Error ~= errId or self.ErrorParams[0] ~= param
+            local ring = self.Error ~= errId or self.ErrorParams[0] ~= param and param == true
 
-            if (changed or ErrRingContinuous[str[1]]) and (str[1] ~= "Doors" or self.Train.Speed >= 1.8) and str[1] ~= "RvErr" then
+            if ((ring or ErrRingContinuous[str[1]]) and (str[1] ~= "Doors" or self.Train.Speed >= 1.8) and str[1] ~= "RvErr") then
                 self.ErrorRing = CurTime()
             end
             if str[1] == "DisableDrive" and self.Train.KV765.Position <= 0 then
@@ -919,6 +921,7 @@ if SERVER then
                     local schemeAny = false
                     local btbAll = true
 
+                    local noOrient = self.Errors.NoOrient
                     self:BeginWagonsCheck()
 
                     for i = 1, self.WagNum do
@@ -1026,7 +1029,6 @@ if SERVER then
                         Train:SetNW2Bool("Skif:CondK" .. i, train.CondK)
                     end
 
-                    local noOrient = self.Errors.NoOrient
                     self:EndWagonsCheck()
 
                     if doorsNotClosed and not self.DoorControlTimer then
@@ -1051,7 +1053,7 @@ if SERVER then
                     Train:SetNW2Bool("Skif:CondAny", condAny)
                     Train:SetNW2Bool("Skif:VoGood", voGood)
                     Train:SetNW2Int("Skif:KTR", Train.EmerBrake.Value == 1 and 1 or -1)
-                    Train:SetNW2Int("Skif:ALS", Train.ALS.Value == 1 and 1 or -1)
+                    Train:SetNW2Int("Skif:ALS", Train.ALS.Value * Train.ALSVal == 2 and 1 or -1)
                     Train:SetNW2Int("Skif:BOSD", Train.DoorBlock.Value == 1 and 0 or -1)
 
                     Train:SetNW2Bool("Skif:ShowDoors", doorsNotClosed)
@@ -1095,7 +1097,8 @@ if SERVER then
                     self:CheckError("RvErr", false)
                     self:CheckError("KmErr", false)
                     self:CheckError("DisableDrive", BARS.DisableDrive or self.Errors.DisableDrive and Train.KV765.Position > 0)
-                    -- if not self.Errors.NoOrient then self:CheckError("NoOrient", noOrient and Train.KV765.Position > 0) end
+                    self.DisableDrive = BARS.DisableDrive or self.Errors.DisableDrive
+                    if not self.Errors.NoOrient then self:CheckError("NoOrient", noOrient and Train.KV765.Position > 0) end
                     -- if not self.Errors.Doors then self:CheckError("Doors", self.DoorsNotClosed and Train.KV765.Position > 0) end
 
                     local err11ch = self.DoorsNotClosed ~= doorsNotClosed
@@ -1131,9 +1134,9 @@ if SERVER then
                     end
 
                     if Train.RV["KRO5-6"] == 0 then
-                        local AllowDriveInput = BARS.Brake == 0 and BARS.Drive > 0 and not self.Errors.BuvDiscon
+                        local AllowDriveInput = BARS.Brake == 0 and BARS.Drive > 0 and not self.DisableDrive and not self.Errors.BuvDiscon and not self.Errors.ParkingBrake
                         if AllowDriveInput or Train.KV765.TractiveSetting <= 0 then
-                            kvSetting = Train.PpzKm.Value > 0 and Train.KV765.TractiveSetting or self.ControllerState or kvSetting
+                            kvSetting = Train.KV765.TractiveSetting or self.ControllerState or kvSetting
                             if kvSetting ~= 0 then
                                 if kvSetting < 0 and kvSetting > -20 then kvSetting = -20 end
                                 if kvSetting > 0 and kvSetting <  20 then kvSetting =  20 end
@@ -1145,12 +1148,15 @@ if SERVER then
                         if Train.ProstKos.CommandKos > 0 then kvSetting = -100 overrideKv = true end
                         if BARS.Brake > 0 then kvSetting = -100 overrideKv = true end
                         if self.Errors.EmergencyBrake and (Train.Speed > 1.6) then kvSetting = -100 overrideKv = true end
-                        if Train.KV765.Position > 0 and BARS.PN3 > 0 then kvSetting = -100 overrideKv = true end
+                        if Train.KV765.Position > 0 and BARS.PN3 > 0 then
+                            kvSetting = BARS.BUKPErr and -100 or -80
+                            overrideKv = true
+                        end
 
                         local sb = not overrideKv and BARS.StillBrake == 1
                         if sb then kvSetting = -50 overrideKv = true end
 
-                        if kvSetting < -10 and not sb and Train.KV765.Position > 0 then kvSetting = -100 overrideKv = true end
+                        -- if kvSetting < -10 and not sb and Train.KV765.Position > 0 then kvSetting = -100 overrideKv = true end
                         if not sb and (Train.KV765.TractiveSetting > 0 or Train.KV765.TargetTractiveSetting > 0) and kvSetting <= 0 then
                             Train.KV765:TriggerInput("ResetTractiveSetting", 1)
                         end
@@ -1198,10 +1204,8 @@ if SERVER then
                     speed = self.Speed
                     self.CurrentSpeed = speed == 99 and 0 or speed
 
-                    local driveInput = RvKro > 0 and (Train.KV765.Position > 0 or kvSetting > 0) or RvKrr > 0 and (Train.EmerX1.Value + Train.EmerX2.Value > 0)
-                    self.DisableDrive = BARS.DisableDrive or self.Errors.DisableDrive and Train.KV765.Position > 0
-                    self.BARS1 = (BARS.StillBrake < 1) and BARS.ATS1 and (driveInput or speed > 0.5)
-                    self.BARS2 = (BARS.StillBrake < 1) and BARS.ATS2 and (driveInput or speed > 0.5)
+                    self.BARS1 = (BARS.Drive1 > 0 or self.DisableDrive) and BARS.ATS1
+                    self.BARS2 = (BARS.Drive2 > 0 or self.DisableDrive) and BARS.ATS2
 
                     self:CheckError("ArsFail", Train.PmvAtsBlock.Value < 3 and BARS.Active < 1, BARS.ATS1 and not BARS.ATS2 and 1 or BARS.ATS2 and not BARS.ATS1 and 2 or nil)
                     self:CheckError("KmErr", Train.KV765.Online < 1)

@@ -402,7 +402,7 @@ function TRAIN_SYSTEM:Think(dT)
             self.PrevV4 = self.V4
         end
 
-        if Train.RvtbErr and Train.K9.Value == 1 or Train.K9.Value == 1 and V4 and self.RVTBTimer and CurTime() - self.RVTBTimer > (5 * (Train.BARS.RVTBTimer and CurTime() - Train.BARS.RVTBTimer > 0 and 0 or 1) * (Train.BARS.KBApplyTimer and CurTime() - Train.BARS.KBApplyTimer > 0 and 0 or 1) * (Train.BARS.BrakeEfficiency and CurTime() - Train.BARS.BrakeEfficiency >= 3.6 and 0 or 1) * (Train.BARS.ReadyTimer and CurTime() - Train.BARS.ReadyTimer > 0 and 0 or 1) * Train.PpzUpi.Value * (Train.BARS.RollingBraking and 0 or 1) * (Train.BARS.UOS and 0 or 1) * (Train.BARS.Ready and 1 or 0) * (1 - Train:ReadTrainWire(5)) * Train.PpzPrimaryControls.Value * Train.BARS.BTB * (Train.SF45F11.Value == 0 and 0 or 1) * (Train.BUKP.State < 5 and 0 or 1)) or Train.K9.Value == 1 and self.V6 then
+        if Train.K9.Value == 1 and (V4 and self.RVTBTimer and CurTime() - self.RVTBTimer > 0 or self.V6 or V4 and Train.PpzRvtb.Value == 0) then
             self.RVTBLeak = 1
             leak = self:equalizePressure(dT, "BrakeLinePressure", 0.0, 3 * Train:GetWagonCount(), false, false, 0.55)
             if self.PrevLeak ~= 1 then

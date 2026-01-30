@@ -501,9 +501,19 @@ function TRAIN_SYSTEM:Think(dT)
     if self.Slope then self.Slope1 = true end
     if self.Slope1 and Train.Pneumatic.BrakeCylinderPressure < 0.1 then self.Slope1 = false end
     self.Reverser = Train:ReadTrainWire(12)
+
     local brake = self:Get("Brake") or 0
-    local strength = not self:Get("PVU5") and (self.Slope1 and true or brake > 0 and Train.Pneumatic.BrakeCylinderPressure < 1.7 + Train.Pneumatic.WeightLoadRatio * 0.5 + Train.Pneumatic.BrakeCylinderRegulationError or brake == 0 and (self:Get("Slope") or Train.Pneumatic.BrakeCylinderPressure < 0.7)) and self:Get("DriveStrength") or 0
-    if not self:Get("PVU5") and brake == 0 and Train.Pneumatic.BrakeCylinderPressure < 0.4 then self.DriveTimer = CurTime() end
+    local brakeCondition = brake > 0 and Train.Pneumatic.BrakeCylinderPressure < 1.7 + Train.Pneumatic.WeightLoadRatio * 0.5 + Train.Pneumatic.BrakeCylinderRegulationError
+    local driveCondition = brake == 0 and (self:Get("Slope") or Train.Pneumatic.BrakeCylinderPressure < 0.2)
+
+    if self.StartDelay and (Train.Pneumatic.BrakeCylinderPressure >= 0.2 or self:Get("Slope") or Train.Speed >= 1.2) then
+        self.StartDelay = nil
+    elseif not self.StartDelay and Train.Pneumatic.BrakeCylinderPressure < 0.2 and not self:Get("Slope") and Train.Speed < 1.2 then
+        self.StartDelay = CurTime() + 0.2
+    end
+
+    local strength = not self:Get("PVU5") and (self.Slope1 and true or brakeCondition or driveCondition and (not self.StartDelay or CurTime() >= self.StartDelay)) and self:Get("DriveStrength") or 0
+    if not self:Get("PVU5") and brake == 0 and Train.Pneumatic.BrakeCylinderPressure < 0.2 then self.DriveTimer = CurTime() end
     if brake == 0 and not self:Get("PVU5") then
         if Train:ReadTrainWire(45) == 1 then
             strength = 4
