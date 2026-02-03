@@ -555,7 +555,6 @@ function ENT:InitializeSounds()
 
     self.SoundNames["door_cab_open"] = {"subway_trains/720/door/door_torec_open.mp3", "subway_trains/720/door/door_torec_open2.mp3"}
     self.SoundNames["door_cab_close"] = {"subway_trains/720/door/door_torec_close.mp3", "subway_trains/720/door/door_torec_close2.mp3"}
-    self.SoundNames["door_cab_roll"] = {"subway_trains/720/door/cabdoor_roll1.mp3", "subway_trains/720/door/cabdoor_roll2.mp3", "subway_trains/720/door/cabdoor_roll3.mp3", "subway_trains/720/door/cabdoor_roll4.mp3"}
 
     self.SoundNames["battery_on_1"]   = "subway_trains/722/battery/battery_off_1.mp3"
     self.SoundPositions["battery_on_1"] = {100,1e9,Vector(182,50,-75),0.5}
@@ -708,12 +707,6 @@ function ENT:InitializeSounds()
     self.SoundPositions["door_add_1_open"] = {800, 1e9, Vector(411.2, -57.5, 45), 0.5}
     self.SoundNames["door_add_1_close"] = self.SoundNames["door_cab_close"]
     self.SoundPositions["door_add_1_close"] = {800, 1e9, Vector(411.2, -57.5, 45), 0.5}
-    self.SoundNames["door_add_2_open"] = self.SoundNames["door_cab_open"]
-    self.SoundPositions["door_add_2_open"] = {800, 1e9, Vector(406.5, -30.2, 45.5), 0.5}
-    self.SoundNames["door_add_2_close"] = self.SoundNames["door_cab_close"]
-    self.SoundPositions["door_add_2_close"] = {800, 1e9, Vector(406.5, -30.2, 45.5), 0.5}
-    self.SoundNames["door_pvz_open"] = self.SoundNames["door_cab_open"]
-    self.SoundPositions["door_pvz_open"] = {800, 1e9, Vector(411.6, 21, 42), 0.5}
     self.SoundNames["door_pvz_close"] = self.SoundNames["door_cab_close"]
     self.SoundPositions["door_pvz_close"] = {800, 1e9, Vector(411.6, 21, 42), 0.5}
     self.SoundNames["bkpu"] = {"subway_trains/760/vb_on.wav"}

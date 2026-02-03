@@ -455,10 +455,10 @@ function ENT:Think()
     self:SetPackedBool("PowerOffLamp", Panel.PowerOffl > 0)
     self:SetPackedBool("BatteryChargeLamp", Panel.BatteryChargel > 0)
 
-    local fB, rB = self.FrontBogey, self.RearBogey
-    local fbValid, rbValid = IsValid(fB), IsValid(rB)
+    local bogeyF, bogeyR = self.FrontBogey, self.RearBogey
+    local fbValid, rbValid = IsValid(bogeyF), IsValid(bogeyR)
     for i = 1, 4 do
-        self:SetPackedBool("TR" .. i, self.BUV.Pant or i <= 2 and fbValid and fB.DisableContactsManual or i > 2 and rbValid and rB.DisableContactsManual)
+        self:SetPackedBool("TR" .. i, self.BUV.Pant or i <= 2 and fbValid and bogeyF.DisableContactsManual or i > 2 and rbValid and bogeyR.DisableContactsManual)
     end
 
     for k, cfg in pairs(self.PakToggles or {}) do
@@ -585,8 +585,8 @@ function ENT:Think()
 
     for i = 1, 8 do
         if i == 1 or i == 4 or i == 5 or i == 8 then
-            self:SetPackedBool("BC" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (fbValid and fB.DisableParking and 0 or 1) or i > 4 and (rbValid and rB.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2) <= 0.1)
-            self:SetPackedRatio("DPBTPressure" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (fbValid and fB.DisableParking and 0 or 1) or i > 4 and (rbValid and rB.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2))
+            self:SetPackedBool("BC" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (fbValid and bogeyF.DisableParking and 0 or 1) or i > 4 and (rbValid and bogeyR.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2) <= 0.1)
+            self:SetPackedRatio("DPBTPressure" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (fbValid and bogeyF.DisableParking and 0 or 1) or i > 4 and (rbValid and bogeyR.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2))
         else
             self:SetPackedBool("BC" .. i, self.Pneumatic.BrakeCylinderPressure <= 0.1)
             self:SetPackedRatio("DPBTPressure" .. i, self.Pneumatic.BrakeCylinderPressure)
@@ -598,29 +598,29 @@ function ENT:Think()
         local A = self.AsyncInverter.Torque
         local add = 1
         if math.abs(self:GetAngles().pitch) > 4 then add = math.min((math.abs(self:GetAngles().pitch) - 4) / 2, 1) end
-        fB.MotorForce = (40000 + 5000 * (A < 0 and 1 or 0)) * add
-        fB.Reversed = self.BUV.Reverser < 0.5 --<
-        rB.MotorForce = (40000 + 5000 * (A < 0 and 1 or 0)) * add
-        rB.Reversed = self.BUV.Reverser > 0.5 -->
+        bogeyF.MotorForce = (40000 + 5000 * (A < 0 and 1 or 0)) * add
+        bogeyF.Reversed = self.BUV.Reverser < 0.5 --<
+        bogeyR.MotorForce = (40000 + 5000 * (A < 0 and 1 or 0)) * add
+        bogeyR.Reversed = self.BUV.Reverser > 0.5 -->
 
         -- These corrections are required to beat source engine friction at very low values of motor powerUpi
         local P = math.max(0, 0.04449 + 1.06879 * math.abs(A) - 0.465729 * A ^ 2)
         if math.abs(A) > 0.4 then P = math.abs(A) end
         if math.abs(A) < 0.05 then P = 0 end
         if self.Speed < 10 then P = P * (1.0 + 0.6 * (10.0 - self.Speed) / 10.0) end
-        rB.MotorPower = P * 0.5 * ((A > 0) and 1 or -1)
-        fB.MotorPower = P * 0.5 * ((A > 0) and 1 or -1)
+        bogeyR.MotorPower = P * 0.5 * ((A > 0) and 1 or -1)
+        bogeyF.MotorPower = P * 0.5 * ((A > 0) and 1 or -1)
 
-        fB.PneumaticBrakeForce = 50000.0
-        fB.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
-        fB.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
-        fB.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
-        fB.DisableContacts = self.BUV.Pant
-        rB.PneumaticBrakeForce = 50000.0
-        rB.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
-        rB.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
-        rB.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
-        rB.DisableContacts = self.BUV.Pant
+        bogeyF.PneumaticBrakeForce = 50000.0
+        bogeyF.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
+        bogeyF.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
+        bogeyF.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
+        bogeyF.DisableContacts = self.BUV.Pant
+        bogeyR.PneumaticBrakeForce = 50000.0
+        bogeyR.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
+        bogeyR.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
+        bogeyR.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
+        bogeyR.DisableContacts = self.BUV.Pant
     end
 
     if (self.RV.KRRPosition ~= 0) ~= (self.EmergencyControls.Value > 0) then
@@ -635,6 +635,65 @@ function ENT:Think()
     return retVal
 end
 
+function ENT:FenceConnectable(other, headAcceptable)
+    local compatible = other:GetClass():find("76") and other:GetClass()[19] == "e" or string.match(other:GetClass(), "76[567]")
+    if headAcceptable then return compatible end
+    local lit = other:GetClass()[18]
+    return compatible and lit ~= "5" and lit ~= "0"
+end
+
+function ENT:CreateFence(other)
+    local otherWag = other:GetNW2Entity("TrainEntity")
+    local front = other ~= otherWag.RearCouple
+    local otherSide = front and "FenceF" or "FenceR"
+    if not (IsValid(otherWag) and IsValid(otherWag.RearCouple) and IsValid(otherWag.FrontCouple)) then return end
+    if not IsValid(self.FenceR) and self:FenceConnectable(otherWag, not front) then
+        local k = front and -1 or 1
+        local pos1, pos2 = self:GetPos(), otherWag:GetPos()
+        local fwd1, fwd2 = -self:GetForward(), -otherWag:GetForward() * k
+        local min, pos
+        for i = 467, 495, 0.001 do
+            local cpos = pos1 + fwd1 * i
+            local dist = cpos:DistToSqr(pos2 + fwd2 * i)
+            if not min or dist < min then
+                min = dist
+                pos = cpos
+            elseif min then
+                break
+            end
+        end
+
+        if not pos then return end
+        pos = self:WorldToLocal(pos)
+        pos.y = 0 pos.z = 0
+        pos = self:LocalToWorld(pos)
+
+        local ent = ents.Create("prop_ragdoll")
+        if not IsValid(ent) then return end
+        ent:SetModel("models/metrostroi_train/81-760/81_760_fence_corrugated.mdl")
+        ent:SetPos(pos)
+        ent:SetAngles(self:GetAngles())
+        ent:Spawn()
+        ent:SetOwner(self)
+        ent:SetCollisionGroup(COLLISION_GROUP_WORLD)
+        if CPPI and IsValid(self:CPPIGetOwner()) then ent:CPPISetOwner(self:CPPIGetOwner()) end
+        ent:GetPhysicsObject():SetMass(1)
+        table.insert(self.TrainEntities, ent)
+        table.insert(otherWag.TrainEntities, ent)
+
+        local bone1, bone2 = 0, 1
+        local bonen1, bonen2 = ent:GetPhysicsObjectNum(bone1), ent:GetPhysicsObjectNum(bone2)
+        bonen1:SetPos(otherWag:LocalToWorld(Vector(front and 464.37 or -464.07, 0, 0)))
+        bonen2:SetPos(self:LocalToWorld(Vector(-464.07, 0, 0)))
+        bonen1:SetAngles(otherWag:LocalToWorldAngles(Angle(0, front and 180 or 0, 90)))
+        bonen2:SetAngles(self:LocalToWorldAngles(Angle(0, 0, -90)))
+        constraint.Weld(ent, self, bone2, 0, 0, true)
+        constraint.Weld(ent, otherWag, bone1, 0, 0, true)
+        otherWag[otherSide] = ent
+        self.FenceR = ent
+    end
+end
+
 function ENT:OnCouple(train, isfront)
     if isfront and self.FrontAutoCouple then
         self.FrontBrakeLineIsolation:TriggerInput("Open", 1.0)
@@ -645,6 +704,8 @@ function ENT:OnCouple(train, isfront)
         self.RearTrainLineIsolation:TriggerInput("Open", 1.0)
         self.RearAutoCouple = false
     end
+
+    if not isfront then self:CreateFence(train) end
 
     self.BaseClass.OnCouple(self, train, isfront)
 end
@@ -658,6 +719,10 @@ function ENT:OnDecouple(isfront)
 
     self:OnConnectDisconnect()
     if self.OnDecoupled then self:OnDecoupled() end
+
+    if not isfront and IsValid(self.FenceR) then
+        self.FenceR:Remove()
+    end
 end
 
 function ENT:OnButtonPress(button, ply)

@@ -4662,14 +4662,15 @@ function ENT:Think()
         end
     end
 
-    self:PlayDoorSound(self:Animate("DoorCabM", self:GetPackedBool("PassengerDoor") and 1 or 0, 0, 1, 2, 0.5) > 0.2, "DoorCabM")
     local DoorCabL = self:Animate("DoorCabL", self:GetPackedBool("CabinDoorLeft") and 1 or 0, 0, 1, 2, 0.5)
-    self:PlayDoorSound(DoorCabL > 0.2, "DoorCabL")
+    local DoorCabR = self:Animate("DoorCabR", self:GetPackedBool("CabinDoorRight") and (self:GetPackedBool("CabinDoorRightLimit") and 0.6 or 1) or 0, 0, 1, 2, 0.5)
+    self:PlayDoorSound(self:Animate("DoorCabM", self:GetPackedBool("PassengerDoor") and 1 or 0, 0, 1, 2, 0.5) > 0.2, "door_cab_m")
+    self:PlayDoorSound(DoorCabL > 0.2, "door_cab_l")
+    self:PlayDoorSound(DoorCabR > 0.2, "door_cab_r")
     self:HidePanel("PpzCover", DoorCabL == 0)
-    self:PlayDoorSound(self:Animate("DoorCabR", self:GetPackedBool("CabinDoorRight") and (self:GetPackedBool("CabinDoorRightLimit") and 0.6 or 1) or 0, 0, 1, 2, 0.5) > 0.2, "DoorCabR")
     self:Animate("CabChairAdd", self:GetPackedBool("CabChairAdd") and 1 or 0, 0, 1, 4, 0.5)
     local Closet1Val = self:Animate("Closet1Val", self:GetPackedBool("Closet1Val") and 1 or 0, 0, 1, 2, 0.5)
-    self:PlayDoorSound(Closet1Val > 0, "Closet1Val")
+    self:PlayDoorSound(Closet1Val > 0, "door_add_1")
     self:HidePanel("Closet1", Closet1Val > 0)
     self:HidePanel("Closet1Op", Closet1Val < 1)
 

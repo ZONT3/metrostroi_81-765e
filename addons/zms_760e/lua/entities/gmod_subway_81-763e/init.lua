@@ -169,10 +169,10 @@ function ENT:Think()
     self:SetPackedBool("DoorK31", self.DoorK31)
     self:SetPackedRatio("LV", Panel.LV / 150)
     self:SetPackedRatio("HV", self.Electric.Main750V / 1000)
-    local fB, rB = self.FrontBogey, self.RearBogey
-    local validfB, validrB = IsValid(fB), IsValid(rB)
+    local bogeyF, bogeyR = self.FrontBogey, self.RearBogey
+    local validfB, validrB = IsValid(bogeyF), IsValid(bogeyR)
     for i = 1, 4 do
-        self:SetPackedBool("TR" .. i, self.BUV.Pant or i <= 2 and validfB and fB.DisableContactsManual or i > 2 and validrB and rB.DisableContactsManual)
+        self:SetPackedBool("TR" .. i, self.BUV.Pant or i <= 2 and validfB and bogeyF.DisableContactsManual or i > 2 and validrB and bogeyR.DisableContactsManual)
     end
 
     local passlight = Panel.SalonLighting1 * 0.25 + Panel.SalonLighting2 * 0.75
@@ -188,8 +188,8 @@ function ENT:Think()
     self:SetPackedRatio("BC", math.min(3.8, self.Pneumatic.BrakeCylinderPressure) / 6.0)
     for i = 1, 8 do
         if i == 1 or i == 4 or i == 5 or i == 8 then
-            self:SetPackedBool("BC" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (validfB and fB.DisableParking and 0 or 1) or i > 4 and (validrB and rB.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2) <= 0.1)
-            self:SetPackedRatio("DPBTPressure" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (validfB and fB.DisableParking and 0 or 1) or i > 4 and (validrB and rB.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2))
+            self:SetPackedBool("BC" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (validfB and bogeyF.DisableParking and 0 or 1) or i > 4 and (validrB and bogeyR.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2) <= 0.1)
+            self:SetPackedRatio("DPBTPressure" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (validfB and bogeyF.DisableParking and 0 or 1) or i > 4 and (validrB and bogeyR.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2))
         else
             self:SetPackedBool("BC" .. i, self.Pneumatic.BrakeCylinderPressure <= 0.1)
             self:SetPackedRatio("DPBTPressure" .. i, self.Pneumatic.BrakeCylinderPressure)
@@ -208,18 +208,79 @@ function ENT:Think()
 
     self:SetPackedRatio("Speed", self.Speed)
     if validfB and validrB and not self.IgnoreEngine then
-        fB.PneumaticBrakeForce = 50000.0
-        fB.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
-        fB.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
-        fB.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
-        fB.DisableContacts = self.BUV.Pant
-        rB.PneumaticBrakeForce = 50000.0
-        rB.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
-        rB.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
-        rB.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
-        rB.DisableContacts = self.BUV.Pant
+        bogeyF.PneumaticBrakeForce = 50000.0
+        bogeyF.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
+        bogeyF.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
+        bogeyF.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
+        bogeyF.DisableContacts = self.BUV.Pant
+        bogeyR.PneumaticBrakeForce = 50000.0
+        bogeyR.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
+        bogeyR.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
+        bogeyR.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
+        bogeyR.DisableContacts = self.BUV.Pant
     end
     return retVal
+end
+
+function ENT:FenceConnectable(other, headAcceptable)
+    local compatible = other:GetClass():find("76") and other:GetClass()[19] == "e" or string.match(other:GetClass(), "76[567]")
+    if headAcceptable then return compatible end
+    local lit = other:GetClass()[18]
+    return compatible and lit ~= "5" and lit ~= "0"
+end
+
+function ENT:CreateFence(other, front)
+    local otherWag = other:GetNW2Entity("TrainEntity")
+    local otherFront = other ~= otherWag.RearCouple
+    local otherSide = otherFront and "FenceF" or "FenceR"
+    local side = front and "FenceF" or "FenceR"
+    if not (IsValid(otherWag) and IsValid(otherWag.RearCouple) and IsValid(otherWag.FrontCouple)) then return end
+    if not IsValid(self[side]) and self:FenceConnectable(otherWag, not otherFront) then
+        local k1 = front and -1 or 1
+        local k2 = otherFront and -1 or 1
+        local pos1, pos2 = self:GetPos(), otherWag:GetPos()
+        local fwd1, fwd2 = -self:GetForward() * k1, -otherWag:GetForward() * k2
+        local min, pos
+        for i = 467, 495, 0.001 do
+            local cpos = pos1 + fwd1 * i
+            local dist = cpos:DistToSqr(pos2 + fwd2 * i)
+            if not min or dist < min then
+                min = dist
+                pos = cpos
+            elseif min then
+                break
+            end
+        end
+
+        if not pos then return end
+        pos = self:WorldToLocal(pos)
+        pos.y = 0 pos.z = 0
+        pos = self:LocalToWorld(pos)
+
+        local ent = ents.Create("prop_ragdoll")
+        if not IsValid(ent) then return end
+        ent:SetModel("models/metrostroi_train/81-760/81_760_fence_corrugated.mdl")
+        ent:SetPos(pos)
+        ent:SetAngles(self:GetAngles())
+        ent:Spawn()
+        ent:SetOwner(self)
+        ent:SetCollisionGroup(COLLISION_GROUP_WORLD)
+        if CPPI and IsValid(self:CPPIGetOwner()) then ent:CPPISetOwner(self:CPPIGetOwner()) end
+        ent:GetPhysicsObject():SetMass(1)
+        table.insert(self.TrainEntities, ent)
+        table.insert(otherWag.TrainEntities, ent)
+
+        local bone1, bone2 = 0, 1
+        local bonen1, bonen2 = ent:GetPhysicsObjectNum(bone1), ent:GetPhysicsObjectNum(bone2)
+        bonen1:SetPos(otherWag:LocalToWorld(Vector(otherFront and 464.37 or -464.07, 0, 0)))
+        bonen2:SetPos(self:LocalToWorld(Vector(front and 464.37 or -464.07, 0, 0)))
+        bonen1:SetAngles(otherWag:LocalToWorldAngles(Angle(0, otherFront and 180 or 0, 90)))
+        bonen2:SetAngles(self:LocalToWorldAngles(Angle(0, front and 180 or 0, -90)))
+        constraint.Weld(ent, self, bone2, 0, 0, true)
+        constraint.Weld(ent, otherWag, bone1, 0, 0, true)
+        otherWag[otherSide] = ent
+        self[side] = ent
+    end
 end
 
 function ENT:OnCouple(train, isfront)
@@ -233,6 +294,8 @@ function ENT:OnCouple(train, isfront)
         self.RearAutoCouple = false
     end
 
+    self:CreateFence(train, isfront)
+
     self.BaseClass.OnCouple(self, train, isfront)
 end
 
@@ -245,8 +308,9 @@ function ENT:OnDecouple(isfront)
 
     self:OnConnectDisconnect()
     if self.OnDecoupled then self:OnDecoupled() end
-    local fence = isfront and "FenceF" or "FenceR"
-    if IsValid(self[fence]) then self[fence]:Remove() end
+
+    local fence = isfront and self.FenceF or self.FenceR
+    if IsValid(fence) then fence:Remove() end
 end
 
 function ENT:OnButtonPress(button, ply)
