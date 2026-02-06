@@ -3,7 +3,8 @@
 -- Автор - ZONT_ a.k.a. enabled person
 -- Может содержать код Cricket & Hell (81-760) и Metrostroi team (81-720, 722 и др.)
 -- Реализованы категории сообщений, повагонные сообщения, фоновая инициализация в режиме депо,
--- репозиторй ошибок по их именам, лог ошибок, контроллер от 765, общение с БУ-ИК и т.д...
+-- репозиторй ошибок по их именам, лог ошибок, контроллер от 765, общение с БУ-ИК,
+-- ПрОст/КОС 765, БАРС 765 и т.д...
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("81_760E_BUKP")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
@@ -73,25 +74,8 @@ for idx, err in ipairs(ErrorsC) do Error2id[ErrorsC[idx][1]] = idx + #ErrorsB + 
 local ErrorIdx2Name = {}
 for name, idx in pairs(Error2id) do ErrorIdx2Name[idx] = name end
 
-local kv_765_map = {
-    [4] = 100,
-    [3] = 80,
-    [2] = 40,
-    [1] = 20,
-    [0] = 0,
-    [-1] = -40,
-    [-2] = -60,
-    [-3] = -100,
-}
-local function translate_oka_kv_to_765(pos)
-    return kv_765_map[pos] or 0
-end
 
 function TRAIN_SYSTEM:Initialize()
-    self.PowerCommand = 0
-    self.PowerTarget = 0
-    self.CurrentCab = false
-
     self.Train:LoadSystem("MfduF1", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("MfduF2", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("MfduF3", "Relay", "Switch", { bass = true })
@@ -125,11 +109,9 @@ function TRAIN_SYSTEM:Initialize()
 
     self.State = 0
     self.State2 = 0
-    self.LegacyScreen = false
     self.Trains = {}
     self.Errors = {}
     self.WagErrors = {}
-    self.ErrorsLog = {}
     self.Error = 0
     self.ErrorParams = {}
     self.Password = ""
@@ -144,21 +126,11 @@ function TRAIN_SYSTEM:Initialize()
     self.Time = "0"
     self.RouteNumber = 0
     self.WagNum = 0
-    self.DepotCode = "1"
-    self.DepeatStation = "0"
-    self.Path = "0"
-    self.Dir = "0"
-    self.DBand = "848"
-    self.Deadlock = "0"
     self.DepotWags = false
     self.DepotMode = false
     self.BTB = false
-    self.BRBK1 = true
-    self.Loop = true
     self.AO = false
     self.Compressor = false
-    self.BlockLeft = true
-    self.BlockRight = true
     self.DoorControlDelay = math.random() * 0.9 + 0.2
     self.States = {}
     self.PVU = {}
@@ -171,16 +143,16 @@ function TRAIN_SYSTEM:Initialize()
     self.ESD = 0
     self.CurrentSpeed = 0
     self.ZeroSpeed = 0
+    self.BudZeroSpeed = 0
+    self.ZeroSpeedDelay = math.random() * 0.8
     self.Speed = 0
     self.MotorWagc = 1
     self.TrailerWagc = 0
     self.CurTime = CurTime()
     self.Prost = false
     self.Kos = false
-    self.Ovr = false
-    self.DoorClosed = false
+    self.DoorClosed = 0
     self.CurTime1 = CurTime()
-    self.FirstPressed = {}
     self.NextThink = CurTime()
 
     self:InitShared()
@@ -225,7 +197,7 @@ function TRAIN_SYSTEM:InitShared()
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {"State", "ControllerState", "EmergencyBrake", "BTB", "WagNum", "Prost", "Kos", "CurrentSpeed", "InitTimer", "ZeroSpeed", "Active"}
+    return {"State", "ControllerState", "EmergencyBrake", "BTB", "WagNum", "Prost", "Kos", "CurrentSpeed", "InitTimer", "ZeroSpeed", "BudZeroSpeed", "Active", "DoorClosed", "ESD"}
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -240,14 +212,11 @@ function TRAIN_SYSTEM:TriggerInput(name, value)
 end
 
 local function IsValidDate(value)
-    --  Check for a UK date pattern dd/mm/yyyy , dd-mm-yyyy, dd.mm.yyyy
-    --      My applications needs a textual response
-    --      change the return values if you need true / false
-    if string.match(value, "^%d+%p%d+%p%d%d%d%d$") then
-        local d, m, y = string.match(value, "(%d+)%p(%d+)%p(%d+)")
+    local d, m, y = string.match(value, "(%d{1,2})%p(%d{1,2})%p(%d{4})")
+    if d and m and y then
         d, m, y = tonumber(d), tonumber(m), tonumber(y)
         local dm2 = d * m * m
-        if y < 2010 then --1970
+        if y < 2016 then
             return false
         elseif d > 31 or m > 12 or dm2 == 0 or dm2 == 116 or dm2 == 120 or dm2 == 124 or dm2 == 496 or dm2 == 1116 or dm2 == 2511 or dm2 == 3751 then
             -- invalid unless leap year
@@ -736,10 +705,11 @@ if SERVER then
         if self.State < 5 then
             self.Prost = false
             self.Kos = false
-            self.Ovr = false
         end
 
         self.ESD = 0
+        self.CanZeroSpeed = false
+        self.BudZeroSpeed = 0
 
         local BARS = Train.BARS
         if Power then
@@ -848,7 +818,6 @@ if SERVER then
                     self.Errors = {}
                     self.Prost = true
                     self.Kos = true
-                    self.Ovr = true
                     self.BErrorsTimer = CurTime() + 3
                     self.InitTimer = CurTime() + 1
                 end
@@ -1051,11 +1020,11 @@ if SERVER then
                             self.DoorControlTimer = nil
                         end
                     end
-                    self.DoorClosed = Train.SF80F1.Value > 0.5 and not doorsNotClosed
+                    self.DoorClosed = Train.SF80F1.Value > 0.5 and not doorsNotClosed and 1 or 0
 
                     local errPT = self.PTEnabled and CurTime() - self.PTEnabled > 2 + (Train.BUV.Slope1 and 1.2 or 0)
 
-                    Train:SetNW2Int("Skif:DoorsAll", not self.DoorClosed and 0 or cabDoors and 2 or 1)
+                    Train:SetNW2Int("Skif:DoorsAll", self.DoorClosed < 1 and 0 or cabDoors and 2 or 1)
                     Train:SetNW2Int("Skif:HvAll", hvGood == 0 and 0 or hvBad == 0 and 1 or 2)
                     Train:SetNW2Int("Skif:BvAll", bvEnabled == 0 and 0 or bvDisabled == 0 and 1 or 2)
                     Train:SetNW2Bool("Skif:CondAny", condAny)
@@ -1086,13 +1055,15 @@ if SERVER then
                     if selectLeft and Train.Electric.DoorsControl > 0 and Train.DoorLeft.Value > 0 and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1) then doorLeft = true end
                     if selectRight and Train.Electric.DoorsControl > 0 and Train.DoorRight.Value > 0 and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1) then doorRight = true end
 
+                    self.CanZeroSpeed = self.CurrentSpeed < 2.8
+                    self.BudZeroSpeed = self.CanZeroSpeed and 1 or 0
                     Train:SetNW2Bool("Skif:Cond", self.CondLeto)
-                    Train:SetNW2Bool("Skif:DoorBlockL", self.CurrentSpeed < 1.8 and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1))
-                    Train:SetNW2Bool("Skif:DoorBlockR", self.CurrentSpeed < 1.8 and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1))
+                    Train:SetNW2Bool("Skif:DoorBlockL", self.CanZeroSpeed and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1))
+                    Train:SetNW2Bool("Skif:DoorBlockR", self.CanZeroSpeed and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1))
                     if Train:ReadTrainWire(33) + (1 - Train.Electric.V2) > 0 and self.EmergencyBrake == 1 then self.EmergencyBrake = 0 end
 
                     if self.BLTimer and CurTime() - self.BLTimer > 0 and Train.RV.KRRPosition == 0 and Train.Electric.SD == 0 and Train.Electric.V2 > 0 and self.EmergencyBrake == 0 then
-                        self.State2 = 52
+                        self.State2 = 51
                         self.EmergencyBrake = 1
                     end
 
@@ -1142,7 +1113,7 @@ if SERVER then
                     end
 
                     if Train.RV["KRO5-6"] == 0 then
-                        local AllowDriveInput = BARS.Brake == 0 and BARS.Drive > 0 and not self.DisableDrive and not self.Errors.BuvDiscon and not self.Errors.ParkingBrake
+                        local AllowDriveInput = BARS.Brake == 0 and BARS.BTB == 1 and BARS.Drive > 0 and not self.DisableDrive and not self.Errors.BuvDiscon and not self.Errors.ParkingBrake
                         if AllowDriveInput or Train.KV765.TractiveSetting <= 0 then
                             kvSetting = Train.KV765.TractiveSetting or self.ControllerState or kvSetting
                             if kvSetting ~= 0 then
@@ -1154,9 +1125,9 @@ if SERVER then
 
                         if Train.ProstKos.ProstActive == 1 and Train.KV765.Position >= 0 then kvSetting = Train.ProstKos.Command end
                         if Train.ProstKos.CommandKos > 0 then kvSetting = -100 overrideKv = true end
-                        if BARS.Brake > 0 then kvSetting = -100 overrideKv = true end
-                        if self.Errors.EmergencyBrake and (Train.Speed > 1.6) then kvSetting = -100 overrideKv = true end
-                        if Train.KV765.Position > 0 and BARS.PN3 > 0 then
+                        if BARS.Brake > 0 then kvSetting = -80 overrideKv = true end
+                        if self.Errors.EmergencyBrake and self.ZeroSpeed < 1 then kvSetting = -100 overrideKv = true end
+                        if Train.KV765.Position > 0 and (BARS.PN3 > 0 or BARS.BTB < 1) then
                             kvSetting = BARS.BUKPErr and -100 or -80
                             overrideKv = true
                         end
@@ -1209,15 +1180,13 @@ if SERVER then
 
                     self.ESD = not self.InitTimer and countEsd > 1 and 1 or 0
 
-                    local speed = 99
                     self.Speed = math.Round(Train.ALSCoil.Speed * 10) / 10
-                    speed = self.Speed
-                    self.CurrentSpeed = speed == 99 and 0 or speed
+                    self.CurrentSpeed = self.Speed
 
                     self.BARS1 = (BARS.Drive1 > 0 or self.DisableDrive) and BARS.ATS1
                     self.BARS2 = (BARS.Drive2 > 0 or self.DisableDrive) and BARS.ATS2
 
-                    self:CheckError("ArsFail", Train.PmvAtsBlock.Value < 3 and BARS.Active < 1, BARS.ATS1 and not BARS.ATS2 and 1 or BARS.ATS2 and not BARS.ATS1 and 2 or nil)
+                    self:CheckError("ArsFail", Train.PmvAtsBlock.Value < 3 and (BARS.Active * (1 - BARS.ALSMode)) < 1, BARS.ATS1 and not BARS.ATS2 and 1 or BARS.ATS2 and not BARS.ATS1 and 2 or nil)
                     self:CheckError("KmErr", Train.KV765.Online < 1)
 
                     Train:SetNW2Bool("Skif:NoFreq", BARS.NoFreq and not BARS.KB)
@@ -1388,7 +1357,7 @@ if SERVER then
                 if not (Train.DoorBlock.Value * Train.EmergencyDoors.Value == 1) and (Train.PpzUpi.Value * Train.DoorClose.Value) == 1 then doorClose = true end
                 --if Train.DoorClose.Value == 1 then doorClose = true end
             else
-                self.DoorClosed = false
+                self.DoorClosed = 0
             end
 
             for i = 1, 9 do
@@ -1459,7 +1428,7 @@ if SERVER then
                 self.PassLight = (1 - Train.PmvLights.Value) * Train.SF43.Value > 0 and self.State == 5
             end
 
-            self:CState("ZeroSpeed", self.ZeroSpeed == 1)
+            self:CState("ZeroSpeed", self.CanZeroSpeed)
             self:CState("TP1", (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 2) and Train.PpzUpi.Value > 0)
             self:CState("TP2", (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 1) and Train.PpzUpi.Value > 0)
             self:CState("PR", Train.Pr.Value * Train.PpzUpi.Value > 0)
@@ -1493,7 +1462,6 @@ if SERVER then
         self.EmergencyBrake = self.State == 5 and self.EmergencyBrake or 0
         self:CState("BUPWork", self.State > 0)
         Train:SetNW2Int("Skif:DepotSel", self.DepotSel)
-        if self.State ~= 5 then self.LegacyScreen = false end
         if Train.Electric.UPIPower < 0.5 then
             Train:SetNW2Int("Skif:State", 0)
         end
@@ -1505,7 +1473,6 @@ if SERVER then
             Train:SetNW2Int("Skif:PvuWag", self.PvuWag)
             Train:SetNW2Int("Skif:PvuSel", self.PvuCursor)
             Train:SetNW2Int("Skif:Select", self.Select or 0)
-            Train:SetNW2Bool("Skif:LegacyScreen", self.LegacyScreen)
 
             local line = "---"
             local BUIK = Train.BUIK
@@ -1520,7 +1487,18 @@ if SERVER then
             Train:SetNW2String("Skif:LineName", line)
         end
 
-        self.ZeroSpeed = self.State == 5 and self.MainMsg == 0 and self.CurrentSpeed < 1.8 and 1 or 0
+        local ZeroSpeed = self.State == 5 and self.CurrentSpeed < 0.6
+        if ZeroSpeed then
+            ZeroSpeed = false
+            if not self.ZeroSpeedTimer then
+                self.ZeroSpeedTimer = CurTime() + math.Rand(0.2 + self.ZeroSpeedDelay, 0.4 + self.ZeroSpeedDelay)
+            elseif CurTime() >= self.ZeroSpeedTimer then
+                ZeroSpeed = true
+            end
+        else
+            self.ZeroSpeedTimer = nil
+        end
+        self.ZeroSpeed = ZeroSpeed and 1 or 0
 
         if self.State < 2 and self.DepotMode then self.DepotMode = false end
         if not self.DepotMode and self.DepotWags then self.DepotWags = false end

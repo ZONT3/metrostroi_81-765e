@@ -21,8 +21,7 @@ local function randomGaussian(min, mid, max)
 end
 
 function TRAIN_SYSTEM:Initialize()
-    if TURBOSTROI then
-    else
+    if not TURBOSTROI then
         self.TrainIndex = self.Train:GetWagonNumber()
     end
 
@@ -43,23 +42,9 @@ function TRAIN_SYSTEM:Initialize()
     self.Vent2 = 0
     self.Cond1 = 0
     self.Cond2 = 0
-    self.PowerTimer = CurTime()
-    self.PowerTbl = {
-        [1] = 0.0425, --X1 150A
-        [2] = 0.1295, --X2 200A
-        [3] = 0.2345, --X3 260A
-        [4] = 0.3565, --X4 330A
-        -------------------
-        [0] = 0,
-        -------------------
-        [-1] = -0.0185, --T1 -150A
-        [-2] = -0.2150, --T2 -260A
-        [-3] = -0.3044, --T3 -310A
-    }
 
     self.DriveTimer = CurTime()
     self.CurTime = CurTime()
-    self.TimerMode = CurTime()
     self.I = math.random(3, 6)
     self.IVO = -00.1
     self.FirstHalf = false
@@ -168,12 +153,6 @@ end
 local function Orient(Train, front)
     local Or = not front and IsValid(Train.RearTrain) and (Train.RearTrain.FrontTrain == Train) or front and IsValid(Train.FrontTrain) and (Train.FrontTrain.RearTrain == Train) or nil
     return Or
-end
-
-local function PrintTbl(tbl)
-    for k, v in pairs(tbl) do
-        print(k, IsEntity(v) and v.WagonNumber or v)
-    end
 end
 
 local function CheckSF33(Train, val)
@@ -299,10 +278,8 @@ end
 
 function TRAIN_SYSTEM:Think(dT)
     if CurTime() - self.CurTime < 0.1 then return end
-    self.DeltaTime = CurTime() - self.CurTime
     self.CurTime = CurTime()
     local Train = self.Train
-    local wagcount = #Train.WagonList
 
     local IsHead = not not Train.RV
     local HasEngine = not not Train.AsyncInverter
@@ -312,7 +289,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.Power = (Train.Electric.Battery80V > 62 and (Train.SF31.Value + Train.SF32.Value > 0 or not Train.SA1 and CheckSF33(Train, 1))) and 1 or 0
     self.State = self.Power > 0
     self.ADUVWork = (Train.Battery.Value * Train.SF48.Value > 0) or self.States.BCPressure == nil
-    self.ADUTWork = (Train.Electric.BUFT > 0) or self.States.BCPressure == nil
+    self.ADUTWork = (Train.Electric.BTO > 0) or self.States.BCPressure == nil
     self.ADUDWork = Train.Battery.Value * Train.SF47.Value > 0.5
     local SchemeWork = HasEngine and (
         Train:ReadTrainWire(6) * Train.SF50.Value > 0.5 or
@@ -340,7 +317,7 @@ function TRAIN_SYSTEM:Think(dT)
         end
 
         self:CState("EmPT", Train:ReadTrainWire(28) > 0)
-        self:CState("NoAssembly", self.TargetStrength > 0) --K3_4 == 1
+        self:CState("NoAssembly", self.TargetStrength > 0)
         local emer = Train:ReadTrainWire(45) + Train:ReadTrainWire(19)
         local bv = Train.BV.Value
         local strength, brake, drive = 0, 0, 0
@@ -369,19 +346,20 @@ function TRAIN_SYSTEM:Think(dT)
         end
 
         for sfn, sf in pairs(SFTbl) do
-            self:CState(sfn, not Train[sf] or Train[sf].Value == 1)  -- FIXME implement all SFs and remove this
+            self:CState(sfn, not Train[sf] or Train[sf].Value == 1)
         end
 
         self:CState("EmergencyBrakeGood", Train.Pneumatic.BrakeCylinderPressure > ((HasEngine and 2.3 or 1.75) + Train.Pneumatic.BrakeCylinderRegulationError + Train.Pneumatic.WeightLoadRatio * 1.3) - 0.05)
-        self:CState("EmergencyBrake", self.States.EmergencyBrakeGood and Train.Pneumatic.EmergencyBrakeActive) -- and Train:ReadTrainWire(28) == 0	)
-        self:CState("ReserveChannelBraking", HasEngine and self.Recurperation == 1 or not HasEngine and nil) --Train.Pneumatic.EmerBrakeWork)--Train:ReadTrainWire(28)>0)
-        self:CState("PTBad", Train.K31.Value == 0) --false)
+        self:CState("EmergencyBrake", self.States.EmergencyBrakeGood and Train.Pneumatic.EmergencyBrakeActive)
+        self:CState("ReserveChannelBraking", HasEngine and self.Recurperation == 1 or not HasEngine and nil)
+        self:CState("PTBad", Train.K31.Value == 0)
         self:CState("PTReady", Train.Pneumatic.AirDistributorPressure >= (2.4 + Train.Pneumatic.WeightLoadRatio * 0.9) - 0.1)
-        self:CState("PTReplace", self.PTReplace) --and CurTime()-self.PTReplace > 1.5)
+        self:CState("PTReplace", self.PTReplace)
         self:CState("BTBReady", Train.Pneumatic.BTBReady)
         self:CState("BCPressure", (self.ADUVWork and self.ADUTWork) and math.Round(Train.Pneumatic.BrakeCylinderPressure, 1) or (not self.ADUVWork or not self.ADUTWork) and self.States.BCPressure)
+        self:CState("BCPressure2", (self.ADUVWork and self.ADUTWork) and math.Round(math.min(math.max(0, Train.Pneumatic.BrakeCylinderPressure + self.BC2Dev), Train.Pneumatic.BrakeCylinderPressure > 0.08 and 1 or 0), 1) or (not self.ADUVWork or not self.ADUTWork) and self.States.BCPressure)
         self:CState("PantDisabled", self.ADUVWork and self.Pant or not self.ADUVWork and self.States.PantDisabled)
-        self:CState("PTEnabled", (self.States.BCPressure or 2.3) > 0.22) --(not self.States.DPBT1) == true or (self.States.BCPressure and self.States.BCPressure or 2.3)>0.22)
+        self:CState("PTEnabled", (self.States.BCPressure or 2.3) > 0.22)
         self:CState("HPPressure", self.ADUTWork and math.Round(Train.Pneumatic.AirDistributorPressure, 1) or not self.ADUTWork and self.States.HPPressure)
         self:CState("ParkingBrakePressure", self.ADUTWork and math.Round(Train.Pneumatic.ParkingBrakePressure, 1) or not self.ADUTWork and self.States.ParkingBrakePressure)
         self:CState("TLPressure", self.ADUTWork and math.Round(Train.Pneumatic.TrainLinePressure, 1) or not self.ADUTWork and self.States.TLPressure)
@@ -418,7 +396,7 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("LV", Train.Electric.Battery80V)
         self:CState("HVBad", P < 550)
         self:CState("LVBad", Train.Electric.Battery80V < 62)
-        self:CState("EnginesDone", self.EnginesDone) -- and math.abs(Train.Speed) < 7.5)
+        self:CState("EnginesDone", self.EnginesDone)
         self:CState("PassLightEnabled", self.MainLights == 1)
         self:CState("VagEqConsumption", self.IVO)
         self:CState("HVVoltage", math.floor(P))
@@ -439,7 +417,6 @@ function TRAIN_SYSTEM:Think(dT)
             self:CState("Blocks", self.ADUVWork and self.BlockTorec or not self.ADUVWork and self.States.Blocks)
         end
 
-        self:CState("BCPressure2", (self.ADUVWork and self.ADUTWork) and math.Round(math.max(0, Train.Pneumatic.BrakeCylinderPressure + self.BC2Dev), 1) or (not self.ADUVWork or not self.ADUTWork) and self.States.BCPressure)
         self:CState("ElectricEnergyDissipated", Train.Electric.ElectricEnergyDissipated / 3.6e6)
         self:CState("BrakeEquip", Train.K31.Value > 0)
         self:CState("BTOKTO1", self.BTOKTO1)
@@ -583,7 +560,7 @@ function TRAIN_SYSTEM:Think(dT)
         end
     end
 
-    if not self.EnginesDone or not self.States.EnginesDone then --and (self:Get("BARSBrake") or self:Get("AO")) then
+    if not self.EnginesDone or not self.States.EnginesDone then
         self.EnginesDone = true
         self.States.EnginesDone = true
     end
@@ -643,13 +620,11 @@ function TRAIN_SYSTEM:Think(dT)
     local BadOrientation = self.Orientation and self.Orientation == self.RevOrientation
     if self.State and self.Orientation ~= self.RevOrientation then
         if not self.BadOrientation and self.OrientateBUP and (not self.Commands[self.OrientateBUP] or self.Orientation and self.Commands.Forward ~= self.OrientateBUP or self.RevOrientation and self.Commands.Back ~= self.OrientateBUP) then
-            --print(Train:GetWagonNumber(),"New BUP",self.Orientation and "Forward" or "Back",self.OrientateBUP)
             if self.Orientation then
                 self.Commands.Forward = self.OrientateBUP
             else
                 self.Commands.Back = self.OrientateBUP
             end
-
             self.OrientateBUP = nil
         end
     end

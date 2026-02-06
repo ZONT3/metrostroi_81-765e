@@ -23,7 +23,7 @@ ENT.SyncTable = {
     "R_ASNPMenu", "R_ASNPUp", "R_ASNPDown", "R_ASNPOn", "VentHeatMode", "PowerOn", "PowerOff", "RearBrakeLineIsolation",
     "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "PB", "GV", "K23", "EmergencyBrakeValve",
     "CAMS1", "CAMS2", "CAMS3", "CAMS4", "CAMS5", "CAMS6", "CAMS7", "CAMS8", "CAMS9", "CAMS10",
-    "IGLA1", "IGLA2", "IGLA3", "IGLA4", "AB",
+    "IGLA1", "IGLA2", "IGLA3", "IGLA4",
     "MfduF1", "MfduF2", "MfduF3", "MfduF4", "Mfdu1", "Mfdu4", "Mfdu7", "Mfdu2", "Mfdu5", "Mfdu8", "Mfdu0", "Mfdu3", "Mfdu6", "Mfdu9", "MfduF5", "MfduF6", "MfduF7",
     "MfduF8", "MfduF9", "MfduHelp", "MfduKontr", "MfduTv", "MfduTv1", "MfduTv2",
     "Buik_EMsg1", "Buik_EMsg2", "Buik_Unused1", "Buik_Mode", "Buik_Path", "Buik_Return", "Buik_Down", "Buik_Up", "Buik_MicLine", "Buik_MicBtn", "Buik_Asotp", "Buik_Ik",
@@ -532,7 +532,7 @@ function ENT:Think()
     end
 
     self:SetNW2Bool("MfduLamp", powerUpi and self.BUKP.State ~= 0)
-    self:SetNW2Bool("DoorsClosed", powerReserve and self.BUKP.DoorClosed)
+    self:SetNW2Bool("DoorsClosed", powerReserve and self.BUKP.DoorClosed > 0)
     self:SetNW2Bool("HVoltage", powerReserve and not self.BUKP.HVBad)
     self:SetNW2Bool("DoorLeftLamp", Panel.DoorLeftL > 0)
     self:SetNW2Bool("DoorRightLamp", Panel.DoorRightL > 0)

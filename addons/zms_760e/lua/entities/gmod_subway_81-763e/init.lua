@@ -170,9 +170,9 @@ function ENT:Think()
     self:SetPackedRatio("LV", Panel.LV / 150)
     self:SetPackedRatio("HV", self.Electric.Main750V / 1000)
     local bogeyF, bogeyR = self.FrontBogey, self.RearBogey
-    local validfB, validrB = IsValid(bogeyF), IsValid(bogeyR)
+    local fbValid, rbValid = IsValid(bogeyF), IsValid(bogeyR)
     for i = 1, 4 do
-        self:SetPackedBool("TR" .. i, self.BUV.Pant or i <= 2 and validfB and bogeyF.DisableContactsManual or i > 2 and validrB and bogeyR.DisableContactsManual)
+        self:SetPackedBool("TR" .. i, self.BUV.Pant or i <= 2 and fbValid and bogeyF.DisableContactsManual or i > 2 and rbValid and bogeyR.DisableContactsManual)
     end
 
     local passlight = Panel.SalonLighting1 * 0.25 + Panel.SalonLighting2 * 0.75
@@ -182,14 +182,14 @@ function ENT:Think()
     self:SetLightPower(13, passl, passlight)
     self:SetPackedBool("SalonLighting1", Panel.SalonLighting1 > 0)
     self:SetPackedBool("SalonLighting2", Panel.SalonLighting2 > 0)
-    self:SetPackedBool("AnnPlay", power)	
+    self:SetPackedBool("AnnPlay", power)
     self:SetPackedRatio("BL", self.Pneumatic.BrakeLinePressure / 16.0)
     self:SetPackedRatio("TL", self.Pneumatic.TrainLinePressure / 16.0)
     self:SetPackedRatio("BC", math.min(3.8, self.Pneumatic.BrakeCylinderPressure) / 6.0)
     for i = 1, 8 do
         if i == 1 or i == 4 or i == 5 or i == 8 then
-            self:SetPackedBool("BC" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (validfB and bogeyF.DisableParking and 0 or 1) or i > 4 and (validrB and bogeyR.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2) <= 0.1)
-            self:SetPackedRatio("DPBTPressure" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (validfB and bogeyF.DisableParking and 0 or 1) or i > 4 and (validrB and bogeyR.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2))
+            self:SetPackedBool("BC" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (fbValid and bogeyF.DisableParking and 0 or 1) or i > 4 and (rbValid and bogeyR.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2) <= 0.1)
+            self:SetPackedRatio("DPBTPressure" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (fbValid and bogeyF.DisableParking and 0 or 1) or i > 4 and (rbValid and bogeyR.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2))
         else
             self:SetPackedBool("BC" .. i, self.Pneumatic.BrakeCylinderPressure <= 0.1)
             self:SetPackedRatio("DPBTPressure" .. i, self.Pneumatic.BrakeCylinderPressure)
@@ -207,7 +207,7 @@ function ENT:Think()
     end
 
     self:SetPackedRatio("Speed", self.Speed)
-    if validfB and validrB and not self.IgnoreEngine then
+    if fbValid and rbValid and not self.IgnoreEngine then
         bogeyF.PneumaticBrakeForce = 50000.0
         bogeyF.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
         bogeyF.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2

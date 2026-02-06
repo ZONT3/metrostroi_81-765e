@@ -180,7 +180,7 @@ function TRAIN_SYSTEM:Think()
         self.ProstActive = 0
     end
 
-    if BUKP.ZeroSpeed < 1 then
+    if BUKP.BudZeroSpeed < 1 then
         self.OPV = 0
         self.BlockDoorsL = true
         self.BlockDoorsR = true

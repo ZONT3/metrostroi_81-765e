@@ -77,7 +77,6 @@ function TRAIN_SYSTEM:Initialize()
 
     self.Train:LoadSystem("Wiper", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("AutoDrive", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("AB", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("DoorSelectL", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("DoorSelectR", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("DoorBlock", "Relay", "Switch", { bass = true })

@@ -54,8 +54,7 @@ function TRAIN_SYSTEM:Initialize()
     self.BTB = 0
     self.Brake = 0
     self.Drive = 0
-    self.BUTP = 0
-    self.BUFT = 0
+    self.BTO = 0
     self.Recurperation = 0
     self.Iexit = 0
     self.Chopper = 0
@@ -75,8 +74,6 @@ function TRAIN_SYSTEM:Initialize()
     self.PowerReserve = 0
     self.ZeroSpeed = 0
     self.DoorsControl = 0
-    --self.Power = nil
-    --self.Train:LoadSystem("Telemetry",nil,"",{"Electric","Panel","Engines"})
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -87,88 +84,10 @@ function TRAIN_SYSTEM:Outputs()
     return {
         "Brake", "Drive", "V2", "V1", "Main750V", "Power750V", "Aux750V", "Aux80V", "Lights80V", "Battery80V", "BTB", "ABESDr", "MK", "Power",
         "SD", "KM2", "EmerXod", "BSPowered", "UPIPower", "PowerReserve", "Recurperation", "Iexit", "Itotal", "Chopper", "ElectricEnergyUsed",
-        "ElectricEnergyDissipated", "EnergyChange", "BUFT", "ZeroSpeed", "DoorsControl"
+        "ElectricEnergyDissipated", "EnergyChange", "BTO", "ZeroSpeed", "DoorsControl"
     }
 end
 
---[[
-TRAIN_SYSTEM.ENGConfig = {
-	{
-		{  0,0.50},
-		{  1,0.70},
-		{  5,0.90},
-		{ 10,1.15},
-		{ 15,1.25},--1.33
-		{ 20,1.38},
-		{ 30,0.98*1.43},
-		{ 40,0.76*1.43},
-		{ 50,0.60*1.43},
-		{ 60,0.50*1.43},
-		{ 70,0.43*1.43},
-		{ 80,0.37*1.43},--0.35
-		{100,0.29*1.43},
-	},
-	{
-		{  0,0.50},
-		{  1,0.70},
-		{  5,0.78},
-		{ 10,0.82},
-		{ 15,0.86},--1.33 1.25
-		{ 20,0.90},--1.35
-		{ 30,0.98*1.45},--0.98*1.5
-		{ 40,0.76*1.45},
-		{ 50,0.60*1.45},
-		{ 60,0.50*1.45},
-		{ 70,0.43*1.45},
-		{ 80,0.35*1.45},
-		{100,0.29*1.45},	
-	}
-}
-TRAIN_SYSTEM.PowerConfig = {
-	{
-		[1] = 0.40,
-		[2] = 0.60,
-		[3] = 0.75,
-		[4] = 1.00,
-	},
-	{
-		[1] = 0.60,
-		[2] = 0.75,
-		[3] = 1.00,
-	}
-}
-TRAIN_SYSTEM.CurrentConfig = {
-	[1] = 150,
-	[2] = 200,
-	[3] = 260,
-	[4] = 340,
-	[-1]= 150,
-	[-2]= 200,
-	[-3]= 340,	
-}
-]]
--- TRAIN_SYSTEM.CurrentConfig = {
---     {
---         [1] = 150,
---         [2] = 200,
---         [3] = 260,
---         [4] = 320,
---         [0] = 0,
---         [-1] = 150,
---         [-2] = 200,
---         [-3] = 320,
---     },
---     {
---         [1] = 0.67,
---         [2] = 0.69,
---         [3] = 0.77,
---         [4] = 0.79,
---         [0] = 0,
---         [-1] = 0.55,
---         [-2] = 0.60,
---         [-3] = 0.85,
---     },
--- }
 
 local function _lerp(t, from, to)
     return from + (to - from) * t
@@ -181,17 +100,6 @@ local function GetCurrent(command)
         return _lerp((command - 1) / 3, 150, 320), _lerp((command - 1) / 3, 0.67, 0.79)
     else
         return _lerp((-command - 1) / 2, 150, 320), _lerp((-command - 1) / 2, 0.55, 0.85)
-    end
-end
-
-local function interpolate(tbl, num)
-    for i = 1, #tbl do
-        local curr, next = tbl[i], tbl[i + 1]
-        if not next then
-            return curr[2]
-        elseif curr[1] <= num and num <= next[1] then
-            return curr[2] + (next[2] - curr[2]) * ((num - curr[1]) / (next[1] - curr[1]))
-        end
     end
 end
 
@@ -229,7 +137,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
     local PSN = BUV.PSN * BO > 0
     self.Aux80V = PSN and 80 or 69
     self.Lights80V = PSN and 80 or 0
-    self.BUFT = P * Train.Battery.Value * Train.SF55.Value * self.KM2
+    self.BTO = P * Train.Battery.Value * Train.SF55.Value * self.KM2
     ----------------------------------------------------------------------------
     -- Voltages from the third rail
     ----------------------------------------------------------------------------
@@ -340,7 +248,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Train:WriteTrainWire(20, P)
         Train:WriteTrainWire(35, P * (RV["KRO1-2"] * Train.SF22F2.Value + RV["KRR1-2"] * Train.SF22F2.Value))
         Train:WriteTrainWire(36, Train.SF23F1.Value * Train.EmergencyControls.Value)
-        local Drive = Train.BARS.Drive
+        local Drive = min(Train.BARS.UOS + Train.BARS.Drive * (Train.BUKP.DoorClosed + Train.DoorBlock.Value), 1)
         local Orientation = C(Train.SF23F13.Value * Train.BUKP.Active + RV["KRR7-8"] > 0)
         Train:WriteTrainWire(19, PowerReserve * (1 - Train.SD3.Value) * RV["KRR7-8"] * Drive * Train.EmerX1.Value)
         Train:WriteTrainWire(45, PowerReserve * (1 - Train.SD3.Value) * RV["KRR7-8"] * Drive * Train.EmerX2.Value)
@@ -357,19 +265,20 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Train:WriteTrainWire(14, P * RV["KRR3-4"] * Orientation * Train.SF23F1.Value)
         Train:WriteTrainWire(15, P * RV["KRR9-10"] * Orientation * Train.SF23F1.Value)
         local BTB = P * (RV["KRO13-14"] * Train.SF23F3.Value * Train.SF22F2.Value + RV["KRR11-12"] * Train.SF23F1.Value * Train.SF22F2.Value)
+        local SDval = --[[RV["KRR7-8"] > 0 and Train.SD3.Value or]] Train.SD2.Value
         if P * Train.SD.Value > 0 then
             if S["RV"] ~= self.rv then
                 self.rv = S["RV"]
                 if self.rv ~= 0 then self.SDActive = true end
             end
 
-            self.SD = C(S["RV"] > 0 and (self.SDActive or Train.SD2.Value == 0))
+            self.SD = C(S["RV"] > 0 and (self.SDActive or SDval == 0))
         else
             self.SD = 0
             self.SDActive = false
         end
 
-        local BTBp = BTB * min(1, 1 - Train.SD2.Value + self.SD)
+        local BTBp = BTB * min(1, 1 - SDval + self.SD)
         self.V2 = BTB
         self.V1 = UPIPower * Train.SF70F3.Value * min(1, Train.HornB.Value + Train.HornC.Value)
         Train:WriteTrainWire(27, BTB)
@@ -389,8 +298,8 @@ function TRAIN_SYSTEM:Think(dT, iter)
             self.BTB = 1
         end
 
-        self.ZeroSpeed = S["RV"] * min(1, Train.BUKP.ZeroSpeed * Train.BUKP.Active + C(Train.PmvAtsBlock.Value == 3) * (1 - Train.SF22F3.Value) * Train.PmvParkingBrake.Value)
-        self.DoorsControl = Train.SF80F5.Value * min(1, Train.BUKP.ZeroSpeed * Train.BUKP.Active + Train.EmergencyDoors.Value)
+        self.ZeroSpeed = S["RV"] * min(1, Train.BUKP.BudZeroSpeed * Train.BUKP.Active + C(Train.PmvAtsBlock.Value == 3) * Train.PmvParkingBrake.Value)
+        self.DoorsControl = Train.SF80F5.Value * min(1, Train.BUKP.BudZeroSpeed * Train.BUKP.Active + Train.EmergencyDoors.Value)
 
         Train:WriteTrainWire(10, P * Train.Battery.Value * min(1, Train.EmergencyCompressor.Value + Train.EmergencyCompressor2.Value))
         local EmergencyDoors = self.DoorsControl * Train.EmergencyDoors.Value
@@ -434,14 +343,9 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Panel.LV = Train.Battery.Value * self.KM2 * Train.SF44.Value * self.Battery80V --/150
     end
 
-    -- if not Async then
-    --     Panel.SalonLighting1 = min(1, Train:ReadTrainWire(20)) * Train.Battery.Value * Train.SF44.Value
-    --     Panel.SalonLighting2 = P * self.KM2 * Train.Battery.Value * Train.SF43.Value * BUV.MainLights
-    -- else
     Panel.WorkFan = P * Train.Battery.Value * Train.GV.Value * HV
     Panel.SalonLighting1 = P * self.KM2 * Train.Battery.Value * Train.SF44.Value
     Panel.SalonLighting2 = P * self.KM2 * Train.Battery.Value * Train.SF43.Value * BUV.MainLights
-    -- end
 
     local ukkz = 1
     local kzx, pkz, val, short, timerId
@@ -484,20 +388,18 @@ function TRAIN_SYSTEM:Think(dT, iter)
     if not Async then return end
 
     self.MK = Train.Battery.Value * PowerPSN * BUV.PSN * HV * self.KM2 * Train.SF34.Value * (BUV.MK > 0 and 1 or Train:ReadTrainWire(10))
-    local command = BUV.Strength or 0 --+0.5*(BUV.Strength > 0 and BUV.Slope1 and 1 or 0)
+    local command = BUV.Strength or 0
     local speed = Async.Speed
     if self.command ~= command and CurTime() - self.commandTimer > (0.3 + (command ~= 0 and speed > 2 and sign(command) ~= sign(self.command) and 0.6 or 0)) then
         self.commandTimer = CurTime()
         self.command = command
     end
 
-    Async:TriggerInput("Power", BO * self.KM2 * (Train.SF52 and Train.Battery.Value * Train.SF52.Value or 1) * Train.GV.Value * Train.BV.Value) --*HV--*(1-BUKV.DisableTP))
-    --print(string.format("%.2f %.2f %d %.2f",command,Async.Speed,Async.Mode,Async.Torque))
-    if self.command > 0 then --and Train.GV.Value*Train.BV.Value == 1 then--and Train.BV.Value > 0 and Train.AsyncInverter.Drive == 0 and Train.TR.Main750V > 20 then
+    Async:TriggerInput("Power", BO * self.KM2 * (Train.SF52 and Train.Battery.Value * Train.SF52.Value or 1) * Train.GV.Value * Train.BV.Value)
+    if self.command > 0 then
         Async:TriggerInput("Drive", self.command)
         Async:TriggerInput("Brake", 0)
     elseif self.command < 0 then
-        --and Train.GV.Value*Train.BV.Value == 1 then--and Train.AsyncInverter.Brake == 0 then
         Async:TriggerInput("Drive", 0)
         Async:TriggerInput("Brake", abs(self.command))
     else
@@ -505,7 +407,6 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Async:TriggerInput("Brake", 0)
     end
 
-    --local speed = (command <= 0 and math.abs(Async.Speed) or math.max(9.6,math.abs(Async.Speed)))
     local targetI, k = GetCurrent(self.command)
     if self.command > 0 then
         Async:TriggerInput("TargetCurrent", targetI * (1 + (self.Slope == 1 and 0.1 or Train.Pneumatic.WeightLoadRatio * 0.1)) * ((1 - k) + k * Clamp((speed - 3) / 16, 0, 1))) --*(0.22+0.78*Clamp((speed-3)/14,0,1)))--*(speed > 50 and 1-(speed-50)/150 or 1) )--*(speed < 20 and 0.23+Clamp(speed/22,0,1)*0.77 or 1))--330

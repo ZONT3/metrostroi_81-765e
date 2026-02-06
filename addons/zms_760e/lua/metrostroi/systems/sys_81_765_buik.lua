@@ -417,7 +417,7 @@ if SERVER then
             self:UpdatePage(true)
         end
 
-        if self.DoorAlarm and Wag.BUKP.DoorClosed then self.DoorAlarm = false end
+        if self.DoorAlarm and Wag.BUKP.DoorClosed > 0 then self.DoorAlarm = false end
         Wag.IK.DoorAlarm = self.DoorAlarm
 
         if self.InformerState == STATE_SETUP then
@@ -835,7 +835,7 @@ if SERVER then
         if not recordings then return end
         if not istable(recordings) then recordings = {recordings} end
 
-        if station.is_dep and not self.Train.BUKP.DoorClosed then self.DoorAlarm = CurTime() end
+        if station.is_dep and self.Train.BUKP.DoorClosed < 1 then self.DoorAlarm = CurTime() end
 
         local clicks = self.Train:GetNW2Bool("AnnouncerClicks", false)
         if clicks then

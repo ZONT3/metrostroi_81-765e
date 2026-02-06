@@ -94,7 +94,7 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     local stuckEmpty = true
-    local zeroSpeed = Wag.SF80F9.Value > 0 and Wag.Speed < 1.8
+    local zeroSpeed = Wag.SF80F9.Value > 0 and Wag.Speed < 2.6
     local buvZeroSpeed = zeroSpeed and BUV.ZeroSpeed
     local addrMode = BUV.AddressDoors
     local addrForceOpen = false
