@@ -14,8 +14,8 @@ function TRAIN_SYSTEM:Initialize()
     self.ReverseWork = false
     self.AddressReadyL = false
     self.AddressReadyR = false
-    self.Working = false
-    self.Starting = false
+    self.Working = {}
+    self.Starting = {}
 
     self.DoorClosed = {}
     self.DoorOpen = {}
@@ -68,6 +68,11 @@ function TRAIN_SYSTEM:TriggerInput(name, value)
     if name == "Depart" then self.Depart = value end
 end
 
+local DoorSFs = {
+    "SF80F14", "SF80F13", "SF80F12", "SF80F14",
+    "SF80F14", "SF80F12", "SF80F13", "SF80F12"
+}
+
 function TRAIN_SYSTEM:Think(dT)
     local Wag = self.Train
     local BUV = Wag.BUV
@@ -78,36 +83,30 @@ function TRAIN_SYSTEM:Think(dT)
 
     self.ReverseWork = false
 
-    local poweron = Wag.Electric.Battery80V > 62
-    local working = poweron and BUV.ADUDWork
+    local masterPower = Wag.Electric.Battery80V > 62
+    local masterWorking = masterPower and BUV.ADUDWork
 
-    if not working and self.Working then self.Working = false self.Starting = false end
-    if working and not self.Working and not self.Starting then self.Starting = CurTime() + 5 end
-    if self.Starting and CurTime() >= self.Starting then self.Starting = false self.Working = true end
-    working = self.Working
-    poweron = working or self.Starting and self.Starting - CurTime() < 0.3
-
-    if poweron and not working then
+    if masterPower and not masterWorking then
         self.DoorLeft = false
         self.DoorRight = false
         for idx = 1, 8 do self.DoorCommand[idx] = false end
     end
 
     local stuckEmpty = true
-    local zeroSpeed = Wag.SF80F9.Value > 0 and Wag.Speed < 2.6
-    local buvZeroSpeed = zeroSpeed and BUV.ZeroSpeed
+    local zeroSpeed = BUV.ZeroSpeed
+    local bupZeroSpeed = BUV.BupZeroSpeed
     local addrMode = BUV.AddressDoors
     local addrForceOpen = false
 
-    local workingLeft = working and BUV.Orientation and Wag.SF40.Value > 0 or not BUV.Orientation and Wag.SF41.Value > 0
-    local workingRight = working and BUV.Orientation and Wag.SF41.Value > 0 or not BUV.Orientation and Wag.SF40.Value > 0
+    local workingLeft = masterWorking and BUV.Orientation and (Wag.SF80F10.Value * Wag.SF80F7.Value) > 0 or not BUV.Orientation and (Wag.SF80F10.Value * Wag.SF80F7.Value) > 0
+    local workingRight = masterWorking and BUV.Orientation and (Wag.SF80F11.Value * Wag.SF80F6.Value) > 0 or not BUV.Orientation and (Wag.SF80F11.Value * Wag.SF80F6.Value) > 0
     local reserveLeft = Wag:ReadTrainWire(38) > 0
     local reserveRight = Wag:ReadTrainWire(37) > 0
     local selectLeft = workingLeft and BUV.SelectLeft
     local selectRight = workingRight and BUV.SelectRight
     local commandLeft = workingLeft and (selectLeft and BUV.OpenLeft or reserveLeft)
     local commandRight = workingRight and (selectRight and BUV.OpenRight or reserveRight)
-    local commandClose = (working and BUV.CloseDoors and BUV.Power * Wag.SF39.Value > 0 or poweron and Wag:ReadTrainWire(39) > 0)
+    local commandClose = (masterWorking and BUV.CloseDoors and BUV.Power * Wag.SF80F8.Value > 0 or masterPower and Wag:ReadTrainWire(39) > 0)
 
     if addrMode and (commandLeft or commandRight) then
         if not self.ForceOpenTimer then
@@ -144,6 +143,19 @@ function TRAIN_SYSTEM:Think(dT)
     self.AddressReadyR = false
 
     for idx = 1, 8 do
+        local sf = Wag[DoorSFs[idx]]
+        local poweron = masterPower and sf and sf.Value > 0
+        local working = masterWorking and sf and sf.Value > 0
+        if not working and self.Working[idx] then self.Working[idx] = false self.Starting[idx] = false end
+        if working and not self.Working[idx] and not self.Starting[idx] then self.Starting[idx] = CurTime() + 5 end
+        if self.Starting[idx] and CurTime() >= self.Starting[idx] then self.Starting[idx] = false self.Working[idx] = true end
+        working = self.Working[idx]
+        poweron = poweron and (working or self.Starting[idx] and self.Starting[idx] - CurTime() < 0.3)
+
+        if not working then
+            self.DoorCommand[idx] = false
+        end
+
         local manual = Wag["DoorManualOpenLever" .. idx].Value * Wag["DoorManualOpenLeverPl" .. idx].Value == 1
         local block = Wag["DoorManualBlock" .. idx].Value == 1
         Wag:SetNW2Bool("DoorManualOpenLever" .. idx, manual)
@@ -176,7 +188,7 @@ function TRAIN_SYSTEM:Think(dT)
             readyToOpen = false
         end
 
-        if self.OpenButton[idx] and not buvZeroSpeed and CurTime() >= self.OpenButton[idx] then
+        if self.OpenButton[idx] and not bupZeroSpeed and CurTime() >= self.OpenButton[idx] then
             self.OpenButton[idx] = false
         elseif addrMode and working and selected then
             local btn = Wag["DoorAddressButton" .. idx]
@@ -272,14 +284,14 @@ function TRAIN_SYSTEM:Think(dT)
                 not working and "Closing" or
                 not commandOpen and not self.DoorClosed[idx] and "Closing" or
                 not commandOpen and self.DoorClosed[idx] and (
-                    (not zeroSpeed or not buvZeroSpeed) and "Moving" or
+                    (not zeroSpeed or not bupZeroSpeed) and "Moving" or
                     zeroSpeed and not selected and "Moving" or
                     zeroSpeed and readyToOpen and not self.Depart and "Open" or
                     "Closed"
                 ) or
                 commandOpen and not self.Depart and not self.DoorOpen[idx] and (block and "Closed" or addrMode and "Open" or "Opening") or
                 self.Depart and "Depart" or
-                not buvZeroSpeed and "Moving" or
+                not bupZeroSpeed and "Moving" or
                 commandOpen and "Open" or
                 -- fallback, should not reach!
                 self.DoorClosed[idx] and "Opening" or "Closing"

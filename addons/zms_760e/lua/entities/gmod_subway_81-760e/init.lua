@@ -12,9 +12,6 @@ ENT.SyncTable = {
     "DisableBV", "Ring", "R_Program2", "R_Announcer", "R_Line", "R_Micro", "R_Emer", "R_Program1", "R_Program11", "R_ChangeRoute",
     "R_ToBack", "DoorSelectL", "DoorSelectR", "DoorBlock", "EmerBrakeAdd", "EmerBrakeRelease", "EmerBrake", "DoorClose", "AttentionMessage",
     "Attention", "AttentionBrake", "EmergencyBrake", "Pr", "OtklR", "GlassHeating", "Washer", "SC",
-    "SF31", "SF32", "SF33", "SF34", "SF36", "SF37",
-    "SF38", "SF39", "SF40", "SF41", "SF42", "SF57", "SF43", "SF44", "SF45", "SF46", "SF47", "SF48", "SF49", "SF50", "SF51", "SF52", "SF53",
-    "SF54", "SF55", "SF56", "SF80F9",
     "Stand", "EmergencyCompressor", "EmergencyCompressor2", "EmergencyControls", "EmergencyControlsK", "Wiper", "DoorLeft", "AccelRate", "HornB", "HornC", "DoorRight",
     "AutoDrive", "Micro", "Vent1", "Vent2", "Vent", "PassLight", "CabLight", "HeadlightsSwitch", "ParkingBrake",
     "BBER", "BBE", "Compressor", "CabLightStrength", "AppLights1", "AppLights2", "Battery", "MfduF1", "MfduF2", "MfduF3",
@@ -32,6 +29,11 @@ ENT.SyncTable = {
 
 if not ENT.PpzToggles then print("ACHTUNG! PIZDEC!") end
 for _, cfg in ipairs(ENT.PpzToggles or {}) do
+    table.insert(ENT.SyncTable, cfg.relayName)
+end
+
+if not ENT.PvzToggles then print("ACHTUNG! PIZDEC!") end
+for _, cfg in ipairs(ENT.PvzToggles or {}) do
     table.insert(ENT.SyncTable, cfg.relayName)
 end
 

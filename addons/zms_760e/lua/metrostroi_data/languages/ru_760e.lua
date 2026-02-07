@@ -64,7 +64,7 @@ Entities.gmod_subway_81-760e.Buttons.PVZ.SF51Toggle          = @[Common.760.SF51
 Entities.gmod_subway_81-760e.Buttons.PVZ.SF52Toggle          = @[Common.760.SF52]
 Entities.gmod_subway_81-760e.Buttons.PVZ.SF53Toggle          = @[Common.760.SF53]
 Entities.gmod_subway_81-760e.Buttons.PVZ.SF54Toggle          = @[Common.760.SF54]
-Entities.gmod_subway_81-760e.Buttons.PVZ.SF55Toggle          = @[Common.760.SF55]
+Entities.gmod_subway_81-760e.Buttons.PVZ.SF55Toggle          = @[Common.760.SF22F1]
 Entities.gmod_subway_81-760e.Buttons.PVZ.SF56Toggle          = @[Common.760.SF56]
 Entities.gmod_subway_81-760e.Buttons.PVZ.SF57Toggle          = @[Common.760.SF57]
 
@@ -202,7 +202,7 @@ Entities.gmod_subway_81-761e.Buttons.PVZ.SF51Toggle          = @[Common.760.SF51
 Entities.gmod_subway_81-761e.Buttons.PVZ.SF52Toggle          = @[Common.760.SF52]
 Entities.gmod_subway_81-761e.Buttons.PVZ.SF53Toggle          = @[Common.760.SF53]
 Entities.gmod_subway_81-761e.Buttons.PVZ.SF54Toggle          = @[Common.760.SF54]
-Entities.gmod_subway_81-761e.Buttons.PVZ.SF55Toggle          = @[Common.760.SF55]
+Entities.gmod_subway_81-761e.Buttons.PVZ.SF55Toggle          = @[Common.760.SF22F1]
 Entities.gmod_subway_81-761e.Buttons.PVZ.SF56Toggle          = @[Common.760.SF56]
 Entities.gmod_subway_81-761e.Buttons.PVZ.SF57Toggle          = @[Common.760.SF57]
 Entities.gmod_subway_81-761e.Buttons.PVZ.SF58Toggle          = @[Common.760.SF58]
@@ -220,7 +220,7 @@ Entities.gmod_subway_81-763e.Buttons.BoxR.EmergencyBrakeValveToggle      = @[Com
 Entities.gmod_subway_81-763e.Buttons.Power.PowerOnSet        = @[Common.760A.PowerOn]
 
 Entities.gmod_subway_81-763e.Buttons.PVZ.SF34Toggle          = @[Common.760A.SF34]
-Entities.gmod_subway_81-763e.Buttons.PVZ.SF35Toggle          = @[Common.760A.SF35]
+Entities.gmod_subway_81-763e.Buttons.PVZ.SF35Toggle          = @[Common.760A.SF30F2]
 Entities.gmod_subway_81-763e.Buttons.PVZ.SF36Toggle          = @[Common.760.SF36]
 Entities.gmod_subway_81-763e.Buttons.PVZ.SF37Toggle          = @[Common.760.SF37]
 Entities.gmod_subway_81-763e.Buttons.PVZ.SF38Toggle          = @[Common.760.SF38]
@@ -236,7 +236,7 @@ Entities.gmod_subway_81-763e.Buttons.PVZ.SF48Toggle          = @[Common.760.SF48
 Entities.gmod_subway_81-763e.Buttons.PVZ.SF49Toggle          = @[Common.760.SF49]
 Entities.gmod_subway_81-763e.Buttons.PVZ.SF53Toggle          = @[Common.760.SF53]
 Entities.gmod_subway_81-763e.Buttons.PVZ.SF54Toggle          = @[Common.760.SF54]
-Entities.gmod_subway_81-763e.Buttons.PVZ.SF55Toggle          = @[Common.760.SF55]
+Entities.gmod_subway_81-763e.Buttons.PVZ.SF55Toggle          = @[Common.760.SF22F1]
 Entities.gmod_subway_81-763e.Buttons.PVZ.SF56Toggle          = @[Common.760.SF56]
 Entities.gmod_subway_81-763e.Buttons.PVZ.SF57Toggle          = @[Common.760.SF57]
 

@@ -703,9 +703,81 @@ ENT.PpzToggles = {
     ppzToggle("SF62F3", "62F3: Кондиционер кабины", 3.0, 536, 10),
     ppzToggle("SF62F4", "62F4: Обеззараживающее уст-во кабины", 3.0, 536, 11),
     ppzToggle("SF61F8", "61F8: Кондиционер салона", 3.0, 536, 12),
-    ppzToggle("SF70F4", "70F4: Обогрев кресла, подножки\nШторка, подстаканник (81-765.4)", 3.0, 536, 13),
+    ppzToggle("SF70F5", "70F4: Обогрев кресла, подножки\nШторка, подстаканник (81-765.4)", 3.0, 536, 13),
     ppzToggle("SF70F3", "70F3: Стеклоочиститель, омыватель, АГС, сигнал", 3.0, 536, 14),
     ppzToggle("SF70F2", "70F2: Обогрев стекла", 3.0, 536, 15),
+}
+
+local curIdx = 0
+local lasty = nil
+local function pvzToggle(name, tooltip, x, y, idx)
+    if lasty ~= y then curIdx = 0 lasty = y end
+    local btn = {
+        relayName = name,
+        ID = name .. "Toggle", tooltip = tooltip,
+        x = (idx or curIdx) * 29.8 + x, y = y,
+        w = 29.8, h = 50,
+        model = {
+            var = name,
+            model = "models/metrostroi_train/81-765/switch_av.mdl",
+            z = 0, ang = Angle(-90, -180, 0), scale = 1,
+            speed = 9, sndvol = 0.4, vmin = 0, vmax = 1,
+            snd = function(val) return val and "sf_on" or "sf_off" end,
+            sndmin = 90, sndmax = 1e3,
+        }
+    }
+    curIdx = curIdx + 1
+    return btn
+end
+
+ENT.PvzToggles = {
+    pvzToggle("SF23F12", "Счётчик", 0, 0),
+    pvzToggle("SF70F4", "USB", 0, 0),
+    pvzToggle("SF22F1", "БУФТ", 0, 0),
+
+    pvzToggle("SF23F11", "БУВ-S", 0, 50),
+    pvzToggle("SF23F9", "Резерв", 0, 50),
+    pvzToggle("SF90F2", "АСОТП", 0, 50),
+    pvzToggle("SF23F10", "Противоюз", 0, 50),
+    pvzToggle("SF45F5", "Видео 1", 0, 50),
+    pvzToggle("SF45F6", "Видео 2", 0, 50),
+    pvzToggle("SF45F7", "БНТ-ИК (Л)", 0, 50),
+    pvzToggle("SF45F8", "БНТ-ИК (П)", 0, 50),
+    pvzToggle("SF52F3", "Аварийное освещение", 0, 50),
+    pvzToggle("SF61F3", "Включение кондиционера", 0, 50),
+
+    pvzToggle("SF45F2", "Питание БВМ", 0, 100),
+    pvzToggle("SF61F4", "Питание преобразователя", 0, 100),
+    pvzToggle("SF23F4", "Инвертор", 0, 100),
+    pvzToggle("SF45F4", "Питание БУТ", 0, 100),
+    pvzToggle("SF30F4", "ПСН", 0, 100),
+    pvzToggle("SF45F3", "Питание ESM", 0, 100),
+    pvzToggle("SF30F3", "Осушитель", 0, 100),
+    pvzToggle("SF21F1", "Токоприемники, осушитель, БККЗ, ДПБТ", 0, 100),
+    pvzToggle("SF52F5", "Подсветка двери левой", 0, 100),
+    pvzToggle("SF52F4", "Подсветка дверей", 0, 100),
+
+    pvzToggle("SF80F2", "Контроль дверей салона", 0, 150),
+    pvzToggle("SF80F13", "Двери питание 2, 7", 0, 150),
+    pvzToggle("SF80F14", "Двери питание 1, 4, 5", 0, 150),
+    pvzToggle("SF80F12", "Двери питание 3, 6, 8", 0, 150),
+    pvzToggle("SF80F8", "Двери закрытие", 0, 150),
+    pvzToggle("SF80F11", "Двери выбор правые", 0, 150),
+    pvzToggle("SF80F10", "Двери выбор левые", 0, 150),
+    pvzToggle("SF80F7", "Двери открытие левые", 0, 150),
+    pvzToggle("SF80F6", "Двери открытие правые", 0, 150),
+    pvzToggle("SF80F9", "Скорость 0", 0, 150),
+
+    pvzToggle("SF30F2", "БС Управлене", 0, 200),
+    pvzToggle("SF23F5", "Управление основное", 0, 200),
+    pvzToggle("SF23F6", "Управление резервное", 0, 200),
+    pvzToggle("SF30F7", "Питание ЦУ 1", 0, 200),
+    pvzToggle("SF30F9", "Питание ЦУ 2", 0, 200),
+    pvzToggle("SF30F6", "Питание ЦУ 3", 0, 200),
+    pvzToggle("SF30F8", "Питание ЦУ 4", 0, 200),
+    pvzToggle("SF52F2", "Освещение основное", 0, 200),
+    pvzToggle("SF61F1", "Питание УПВВ 1", 0, 200),
+    pvzToggle("SF61F9", "Питание УПВВ 2", 0, 200),
 }
 
 

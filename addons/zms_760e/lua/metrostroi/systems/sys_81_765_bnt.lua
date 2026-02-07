@@ -28,9 +28,9 @@ if SERVER then
 
     function TRAIN_SYSTEM:Think(dT)
         local Wag = self.Train
-        local Power = Wag.Electric.Battery80V > 62 and Wag.BUV.Power * (Wag.SF37.Value + Wag.SF38.Value) > 0
-        local PowerLeft = Power and Wag.SF37.Value > 0
-        local PowerRight = Power and Wag.SF38.Value > 0
+        local Power = Wag.Electric.Battery80V > 62 and Wag.BUV.Power * (Wag.SF45F7.Value + Wag.SF45F8.Value) > 0
+        local PowerLeft = Power and Wag.SF45F7.Value > 0
+        local PowerRight = Power and Wag.SF45F8.Value > 0
 
         Wag:SetNW2Bool("BNT:PowerLeft", PowerLeft)
         Wag:SetNW2Bool("BNT:PowerRight", PowerRight)

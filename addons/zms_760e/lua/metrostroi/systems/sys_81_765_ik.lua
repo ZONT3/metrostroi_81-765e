@@ -37,7 +37,7 @@ if SERVER then
 
     function TRAIN_SYSTEM:Think(dT)
         local Wag = self.Train
-        local Power = Wag.Electric.Battery80V > 62 and Wag.BUV.Power * (Wag.SF37.Value + Wag.SF38.Value) > 0
+        local Power = Wag.Electric.Battery80V > 62 and Wag.BUV.Power * (Wag.SF45F7.Value + Wag.SF45F8.Value) > 0
         Wag:SetNW2Bool("DoorAlarmState", Power and self.DoorAlarm or false)
 
         for _, name in ipairs(self.Executables) do

@@ -6,7 +6,7 @@ AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 ENT.BogeyDistance = 650
-ENT.SyncTable = {"SF31", "SF32", "SF33", "SF34", "SF36", "SF37", "SF38", "SF39", "SF40", "SF41", "SF42", "SF57", "SF35", "SF80F9", "SF43", "SF44", "SF45", "SF46", "SF47", "SF48", "SF49", "SF50", "SF51", "SF52", "SF53", "SF54", "SF55", "SF56", "RearBrakeLineIsolation", "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "GV", "K31", "Battery", "PowerOn", "K23", "EmergencyBrakeValve",}
+ENT.SyncTable = {"RearBrakeLineIsolation", "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "GV", "K31", "Battery", "PowerOn", "K23", "EmergencyBrakeValve",}
 --------------------------------------------------------------------------------
 function ENT:Initialize()
     -- Set model and initialize

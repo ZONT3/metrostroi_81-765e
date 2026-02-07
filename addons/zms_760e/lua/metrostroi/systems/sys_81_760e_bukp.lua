@@ -981,14 +981,16 @@ if SERVER then
                         shortAny = shortAny or working and short
                         self:CheckWagError(i, "Short", working and short)
 
+                        local curBroken = false
                         for sfp, sfs in ipairs(self.SFTbl) do
                             for sf in pairs(sfs) do
                                 if working and not train[sf] then
                                     sfBroken = sfp .. sf
+                                    curBroken = true
                                 end
                             end
                         end
-                        self:CheckWagError(i, "SF", sfBroken)
+                        self:CheckWagError(i, "SF", curBroken)
 
                         Train:SetNW2Bool("Skif:AddressDoorsL" .. i, orientation and train.AddressDoorsL or not orientation and train.AddressDoorsR)
                         Train:SetNW2Bool("Skif:AddressDoorsR" .. i, orientation and train.AddressDoorsR or not orientation and train.AddressDoorsL)
@@ -1424,8 +1426,8 @@ if SERVER then
             self.ErrorRinging = (Train.ProstKos.Receiving and Train.Speed > 2 or Train.ProstKos.CommandKos > 0) or self.ErrorRing and CurTime() - self.ErrorRing < 2
             if self.MainMsg < 2 then
                 self.PSN = (Train.PpzUpi.Value > 0) and self.State == 5
-                self.Compressor = (Train.PpzUpi.Value * Train.SF45.Value * Train.Battery.Value > 0) and self.State == 5 and Train.AK.Value > 0
-                self.PassLight = (1 - Train.PmvLights.Value) * Train.SF43.Value > 0 and self.State == 5
+                self.Compressor = (Train.PpzUpi.Value * Train.SF30F4.Value * Train.Battery.Value > 0) and self.State == 5 and Train.AK.Value > 0
+                self.PassLight = (1 - Train.PmvLights.Value) * Train.SF52F2.Value > 0 and self.State == 5
             end
 
             self:CState("ZeroSpeed", self.CanZeroSpeed)
@@ -1491,7 +1493,7 @@ if SERVER then
         if ZeroSpeed then
             ZeroSpeed = false
             if not self.ZeroSpeedTimer then
-                self.ZeroSpeedTimer = CurTime() + math.Rand(0.2 + self.ZeroSpeedDelay, 0.4 + self.ZeroSpeedDelay)
+                self.ZeroSpeedTimer = CurTime() + math.Rand(0.6 + self.ZeroSpeedDelay, 0.8 + self.ZeroSpeedDelay)
             elseif CurTime() >= self.ZeroSpeedTimer then
                 ZeroSpeed = true
             end

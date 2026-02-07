@@ -28,7 +28,15 @@ pmvToggle("PmvCond", {0, 3}, 1)
 local PpzToggles = {
     "SF42F1", "SF30F1", "SF23F2", "SF23F1", "SF23F3", "SF23F13", "SF23F7", "SF23F8", "SF22F5", "SF22F2", "SF22F3",
     "SF80F5", "SF80F1", "SF80F3", "SF62F1", "SF42F2", "SF30F5", "SF70F1", "SF45F11", "SF45F1", "SF43F3", "SF90F1",
-    "PPZUU1", "SF51F1", "SF51F2", "SF52F1", "SF62F3", "SF62F4", "SF61F8", "SF70F4", "SF70F3", "SF70F2",
+    "PPZUU1", "SF51F1", "SF51F2", "SF52F1", "SF62F3", "SF62F4", "SF61F8", "SF70F5", "SF70F3", "SF70F2",
+}
+
+local PvzToggles = {
+    "SF23F12", "SF70F4", "SF22F1",
+    "SF23F11", "SF23F9", "SF90F2", "SF23F10", "SF45F5", "SF45F6", "SF45F7", "SF45F8", "SF52F3", "SF61F3",
+    "SF45F2", "SF61F4", "SF23F4", "SF45F4", "SF30F4", "SF45F3", "SF30F3", "SF21F1", "SF52F5", "SF52F4",
+    "SF80F2", "SF80F13", "SF80F14", "SF80F12", "SF80F8", "SF80F11", "SF80F10", "SF80F7", "SF80F6", "SF80F9",
+    "SF30F2", "SF23F5", "SF23F6", "SF30F7", "SF30F9", "SF30F6", "SF30F8", "SF52F2", "SF61F1", "SF61F9",
 }
 
 function TRAIN_SYSTEM:Initialize()
@@ -140,18 +148,15 @@ function TRAIN_SYSTEM:Initialize()
     self.Train.SF19 = self.Train.SF45F1  -- Видео пит
     self.Train.SF20 = self.Train.SF90F1  -- АСОТП ЦБКИ пит
     self.Train.SF21 = self.Train.SF70F1  -- РВС пит
+    self.Train.SF36 = self.Train.SF30F9  -- АСОТП ПЦБК
     self.Train.PowerReserve = self.Train.PmvEmerPower
+    self.Train:LoadSystem("SF54", "Relay", "Switch", { bass = true })  -- Видео
 
-    for i = 31, 57 do
-        if i ~= 35 then
-            self.Train:LoadSystem("SF" .. i, "Relay", "Switch", {
-                normally_closed = true,
-                bass = true
-            })
-        end
+    for _, name in ipairs(PvzToggles or {}) do
+        self.Train:LoadSystem(name, "Relay", "Switch", {
+            bass = true, normally_closed = true,
+        })
     end
-
-    self.Train:LoadSystem("SF80F9", "Relay", "Switch", { normally_closed = true, bass = true })
 
     self.Train:LoadSystem("Battery", "Relay", "Switch", { bass = true, normally_closed = true })
     self.Train:LoadSystem("PowerOn", "Relay", "Switch", { bass = true })

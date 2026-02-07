@@ -137,7 +137,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
     local PSN = BUV.PSN * BO > 0
     self.Aux80V = PSN and 80 or 69
     self.Lights80V = PSN and 80 or 0
-    self.BTO = P * Train.Battery.Value * Train.SF55.Value * self.KM2
+    self.BTO = P * Train.Battery.Value * Train.SF22F1.Value * self.KM2
     ----------------------------------------------------------------------------
     -- Voltages from the third rail
     ----------------------------------------------------------------------------
@@ -170,8 +170,8 @@ function TRAIN_SYSTEM:Think(dT, iter)
             Train:WriteTrainWire(73, bsOff)
         end
 
-        local bsOff = not PBatt or Train:ReadTrainWire(73) > 0 or (2 - (Train.SF35 and Train.SF35.Value or 1) - (Train.SF58 and Train.SF58.Value or 1)) > 0
-        local bsOn = PBatt * (Train.SF58 and Train.SF58.Value or 1) * (Train.SF35 and Train.SF35.Value or 1) * (Train.PowerOn.Value + Train:ReadTrainWire(72)) > 0
+        local bsOff = not PBatt or Train:ReadTrainWire(73) > 0 or Train.SF30F2.Value < 1
+        local bsOn = PBatt * Train.SF30F2.Value * (Train.PowerOn.Value + Train:ReadTrainWire(72)) > 0
 
         if BUV.AKBVoltage < 62 and self.Power then
             self.Power = nil
@@ -340,12 +340,14 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Panel.BatteryChargel = Train:ReadTrainWire(42)
         Panel.LV = Train.Battery.Value * self.Battery80V --/150
     else
-        Panel.LV = Train.Battery.Value * self.KM2 * Train.SF44.Value * self.Battery80V --/150
+        Panel.LV = Train.Battery.Value * self.KM2 * Train.SF52F3.Value * self.Battery80V --/150
     end
 
+    Train.SF54:TriggerInput("Set", Train.SF45F5.Value * Train.SF45F6.Value)
+
     Panel.WorkFan = P * Train.Battery.Value * Train.GV.Value * HV
-    Panel.SalonLighting1 = P * self.KM2 * Train.Battery.Value * Train.SF44.Value
-    Panel.SalonLighting2 = P * self.KM2 * Train.Battery.Value * Train.SF43.Value * BUV.MainLights
+    Panel.SalonLighting1 = P * self.KM2 * Train.Battery.Value * Train.SF52F3.Value
+    Panel.SalonLighting2 = P * self.KM2 * Train.Battery.Value * Train.SF52F2.Value * BUV.MainLights
 
     local ukkz = 1
     local kzx, pkz, val, short, timerId
@@ -387,7 +389,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
 
     if not Async then return end
 
-    self.MK = Train.Battery.Value * PowerPSN * BUV.PSN * HV * self.KM2 * Train.SF34.Value * (BUV.MK > 0 and 1 or Train:ReadTrainWire(10))
+    self.MK = Train.Battery.Value * PowerPSN * BUV.PSN * HV * self.KM2 * Train.SF30F3.Value * (BUV.MK > 0 and 1 or Train:ReadTrainWire(10))
     local command = BUV.Strength or 0
     local speed = Async.Speed
     if self.command ~= command and CurTime() - self.commandTimer > (0.3 + (command ~= 0 and speed > 2 and sign(command) ~= sign(self.command) and 0.6 or 0)) then
@@ -395,7 +397,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         self.command = command
     end
 
-    Async:TriggerInput("Power", BO * self.KM2 * (Train.SF52 and Train.Battery.Value * Train.SF52.Value or 1) * Train.GV.Value * Train.BV.Value)
+    Async:TriggerInput("Power", BO * self.KM2 * (Train.SF23F4 and Train.Battery.Value * Train.SF23F4.Value or 1) * Train.GV.Value * Train.BV.Value)
     if self.command > 0 then
         Async:TriggerInput("Drive", self.command)
         Async:TriggerInput("Brake", 0)
