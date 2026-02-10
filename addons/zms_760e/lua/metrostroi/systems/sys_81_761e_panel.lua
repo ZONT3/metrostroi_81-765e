@@ -31,6 +31,16 @@ function TRAIN_SYSTEM:Initialize()
     self.SalonLighting2 = 0
     self.LV = 0
     if self.Train.AsyncInverter then self.WorkFan = 0 end
+
+    -- BUD
+    for idx = 1, 8 do
+        self.Train:LoadSystem("DoorManualBlock" .. idx, "Relay", "Switch", { bass = true })
+        self.Train:LoadSystem("DoorManualOpenLever" .. idx, "Relay", "Switch", { bass = true })
+        self.Train:LoadSystem("DoorManualOpenLeverPl" .. idx, "Relay", "Switch", { bass = true })
+        self.Train:LoadSystem("DoorManualOpenPush" .. idx, "Relay", "Switch", { bass = true })
+        self.Train:LoadSystem("DoorManualOpenPull" .. idx, "Relay", "Switch", { bass = true })
+        self.Train:LoadSystem("DoorAddressButton" .. idx, "Relay", "Switch", { bass = true })
+    end
 end
 
 function TRAIN_SYSTEM:Inputs()

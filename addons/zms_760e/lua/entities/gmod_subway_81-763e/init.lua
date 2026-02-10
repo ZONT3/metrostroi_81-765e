@@ -7,6 +7,16 @@ AddCSLuaFile("shared.lua")
 include("shared.lua")
 ENT.BogeyDistance = 650
 ENT.SyncTable = {"RearBrakeLineIsolation", "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "GV", "K31", "Battery", "PowerOn", "K23", "EmergencyBrakeValve",}
+
+if not ENT.PvzToggles then print("ACHTUNG! PIZDEC!") end
+for _, cfg in ipairs(ENT.PvzToggles or {}) do
+    table.insert(ENT.SyncTable, cfg.relayName)
+end
+
+for idx = 1, 8 do
+    table.insert(ENT.SyncTable, "DoorManualBlock" .. idx)
+end
+
 --------------------------------------------------------------------------------
 function ENT:Initialize()
     -- Set model and initialize

@@ -13,6 +13,10 @@ for _, cfg in ipairs(ENT.PvzToggles or {}) do
     table.insert(ENT.SyncTable, cfg.relayName)
 end
 
+for idx = 1, 8 do
+    table.insert(ENT.SyncTable, "DoorManualBlock" .. idx)
+end
+
 --------------------------------------------------------------------------------
 function ENT:Initialize()
     -- Set model and initialize
@@ -24,8 +28,8 @@ function ENT:Initialize()
     self.RearBogey = self:CreateBogey(Vector(-338 + 20.8, 0, -70), Angle(0, 0, 0), false, "760")
     self.FrontBogey:SetNWBool("Async", true)
     self.RearBogey:SetNWBool("Async", true)
-    self.FrontBogey:SetNWInt("MotorSoundType", 2)
-    self.RearBogey:SetNWInt("MotorSoundType", 2)
+    self.FrontBogey:SetNWInt("MotorSoundType", Metrostroi.Version > 1537278077 and 3 or 2)
+    self.RearBogey:SetNWInt("MotorSoundType", Metrostroi.Version > 1537278077 and 3 or 2)
     self.FrontBogey:SetNWFloat("SqualPitch", 0.75)
     self.RearBogey:SetNWFloat("SqualPitch", 0.75)
     self.FrontCouple = self:CreateCouple(Vector(437 - 20.8, 0, -68), Angle(0, 0, 0), true, "763")

@@ -164,6 +164,42 @@ function TRAIN_SYSTEM:Initialize()
     self.Train:LoadSystem("BatteryCharge", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("PB", "Relay", "Switch", { bass = true })
 
+    -- MFDU
+    self.Train:LoadSystem("MfduF1", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduF2", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduF3", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduF4", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Mfdu1", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Mfdu4", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Mfdu7", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Mfdu2", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Mfdu5", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Mfdu8", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Mfdu0", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Mfdu3", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Mfdu6", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("Mfdu9", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduF5", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduF6", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduF7", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduF8", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduF9", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduHelp", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduKontr", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduTv", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduTv1", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MfduTv2", "Relay", "Switch", { bass = true })
+
+    -- BUD
+    for idx = 1, 8 do
+        self.Train:LoadSystem("DoorManualBlock" .. idx, "Relay", "Switch", { bass = true })
+        self.Train:LoadSystem("DoorManualOpenLever" .. idx, "Relay", "Switch", { bass = true })
+        self.Train:LoadSystem("DoorManualOpenLeverPl" .. idx, "Relay", "Switch", { bass = true })
+        self.Train:LoadSystem("DoorManualOpenPush" .. idx, "Relay", "Switch", { bass = true })
+        self.Train:LoadSystem("DoorManualOpenPull" .. idx, "Relay", "Switch", { bass = true })
+        self.Train:LoadSystem("DoorAddressButton" .. idx, "Relay", "Switch", { bass = true })
+    end
+
     self.Controller = 0
 
     self.AnnouncerPlaying = 0

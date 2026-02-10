@@ -642,14 +642,10 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
                     tooltip = "Ручная блокировка",
                     model = {
                         var = "DoorManualBlock" .. idx,
-                        speed = 9,
-                        vmin = 1,
-                        vmax = 0,
-                        sndvol = 0.8,
+                        model = "models/metrostroi_train/81-717/battery_enabler.mdl",
+                        speed = 9, vmin = 1, vmax = 0, sndvol = 0.8, scale = 0.1,
                         snd = function(val) return val and "pak_on" or "pak_off" end,
-                        sndmin = 80,
-                        sndmax = 1e3 / 3,
-                        sndang = Angle(-90, 0, 0),
+                        sndmin = 80, sndmax = 1e3 / 3, sndang = Angle(-90, 0, 0),
                     }
                 }
             }
@@ -794,6 +790,7 @@ end
 function ENT:ReInitBogeySounds(bogey)
     if not IsValid(bogey) then return end
     bogey.EngineSNDConfig = {}
+    if Metrostroi.Version > 1537278077 then bogey.EngineSNDConfig[bogey.MotorSoundType or 2] = {} end
     bogey.SoundNames = bogey.SoundNames or {}
     bogey.SoundNames["flangea"] = "subway_trains/765/rumble/bogey/skrip1.wav"
     bogey.SoundNames["flangeb"] = "subway_trains/765/rumble/bogey/skrip2.wav"
@@ -974,7 +971,13 @@ function ENT:Think()
         self:ShowHide(btnKey, self:GetNW2Bool("AddressDoors", false))
         local btn = self.ClientEnts[btnKey]
         if IsValid(btn) then
-            btn:SetSubMaterial(1, self:GetNW2Bool("DoorButtonLed" .. (idx < 5 and 9 - idx or idx - 4), false) and "models/metrostroi_train/81-765/led_green" or "models/metrostroi_train/81-765/led_off")
+            local idx2 = (idx < 5 and 9 - idx or idx - 4)
+            local led = self:GetNW2Bool("DoorButtonLed" .. idx2, false)
+            if led then
+                local state = self:GetNW2String("DoorAnnounceState" .. idx2)
+                led = state ~= "Closed" or CurTime() % 1.4 < 0.7
+            end
+            btn:SetSubMaterial(1, led and "models/metrostroi_train/81-765/led_green" or "models/metrostroi_train/81-765/led_off")
         end
     end
 

@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 -- Блок Управления Вагоном
 -- Оригинальный код - Cricket & Hell (для 760), Metrostroi team (для 720, 722 и др.)
--- Переработка - ZONT_ a.k.a. enabled person
+-- Переработка для 81-765 - ZONT_ a.k.a. enabled person
 -- Объединены БУВы для головного, промежуточного и прицепного вагонов в один файл
 -- Логика работы изменена для соответствия 81-765 и ее системам
 --------------------------------------------------------------------------------
@@ -141,139 +141,8 @@ local SFTbl = {
     "SF22F1", -- БУФТ
 }
 
-local function PrevTrain(Train, front)
-    if front and IsValid(Train.FrontTrain) then
-        if not Train:ElectricConnected(Train, not front) then return end
-    elseif not front and IsValid(Train.RearTrain) then
-        if not Train:ElectricConnected(Train, not front) then return end
-    end
-    return front and Train.FrontTrain or not front and Train.RearTrain
-end
-
-local function Orient(Train, front)
-    local Or = not front and IsValid(Train.RearTrain) and (Train.RearTrain.FrontTrain == Train) or front and IsValid(Train.FrontTrain) and (Train.FrontTrain.RearTrain == Train) or nil
-    return Or
-end
-
-local function CheckSF33(Train, val)
-    local tbl, numtbl = {Train}, {}
-    numtbl[Train.WagonNumber] = true
-    local Ft, Rt = PrevTrain(Train, true), PrevTrain(Train)
-    local SF30F8 = Train.SF30F8.Value
-
-    local i = 0
-    while IsValid(Ft) and not Train.SA1 do
-        i = i + 1
-        if not Ft.SA1 and Ft.SF30F8.Value == 0 then
-            if Ft.RearTrain ~= tbl[i] then
-                table.insert(tbl, Ft)
-                numtbl[Ft.WagonNumber] = true
-            end
-
-            break
-        else
-            table.insert(tbl, Ft)
-            numtbl[Ft.WagonNumber] = true
-            if Ft.SA1 then break end
-        end
-
-        if IsValid(PrevTrain(Ft, true)) and not numtbl[PrevTrain(Ft, true).WagonNumber] then
-            Ft = PrevTrain(Ft, true)
-        elseif IsValid(PrevTrain(Ft)) and not numtbl[PrevTrain(Ft).WagonNumber] then
-            Ft = PrevTrain(Ft)
-        else
-            break
-        end
-    end
-
-    local k = i
-    while IsValid(Rt) and SF30F8 > 0 do
-        i = i + 1
-        if not Rt.SA1 and Rt.SF30F8.Value == 0 then
-            if Rt.RearTrain ~= tbl[i] and Rt.RearTrain ~= tbl[i - k] then
-                table.insert(tbl, Rt)
-                numtbl[Rt.WagonNumber] = true
-            end
-
-            break
-        else
-            table.insert(tbl, Rt)
-            numtbl[Rt.WagonNumber] = true
-            if Rt.SA1 then break end
-        end
-
-        if IsValid(PrevTrain(Rt, true)) and not numtbl[PrevTrain(Rt, true).WagonNumber] then
-            Rt = PrevTrain(Rt, true)
-        elseif IsValid(PrevTrain(Rt)) and not numtbl[PrevTrain(Rt).WagonNumber] then
-            Rt = PrevTrain(Rt)
-        else
-            break
-        end
-    end
-
-    tbl["i"] = i
-    tbl["k"] = k
-
-    local valu = false
-    for _, v in pairs(tbl) do
-        if IsEntity(v) and (v.SA1 or not v.SA1 and v.SF30F6.Value > 0) and v.Battery.Value > 0 and (not v.Electric.KM2 or v.Electric.KM2 == 1) then
-            valu = true
-            break
-        end
-    end
-
-    local value = true
-    if Train.SA1 then
-        value = false
-        local prev = PrevTrain(Train)
-        if IsValid(prev) then
-            value = not prev.SA1 and CheckSF33(prev, 1) or prev.SA1 and prev.Battery.Value == 1
-            if not prev.SA1 and not Orient(Train) and prev.SF30F8.Value == 0 then value = false end
-        end
-
-        if not value then value = SF30F8 == 1 end
-    end
-
-    if val == true then
-        return tbl
-    elseif val and val == 1 then
-        return valu and value
-    elseif not val then
-        return valu and value or Train.Battery.Value > 0
-    end
-end
-
 local function CheckVoltage(Train)
-    local tbl = CheckSF33(Train, true)
-    local V = Train.Battery.Value > 0 and 69 + 11 * Train.BUV.PSN or 0
-    local i, k, max = (tbl["i"] or 0) + 1, (tbl["k"] or 0) + 1, #tbl
-    if (Train.SA1 or (Train.SF30F7.Value + Train.SF30F6.Value) > 0) and V < 80 then
-        local Rt, Ft = nil, nil
-        local j = 1
-        while (j < k) and tbl[j + 1] do
-            j = j + 1
-            if tbl[j].SA1 or not tbl[j].SA1 and tbl[j].SF30F6.Value > 0 then
-                Ft = tbl[j]
-                break
-            elseif tbl[j].SA1 then
-                break
-            end
-        end
-
-        j = k
-        while (j < max) and tbl[j + 1] do
-            j = j + 1
-            if tbl[j].SA1 or not tbl[j].SA1 and tbl[j].SF30F6.Value > 0 then
-                Rt = tbl[j]
-                break
-            elseif tbl[j].SA1 then
-                break
-            end
-        end
-
-        V = math.max(V, IsValid(Ft) and IsValid(Rt) and math.max((Ft.BUV.AKBVoltage - 4.4) * (not Ft.Electric.KM2 and 1 or Ft.Electric.KM2), (Rt.BUV.AKBVoltage - 4.4) * (not Rt.Electric.KM2 and 1 or Rt.Electric.KM2)) or IsValid(Ft) and (Ft.BUV.AKBVoltage - 4.4) * (not Ft.Electric.KM2 and 1 or Ft.Electric.KM2) or IsValid(Rt) and (Rt.BUV.AKBVoltage - 4.4) * (not Rt.Electric.KM2 and 1 or Rt.Electric.KM2) or 0)
-    end
-    return V > 62 and (CheckSF33(Train) and 1 or 0) * V or 0
+    return 80
 end
 
 function TRAIN_SYSTEM:Think(dT)
@@ -286,7 +155,7 @@ function TRAIN_SYSTEM:Think(dT)
     local P = HasEngine and Train.Electric.Power750V or Train.Electric.Main750V
 
     self.AKBVoltage = CheckVoltage(Train)
-    self.Power = (Train.Electric.Battery80V > 62 and (Train.SF30F7.Value + Train.SF30F6.Value > 0 or not Train.SA1 and CheckSF33(Train, 1))) and 1 or 0
+    self.Power = Train.Electric.Battery80V > 62 and 1 or 0
     self.State = self.Power > 0
     self.ADUVWork = (Train.Battery.Value * Train.SF21F1.Value > 0) or self.States.BCPressure == nil
     self.ADUTWork = (Train.Electric.BTO > 0) or self.States.BCPressure == nil
@@ -308,7 +177,6 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("RightDoorsOpened", self.ADUDWork and Train.RightDoorsOpened or not self.ADUDWork and Train.Battery.Value > 0 and self.States.RightDoorsOpened)
         self:CState("BUDWork", self.ADUDWork)
         if IsHead then
-            self:CState("DoorTorec", Train.RearDoor or Train.FrontDoor)
             self:CState("DoorBack", Train.PassengerDoor or Train.CabinDoorLeft or Train.CabinDoorRight)
             self:CState("CabDoorLeft", not Train.CabinDoorLeft)
             self:CState("CabDoorRight", not Train.CabinDoorRight)
@@ -561,9 +429,6 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     if self.States.BUVWork then
-        if IsHead then
-            self.BlockSignal = self:Get("DoorTorec")
-        end
         if HasEngine then
             self.MKSignal = self:Get("Compressor")
         end

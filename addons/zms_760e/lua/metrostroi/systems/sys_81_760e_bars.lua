@@ -1,8 +1,6 @@
 --------------------------------------------------------------------------------
 -- БАРС для 81-765
--- Оригинальный код - Cricket & Hell (для 760), Metrostroi team (для 720)
--- Переработка - ZONT_ a.k.a. enabled person
--- Реализована логика двух полукомплектов, переработана логика разрешения движения, питания РВТБ, тормоза удержания
+-- Автор - ZONT_ a.k.a. enabled person
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("81_760E_BARS")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
@@ -196,7 +194,7 @@ function TRAIN_SYSTEM:Think(dT)
                 self.PN3 = 1
             end
 
-            if DisableDrive and not KmCur and Speed < SpeedLimit - 3.1 then
+            if DisableDrive and not KmCur and (SpeedLimit < 21 or Speed < SpeedLimit - 3.1) then
                 DisableDrive = false
                 self.ControllerInDrive = false
             elseif self.ControllerInDrive and not KmCur then
@@ -323,8 +321,8 @@ function TRAIN_SYSTEM:Think(dT)
         self.Ring = 0
         self.Brake = 0
         self.Drive = KMState > 0 or not ZeroSpeed and 1 or 0
-        self.Drive1 = self.ATS1 and self.Drive == 1
-        self.Drive2 = self.ATS2 and self.Drive == 1
+        self.Drive1 = self.ATS1 and self.Drive == 1 and 1 or 0
+        self.Drive2 = self.ATS2 and self.Drive == 1 and 1 or 0
         self.BTB = 1
         self.DisableDrive = false
 

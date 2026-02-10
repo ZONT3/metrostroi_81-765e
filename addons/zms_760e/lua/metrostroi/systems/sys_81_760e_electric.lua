@@ -167,7 +167,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
             bsOff = bsOff and CurTime() > self.PowerOffCommandTimer
             if bsOff and not self.BsOffPlayed then Train:PlayOnce("battery_pneumo","bass",1) self.BsOffPlayed = true end
             Train:WriteTrainWire(72, PBatt * Train.SF30F1.Value * Train.PowerOn.Value)
-            Train:WriteTrainWire(73, bsOff)
+            Train:WriteTrainWire(73, bsOff and 1 or 0)
         end
 
         local bsOff = not PBatt or Train:ReadTrainWire(73) > 0 or Train.SF30F2.Value < 1

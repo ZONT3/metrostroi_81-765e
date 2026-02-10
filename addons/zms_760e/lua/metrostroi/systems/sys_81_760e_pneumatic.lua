@@ -540,7 +540,6 @@ function TRAIN_SYSTEM:Think(dT)
         end
     end
 
-    local Ratio = 29 / 400
     self.TrainLinePressure = self.TrainLinePressure - 0.05 * trainLineConsumption_dPdT * dT -- 0.190 --0.170
     if self.Compressor and CurTime() - self.Compressor > 0 then self:equalizePressure(dT, "TrainLinePressure", 10.0, 0.039) end
     self:equalizePressure(dT, "TrainLinePressure", 0, 0.001)
@@ -605,8 +604,8 @@ function TRAIN_SYSTEM:Think(dT)
 
     if self.V4OffTimer then
         if CurTime() - self.V4OffTimer < 0.45 then
-            local pr_speed = 1.25 * wagc
-            self:equalizePressure(dT, "BrakeLinePressure", 0, pr_speed)
+            local prx_speed = 1.25 * wagc
+            self:equalizePressure(dT, "BrakeLinePressure", 0, prx_speed)
         else
             self.V4OffTimer = nil
         end

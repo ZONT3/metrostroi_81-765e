@@ -21,8 +21,7 @@ ENT.SyncTable = {
     "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "PB", "GV", "K23", "EmergencyBrakeValve",
     "CAMS1", "CAMS2", "CAMS3", "CAMS4", "CAMS5", "CAMS6", "CAMS7", "CAMS8", "CAMS9", "CAMS10",
     "IGLA1", "IGLA2", "IGLA3", "IGLA4",
-    "MfduF1", "MfduF2", "MfduF3", "MfduF4", "Mfdu1", "Mfdu4", "Mfdu7", "Mfdu2", "Mfdu5", "Mfdu8", "Mfdu0", "Mfdu3", "Mfdu6", "Mfdu9", "MfduF5", "MfduF6", "MfduF7",
-    "MfduF8", "MfduF9", "MfduHelp", "MfduKontr", "MfduTv", "MfduTv1", "MfduTv2",
+    "MfduHelp", "MfduKontr", "MfduTv", "MfduTv1", "MfduTv2",
     "Buik_EMsg1", "Buik_EMsg2", "Buik_Unused1", "Buik_Mode", "Buik_Path", "Buik_Return", "Buik_Down", "Buik_Up", "Buik_MicLine", "Buik_MicBtn", "Buik_Asotp", "Buik_Ik",
     "BatteryCharge"
 }
@@ -42,6 +41,10 @@ for k, cfg in pairs(ENT.PakToggles or {}) do
     if #cfg.positions == 2 then
         table.insert(ENT.SyncTable, k)
     end
+end
+
+for idx = 1, 8 do
+    table.insert(ENT.SyncTable, "DoorManualBlock" .. idx)
 end
 
 --------------------------------------------------------------------------------
@@ -86,8 +89,8 @@ function ENT:Initialize()
     self.RearBogey = self:CreateBogey(Vector(-338 + 20.8, 0, -70), Angle(0, 0, 0), false, "760")
     self.FrontBogey:SetNWBool("Async", true)
     self.RearBogey:SetNWBool("Async", true)
-    self.FrontBogey:SetNWInt("MotorSoundType", 2)
-    self.RearBogey:SetNWInt("MotorSoundType", 2)
+    self.FrontBogey:SetNWInt("MotorSoundType", Metrostroi.Version > 1537278077 and 3 or 2)
+    self.RearBogey:SetNWInt("MotorSoundType", Metrostroi.Version > 1537278077 and 3 or 2)
     self.FrontBogey:SetNWFloat("SqualPitch", 0.75)
     self.RearBogey:SetNWFloat("SqualPitch", 0.75)
     self.FrontCouple = self:CreateCouple(Vector(442.2 + 30, 0, -68), Angle(0, 0, 0), true, "722")

@@ -76,31 +76,6 @@ for name, idx in pairs(Error2id) do ErrorIdx2Name[idx] = name end
 
 
 function TRAIN_SYSTEM:Initialize()
-    self.Train:LoadSystem("MfduF1", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF2", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF3", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF4", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu1", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu4", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu7", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu2", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu5", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu8", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu0", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu3", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu6", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu9", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF5", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF6", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF7", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF8", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF9", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduHelp", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduKontr", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduTv", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduTv1", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduTv2", "Relay", "Switch", { bass = true })
-
     self.TriggerNames = {"MfduF1", "MfduF2", "MfduF3", "MfduF4", "Mfdu1", "Mfdu2", "Mfdu3", "Mfdu4", "Mfdu5", "Mfdu6", "Mfdu7", "Mfdu8", "Mfdu9", "Mfdu0", "MfduKontr", "MfduHelp", "MfduF6", "MfduF7", "MfduF5", "MfduF9", "MfduF8", "MfduTv", "MfduTv1", "MfduTv2", "AttentionMessage"}
     self.Triggers = {}
     for k, v in pairs(self.TriggerNames) do
@@ -144,7 +119,7 @@ function TRAIN_SYSTEM:Initialize()
     self.CurrentSpeed = 0
     self.ZeroSpeed = 0
     self.BudZeroSpeed = 0
-    self.ZeroSpeedDelay = math.random() * 0.8
+    self.ZeroSpeedDelay = math.random() * 0.5
     self.Speed = 0
     self.MotorWagc = 1
     self.TrailerWagc = 0
@@ -1001,7 +976,6 @@ if SERVER then
                             Train:SetNW2Bool("Skif:DoorML" .. i, orientation and train.CabDoorLeft or not orientation and train.CabDoorRight)
                             Train:SetNW2Bool("Skif:DoorMR" .. i, orientation and train.CabDoorRight or not orientation and train.CabDoorLeft)
                             Train:SetNW2Bool("Skif:DoorT" .. i, train.CabDoorPass)
-                            doorsNotClosed = doorsNotClosed or Train.SF80F3.Value == 1 and (not train.CabDoorLeft or not train.CabDoorRight) and trainid ~= Train:GetWagonNumber()
                             cabDoors = cabDoors or not train.CabDoorLeft or not train.CabDoorRight or not train.CabDoorPass
                         end
 
@@ -1026,7 +1000,7 @@ if SERVER then
 
                     local errPT = self.PTEnabled and CurTime() - self.PTEnabled > 2 + (Train.BUV.Slope1 and 1.2 or 0)
 
-                    Train:SetNW2Int("Skif:DoorsAll", self.DoorClosed < 1 and 0 or cabDoors and 2 or 1)
+                    Train:SetNW2Int("Skif:DoorsAll", self.DoorClosed < 1 and 0 or 1)
                     Train:SetNW2Int("Skif:HvAll", hvGood == 0 and 0 or hvBad == 0 and 1 or 2)
                     Train:SetNW2Int("Skif:BvAll", bvEnabled == 0 and 0 or bvDisabled == 0 and 1 or 2)
                     Train:SetNW2Bool("Skif:CondAny", condAny)
@@ -1396,7 +1370,7 @@ if SERVER then
             self:CState("Ring", Train.Ring.Value > 0, "BUKP")
             self:CState("DriveStrength", math.abs(kvSetting))
             self:CState("Brake", kvSetting < 0 and 1 or 0)
-            self:CState("StrongerBrake", kvSetting < 0 and (kvSetting < -80 or Train.KV765.Position < -1) and Train.BARS.StillBrake == 0 and 1 or 0)
+            self:CState("StrongerBrake", kvSetting < 0 and kvSetting < -75 and Train.BARS.StillBrake == 0 and 1 or 0)
             self:CState("PN1", Train.BARS.PN1)
             self:CState("PN2", Train.BARS.PN2 + (self.Slope and Train.RV.KROPosition ~= 0 and self.SlopeSpeed and 1 or 0))
             self:CState("PN3", Train.BARS.PN3)
@@ -1438,7 +1412,6 @@ if SERVER then
             self:CState("ReccOff", Train.PpzUpi.Value * Train.OtklR.Value > 0)
             self:CState("ParkingBrake", Train.PmvParkingBrake.Value * Train.PpzUpi.Value * Train.SF22F3.Value * Train.Electric.V2 > 0)
             self:CState("PassLight", self.PassLight)
-            self:CState("DoorTorec", self.DoorTorec)
             self:CState("PSN", self.PSN)
             self:CState("Ticker", true)
             self:CState("PassScheme", true)

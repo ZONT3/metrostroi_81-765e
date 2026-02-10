@@ -664,14 +664,10 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
                     tooltip = "Ручная блокировка",
                     model = {
                         var = "DoorManualBlock" .. idx,
-                        speed = 9,
-                        vmin = 1,
-                        vmax = 0,
-                        sndvol = 0.8,
+                        model = "models/metrostroi_train/81-717/battery_enabler.mdl",
+                        speed = 9, vmin = 1, vmax = 0, sndvol = 0.8, scale = 0.1,
                         snd = function(val) return val and "pak_on" or "pak_off" end,
-                        sndmin = 80,
-                        sndmax = 1e3 / 3,
-                        sndang = Angle(-90, 0, 0),
+                        sndmin = 80, sndmax = 1e3 / 3, sndang = Angle(-90, 0, 0),
                     }
                 }
             }
@@ -815,100 +811,51 @@ end
 
 function ENT:ReInitBogeySounds(bogey)
     if not IsValid(bogey) then return end
-    bogey.EngineSNDConfig = {}
-    bogey.MotorSoundType = bogey:GetNWInt("MotorSoundType", 2)
+    bogey.EngineSNDConfig = Metrostroi.Version > 1537278077 and bogey.EngineSNDConfig or {}
 
-    table.insert(bogey.EngineSNDConfig, {
-        "ted1_720", --40
-        08,
-        00,
-        16,
-        0.14
-    })
+    local tbl = bogey.EngineSNDConfig
+    if Metrostroi.Version > 1537278077 then
+        bogey.EngineSNDConfig[4] = {}
+        tbl = bogey.EngineSNDConfig[4]
+        bogey.MotorSoundType = nil
+    else
+        bogey.MotorSoundType = bogey:GetNWInt("MotorSoundType", 1)
+    end
 
-    table.insert(bogey.EngineSNDConfig, {
-        "ted2_720", --35
-        16,
-        08 - 4,
-        24,
-        0.13
-    })
+    local suffix = Metrostroi.Version > 1537278077 and "765" or "720"
 
-    table.insert(bogey.EngineSNDConfig, {
-        "ted3_720", --32
-        24,
-        16 - 4,
-        32,
-        0.12
-    })
-
-    table.insert(bogey.EngineSNDConfig, {
-        "ted4_720", --28
-        32,
-        24 - 4,
-        40,
-        0.10
-    })
-
-    table.insert(bogey.EngineSNDConfig, {
-        "ted5_720", --22
-        40,
-        32 - 4,
-        48,
-        0.09
-    })
-
-    table.insert(bogey.EngineSNDConfig, {
-        "ted6_720", --18
-        48,
-        40 - 4,
-        56,
-        0.06
-    })
-
-    table.insert(bogey.EngineSNDConfig, {
-        "ted7_720", --15
-        56,
-        48 - 4,
-        64,
-        0.05
-    })
-
-    table.insert(bogey.EngineSNDConfig, {
-        "ted8_720", --10
-        64,
-        56 - 4,
-        72,
-        0.04
-    })
-
-    table.insert(bogey.EngineSNDConfig, {
-        "ted9_720", --07
-        72,
-        64 - 4,
-        80,
-        0.03
-    })
-
-    table.insert(bogey.EngineSNDConfig, {
-        "ted10_720", --05
-        80,
-        72 - 4,
-        88,
-        0.02
-    })
+    table.insert(tbl, { "ted1_" .. suffix, --40
+        08, 00, 16, 0.14 })
+    table.insert(tbl, { "ted2_" .. suffix, --35
+        16, 08 - 4, 24, 0.13 })
+    table.insert(tbl, { "ted3_" .. suffix, --32
+        24, 16 - 4, 32, 0.12 })
+    table.insert(tbl, { "ted4_" .. suffix, --28
+        32, 24 - 4, 40, 0.10 })
+    table.insert(tbl, { "ted5_" .. suffix, --22
+        40, 32 - 4, 48, 0.09 })
+    table.insert(tbl, { "ted6_" .. suffix, --18
+        48, 40 - 4, 56, 0.06 })
+    table.insert(tbl, { "ted7_" .. suffix, --15
+        56, 48 - 4, 64, 0.05 })
+    table.insert(tbl, { "ted8_" .. suffix, --10
+        64, 56 - 4, 72, 0.04 })
+    table.insert(tbl, { "ted9_" .. suffix, --07
+        72, 64 - 4, 80, 0.03 })
+    table.insert(tbl, { "ted10_" .. suffix, --05
+        80, 72 - 4, 88, 0.02 })
 
     bogey.SoundNames = bogey.SoundNames or {}
-    bogey.SoundNames["ted1_720"] = "subway_trains/765/rumble/engines/engine_8.wav"
-    bogey.SoundNames["ted2_720"] = "subway_trains/765/rumble/engines/engine_16.wav"
-    bogey.SoundNames["ted3_720"] = "subway_trains/765/rumble/engines/engine_24.wav"
-    bogey.SoundNames["ted4_720"] = "subway_trains/765/rumble/engines/engine_32.wav"
-    bogey.SoundNames["ted5_720"] = "subway_trains/765/rumble/engines/engine_40.wav"
-    bogey.SoundNames["ted6_720"] = "subway_trains/765/rumble/engines/engine_48.wav"
-    bogey.SoundNames["ted7_720"] = "subway_trains/765/rumble/engines/engine_56.wav"
-    bogey.SoundNames["ted8_720"] = "subway_trains/765/rumble/engines/engine_64.wav"
-    bogey.SoundNames["ted9_720"] = "subway_trains/765/rumble/engines/engine_72.wav"
-    bogey.SoundNames["ted10_720"] = "subway_trains/765/rumble/engines/engine_80.wav"
+    bogey.SoundNames["ted1_" .. suffix] = "subway_trains/765/rumble/engines/engine_8.wav"
+    bogey.SoundNames["ted2_" .. suffix] = "subway_trains/765/rumble/engines/engine_16.wav"
+    bogey.SoundNames["ted3_" .. suffix] = "subway_trains/765/rumble/engines/engine_24.wav"
+    bogey.SoundNames["ted4_" .. suffix] = "subway_trains/765/rumble/engines/engine_32.wav"
+    bogey.SoundNames["ted5_" .. suffix] = "subway_trains/765/rumble/engines/engine_40.wav"
+    bogey.SoundNames["ted6_" .. suffix] = "subway_trains/765/rumble/engines/engine_48.wav"
+    bogey.SoundNames["ted7_" .. suffix] = "subway_trains/765/rumble/engines/engine_56.wav"
+    bogey.SoundNames["ted8_" .. suffix] = "subway_trains/765/rumble/engines/engine_64.wav"
+    bogey.SoundNames["ted9_" .. suffix] = "subway_trains/765/rumble/engines/engine_72.wav"
+    bogey.SoundNames["ted10_" .. suffix] = "subway_trains/765/rumble/engines/engine_80.wav"
 
     bogey.SoundNames["flangea"] = "subway_trains/765/rumble/bogey/skrip1.wav"
     bogey.SoundNames["flangeb"] = "subway_trains/765/rumble/bogey/skrip2.wav"
@@ -937,11 +884,18 @@ function ENT:ReInitBogeySounds(bogey)
     for k, v in pairs(bogey.SoundNames) do
         util.PrecacheSound(v)
         local e = bogey
-        if (k == "brake3a") and IsValid(bogey:GetNW2Entity("TrainWheels")) then e = bogey:GetNW2Entity("TrainWheels") end
+        if (k == "brakea_loop1" or k == "brakea_loop2") and IsValid(bogey:GetNW2Entity("TrainWheels")) then e = bogey:GetNW2Entity("TrainWheels") end
         bogey.Sounds[k] = CreateSound(e, Sound(v))
     end
 
     bogey.Async = nil
+end
+
+function ENT:CheckBogeySounds(bogey)
+    return IsValid(bogey) and bogey.SoundNames and (
+        Metrostroi.Version > 1537278077 and not bogey.SoundNames["ted1_765"] or
+        Metrostroi.Version <= 1537278077 and bogey.SoundNames["ted1_720"] ~= "subway_trains/765/rumble/engines/engine_8.wav"
+    )
 end
 
 function ENT:Think()
@@ -951,8 +905,8 @@ function ENT:Think()
         return
     end
 
-    if IsValid(self.FrontBogey) and self.FrontBogey.SoundNames and (self.FrontBogey.SoundNames["ted1_720"] ~= "subway_trains/765/rumble/engines/engine_8.wav" or self.FrontBogey.EngineSNDConfig and self.FrontBogey.EngineSNDConfig[1] and self.FrontBogey.EngineSNDConfig[1][5] ~= 0.14) or refresh then self:ReInitBogeySounds(self.FrontBogey) end
-    if IsValid(self.RearBogey) and self.RearBogey.SoundNames and (self.RearBogey.SoundNames["ted1_720"] ~= "subway_trains/765/rumble/engines/engine_8.wav" or self.RearBogey.EngineSNDConfig and self.RearBogey.EngineSNDConfig[1] and self.RearBogey.EngineSNDConfig[1][5] ~= 0.14) or refresh then self:ReInitBogeySounds(self.RearBogey) end
+    if self:CheckBogeySounds(self.FrontBogey) then self:ReInitBogeySounds(self.FrontBogey) end
+    if self:CheckBogeySounds(self.RearBogey) then self:ReInitBogeySounds(self.RearBogey) end
     if self.Number ~= self:GetWagonNumber() then self:UpdateTextures() end
     if self.Texture ~= self:GetNW2String("texture") then self:UpdateTextures() end
     if self.PassTexture ~= self:GetNW2String("passtexture") then self:UpdateTextures() end
@@ -1099,7 +1053,13 @@ function ENT:Think()
         self:ShowHide(btnKey, self:GetNW2Bool("AddressDoors", false))
         local btn = self.ClientEnts[btnKey]
         if IsValid(btn) then
-            btn:SetSubMaterial(1, self:GetNW2Bool("DoorButtonLed" .. (idx < 5 and 9 - idx or idx - 4), false) and "models/metrostroi_train/81-765/led_green" or "models/metrostroi_train/81-765/led_off")
+            local idx2 = (idx < 5 and 9 - idx or idx - 4)
+            local led = self:GetNW2Bool("DoorButtonLed" .. idx2, false)
+            if led then
+                local state = self:GetNW2String("DoorAnnounceState" .. idx2)
+                led = state ~= "Closed" or CurTime() % 1.2 < 0.6
+            end
+            btn:SetSubMaterial(1, led and "models/metrostroi_train/81-765/led_green" or "models/metrostroi_train/81-765/led_off")
         end
     end
 
