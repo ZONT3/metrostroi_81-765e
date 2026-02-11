@@ -114,8 +114,6 @@ function ENT:Initialize()
     self.DoorK31 = false
     self.NormalMass = 19000
 
-    self:SetNW2String("Texture", "MosBrend")
-    self:SetNW2String("texture", "MosBrend")
     self:CreateDoorTriggers()
     self:TrainSpawnerUpdate()
 end
@@ -162,6 +160,7 @@ function ENT:CreateDoorTriggers()
 end
 
 function ENT:TrainSpawnerUpdate()
+    self:UpdateTextures()
 end
 
 function ENT:Think()

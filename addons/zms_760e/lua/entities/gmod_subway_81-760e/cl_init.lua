@@ -2029,10 +2029,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: 1",
             model = {
                 var = "Mfdu1",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0),
-                vmin = 0, vmax = 1
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2044,9 +2044,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: 2",
             model = {
                 var = "Mfdu2",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2058,9 +2059,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: 3",
             model = {
                 var = "Mfdu3",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2072,9 +2074,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: 4",
             model = {
                 var = "Mfdu4",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2086,9 +2089,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: 5",
             model = {
                 var = "Mfdu5",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2100,9 +2104,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: 6",
             model = {
                 var = "Mfdu6",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2114,9 +2119,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: 7",
             model = {
                 var = "Mfdu7",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2128,9 +2134,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: 8",
             model = {
                 var = "Mfdu8",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2142,9 +2149,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: 9",
             model = {
                 var = "Mfdu9",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2156,9 +2164,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: 0",
             model = {
                 var = "Mfdu0",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2170,9 +2179,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: Сброс",
             model = {
                 var = "MfduF5",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2184,9 +2194,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: Вверх",
             model = {
                 var = "MfduF6",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2198,9 +2209,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: Вниз",
             model = {
                 var = "MfduF7",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2212,9 +2224,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: Ввод",
             model = {
                 var = "MfduF8",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2226,9 +2239,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: Выбор",
             model = {
                 var = "MfduF9",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2240,9 +2254,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: ?",
             model = {
                 var = "MfduHelp",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -2254,9 +2269,10 @@ ENT.ButtonMap["MfduButtons"] = {
             tooltip = "Скиф: КОНТР",
             model = {
                 var = "MfduKontr",
-                speed = 16,
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                scale = 0.1, z = -5, speed = 16, vmin = 0, vmax = 1,
                 snd = function(val) return val and "mfdu_down" or "mfdu_up" end,
-                sndmin = 90, sndmax = 1e3, sndvol = 0.5, sndang = Angle(-90,0,0)
+                sndmin = 90, sndmax = 1e3, sndvol = 0.9,
             }
         },
         {
@@ -4039,9 +4055,7 @@ function ENT:Initialize()
 end
 
 function ENT:UpdateTextures()
-    self.Texture = self:GetNW2String("Texture", "MosBrend")
-    self.PassTexture = self:GetNW2String("passtexture")
-    self.CabinTexture = self:GetNW2String("cabtexture")
+    if isfunction(self.BaseClass.UpdateTextures) then self.BaseClass.UpdateTextures(self) end
     self.Number = self:GetWagonNumber()
     for i = 0, 4 do
         local num = tostring(self.Number)[i + 1]
@@ -4189,7 +4203,7 @@ function ENT:Think()
     if self:CheckBogeySounds(self.FrontBogey) then self:ReInitBogeySounds(self.FrontBogey) end
     if self:CheckBogeySounds(self.RearBogey) then self:ReInitBogeySounds(self.RearBogey) end
     if self.Number ~= self:GetWagonNumber() then self:UpdateTextures() end
-    if self.Texture ~= self:GetNW2String("texture") then self:UpdateTextures() end
+    if self.Texture ~= self:GetNW2String("Texture") then self:UpdateTextures() end
     if self.PassTexture ~= self:GetNW2String("passtexture") then self:UpdateTextures() end
     if self.CabinTexture ~= self:GetNW2String("cabtexture") then self:UpdateTextures() end
     if self:IsNumberBroken() then self:UpdateTextures() end

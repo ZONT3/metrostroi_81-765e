@@ -745,9 +745,7 @@ function ENT:Initialize()
 end
 
 function ENT:UpdateTextures()
-    self.Texture = self:GetNW2String("Texture", "MosBrend")
-    self.PassTexture = self:GetNW2String("passtexture")
-    self.CabinTexture = self:GetNW2String("cabtexture")
+    if isfunction(self.BaseClass.UpdateTextures) then self.BaseClass.UpdateTextures(self) end
     self.Number = self:GetWagonNumber()
 
     for i = 0, 4 do
@@ -847,7 +845,7 @@ function ENT:Think()
     if IsValid(self.RearBogey) and (self.RearBogey.SoundNames and self.RearBogey.SoundNames["flangea"] ~= "subway_trains/765/rumble/bogey/skrip1.wav" or not self.RearBogey.SoundNames) or refresh then self:ReInitBogeySounds(self.RearBogey) end
 
     if self.Number ~= self:GetWagonNumber() then self:UpdateTextures() end
-    if self.Texture ~= self:GetNW2String("texture") then self:UpdateTextures() end
+    if self.Texture ~= self:GetNW2String("Texture") then self:UpdateTextures() end
     if self.PassTexture ~= self:GetNW2String("passtexture") then self:UpdateTextures() end
     if self.CabinTexture ~= self:GetNW2String("cabtexture") then self:UpdateTextures() end
     if self:IsNumberBroken() then self:UpdateTextures() end

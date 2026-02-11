@@ -584,12 +584,12 @@ function ENT:InitializeSounds()
     end
 
     self.SoundNames["mfdu_down"] = {
-        "subway_trains/717/switches/tumbler_triple_0-up_1.mp3",
-        "subway_trains/717/switches/tumbler_triple_0-up_2.mp3",
+        "subway_trains/765/btn_mfdu_dn1.mp3",
+        "subway_trains/765/btn_mfdu_dn2.mp3",
     }
     self.SoundNames["mfdu_up"] = {
-        "subway_trains/717/switches/tumbler_triple_up-0_1.mp3",
-        "subway_trains/717/switches/tumbler_triple_up-0_2.mp3",
+        "subway_trains/765/btn_mfdu_up1.mp3",
+        "subway_trains/765/btn_mfdu_up2.mp3",
     }
 end
 
@@ -910,7 +910,7 @@ ENT.Spawner = {
             ent.ASNP.Path = i ~= 1
         end
     end,
-    -- Metrostroi.Skins.GetTable("Texture", "Spawner.Texture", Texture, "train"),
+    Metrostroi.Skins.GetTable("Texture", "Spawner.Texture", false, "train"),
     -- Metrostroi.Skins.GetTable("PassTexture","Spawner.PassTexture",PassTexture,"pass"),
     -- Metrostroi.Skins.GetTable("CabTexture","Spawner.CabTexture",CabTexture,"cab"),
     {

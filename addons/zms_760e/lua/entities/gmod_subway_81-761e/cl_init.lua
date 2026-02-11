@@ -767,9 +767,7 @@ function ENT:Initialize()
 end
 
 function ENT:UpdateTextures()
-    self.Texture = self:GetNW2String("Texture", "MosBrend")
-    self.PassTexture = self:GetNW2String("passtexture")
-    self.CabinTexture = self:GetNW2String("cabtexture")
+    if isfunction(self.BaseClass.UpdateTextures) then self.BaseClass.UpdateTextures(self) end
     self.Number = self:GetWagonNumber()
     for i = 0, 4 do
         local num = tostring(self.Number)[i + 1]
@@ -908,7 +906,7 @@ function ENT:Think()
     if self:CheckBogeySounds(self.FrontBogey) then self:ReInitBogeySounds(self.FrontBogey) end
     if self:CheckBogeySounds(self.RearBogey) then self:ReInitBogeySounds(self.RearBogey) end
     if self.Number ~= self:GetWagonNumber() then self:UpdateTextures() end
-    if self.Texture ~= self:GetNW2String("texture") then self:UpdateTextures() end
+    if self.Texture ~= self:GetNW2String("Texture") then self:UpdateTextures() end
     if self.PassTexture ~= self:GetNW2String("passtexture") then self:UpdateTextures() end
     if self.CabinTexture ~= self:GetNW2String("cabtexture") then self:UpdateTextures() end
     if self:IsNumberBroken() then self:UpdateTextures() end

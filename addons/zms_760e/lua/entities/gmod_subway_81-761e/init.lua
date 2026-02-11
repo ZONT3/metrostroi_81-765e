@@ -109,8 +109,6 @@ function ENT:Initialize()
         end
     end
 
-    self:SetNW2String("Texture", "MosBrend")
-    self:SetNW2String("texture", "MosBrend")
     self:CreateDoorTriggers()
     self:TrainSpawnerUpdate()
 end
@@ -157,6 +155,7 @@ function ENT:CreateDoorTriggers()
 end
 
 function ENT:TrainSpawnerUpdate()
+    self:UpdateTextures()
 end
 
 function ENT:Think()

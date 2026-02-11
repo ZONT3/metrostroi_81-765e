@@ -1418,7 +1418,7 @@ else
         end
 
         draw.SimpleText("00", "BUIKSpeedometer", x0, y0 - 80, colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-        draw.SimpleText(tostring(math.floor(speed)), "BUIKSpeedometer", x0 + (speed < 10 and 70 or 0), y0 - 80, colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(tostring(math.floor(speed) % 100), "BUIKSpeedometer", x0 + (speed < 10 and 70 or 0), y0 - 80, colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
     function TRAIN_SYSTEM:DrawBuik(state)

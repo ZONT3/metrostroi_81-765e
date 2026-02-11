@@ -461,8 +461,8 @@ else
             local did = "door" .. i .. "x" .. (left and 1 or 0)
             local doorEnt = Wag.ClientEnts[did]
             if IsValid(doorEnt) then
-                doorEnt:SetSubMaterial(0, door)
-                doorEnt:SetSubMaterial(6, inter)
+                doorEnt:SetSubMaterial(3, door)
+                doorEnt:SetSubMaterial(4, inter)
             end
         end
     end

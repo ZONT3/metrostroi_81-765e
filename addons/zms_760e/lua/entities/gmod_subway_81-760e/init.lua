@@ -330,9 +330,6 @@ function ENT:Initialize()
     self.Closet1Val = false
     self.DoorK31 = false
 
-    self:SetNW2String("Texture", "MosBrend")
-    self:SetNW2String("texture", "MosBrend")
-
     self:CreateDoorTriggers()
     self:TrainSpawnerUpdate()
 end
@@ -437,6 +434,7 @@ function ENT:TrainSpawnerUpdate()
     end
 
     self:SetNW2Int("BNT:ScreenFps", self:GetNW2Int("BntFps", 2) == 2 and 60 or math.random(9, 13))
+    self:UpdateTextures()
 end
 
 function ENT:Think()
