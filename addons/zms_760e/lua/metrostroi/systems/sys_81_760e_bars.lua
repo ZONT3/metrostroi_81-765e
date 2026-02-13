@@ -320,7 +320,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.PN3 = 0
         self.Ring = 0
         self.Brake = 0
-        self.Drive = KMState > 0 or not ZeroSpeed and 1 or 0
+        self.Drive = (KMState > 0 or not ZeroSpeed) and 1 or 0
         self.Drive1 = self.ATS1 and self.Drive == 1 and 1 or 0
         self.Drive2 = self.ATS2 and self.Drive == 1 and 1 or 0
         self.BTB = 1

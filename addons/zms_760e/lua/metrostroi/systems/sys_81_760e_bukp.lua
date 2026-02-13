@@ -1099,7 +1099,11 @@ if SERVER then
                             overrideKv = false
                         end
 
-                        if Train.ProstKos.ProstActive == 1 and Train.KV765.Position >= 0 then kvSetting = Train.ProstKos.Command end
+                        if (
+                            Train.ProstKos.ProstActive == 1 and
+                            Train.KV765.Position >= 0 and
+                            not (Train.KV765.Position > 0 and Train.ProstKos.Command > 0)
+                        ) then kvSetting = Train.ProstKos.Command end
                         if Train.ProstKos.CommandKos > 0 then kvSetting = -100 overrideKv = true end
                         if BARS.Brake > 0 then kvSetting = -80 overrideKv = true end
                         if self.Errors.EmergencyBrake and self.ZeroSpeed < 1 then kvSetting = -100 overrideKv = true end
@@ -1162,7 +1166,7 @@ if SERVER then
                     self.BARS1 = (BARS.Drive1 > 0 or self.DisableDrive) and BARS.ATS1
                     self.BARS2 = (BARS.Drive2 > 0 or self.DisableDrive) and BARS.ATS2
 
-                    self:CheckError("ArsFail", Train.PmvAtsBlock.Value < 3 and (BARS.Active * (1 - BARS.ALSMode)) < 1, BARS.ATS1 and not BARS.ATS2 and 1 or BARS.ATS2 and not BARS.ATS1 and 2 or nil)
+                    self:CheckError("ArsFail", Train.PmvAtsBlock.Value < 3 and (BARS.Active + BARS.ALSMode) < 1, BARS.ATS1 and not BARS.ATS2 and 1 or BARS.ATS2 and not BARS.ATS1 and 2 or nil)
                     self:CheckError("KmErr", Train.KV765.Online < 1)
 
                     Train:SetNW2Bool("Skif:NoFreq", BARS.NoFreq and not BARS.KB)

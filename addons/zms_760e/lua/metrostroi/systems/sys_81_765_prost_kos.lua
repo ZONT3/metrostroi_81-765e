@@ -249,7 +249,7 @@ function TRAIN_SYSTEM:Think()
         local delta = (speed - tspeed) * 0.7
         -- print(tspeed, delta)
 
-        if speed < 15 then
+        if speed < 15 and self.Distance < 14 then
             local wagc = BUKP.MotorWagc + BUKP.TrailerWagc
             local roll = RollingMatrix[wagc < 6 and 1 or 2]
             if speed > 10 then
@@ -272,10 +272,10 @@ function TRAIN_SYSTEM:Think()
                 end
             end
         else
-            self.Command = 0
+            self.Command = (speed < 56 and delta < (self.Distance > 150 and -1.2 or -2.8)) and 1 or 0
         end
 
     else
-        self.Command = 0
+        self.Command = 1
     end
 end
