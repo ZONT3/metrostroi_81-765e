@@ -806,6 +806,7 @@ function ENT:InitializeSystems()
     self:LoadSystem("BUIK", "81_765_BUIK")
     self:LoadSystem("CAMS", "81_760_CAMS")
     self:LoadSystem("ProstKos", "81_765_ProstKos")
+    self:LoadSystem("sys_Autodrive", "81_765_AutoDrive")
     self:LoadSystem("FrontIK", "81_765_FrontIK")
 
     if self.InitializeSystemsServer then

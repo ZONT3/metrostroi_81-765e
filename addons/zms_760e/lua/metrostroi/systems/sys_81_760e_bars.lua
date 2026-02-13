@@ -49,6 +49,7 @@ function TRAIN_SYSTEM:Think(dT)
     local EnableALS = Wag.Electric.Battery80V > 62 and (1 - Wag.RV["KRO5-6"]) + Wag.RV["KRR15-16"] > 0
     local DAU = Wag.PmvFreq.Value == 0
     local TwoToSix = Wag.PmvFreq.Value > 0
+    local AD = Wag.sys_Autodrive
     if EnableALS ~= (ALS.Enabled == 1) then ALS:TriggerInput("Enable", EnableALS and 1 or 0) end
 
     -- Kolhoz tipa 81-765 (skoree vsego huinya)
@@ -82,7 +83,7 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     self.KB = Wag.PB.Value > 0.5 or Wag.Attention.Value > 0.5
-    self.KVT = Wag.AttentionBrake.Value > 0.5 or self.KB
+    self.KVT = Wag.AttentionBrake.Value > 0.5 or self.KB or AD.State > 0
     if self.KVT then self.KVTTimer = CurTime() + 1 end
     if self.KVTTimer and CurTime() - self.KVTTimer > 0 then self.KVTTimer = nil end
 
@@ -90,6 +91,10 @@ function TRAIN_SYSTEM:Think(dT)
     local Emer = Wag.RV["KRR15-16"] * Wag.PpzEmerControls.Value > 0.5
     local KMState = Wag.KV765.Position
     local BUPKMState = Wag.BUKP.ControllerState
+	if AD.State > 0 and AD.Command ~= 0 and KMState == 0 and self.Brake < 1 then
+		KMState = AD.Command
+		BUPKMState = AD.Command
+	end
     if Emer then
         KMState = (Wag.EmerX1.Value > 0 or Wag.EmerX2.Value > 0) and 20 or 0
         BUPKMState = KMState
@@ -363,6 +368,9 @@ function TRAIN_SYSTEM:Think(dT)
                 self.PN1Timer = nil
             end
         end
+		if AD.State > 0 and AD.BrakeBoost then
+			self.PN1 = 1
+		end
     elseif self.BarsPower and UOS then
         self.StillBrake = 0
         self.SbTimer = nil

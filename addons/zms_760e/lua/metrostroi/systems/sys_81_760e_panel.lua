@@ -217,6 +217,7 @@ function TRAIN_SYSTEM:Initialize()
     self.EmerXodL = 0
     self.KAHl = 0
     self.ALSl = 0
+    self.AutoDriveLamp = 0
     self.PRl = 0
     self.OtklRl = 0
     self.R_Linel = 0
@@ -244,7 +245,7 @@ function TRAIN_SYSTEM:Outputs()
     return {
         "Controller",
         "AnnouncerPlaying", "TargetController", "CabLight", "PanelLights", "HeadlightsHalf", "HeadlightsFull", "RedLights", "CabVent", "WorkFan", "LV",
-        "DoorLeftL", "DoorRightL", "DoorCloseL", "DoorBlockL", "EmerBrakeL", "EmerXodL", "KAHl", "ALSl", "PRl", "OtklRl", "R_Linel", "R_ChangeRoutel", "Washerl", "Wiperl",
+        "DoorLeftL", "DoorRightL", "DoorCloseL", "DoorBlockL", "EmerBrakeL", "EmerXodL", "KAHl", "ALSl", "AutoDriveLamp", "PRl", "OtklRl", "R_Linel", "R_ChangeRoutel", "Washerl", "Wiperl",
         "EmergencyControlsl", "EmergencyDoorsl", "GlassHeatingl", "PowerOffl", "PowerOnl", "SalonLighting1", "SalonLighting2", "BatteryChargel", "WiperPower"
     }
 end

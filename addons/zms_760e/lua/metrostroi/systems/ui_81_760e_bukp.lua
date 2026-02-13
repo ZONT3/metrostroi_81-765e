@@ -580,7 +580,7 @@ local statusGetters = {
     -- Кондиционер
     function(self, Wag) return Wag:GetNW2Bool("Skif:CondAny", false) and (Wag:GetNW2Bool("Skif:Cond", false) and colorYellow or colorBlue) or colorMain end,
     -- Автоведение
-    function(self, Wag) return colorMain end,
+    function(self, Wag) return --[[Wag:GetNW2Bool("AVP:Fail", false) and colorRed or Wag:GetNW2Int("Skif:AVP:State", 0) > 0 and colorGreen or]] colorMain end,
     -- Сообщения
     function(self, Wag) return colorMain end,
     -- Сервис
@@ -599,7 +599,7 @@ local statusGetters = {
     -- Экст.т.
     function(self, Wag) return Wag:GetNW2Bool("Skif:EmerActive", false) and colorRed or colorMainDisabled end,
     -- Автоведение
-    function(self, Wag) return colorMainDisabled end,
+    function(self, Wag) return Wag:GetNW2Bool("AVP:Fail", false) and (CurTime()%0.8 > 0.4 and colorRed or colorMainDisabled) or Wag:GetNW2Int("Skif:AVP:State", 0) > 1 and colorGreen or Wag:GetNW2Int("Skif:AVP:State", 0) > 0 and colorYellow or Wag:GetNW2Bool("Skif:AVP:Button",false) and colorMain or colorMainDisabled end,
     -- Пр.Ост.
     function(self, Wag)
         return
@@ -1404,10 +1404,10 @@ end
 
 local autodriveTagLabels = { "Данные метки:" }
 local autodriveTagHeader = { "1", "2", "3", "4", "5", "6", "7", "8" }
-local autodriveDetailLabels = { "Таймер метки:", "Кол-во чтений метки:", "Режим КОС:", "Режим ПРОСТ:" }
+local autodriveDetailLabels = { "Активация АВП:", "Нагон АВП:", "Режим КОС:", "Режим ПРОСТ:", "Таймер метки:", "Кол-во чтений метки:"}
 local autodriveDetailHeader = { "" }
 function TRAIN_SYSTEM:DrawAutodrive(Wag, x, y, w, h)
-    local gx, gy, gw, gh = x + 200, y + 45, w - 210, 80
+    local gx, gy, gw, gh = x + 200, y + 375, w - 210, 50
     self:DrawGrid(
         gx, gy, gw, gh, true, sizeMainMargin * 0.75,
         autodriveTagLabels, "Mfdu765.28",
@@ -1418,7 +1418,7 @@ function TRAIN_SYSTEM:DrawAutodrive(Wag, x, y, w, h)
         end
     )
 
-    gx, gy, gw, gh = x + w / 2, y + 160, 180, h - 165
+    gx, gy, gw, gh = x + w / 3.3, y + 10, 180, h - 110
     self:DrawGrid(
         gx, gy, gw, gh, true, 0,
         autodriveDetailLabels, "Mfdu765.28",
@@ -1426,15 +1426,18 @@ function TRAIN_SYSTEM:DrawAutodrive(Wag, x, y, w, h)
         sizeMainMargin * 2, 0,
         function(_, field)
             if field == 1 then
+		local active = Wag:GetNW2Int("Skif:AVP:State", 0) > 0
+                return active and colorGreen or colorMainDisabled, active and "Активен" or "Отключен", active and colorBlack or colorMain
+            elseif field == 5 then
                 return nil, string.format("%08d", Wag:GetNW2Int("Skif:ProstDist", 0)), colorMain, "Mfdu765.AutodriveVals"
-            elseif field == 2 then
+            elseif field == 6 then
                 return nil, Wag:GetNW2Int("Skif:ProstReadings", 0), colorMain, "Mfdu765.AutodriveVals"
             else
-                return "toggle", field == 3 and Wag:GetNW2Bool("Skif:Kos", false) or field == 4 and Wag:GetNW2Bool("Skif:Prost", false)
+                return "toggle", field == 2 and Wag:GetNW2Bool("Skif:AVP:Boost", false) or field == 3 and Wag:GetNW2Bool("Skif:Kos", false) or field == 4 and Wag:GetNW2Bool("Skif:Prost", false)
             end
         end,
         function(field)
-            return field > 2 and self.Select == field - 2 and colorBlue or true
+            return field > 1 and self.Select == field - 1 and colorBlue or true
         end
     )
 end

@@ -29,7 +29,11 @@ local ErrorsA = {
     {"NoOrient", "Вагон не ориентирован.", "Вагон %d не ориентирован."},
     {"BrakeLine", "Низкое давление ТМ."},
     {"DisableDrive", "Запрет ТР от АРС.",},
+    {"AVP:MissedStation", "АВП: Допуск проезда станции",},
+    {"AVP:NotWithinReika", "АВП: Не в зоне ОПВ.",},
+    {"AVP:LostDoorsWhileDep", "АВП: Потеря контроля дверей при отпр.",},
     {"EmergencyBrake", "Экстренное торможение.", "Экстренное торможение\nна %d вагоне."},
+    {"AVP:DisengageDoorClose", "АВП: Отожми Закрытие Дверей",},
     {"ParkingBrake", "Стояночный тормоз прижат.", "Стояночный тормоз прижат\nна %d вагоне."},
     {"PneumoBrake", "Пневмотормоз включен.", "Пневмотормоз включен\nна %d вагоне."},
     {"Doors", "Двери не закрыты.", "Двери не закрыты на %d вагоне."},
@@ -368,7 +372,7 @@ if SERVER then
                 local down = name == BTN_DOWN
                 if self.Select then
                     self.Select = self.Select + (down and 1 or -1)
-                    local max = page == 8 and math.Clamp(#self.Messages - 26 * (self.MsgPage - 1), 1, 26) or 2
+                    local max = page == 8 and math.Clamp(#self.Messages - 26 * (self.MsgPage - 1), 1, 26) or 3 -- 3 а не 2 для страницы АВП
                     if self.Select < 1 then self.Select = max
                     elseif self.Select > max then self.Select = 1 end
                 elseif page == 1 then
@@ -391,8 +395,10 @@ if SERVER then
             else
                 if page == 7 and name == BTN_MODE then
                     if self.Select == 1 then
+                        Train.sys_Autodrive.ADBoost = not Train.sys_Autodrive.ADBoost
+                    elseif self.Select == 2 then
                         self.Kos = not self.Kos
-                    else
+                    elseif self.Select == 3 then
                         self.Prost = not self.Prost
                     end
                 end
@@ -1026,10 +1032,28 @@ if SERVER then
                     Train:SetNW2Bool("Skif:Prost", self.Prost)
                     Train:SetNW2Bool("Skif:Kos", self.Kos)
 
-                    if not self.Errors.NoOrient and Train.DoorSelectL.Value > 0 and Train.DoorSelectR.Value == 0 then selectLeft = true end
-                    if not self.Errors.NoOrient and Train.DoorSelectR.Value > 0 and Train.DoorSelectL.Value == 0 then selectRight = true end
-                    if selectLeft and Train.Electric.DoorsControl > 0 and Train.DoorLeft.Value > 0 and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1) then doorLeft = true end
-                    if selectRight and Train.Electric.DoorsControl > 0 and Train.DoorRight.Value > 0 and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1) then doorRight = true end
+					local AD = Train.sys_Autodrive
+					local AD_Active = AD.State > 0
+                    Train:SetNW2Bool("Skif:AVP:State",AD.State)
+                    Train:SetNW2Bool("Skif:AVP:Button",Train.AutoDrive.Value > 0.5)
+					Train:SetNW2Bool("Skif:AVP:Boost", Train.sys_Autodrive.ADBoost)
+
+					local NoOrient = self.Errors.NoOrient
+					local DoorsControl = Train.Electric.DoorsControl > 0
+					if AD_Active then
+						if not NoOrient then
+							selectLeft = AD.DoorsLeft
+							selectRight = AD.DoorsRight
+							doorLeft = AD.DoorsLeft
+							doorRight = AD.DoorsRight
+							doorClose = AD.DoorsClose
+						end
+					else
+						if not NoOrient and Train.DoorSelectL.Value > 0 and Train.DoorSelectR.Value == 0 then selectLeft = true end
+						if not NoOrient and Train.DoorSelectR.Value > 0 and Train.DoorSelectL.Value == 0 then selectRight = true end
+						if selectLeft and DoorsControl and Train.DoorLeft.Value > 0 and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1) then doorLeft = true end
+						if selectRight and DoorsControl and Train.DoorRight.Value > 0 and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1) then doorRight = true end
+					end
 
                     self.CanZeroSpeed = self.CurrentSpeed < 2.8
                     self.BudZeroSpeed = self.CanZeroSpeed and 1 or 0
@@ -1044,6 +1068,10 @@ if SERVER then
                     end
 
                     self:CheckError("RedLightsAkb", Train.PpzBattLights.Value > 0.5)
+                    self:CheckError("AVP:MissedStation",AD.ADnotAvl and not AD_Active and AD.FailReason==6)
+                    self:CheckError("AVP:NotWithinReika",AD.ADnotAvl and not AD_Active and (AD.FailReason==4 or AD.FailReason==7))
+                    self:CheckError("AVP:LostDoorsWhileDep",AD.ADnotAvl and not AD_Active and AD.FailReason==5)
+                    self:CheckError("AVP:DisengageDoorClose",AD_Active and AD.DriveCycle==1 and Train.DoorClose.Value > 0.5)
 
                     self:CheckError("RightBlock", (not doorRight or Train.DoorClose.Value > 0) and Train.DoorRight.Value > 0)
                     self:CheckError("LeftBlock", (not doorLeft or Train.DoorClose.Value > 0) and Train.DoorLeft.Value > 0)
@@ -1089,15 +1117,21 @@ if SERVER then
                     end
 
                     if Train.RV["KRO5-6"] == 0 then
+						local KV_TRC_SET = Train.KV765.TractiveSetting
                         local AllowDriveInput = BARS.Brake == 0 and BARS.BTB == 1 and BARS.Drive > 0 and not self.DisableDrive and not self.Errors.BuvDiscon and not self.Errors.ParkingBrake
-                        if AllowDriveInput or Train.KV765.TractiveSetting <= 0 then
-                            kvSetting = Train.KV765.TractiveSetting or self.ControllerState or kvSetting
+
+                        if AllowDriveInput or KV_TRC_SET <= 0 then
+                            kvSetting = KV_TRC_SET or self.ControllerState or kvSetting
                             if kvSetting ~= 0 then
                                 if kvSetting < 0 and kvSetting > -20 then kvSetting = -20 end
                                 if kvSetting > 0 and kvSetting <  20 then kvSetting =  20 end
                             end
                             overrideKv = false
                         end
+
+						if KV_TRC_SET==0 and AD.Command~=0 then
+							kvSetting = AD.Command*25
+						end
 
                         if Train.ProstKos.ProstActive == 1 and Train.KV765.Position >= 0 then kvSetting = Train.ProstKos.Command end
                         if Train.ProstKos.CommandKos > 0 then kvSetting = -100 overrideKv = true end
@@ -1112,7 +1146,7 @@ if SERVER then
                         if sb then kvSetting = -50 overrideKv = true end
 
                         -- if kvSetting < -10 and not sb and Train.KV765.Position > 0 then kvSetting = -100 overrideKv = true end
-                        if not sb and (Train.KV765.TractiveSetting > 0 or Train.KV765.TargetTractiveSetting > 0) and kvSetting <= 0 then
+                        if not sb and (KV_TRC_SET > 0 or Train.KV765.TargetTractiveSetting > 0) and kvSetting <= 0 then
                             Train.KV765:TriggerInput("ResetTractiveSetting", 1)
                         end
                     end

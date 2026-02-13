@@ -327,6 +327,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Panel.EmerXodL = PowerReserve * abs(RV.KRRPosition) * (1 - Train.SD3.Value) * Train.BARS.Drive  -- FIXME Restore old BARS.Drive as separate field
         Panel.KAHl = UPIPower * Train.KAH.Value
         Panel.ALSl = UPIPower * Train.ALS.Value
+        Panel.AutoDriveLamp = UPIPower -- остальное уже в ините посчитаем
         Panel.PRl = UPIPower * Train.Pr.Value * Train.SF70F3.Value
         Panel.OtklRl = UPIPower * Train.OtklR.Value * Train.SF70F3.Value
         Panel.Washerl = PowerReserve * Train.Washer.Value * Train.SF70F3.Value

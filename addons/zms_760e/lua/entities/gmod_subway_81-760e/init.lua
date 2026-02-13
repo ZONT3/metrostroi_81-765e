@@ -152,6 +152,7 @@ function ENT:Initialize()
             [KEY_G] = "DisableBVSet",
             [KEY_2] = "RingSet",
             [KEY_L] = "HornBSet",
+            [KEY_A] = "AutoDriveToggle",
             [KEY_MINUS] = "Buik_DownSet",
             [KEY_EQUAL] = "Buik_UpSet",
         },
@@ -325,6 +326,7 @@ function ENT:Initialize()
     self.CabinWindowRight = false
     self.Chair = false
     self.SpeedTimer = CurTime()
+    self.stationDoorSideLeft = false
     self.WrenchMode = 0
     self.ALSVal = 0
     self.Closet1Val = false
@@ -544,6 +546,7 @@ function ENT:Think()
     self:SetNW2Bool("KAHLamp", Panel.KAHl > 0)
     self:SetNW2Bool("ALSLamp", Panel.ALSl > 0)
     self:SetNW2Bool("PrLamp", Panel.PRl > 0)
+    self:SetNW2Bool("AutoDriveLamp", Panel.AutoDriveLamp > 0 and self.sys_Autodrive.State > 0)
     self:SetNW2Bool("OtklRLamp", Panel.OtklRl > 0)
     self:SetNW2Bool("R_LineLamp", Panel.R_Linel > 0)
     self:SetNW2Bool("R_ChangeRouteLamp", Panel.R_ChangeRoutel > 0)
