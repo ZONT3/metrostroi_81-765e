@@ -353,7 +353,7 @@ function TRAIN_SYSTEM:Think(dT)
     if self.StartDelay and (Train.Pneumatic.BrakeCylinderPressure >= 0.2 or self:Get("Slope") or Train.Speed >= 1.2) then
         self.StartDelay = nil
     elseif not self.StartDelay and Train.Pneumatic.BrakeCylinderPressure < 0.2 and not self:Get("Slope") and Train.Speed < 1.2 then
-        self.StartDelay = CurTime() + 0.2
+        self.StartDelay = CurTime() + 0.07
     end
 
     local strength = not self:Get("PVU5") and (self.Slope1 and true or brakeCondition or driveCondition and (not self.StartDelay or CurTime() >= self.StartDelay)) and self:Get("DriveStrength") or 0

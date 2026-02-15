@@ -1470,7 +1470,7 @@ if SERVER then
         if ZeroSpeed then
             ZeroSpeed = false
             if not self.ZeroSpeedTimer then
-                self.ZeroSpeedTimer = CurTime() + math.Rand(0.6 + self.ZeroSpeedDelay, 0.8 + self.ZeroSpeedDelay)
+                self.ZeroSpeedTimer = CurTime() + math.Rand(0.4 + self.ZeroSpeedDelay, 0.6 + self.ZeroSpeedDelay)
             elseif CurTime() >= self.ZeroSpeedTimer then
                 ZeroSpeed = true
             end

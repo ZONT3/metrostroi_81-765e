@@ -19,7 +19,7 @@ function TRAIN_SYSTEM:Initialize()
     self.LN = false
     self.StillBrake = 0
     self.SbTimer = 0
-    self.ZsErrorMargin = math.random() * 0.35 + 0.5
+    self.ZsErrorMargin = math.random() * 0.15 + 0.35
     self.PN1 = 0
     self.PN2 = 0
     self.PN3 = 0
@@ -166,7 +166,7 @@ function TRAIN_SYSTEM:Think(dT)
                 if not Brake then Ring = true end
                 Brake = true
                 self.PN1Timer = CurTime() + 1
-            elseif not Ring then
+            elseif Brake and not Ring and not KmCur then
                 Brake = false
             end
 
@@ -176,7 +176,7 @@ function TRAIN_SYSTEM:Think(dT)
             if Ring and self.KVT then
                 Ring = false
             end
-            RVTB = RVTB and self:RvtbTimer("KvtTimer", not Ring)
+            RVTB = RVTB and self:RvtbTimer("KvtTimer", not Ring and not (not forgiveful and Brake and KmCur))
 
             if Speed > SpeedLimit - 1.3 and KmCur then
                 if not Drive then
@@ -185,7 +185,7 @@ function TRAIN_SYSTEM:Think(dT)
                     end
                 elseif not DisableDrive then
                     DisableDrive = true
-                    self.ControllerInDrive = forgiveful or Speed < SpeedLimit
+                    self.ControllerInDrive = true
                 end
             end
             RVTB = RVTB and self:RvtbTimer("TryDriveTimer", not KmCur or Speed <= SpeedLimit - 1.3)
@@ -383,7 +383,7 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     if self.PN3 > 0 then
-        self.PN3Timer = CurTime() + 0.7
+        self.PN3Timer = CurTime() + 0.6
     elseif self.PN3Timer and CurTime() < self.PN3Timer then
         self.PN3 = 1
     elseif self.PN3Timer then
