@@ -572,11 +572,11 @@ local statusGetters = {
     -- Двери
     function(self, Wag) return Wag:GetNW2Int("Skif:DoorsAll", 0) == 1 and colorGreen or Wag:GetNW2Int("Skif:DoorsAll", 0) == 2 and colorYellow or colorRed end,
     -- Тяг.привод
-    function(self, Wag) return colorMain end,
+    function(self, Wag) return Wag:GetNW2Bool("Skif:TpGood", false) and colorMain or colorRed end,
     -- Напряжение
     function(self, Wag) return Wag:GetNW2Int("Skif:HvAll", 0) == 1 and colorGreen or Wag:GetNW2Int("Skif:HvAll", 0) == 2 and colorYellow or colorRed end,
     -- Пневматика
-    function(self, Wag) return colorMain end,
+    function(self, Wag) return Wag:GetNW2Bool("Skif:PnGood", false) and colorMain or colorRed end,
     -- Кондиционер
     function(self, Wag) return Wag:GetNW2Bool("Skif:CondAny", false) and (Wag:GetNW2Bool("Skif:Cond", false) and colorYellow or colorBlue) or colorMain end,
     -- Автоведение
@@ -828,7 +828,12 @@ function TRAIN_SYSTEM:DrawGrid(x, y, w, h, vertical, cellGap, labels, labelFont,
                     draw.SimpleText("Вкл", textFont or "Mfdu765.28", cx + cw / 2, cy + ch / 2, not text and colorMain or colorBlack, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
                 else
                     if color then
-                        draw.RoundedBox(sizeCellBorderRadius, x + cellMarginX, y + cellMarginY, cellW - cellMarginX * 2, cellH - cellMarginY * 2, color)
+                        if color == -1 then
+                            surface.SetDrawColor(colorRed)
+                            surface.DrawRect(x + cellMarginX + 4, y + cellMarginY + 4, cellW - cellMarginX * 2 - 8, cellH - cellMarginY * 2 - 8)
+                        else
+                            draw.RoundedBox(sizeCellBorderRadius, x + cellMarginX, y + cellMarginY, cellW - cellMarginX * 2, cellH - cellMarginY * 2, color)
+                        end
                     end
                     if text then
                         draw.SimpleText(text, textFont or "Mfdu765.28", x + cellW / 2, y + cellH / 2, textColor or colorBlack, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
@@ -992,9 +997,9 @@ function TRAIN_SYSTEM:DrawDoorsPage(Wag, x, y, w, h)
                 local door = string.format("%d%s%d", left and doorIdx - 1 or 11 - doorIdx, left and "L" or "R", wagIdx)
                 addr = Wag:GetNW2Bool("Skif:AddressDoors" .. (left and "L" or "R") .. wagIdx, false)
                 aod = Wag:GetNW2Bool("Skif:DoorAod" .. door, false)
-                color = not buvDisabled and Wag:GetNW2Bool("Skif:Door" .. door, false) and colorGreen or Wag:GetNW2Bool("Skif:DoorReverse" .. door, false) and colorYellow or colorRed
+                color = buvDisabled and colorBrightText or Wag:GetNW2Bool("Skif:Door" .. door, false) and colorGreen or Wag:GetNW2Bool("Skif:DoorReverse" .. door, false) and colorYellow or colorRed
             end
-            return color, color and (buvDisabled and "X" or aod and "А" or pvu and "Р" or addr and "И" or nil)
+            return color, color and (buvDisabled and "" or aod and "А" or pvu and "Р" or addr and "И" or nil)
         end
     )
     local sideTextPos = y + posDoorsGridY / 2 - 16
@@ -1025,17 +1030,22 @@ function TRAIN_SYSTEM:DrawAsyncPage(Wag, x, y, w, h)
         false, "Mfdu765.28",
         sizeMainMargin, sizeMainMargin / 2,
         function(wagIdx, idx)
+            local buvDisabled = not Wag:GetNW2Bool("Skif:BUVState" .. wagIdx, false)
             if not Wag:GetNW2Bool("Skif:AsyncInverter" .. wagIdx, false) then return end
             local k = asyncStates[idx]
+            local color = (not k or Wag:GetNW2Bool(k .. wagIdx, false)) and colorGreen or colorRed
             local text = nil
             if idx == 2 then
-                if not Wag:GetNW2Bool("Skif:Battery" .. wagIdx, false) or not Wag:GetNW2Bool("Skif:BUVState" .. wagIdx, false) or not Wag:GetNW2Bool("Skif:InvSf" .. wagIdx, false) then
-                    text = "X"
+                if not Wag:GetNW2Bool("Skif:Battery" .. wagIdx, false) or not Wag:GetNW2Bool("Skif:InvSf" .. wagIdx, false) then
+                    color = colorBrightText
                 elseif Wag:GetNW2Bool("Skif:PVU7" .. wagIdx, false) then
                     text = "Р"
                 end
             end
-            return (not k or Wag:GetNW2Bool(k .. wagIdx, false)) and colorGreen or colorRed, text
+            if buvDisabled then
+                color = colorBrightText
+            end
+            return color, text
         end
     )
 
@@ -1049,7 +1059,8 @@ function TRAIN_SYSTEM:DrawAsyncPage(Wag, x, y, w, h)
         end
         self:DrawThrottle(math.Clamp(thr * 100 / 150, -100, 100), xb, yb, barW)
 
-        local color = not Wag:GetNW2Bool("Skif:AsyncInverter" .. idx, false) and colorMainDarker or Wag:GetNW2Bool("Skif:HVGood" .. idx, false) and colorGreen or colorRed
+        local buvDisabled = not Wag:GetNW2Bool("Skif:BUVState" .. idx, false)
+        local color = buvDisabled and colorBrightText or not Wag:GetNW2Bool("Skif:AsyncInverter" .. idx, false) and colorMainDarker or Wag:GetNW2Bool("Skif:HVGood" .. idx, false) and colorGreen or colorRed
         draw.RoundedBox(
             sizeCellBorderRadius, xb + sizeBorder, yb + sizeThrottleBarH + sizeBorder,
             barW - sizeBorder * 2, barW - sizeBorder, color
@@ -1126,8 +1137,12 @@ function TRAIN_SYSTEM:DrawElectric(Wag, x, y, w, h)
             local async = Wag:GetNW2Bool("Skif:AsyncInverter" .. idx, false)
             if row == 1 then
                 return Wag:GetNW2Int("Skif:WagNum" .. idx, "?????")
+            end
+            if not Wag:GetNW2Bool("Skif:BUVState" .. idx, false) then
+                return
+            end
             -- pizdec
-            elseif row == 2 then
+            if row == 2 then
                 local val = Wag:GetNW2Int("Skif:U" .. idx, 0) / 10
                 if not async then
                     return nil, nil, val >= 550 and colorGreen or colorRed
@@ -1180,8 +1195,12 @@ function TRAIN_SYSTEM:DrawPneumatic(Wag, x, y, w, h)
             if idx > Wag:GetNW2Int("Skif:WagNum", 0) then return end
             if row == 1 then
                 return Wag:GetNW2Int("Skif:WagNum" .. idx, "?????")
+            end
+            if not Wag:GetNW2Bool("Skif:BUVState" .. idx, false) then
+                return
+            end
             -- YandereDev, ty cho?
-            elseif row == 2 then
+            if row == 2 then
                 local val = Wag:GetNW2Bool("Skif:EmerActive" .. idx, false)
                 return nil, nil, val and colorGreen or colorRed
             elseif row == 3 then
@@ -1248,7 +1267,7 @@ local voFields = {
         {"Рессора", "Skif:RessoraGood"},
         {"БУПУ", "Skif:PUGood"},
         {"БУД", "Skif:BUDWork"},
-        {"Ориентация", "Skif:WagOr", function(val) return nil, val and "О" or "П", val and colorYellow or colorGreen end},
+        {"Ориентация", function(Wag, idx) return not Wag:GetNW2Bool("Skif:OrientGood" .. idx, false) and -1 or Wag:GetNW2Bool("Skif:WagOr" .. idx, false) and 1 or 2 end, function(val) return val == -1 and -1 or nil, val == 1 and "О" or val == 2 and "П" or nil, val == 1 and colorYellow or colorGreen end},
     }, {
         {"", "Skif:UKKZ1"},
         {"", "Skif:UKKZ2"},
@@ -1311,6 +1330,15 @@ function TRAIN_SYSTEM:DrawVoPage(Wag, x, y, w, h)
         true, "Mfdu765.VoLabel",
         0, sizeVoCellMargin / 2,
         function(idx, field)
+            if (voPage == 2 or voPage == 4) and field > 4 then
+                return
+            end
+            if not Wag:GetNW2Bool("Skif:BUVState" .. idx, false) then
+                if voPage == 1 and field == 10 then
+                    return nil
+                end
+                return colorBrightText, voPage > 1 and tostring(field) or nil, colorBlack, "Mfdu765.VoLabelBigger"
+            end
             local fieldData = voFields[voPage] and voFields[voPage][field]
             local _, valGetter, getter = unpack(fieldData or {})
             if valGetter then
@@ -1340,6 +1368,9 @@ function TRAIN_SYSTEM:DrawCondPage(Wag, x, y, w, h)
         true, "Mfdu765.VoLabel",
         0, sizeVoCellMargin / 2,
         function(idx, field)
+            if not Wag:GetNW2Bool("Skif:BUVState" .. idx, false) then
+                return colorBrightText
+            end
             if field == 3 then
                 return Wag:GetNW2Bool("Skif:HasCabin" .. idx, false) and (Wag:GetNW2Bool("Skif:CondK" .. idx, false) and colorGreen or colorRed) or nil
             end
@@ -1465,6 +1496,9 @@ function TRAIN_SYSTEM:DrawSfPage(Wag, x, y, w, h, pg)
         true, "Mfdu765.VoLabel",
         0, sizeVoCellMargin / 2,
         function(idx, field)
+            if not Wag:GetNW2Bool("Skif:BUVState" .. idx, false) then
+                return colorBrightText
+            end
             for _, sf in ipairs(self.SfGetters[pg][field]) do
                 if not Wag:GetNW2Bool("Skif:Sf" .. sf .. idx, false) then
                     return colorRed

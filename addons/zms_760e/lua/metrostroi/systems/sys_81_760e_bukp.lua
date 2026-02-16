@@ -675,7 +675,7 @@ if SERVER then
         local RV = (1 - Train.RV["KRO5-6"]) + Train.RV["KRR15-16"]
         Train:SetNW2Int("Skif:RV", RV * Train.Electric.UPIPower)
         if self.State ~= 5 then self.MainMsg = RV * Train.Electric.UPIPower > 0 and MAINMSG_NONE or MAINMSG_RVOFF end
-        self.Active = (RV * Train.PpzActiveCabin.Value ~= 0) and 1 or 0
+        self.Active = RV and 1 or 0
 
         if self.State < 5 then
             self.Prost = false
@@ -685,6 +685,7 @@ if SERVER then
         self.ESD = 0
         self.CanZeroSpeed = false
         self.BudZeroSpeed = 0
+        self.DoorClosed = 0
 
         local BARS = Train.BARS
         if Power then
@@ -803,7 +804,7 @@ if SERVER then
 
             local EnginesStrength = 0
             if self.InitTimer and CurTime() - self.InitTimer > 0 then self.InitTimer = nil end
-            local RvKro = (1 - Train.RV["KRO5-6"]) * Train.PpzPrimaryControls.Value
+            local RvKro = (1 - Train.RV["KRO5-6"])
             local RvKrr = Train.RV["KRR15-16"] * Train.PpzEmerControls.Value
             local RvWork = self.InitTimer and true or RvKro + RvKrr > 0.5 and RvKro + RvKrr < 1.5
             local doorLeft, doorRight, selectLeft, selectRight, doorClose = false, false, false
@@ -824,7 +825,7 @@ if SERVER then
                 end
                 self.MotorWagc, self.TrailerWagc = motor, trailer
 
-                local doorsNotClosed = false
+                local doorsNotClosed = Train.PpzActiveCabin.Value < 1
 
                 self.PantDisabled = PantDisabled
                 if HVBad and not self.HVBad then self.HVBad = CurTime() end
@@ -869,6 +870,8 @@ if SERVER then
                     local hvGood = 0
                     local condAny = false
                     local voGood = true
+                    local tpGood = true
+                    local pnGood = countBL < 1
                     local schemeAll = true
                     local schemeAny = false
                     local btbAll = true
@@ -879,7 +882,8 @@ if SERVER then
                     for i = 1, self.WagNum do
                         local trainid = self.Trains[i]
                         local train = self.Trains[trainid]
-                        local doorclose = true
+                        local working = self:CheckBuv(train)
+                        local doorclose = working
                         for d = 1, 8 do
                             if not train["Door" .. d .. "Closed"] then
                                 doorclose = false
@@ -887,36 +891,38 @@ if SERVER then
                             end
                         end
 
-                        local working = self:CheckBuv(train)
                         self:CheckWagError(i, "BuvDiscon", not working)
-                        self:CheckWagError(i, "NoOrient", working and train.WagNOrientated)
+                        self:CheckWagError(i, "NoOrient", working and (train.WagNOrientated or Train.PpzOrient.Value < 1 or Train.PpzActiveCabin.Value < 1))
                         self:CheckWagError(i, "EmergencyBrake", working and train.EmergencyBrake)
                         self:CheckWagError(i, "ParkingBrake", working and train.ParkingBrakeEnabled)
-                        self:CheckWagError(i, "Doors", working and not doorclose)
+                        self:CheckWagError(i, "Doors", not doorclose)
                         self:CheckWagError(i, "RearCabin", working and train.DoorBack and trainid ~= Train:GetWagonNumber())
                         self:CheckWagError(i, "PassLights", working and not train.PassLightEnabled)
                         self:CheckWagError(i, "BvDisabled", working and train.AsyncInverter and not train.BVEnabled)
 
+                        doorsNotClosed = doorsNotClosed or not doorclose
                         if working then
                             ptApplied = not ptApplied and train.PTEnabled and i or ptApplied and train.PTEnabled and true or ptApplied
-                            doorsNotClosed = doorsNotClosed or not doorclose
-
                             if train.BVEnabled then bvEnabled = bvEnabled + 1 end
                             if not train.BVEnabled and train.AsyncInverter then bvDisabled = bvDisabled + 1 end
                             if not train.HVBad and train.AsyncInverter then hvGood = hvGood + 1 end
                             if train.HVBad and train.AsyncInverter then hvBad = hvBad + 1 end
                             if train.Cond1 or train.Cond2 then condAny = true end
-                            if not working or not train.PSNEnabled or not train.PassLightEnabled then voGood = false end
                             if not train.Scheme and train.AsyncInverter then schemeAll = false end
                             if train.Scheme and train.AsyncInverter then schemeAny = true end
                             if train.PTEnabled then ptAll = false end
-                            if not train.BTBReady then btbAll = false end
+                            if not train.BTBReady then btbAll = false pnGood = false end
+                            if train.TLPressure < 5.5 then pnGood = false end
+                            if train.AsyncInverter and (not train.BVEnabled or not train.EnginesBroken) then tpGood = false end
                         end
+                        local orientGood = working and not train.WagNOrientated and Train.PpzOrient.Value > 0
+                        if not working or not orientGood or not train.PSNEnabled or not train.BUDWork then voGood = false end
 
-                        --Errors
                         Train:SetNW2Bool("Skif:Doors" .. i, doorclose)
                         Train:SetNW2Bool("Skif:BV" .. i, train.BVEnabled)
                         Train:SetNW2Bool("Skif:BUVState" .. i, working)
+                        Train:SetNW2Bool("Skif:OrientGood" .. i, orientGood and Train.PpzActiveCabin.Value > 0)
+                        Train:SetNW2Bool("Skif:WagOr" .. i, orientGood and train.Orientation)
                         Train:SetNW2Bool("Skif:Battery" .. i, train.Battery)
                         Train:SetNW2Bool("Skif:BTBReady" .. i, train.BTBReady)
                         Train:SetNW2Bool("Skif:EPTGood" .. i, train.EmergencyBrakeGood)
@@ -935,17 +941,8 @@ if SERVER then
                         Train:SetNW2Bool("Skif:BadCombination" .. i, not train.BadCombination)
                         Train:SetNW2Bool("Skif:AsyncInverter" .. i, train.AsyncInverter)
                         Train:SetNW2Bool("Skif:HVGood" .. i, not train.HVBad)
-                        local orientation = train.Orientation
-                        local doorleftopened, doorrightopened = false, false
-                        for d = 1, 4 do
-                            local l = not train["Door" .. (orientation and d or d + 4) .. "Closed"]
-                            local r = not train["Door" .. (orientation and d + 4 or d) .. "Closed"]
-                            if l and not doorleftopened then doorleftopened = true end
-                            if r and not doorrightopened then doorrightopened = true end
-                        end
+                        local orientation = Train.PpzOrient.Value > 0 and train.Orientation
 
-                        Train:SetNW2Bool("Skif:DoorLeft" .. i, doorleftopened)
-                        Train:SetNW2Bool("Skif:DoorRight" .. i, doorrightopened)
                         self.SchemeEngaged = self.SchemeEngaged or not train.NoAssembly
 
                         local short = false
@@ -1000,11 +997,13 @@ if SERVER then
 
                     local errPT = self.PTEnabled and CurTime() - self.PTEnabled > 2 + (Train.BUV.Slope1 and 1.2 or 0)
 
-                    Train:SetNW2Int("Skif:DoorsAll", self.DoorClosed < 1 and 0 or 1)
+                    Train:SetNW2Int("Skif:DoorsAll", Train.PpzOrient.Value * self.DoorClosed < 1 and 0 or 1)
                     Train:SetNW2Int("Skif:HvAll", hvGood == 0 and 0 or hvBad == 0 and 1 or 2)
                     Train:SetNW2Int("Skif:BvAll", bvEnabled == 0 and 0 or bvDisabled == 0 and 1 or 2)
                     Train:SetNW2Bool("Skif:CondAny", condAny)
                     Train:SetNW2Bool("Skif:VoGood", voGood)
+                    Train:SetNW2Bool("Skif:TpGood", tpGood)
+                    Train:SetNW2Bool("Skif:PnGood", pnGood)
                     Train:SetNW2Int("Skif:KTR", Train.EmerBrake.Value == 1 and 1 or -1)
                     Train:SetNW2Int("Skif:ALS", Train.ALS.Value * Train.ALSVal == 2 and 1 or -1)
                     Train:SetNW2Int("Skif:BOSD", Train.DoorBlock.Value == 1 and 0 or -1)
@@ -1051,8 +1050,7 @@ if SERVER then
                     self:CheckError("BrakeLine", self.BLTimer and CurTime() - self.BLTimer > 0)
                     self:CheckError("RvErr", false)
                     self:CheckError("KmErr", false)
-                    self:CheckError("DisableDrive", BARS.DisableDrive or self.Errors.DisableDrive and Train.KV765.Position > 0)
-                    self.DisableDrive = BARS.DisableDrive or self.Errors.DisableDrive
+                    self:CheckError("DisableDrive", BARS.DisableDrive)
                     if not self.Errors.NoOrient then self:CheckError("NoOrient", noOrient and Train.KV765.Position > 0) end
                     -- if not self.Errors.Doors then self:CheckError("Doors", self.DoorsNotClosed and Train.KV765.Position > 0) end
 
@@ -1089,7 +1087,7 @@ if SERVER then
                     end
 
                     if Train.RV["KRO5-6"] == 0 then
-                        local AllowDriveInput = BARS.Brake == 0 and BARS.BTB == 1 and BARS.Drive > 0 and not self.DisableDrive and not self.Errors.BuvDiscon and not self.Errors.ParkingBrake
+                        local AllowDriveInput = BARS.Brake == 0 and BARS.BTB == 1 and BARS.Drive > 0 and not BARS.DisableDrive and not self.Errors.BuvDiscon and not self.Errors.ParkingBrake
                         if AllowDriveInput or Train.KV765.TractiveSetting <= 0 then
                             kvSetting = Train.KV765.TractiveSetting or self.ControllerState or kvSetting
                             if kvSetting ~= 0 then
@@ -1163,8 +1161,8 @@ if SERVER then
                     self.Speed = math.Round(Train.ALSCoil.Speed * 10) / 10
                     self.CurrentSpeed = self.Speed
 
-                    self.BARS1 = (BARS.Drive1 > 0 or self.DisableDrive) and BARS.ATS1
-                    self.BARS2 = (BARS.Drive2 > 0 or self.DisableDrive) and BARS.ATS2
+                    self.BARS1 = (BARS.Drive1 > 0 or BARS.DisableDrive) and BARS.ATS1
+                    self.BARS2 = (BARS.Drive2 > 0 or BARS.DisableDrive) and BARS.ATS2
 
                     self:CheckError("ArsFail", Train.PmvAtsBlock.Value < 3 and (BARS.Active + BARS.ALSMode) < 1, BARS.ATS1 and not BARS.ATS2 and 1 or BARS.ATS2 and not BARS.ATS1 and 2 or nil)
                     self:CheckError("KmErr", Train.KV765.Online < 1)
@@ -1180,8 +1178,6 @@ if SERVER then
                     Train:SetNW2Int("Skif:SpeedLimit", (Train.ALSCoil.AO or BARS.NoFreq and not BARS.KB) and 0 or Train.BARS.SpeedLimit)
                     Train:SetNW2Int("Skif:NextSpeedLimit", (BARS.NoFreq or BARS.NextNoFq) and 0 or Train.BARS.NextLimit)
 
-                    Train:SetNW2Bool("KB", BARS.KB)
-                    Train:SetNW2Bool("DisableDrive", self.DisableDrive)
                     Train:SetNW2Bool("Skif:BTB", Train.BUV.BTB)
                     Train:SetNW2Bool("Skif:KRR", RvKrr > 0)
                     Train:SetNW2Bool("Skif:EmerActive", self.Errors.EmergencyBrake)
@@ -1204,8 +1200,7 @@ if SERVER then
                             Train:SetNW2Bool("Skif:PantDisabled" .. i, not train.PantDisabled)
                             Train:SetNW2Bool("Skif:RessoraGood" .. i, true)
                             Train:SetNW2Bool("Skif:PUGood" .. i, true)
-                            Train:SetNW2Bool("Skif:BUDWork" .. i, train.BUDWork)
-                            Train:SetNW2Bool("Skif:WagOr" .. i, train.Orientation)
+                            Train:SetNW2Bool("Skif:BUDWork" .. i, Train.PpzOrient.Value > 0 and Train.PpzActiveCabin.Value > 0 and train.BUDWork)
                         end
                     elseif self.State2 == 13 then
                         for i = 1, self.WagNum do
@@ -1232,8 +1227,7 @@ if SERVER then
                     elseif self.State2 == 21 then
                         for i = 1, self.WagNum do
                             local train = self.Trains[self.Trains[i]]
-                            local orientation = train.Orientation
-                            Train:SetNW2Bool("Skif:WagOr" .. i, orientation)
+                            local orientation = Train.PpzOrient.Value > 0 and train.Orientation
                             for d = 1, 4 do
                                 Train:SetNW2Bool("Skif:Door" .. d .. "L" .. i, train["Door" .. (orientation and d or d + 4) .. "Closed"])
                                 Train:SetNW2Bool("Skif:Door" .. d .. "R" .. i, train["Door" .. (orientation and d + 4 or d) .. "Closed"])
@@ -1366,15 +1360,21 @@ if SERVER then
                 self.Select = false
             end
 
-            self.ControllerState = kvSetting
+            -- Потеря автомата "Управление основное", вариант 1: текущая уставка в БУВ и состояние сбора сх _зависает_
+            -- self.ControllerState = Train.PpzPrimaryControls.Value > 0 and kvSetting or self.ControllerState
+            -- if kvSetting > 0 and self.ControllerState < 0 then self.ControllerState = 0 end
+
+            -- Вариант 2: просто нету сбора сх
+            self.ControllerState = Train.PpzPrimaryControls.Value > 0 and kvSetting or 0
+
             Train:SetNW2Int("Skif:Throttle", (overrideKv or Train.ProstKos.Command < 10) and kvSetting or Train.KV765.TargetTractiveSetting)
             Train:SetNW2Bool("Skif:OverrideKv", overrideKv)
 
             self:CState("RV", RvWork, "BUKP")
             self:CState("Ring", Train.Ring.Value > 0, "BUKP")
-            self:CState("DriveStrength", math.abs(kvSetting))
-            self:CState("Brake", kvSetting < 0 and 1 or 0)
-            self:CState("StrongerBrake", kvSetting < 0 and kvSetting < -75 and Train.BARS.StillBrake == 0 and 1 or 0)
+            self:CState("DriveStrength", math.abs(self.ControllerState))
+            self:CState("Brake", self.ControllerState < 0 and 1 or 0)
+            self:CState("StrongerBrake", self.ControllerState < 0 and self.ControllerState < -75 and Train.BARS.StillBrake == 0 and 1 or 0)
             self:CState("PN1", Train.BARS.PN1)
             self:CState("PN2", Train.BARS.PN2 + (self.Slope and Train.RV.KROPosition ~= 0 and self.SlopeSpeed and 1 or 0))
             self:CState("PN3", Train.BARS.PN3)
@@ -1412,7 +1412,7 @@ if SERVER then
             self:CState("TP1", (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 2) and Train.PpzUpi.Value > 0)
             self:CState("TP2", (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 1) and Train.PpzUpi.Value > 0)
             self:CState("PR", Train.Pr.Value * Train.PpzUpi.Value > 0)
-            self:CState("Cond1", Train.PpzUpi.Value * (1 - Train.PmvCond.Value) * Train.SF61F8.Value * Train.PpzPrimaryControls.Value * Train.PpzUpi.Value * Train.PpzPrimaryControls.Value * Train.PpzUpi.Value > 0)
+            self:CState("Cond1", Train.PpzUpi.Value * (1 - Train.PmvCond.Value) * Train.SF61F8.Value * Train.PpzUpi.Value * Train.PpzUpi.Value > 0)
             self:CState("ReccOff", Train.PpzUpi.Value * Train.OtklR.Value > 0)
             self:CState("ParkingBrake", Train.PmvParkingBrake.Value * Train.PpzUpi.Value * Train.SF22F3.Value * Train.Electric.V2 > 0)
             self:CState("PassLight", self.PassLight)
@@ -1434,8 +1434,8 @@ if SERVER then
             self.Ring = false
         end
 
-        Train:SetNW2Int("Skif:ARS1", not BARS.BarsPower and 2 or BARS.ATS1Bypass and -1 or not self.BARS1 and 0 or self.DisableDrive and 2 or 1)
-        Train:SetNW2Int("Skif:ARS2", not BARS.BarsPower and 2 or BARS.ATS2Bypass and -1 or not self.BARS2 and 0 or self.DisableDrive and 2 or 1)
+        Train:SetNW2Int("Skif:ARS1", not BARS.BarsPower and 2 or BARS.ATS1Bypass and -1 or not self.BARS1 and 0 or BARS.DisableDrive and 2 or 1)
+        Train:SetNW2Int("Skif:ARS2", not BARS.BarsPower and 2 or BARS.ATS2Bypass and -1 or not self.BARS2 and 0 or BARS.DisableDrive and 2 or 1)
         Train:SetNW2Int("Skif:MainMsg", self.MainMsg)
 
         self.EmergencyBrake = self.State == 5 and self.EmergencyBrake or 0

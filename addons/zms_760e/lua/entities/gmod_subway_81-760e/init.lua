@@ -345,7 +345,7 @@ function ENT:InitializeSystemsServer()
     self.PpzAts2 = self.SF23F7
     self.PpzUpi = self.SF23F8
     self.PpzKm = self.SF22F2
-    self.PpzBtboSd = self.SF22F2
+    self.PpzBtbuSd = self.SF22F2
     self.PpzParkingBrakeControl = self.SF22F3
     self.PpzRvtb = self.SF22F5
     self.PpzDoorsControl = self.SF80F5

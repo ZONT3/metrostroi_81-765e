@@ -171,30 +171,35 @@ function TRAIN_SYSTEM:Think(dT)
             end
 
             if Ring and Drive and not self.KvtTimer then
-                self.KvtTimer = CurTime() + 6
+                self.KvtTimer = CurTime() + 3.5
             end
-            if Ring and self.KVT then
+            if Ring and (self.KVT or ZeroSpeed) then
                 Ring = false
             end
-            RVTB = RVTB and self:RvtbTimer("KvtTimer", not Ring and not (not forgiveful and Brake and KmCur))
+            RVTB = RVTB and self:RvtbTimer("KvtTimer", not Ring and not (Brake and KmCur or not forgiveful and ALS.AO))
 
             if Speed > SpeedLimit - 1.3 and KmCur then
                 if not Drive then
                     if not self.TryDriveTimer then
                         self.TryDriveTimer = CurTime() + 3.2
                     end
-                elseif not DisableDrive then
+                elseif not DisableDrive and Speed <= SpeedLimit and not Brake then
                     DisableDrive = true
                     self.ControllerInDrive = true
                 end
             end
             RVTB = RVTB and self:RvtbTimer("TryDriveTimer", not KmCur or Speed <= SpeedLimit - 1.3)
 
-            if self.TryDriveTimer then
+            if self.TryDriveTimer or (Brake or Wag.ProstKos.CommandKos > 0) and Speed < 7 then
                 self.PN3 = 1
             end
 
-            if DisableDrive and not KmCur and (SpeedLimit < 21 or Speed < SpeedLimit - 3.1) then
+            if Brake and DisableDrive then
+                DisableDrive = false
+                self.ControllerInDrive = false
+            end
+
+            if DisableDrive and not KmCur and (SpeedLimit < 19 or Speed < SpeedLimit - 3.1) then
                 DisableDrive = false
                 self.ControllerInDrive = false
             elseif self.ControllerInDrive and not KmCur then
@@ -210,34 +215,28 @@ function TRAIN_SYSTEM:Think(dT)
             end
             RVTB = RVTB and self:RvtbTimer("DisableDriveAttempt", not Ring)
 
-            local aoArrived = false
             if ALS.AO and Drive then
-                Drive = false
-                aoArrived = true
+                Brake = true
             end
             if ALS.AO then
-                if self.KVT then self.RingingAO = false end
+                if Wag.AttentionBrake.Value > 0.5 then self.RingingAO = false end
                 Ring = Ring or self.RingingAO
+                if not ZeroSpeed then self.PN3 = 1 end
             else
                 self.RingingAO = true
             end
 
-            if not Drive and math.abs(Speed) > 0.6 then
+            if not Drive and math.abs(Speed) > 0.6 or Speed < -0.5 then
                 if not self.AntirollTimer then
                     self.AntirollTimer = CurTime() + 1.1
-                    self.AntirollAO = aoArrived
                 elseif CurTime() > self.AntirollTimer then
-                    if self.AntirollAO then
-                        self.AntirollAoTimer = CurTime()
-                    elseif self.RVTB == 1 then
+                    if self.RVTB == 1 then
                         self.DeadRvtb = true
                     end
                 end
             elseif self.AntirollTimer then
                 self.AntirollTimer = nil
-                self.AntirollAO = false
             end
-            RVTB = RVTB and self:RvtbTimer("AntirollAoTimer", not Ring, 1.9)
 
             if not self.NoFreq and KmCur and Speed < 0.8 and not self.NoSpeedTimer then
                 self.NoSpeedTimer = CurTime() + (Emer and 6.8 or 4.8)
@@ -271,7 +270,7 @@ function TRAIN_SYSTEM:Think(dT)
             self.NextLimit = nil
         end
 
-        AllowStart = UOS or (self.KB or not self.NoFreq and not self.RealF5) and not ALS.AO and not Brake
+        AllowStart = UOS or (self.KB or not self.NoFreq and not self.RealF5 and not (TwoToSix and not self.LN)) and not ALS.AO and not Brake
         local travel = Drive and not self.SbTimer
         if travel then self.TravelTimer = CurTime() + math.Rand(0.27, 0.34) end
         if not travel and Drive and self.TravelTimer and CurTime() < self.TravelTimer then
@@ -310,8 +309,14 @@ function TRAIN_SYSTEM:Think(dT)
         self.DisableDrive = DisableDrive
         self.SpeedLimit = SpeedLimit > self.SpeedLimit and SpeedLimit or self.SpeedLimit
 
-        self.Drive1 = self.ATS1 and Drive and 1 or 0
-        self.Drive2 = self.ATS2 and Drive and 1 or 0
+        if Brake then
+            self.BrakeTimer = CurTime() + 1
+        elseif self.BrakeTimer and CurTime() >= self.BrakeTimer then
+            self.BrakeTimer = nil
+        end
+
+        self.Drive1 = self.ATS1 and Drive and not self.BrakeTimer and 1 or 0
+        self.Drive2 = self.ATS2 and Drive and not self.BrakeTimer and 1 or 0
 
     elseif ALSVal == 1 then
         -- TODO Some BUKP logic for speed regulation
@@ -347,7 +352,7 @@ function TRAIN_SYSTEM:Think(dT)
         if KMState <= 0 and ZeroSpeed then
             if not self.SbTimer then
                 self.SbTimer = CurTime()
-            elseif self:WhenStops(SelfZs and 0 or 1.2) then
+            elseif self:WhenStops(0) then
                 self.StillBrake = 1
             end
         end

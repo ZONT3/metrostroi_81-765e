@@ -149,7 +149,7 @@ function TRAIN_SYSTEM:Think()
     local prostWork = power and BUKP.State == 5 and BUKP.Prost
     local kosWork = power and BUKP.State == 5 and BUKP.Kos
     local work = kosWork or prostWork
-    local rv = (1 - Wag.RV["KRO5-6"]) * Wag.PpzPrimaryControls.Value > 0 and BUKP.MainMsg == 0
+    local rv = (1 - Wag.RV["KRO5-6"]) > 0 and BUKP.MainMsg == 0
     local kvBrake = Wag.KV765.Position < 0
 
     if not power then
