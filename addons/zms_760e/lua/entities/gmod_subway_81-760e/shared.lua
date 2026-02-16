@@ -19,8 +19,8 @@ ENT.Spawnable = true
 ENT.AdminSpawnable = false
 ENT.DontAccelerateSimulation = false
 
-ENT.Version = "0.10.0-dev"
-ENT.IkVersion = "1.10.0-dev"
+ENT.Version = "0.10.0-pre"
+ENT.IkVersion = "1.10.0-pre"
 
 
 local function GetDoorPosition(i, k, j)
@@ -966,7 +966,7 @@ ENT.Spawner = {
             local cfg = Metrostroi.Skins and Metrostroi.Skins["765logo"] and Metrostroi.Skins["765logo"][val]
             local d = val == "-" or not cfg or not isfunction(cfg.anim)
             local a = sl["BLIK:Anim"]
-            if d then a:SetValue(false) end
+            a:SetValue(not d)
             a:SetDisabled(d)
             a.Disable = d
 
@@ -983,7 +983,7 @@ ENT.Spawner = {
     { "SarmatBeep", "Звук теста аппаратуры от \"Сармат\"", "Boolean" },
     { "AnnouncerClicks", "Звук клика в оповещениях", "Boolean" },
     { "HornType", "Тифон", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5 },
-    { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (~12 FPS)", "Сармат (60 FPS)" }, 1 },
+    { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1 },
     { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3 },
     {
         "VVVFSound",

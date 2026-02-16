@@ -87,7 +87,7 @@ if SERVER then
 else
     local scw, sch = 3840, 512
 
-    local StationAnimDuration = 0.4
+    local StationAnimDuration = 0.75
     local SlideDuration = 0.2
     local GifDuration = 2.6
 
@@ -354,7 +354,7 @@ else
         local changesInline1 = animName == "DepartAnim" and animate(anim, 4, SlideDuration) or 0
         local changesInline2 = animName == "DepartAnim" and 1 - animate(anim, 9.8, SlideDuration) or 0
         local changesFooter = animName == "DepartAnim" and animate(anim, 10, SlideDuration) + (1 - animate(anim, 3.8, SlideDuration)) or 1
-        local terminusAnim = Wag:GetNW2Bool("BNT:Terminus", false) and animate(Wag:GetNW2Int("BNT:TerminusAnim"), oppositeExit and 6 or 0, SlideDuration * 1.4) or 0
+        local terminusAnim = Wag:GetNW2Bool("BNT:Terminus", false) and animate(Wag:GetNW2Int("BNT:TerminusAnim"), oppositeExit and 6 or 0, SlideDuration * 1.8) or 0
         local lineColor = self:GetCachedColor(self.LineColor)
 
         x, y = 0, 0

@@ -587,7 +587,7 @@ if SERVER then
 
                 elseif val and name == "Buik_Return" then
                     self:ReturnInformer()
-                    if not self.ServiceRoute then self.Station = 2 end
+                    if not self.ServiceRoute then self.Station = 1 end
                     self:UpdatePage(true, true)
 
                 end
@@ -702,7 +702,6 @@ if SERVER then
             self.RouteChanged = true
         end
         self.LastStationDraft = lastStation.name
-        self.AnnounceNotLast = not not lastStation.not_last
         self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "RouteChanged", true)
     end
 
@@ -725,8 +724,6 @@ if SERVER then
         if self.IsServiceRoute then self:ResetIk() return end
         local lastStation = self.LastStations[self.LastStationIdx]
         self:InitIk(lastStation.idx)
-        self.AnnounceNotLast = not not lastStation.not_last
-        if self.Station == 1 then self.Station = 2 end
         self:UpdatePage(true, true)
 
         if self.Train:GetNW2Bool("SarmatBeep", true) then
@@ -829,9 +826,12 @@ if SERVER then
             self.UpdateIkTimer = nil
         end
 
-        local recordings = not station.is_dep and (station.arr or station.arrlast) or station.is_dep and station.dep or nil
-        if not recordings then return end
-        recordings = recordings[self.Path and 2 or 1]
+        local lastSt = self.LastStations[self.LastStationIdx]
+        local recordings = (
+            not station.is_dep and (station.arr or station.arrlast or {})[self.Path and 2 or 1] or
+            station.is_dep and station.dep[self.Path and 2 or 1] or
+            station.idx == 1 and lastSt and lastSt.not_last
+        ) or nil
         if not recordings then return end
         if not istable(recordings) then recordings = {recordings} end
 
@@ -840,11 +840,10 @@ if SERVER then
         local clicks = self.Train:GetNW2Bool("AnnouncerClicks", false)
         if clicks then
             self:QueueAnnounce("click1")
-        else
+        elseif station.idx ~= 1 then
             self:QueueAnnounce({self.MsgDelay})
         end
 
-        local lastSt = self.LastStations[self.LastStationIdx]
         if not station.is_dep and lastSt and lastSt.idx == station.idx and station.arrlast and not station.is_terminus then
             recordings = station.arrlast[self.Path and 2 or 1]
             if not istable(recordings) then recordings = {recordings} end
@@ -853,15 +852,9 @@ if SERVER then
             end
         end
 
-        if station.is_dep and lastSt and lastSt.not_last then
-            if self.AnnounceNotLast then
-                self.AnnounceNotLast = false
-                self:QueueAnnounce(lastSt.not_last)
-                self:QueueAnnounce(0.25)
-            elseif lastSt.have_inrerchange or (lastSt.idx - station.idx) < 5 then
-                table.insert(recordings, 0.5)
-                table.Add(recordings, lastSt.not_last)
-            end
+        if not station.is_dep and lastSt and lastSt.not_last and lastSt.idx ~= station.idx and (station.have_inrerchange or (lastSt.idx - station.idx) < 5) then
+            table.insert(recordings, 0.5)
+            table.Add(recordings, lastSt.not_last)
         end
 
         self:QueueAnnounce(recordings)

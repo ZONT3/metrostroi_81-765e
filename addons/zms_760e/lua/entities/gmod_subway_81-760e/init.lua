@@ -433,7 +433,7 @@ function ENT:TrainSpawnerUpdate()
         self:InitializeSounds()
     end
 
-    self:SetNW2Int("BNT:ScreenFps", self:GetNW2Int("BntFps", 2) == 2 and 60 or math.random(9, 13))
+    self:SetNW2Int("BNT:ScreenFps", self:GetNW2Int("BntFps", 2) == 2 and 60 or 15)
     self:UpdateTextures()
 end
 
