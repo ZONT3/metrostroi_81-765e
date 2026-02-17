@@ -42,8 +42,8 @@ function TRAIN_SYSTEM:TriggerInput(name, value)
     if name == "Up" then
         if value > 0 then
             self.TargetPosition = math.min(2, self.TargetPosition + 1)
-        elseif self.TargetPosition == 2 then
-            self.TargetPosition = 1
+        elseif math.abs(self.TargetPosition) == 2 then
+            self.TargetPosition = 1 * (self.TargetPosition < 0 and -1 or 1)
         end
 
     elseif name == "Down" then
