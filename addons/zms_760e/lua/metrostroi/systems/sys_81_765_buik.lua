@@ -413,6 +413,8 @@ if SERVER then
         local path = Wag.Buik_Path.Value > 0
         if path ~= self.Path then
             self.Path = path
+            self.RouteChanged = true
+            self:Highlight("LastStation")
             self:ReturnInformer(true)
             self:UpdatePage(true)
         end
@@ -465,9 +467,9 @@ if SERVER then
         end
 
         if self.Page == PAGE_MAIN then
-            self:SetListLine(1, self.Station > 1 and self.Stations[self.Station - 1].name or "")
+            self:SetListLine(1, self.Station > 1 and self.Stations[self.Station - 1].name or self.Loop and self.Stations[#self.Stations].name or "")
             self:SetListLine(2, self.Stations[self.Station].name)
-            self:SetListLine(3, #self.Stations > self.Station and self.Stations[self.Station + 1].name or "")
+            self:SetListLine(3, #self.Stations > self.Station and self.Stations[self.Station + 1].name or self.Loop and self.Stations[1].name or "")
             if not ikNow then
                 self.UpdateIkTimer = CurTime() + 5
             else
@@ -497,6 +499,8 @@ if SERVER then
             self:SetListLine(2, self.Routes[self.Route])
             self:SetListLine(3, #self.Routes > self.Route and self.Routes[self.Route + 1] or "")
             if not displayOnly then
+                self.RouteChanged = true
+                self:Highlight("LastStation")
                 self:UpdateRoute()
             end
         else
@@ -559,7 +563,10 @@ if SERVER then
                 local listLen = #listTbl
                 if listLen < 1 then return end
 
+                local loop = (self.Page == PAGE_MAIN and self.Loop)
                 local x = self[cursorName] + delta
+                if loop and x > listLen then x = 1 end
+                if loop and x < 1 then x = listLen end
                 if listLen >= x and (x > 0 or allowZero and x >= 0) then
                     self[cursorName] = x
                 end
@@ -637,6 +644,7 @@ if SERVER then
                 isServiceRoute = true
             else
                 isServiceRoute = false
+                self.LoopRoute = self.RouteCfg.Loop
             end
         end
         self.IsServiceRoute = isServiceRoute
@@ -652,10 +660,12 @@ if SERVER then
             self.LastStationIdx = 0
         end
 
+        self.Loop = false
+
         local routeStationsCfg = self.Path and table.Reverse(self.RouteCfg) or self.RouteCfg
         local lastStations = {}
         for idx, station in ipairs(routeStationsCfg) do
-            if idx > 1 and (self.IsServiceRoute or station.arrlast or station.not_last) then
+            if (idx > 1 or self.LoopRoute) and (self.IsServiceRoute or station.arrlast and station.arrlast[self.Path and 2 or 1]) then
                 station = table.Copy(station)
                 station.idx = idx
                 station.tbl_id = self.Path and (#routeStationsCfg - idx + 1) or idx
@@ -668,30 +678,45 @@ if SERVER then
                 end
             end
         end
+        if self.LoopRoute then
+            -- isert last station if it has arrlast
+            if lastStations[0] and lastStations[0].arrlast and lastStations[0].arrlast[self.Path and 2 or 1] then
+                table.insert(lastStations, lastStations[0])
+            end
+            lastStations[0] = {
+                idx = #routeStationsCfg * 2, tbl_id = #routeStationsCfg * 2, index = -1,
+                name = "Кольцевой",
+            }
+        end
         self.LastStations = lastStations
 
         if #self.LastStations < self.LastStationIdx then self.LastStationIdx = 0 end
         local lastStation = self.LastStations[self.LastStationIdx]
+        if self.LastStationIdx == 0 and self.LoopRoute then self.Loop = true end
 
         local routeStations = {}
-        for idx, station in ipairs(routeStationsCfg) do
-            if self.IsServiceRoute or lastStation.idx >= idx then
-                station = table.Copy(station)
-                station.idx = idx
-                station.tbl_id = self.Path and (#routeStationsCfg - idx + 1) or idx
-                station.index = station[1] or -1
-                station.name = station[2] or station[1] or "ОШИБКА"
-                station.is_terminus = self.LastStations[0].idx == station.idx
-                table.insert(routeStations, station)
-                if not self.IsServiceRoute and idx < lastStation.idx then
-                    station = table.Copy(station)
-                    station.name = station.name .. " отпр"
-                    station.is_dep = true
-                    table.insert(routeStations, station)
+        if not self.LoopRoute or self.Loop then
+            for idx, station in ipairs(routeStationsCfg) do
+                if self.IsServiceRoute or lastStation.idx >= idx or self.Loop then
+                    self:InsertStation(routeStations, station, idx, lastStation, routeStationsCfg)
                 end
+            end
+        else
+            local start = lastStation.idx + 1
+            lastStation.idx = #routeStationsCfg
+            lastStation.tbl_id = self.Path and 1 or lastStation.idx
+            for idx = start, #routeStationsCfg do
+                local station = routeStationsCfg[idx]
+                self:InsertStation(routeStations, station, idx - start + 1, lastStation, routeStationsCfg)
+            end
+            local offset = #routeStationsCfg - start + 1
+            for idx, station in ipairs(routeStationsCfg) do
+                if idx >= start then break end
+                self:InsertStation(routeStations, station, idx + offset, lastStation, routeStationsCfg)
             end
         end
 
+        self.CloneBmt = self.IsServiceRoute or self.LoopRoute
         self.Station = 1
         self.Stations = routeStations
         self:Highlight("List")
@@ -705,12 +730,28 @@ if SERVER then
         self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "RouteChanged", true)
     end
 
+    function TRAIN_SYSTEM:InsertStation(routeStations, station, idx, lastStation, routeStationsCfg)
+        station = table.Copy(station)
+        station.idx = idx
+        station.tbl_id = self.Path and (#routeStationsCfg - idx + 1) or idx
+        station.index = station[1] or -1
+        station.name = station[2] or station[1] or "ОШИБКА"
+        station.is_terminus = self.LastStations[0].idx == station.idx
+        table.insert(routeStations, station)
+        if not self.IsServiceRoute and (idx < lastStation.idx or self.Loop) then
+            station = table.Copy(station)
+            station.name = station.name .. " отпр"
+            station.is_dep = true
+            table.insert(routeStations, station)
+        end
+    end
+
     function TRAIN_SYSTEM:UpdateLastStation()
         local lastStation = self.LastStations[self.LastStationIdx]
         if self.LastStationDraft ~= lastStation.name then
             local stationWas = self.Station
             self:ReturnInformer()
-            if stationWas < #self.Stations then
+            if not self.LoopRoute and stationWas < #self.Stations then
                 self.Station = stationWas
             end
         end
@@ -736,13 +777,14 @@ if SERVER then
         self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "Route", self.Route)
         self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "InformerCfg", self.InformerCfgIdx)
 
-        local lastStation = self.IsServiceRoute and self.LastStation or self.Stations[1][2] or self.Stations[1][1]
-        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "LastStation", lastStation)
+        local lastStationShort = (self.IsServiceRoute or self.Loop) and self.LastStation or self.Stations[1][2] or self.Stations[1][1]
+        local lastStation = self.LastStations[self.LastStationIdx]
+        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "LastStation", lastStationShort)
         self.Train:SetNW2Int("IK:Route", self.Route)
-        self.Train.FrontIK:TriggerInput("SetRoute", self.LastStation, self.RouteNumber, not self.IsServiceRoute and self.Stations[#self.Stations].index or nil)
+        self.Train.FrontIK:TriggerInput("SetRoute", self.LastStation, self.RouteNumber, lastStation and lastStation.index or nil)
         self.Train:SetNW2String("RouteNumber", self.RouteNumber)
 
-        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "UpdateBmt", not self.IsServiceRoute and self.Stations[1].index)
+        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "UpdateBmt", not self.CloneBmt and self.Stations[1].index or lastStation and lastStation.index or nil)
     end
 
     function TRAIN_SYSTEM:InitIk(lastSt)
@@ -751,10 +793,12 @@ if SERVER then
             self:WriteToIk("Time", BUP.Time)
             self:WriteToIk("Date", BUP.DateStr)
 
-            self:WriteToIk("RouteId", string.format("%d.%d.%s", self.CisCfgIdx, self.Route, self.Path and "II" or "I"))
+            local lastStation = self.LastStations[self.LastStationIdx]
+            self:WriteToIk("RouteId", string.format("%d.%d.%d.%s", self.CisCfgIdx, self.Route, lastStation.index or -1, self.Path and "II" or "I"))
             self:WriteToIk("Route", self.Route)
             self:WriteToIk("CfgIdx", self.CisCfgIdx)
             self:WriteToIk("LastStation", lastSt)
+            self:WriteToIk("Loop", self.Loop)
             self:WriteToIk("Path", self.Path)
             self:WriteToIk("LineName", self.RouteCfg.Name)
 
@@ -770,7 +814,7 @@ if SERVER then
         local station = self.Stations[self.Station]
         if not station then return end
         local lastSt = self.LastStations[self.LastStationIdx]
-        self:WriteToIk("RouteId", string.format("%d.%d.%s", self.CisCfgIdx, self.Route, self.Path and "II" or "I"))
+        self:WriteToIk("RouteId", string.format("%d.%d.%d.%s", self.CisCfgIdx, self.Route, lastSt.index or -1, self.Path and "II" or "I"))
         self:WriteToIk("Station", station.idx)
         self:WriteToIk("Depart", station.is_dep and canBeDepart or false)
         self:WriteToIk("Terminus", station.is_terminus or lastSt and lastSt.idx == station.idx and station.arrlast and true or false)
@@ -819,15 +863,15 @@ if SERVER then
 
         local station = self.Stations[self.Station]
         self.Arrived = not station.is_dep
-        if self.Station < #self.Stations then
-            self.Station = self.Station + 1
+        if self.Station < #self.Stations or self.Loop then
+            self.Station = (self.Station % #self.Stations) + 1
             self:Highlight("List")
             self:UpdatePage(false)
             self.UpdateIkTimer = nil
         end
 
         local lastSt = self.LastStations[self.LastStationIdx]
-        local is_extra = station.idx == 1 and not station.is_dep
+        local is_extra = not self.Loop and station.idx == 1 and not station.is_dep
         local recordings = (
             is_extra and lastSt and lastSt.not_last or
             not is_extra and not station.is_dep and (station.arr or station.arrlast or {})[self.Path and 2 or 1] or

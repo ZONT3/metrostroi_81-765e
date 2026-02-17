@@ -49,13 +49,14 @@ if SERVER then
         self:SetInt("BNT:LastStation", self.LastStation)
         self:SetString("BNT:RouteId", self.ActiveRoute or "")
         self:SetInt("BNT:Route", self.Route)
+        self:SetInt("BNT:Loop", self.Loop)
         self:SetInt("BNT:CfgIdx", self.CfgIdx)
         self:SetInt("BNT:StationAnim", 0)
     end
 
     function TRAIN_SYSTEM:AnimateNext()
         self:SetStation((self.Station or 1) + 1)
-        self:SetInt("BNT:StationAnim", CurTime() + 7)
+        self:SetInt("BNT:StationAnim", CurTime() * 10)
     end
 
     function TRAIN_SYSTEM:AnimateDepart()
@@ -320,7 +321,7 @@ else
         surface.SetDrawColor(12, 12, 12)
         surface.DrawRect(0, 0, scw, sch)
 
-        local stationAnim = math.Clamp((CurTime() - Wag:GetNW2Int("BNT:StationAnim", 0)) / StationAnimDuration, 0, 1)
+        local stationAnim = animate(Wag:GetNW2Int("BNT:StationAnim", 0), 7, StationAnimDuration)
         local gifSlideIn = 0
         local gifSlideOut = 1
 
@@ -380,15 +381,19 @@ else
         local firstStation = Wag:GetNW2Bool("BNT:FirstStation", false)
         local secondStation = Wag:GetNW2Bool("BNT:SecondStation", false)
         local station = Wag:GetNW2Int("BNT:Station", 1)
-        local stcount = math.min(#self.Stations, Wag:GetNW2Int("BNT:LastStation", 0)) - station + 1
+        local loop = Wag:GetNW2Bool("BNT:Loop", false)
+        local stcount = loop and 7 or math.min(#self.Stations, Wag:GetNW2Int("BNT:LastStation", 0)) - station + 1
         local termx, termy = scw - sizeTrminusBanner * terminusAnim, y
-        local linex, liney = (firstStation and x0 or 0), y0 + 40
+        local linex, liney = (not loop and firstStation and x0 or 0), y0 + 40
         local lineEnd = scw
         x, y = x0, y0
 
         local circles1, circles2 = {}, {}
         for idx = 0, math.min(7, stcount) do
-            local cfg = self.Stations[station + idx - 1] or NullStation
+            local stidx = station + idx - 1
+            if loop and stidx < 1 then stidx = #self.Stations + stidx end
+            if loop and stidx > #self.Stations then stidx = stidx - #self.Stations end
+            local cfg = self.Stations[stidx] or NullStation
             local stationName = cfg.name
             local boxW, boxH
             local font = "BNT.StationSmall"
@@ -409,7 +414,7 @@ else
                     boxW, boxH = surface.GetTextSize(stationName)
                     boxW = math.max(minBoxW, boxW + gap)
                     x = x0 - (boxW + x0) * stationAnim
-                    if secondStation and stationAnim < 1 then
+                    if not loop and secondStation and stationAnim < 1 then
                         linex = math.max(0, x)
                     end
                 end
@@ -458,7 +463,7 @@ else
             if idx == stcount then
                 lineEnd = x
             end
-            if not change and (idx == stcount or idx <= 1 and firstStation or idx == 0 and secondStation) then
+            if not change and not loop and (idx == stcount or idx <= 1 and firstStation or idx == 0 and secondStation) then
                 surface.SetDrawColor(lineColor)
                 surface.DrawRect(x, liney, 24, 44)
             end
@@ -468,7 +473,10 @@ else
 
         if changesFooter > 0 then
             x, y = x0, liney + 120 - 20 * (1 - changesFooter)
-            local cfg = self.Stations[station + (stationAnim < 1 and -1 or 0)] or NullStation
+            local stidx = station + (stationAnim < 1 and -1 or 0)
+            if loop and stidx < 1 then stidx = #self.Stations + stidx end
+            if loop and stidx > #self.Stations then stidx = stidx - #self.Stations end
+            local cfg = self.Stations[stidx] or NullStation
             local sz = sizeChange * 1.4
             for cidx = 1, #cfg.changes do
                 local chCfg = cfg.changes[cidx]

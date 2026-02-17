@@ -55,6 +55,7 @@ if SERVER then
         BNT.Stations = self.Stations
         BNT.LastStation = self.LastStation
         BNT.Route = self.Route
+        BNT.Loop = self.Loop
         BNT.CfgIdx = self.CfgIdx
         BNT.ActiveRoute = self.RouteId
         self.ActiveRoute = self.RouteId
