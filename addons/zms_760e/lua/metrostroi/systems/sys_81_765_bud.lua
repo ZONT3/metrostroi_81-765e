@@ -84,8 +84,8 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     local stuckEmpty = true
-    local zeroSpeed = BUV.ZeroSpeed
     local bupZeroSpeed = BUV.BupZeroSpeed
+    local zeroSpeed = bupZeroSpeed and BUV.ZeroSpeed
     local addrMode = BUV.AddressDoors
     local addrForceOpen = false
 
@@ -275,7 +275,7 @@ function TRAIN_SYSTEM:Think(dT)
                 not working and "Closing" or
                 not commandOpen and not self.DoorClosed[idx] and "Closing" or
                 not commandOpen and self.DoorClosed[idx] and (
-                    (not zeroSpeed or not bupZeroSpeed) and "Moving" or
+                    not zeroSpeed and "Moving" or
                     zeroSpeed and not selected and "Moving" or
                     zeroSpeed and readyToOpen and not self.Depart and "Open" or
                     "Closed"
@@ -347,6 +347,7 @@ function TRAIN_SYSTEM:Think(dT)
         BUV:CState("DoorAod" .. idx, manual)
         BUV:CState("DoorReverse" .. idx, not not self.AutoReverse[idx])
         Wag:SetPackedRatio((left and "DoorL" or "DoorR") .. i, state[i])
+        Wag:SetPackedBool((left and "CommandDoorL" or "CommandDoorR") .. i, self.DoorCommand[idx])
         Wag:SetNW2String("DoorAnnounceState" .. idx, announceState)
         if self.StuckPass[idx] then stuckEmpty = false end
     end

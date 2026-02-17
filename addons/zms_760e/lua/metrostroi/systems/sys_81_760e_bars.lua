@@ -163,9 +163,8 @@ function TRAIN_SYSTEM:Think(dT)
             SpeedLimit = self.KB and not ALS.AO and 20 or SpeedLimit
 
             if Speed > SpeedLimit then
-                if not Brake then Ring = true end
+                if not Brake then Ring = true self.PN1Timer = CurTime() + 1.6 end
                 Brake = true
-                self.PN1Timer = CurTime() + 1
             elseif Brake and not Ring and not KmCur then
                 Brake = false
             end
@@ -246,12 +245,10 @@ function TRAIN_SYSTEM:Think(dT)
             self.BUKPErr = (
                 Wag.BUKP.DoorClosed + Wag.DoorBlock.Value < 1 or
                 Wag.BUKP.Errors.NoOrient or
-                Wag.BUKP.Errors.EmergencyBrake or
-                -- Wag.BUKP.Errors.BuvDiscon or
-                Wag.BUKP.Errors.RvErr
+                Wag.BUKP.Errors.EmergencyBrake
             )
 
-            local ZsError = self.BUKPErr and Wag.BUKP.ZeroSpeed < 1
+            local ZsError = self.BUKPErr and Wag.BUKP.ZeroSpeed < 1 and Speed < 7
             if ZsError then
                 ZsError = false
                 if not self.ZsErrorTimer then
@@ -364,7 +361,7 @@ function TRAIN_SYSTEM:Think(dT)
         if self.PN1Timer then
             if CurTime() < self.PN1Timer then
                 self.PN1 = 1
-            else
+            elseif not Brake then
                 self.PN1Timer = nil
             end
         end

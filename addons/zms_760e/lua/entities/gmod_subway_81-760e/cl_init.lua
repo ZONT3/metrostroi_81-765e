@@ -3713,7 +3713,7 @@ ENT.Lights = {
         "headlight",
         Vector(520, 0, -12),
         Angle(0, 0, 90),
-        Color(120, 153, 255),
+        Color(200, 240, 255),
         hfov = 80,
         vfov = 80,
         farz = 5144,
@@ -4325,8 +4325,8 @@ function ENT:Think()
     for i = 0, 3 do
         for k = 0, 1 do
             local st = k == 1 and "DoorL" or "DoorR"
-            local doorstate = self:GetPackedBool(st)
             local id, sid = st .. (i + 1), "door" .. i .. "x" .. k
+            local doorstate = self:GetPackedBool("Command" .. id)
             local state = self:GetPackedRatio(id)
 
             local randvalKey = "Door" .. (k == 1 and "L" or "R") .. "BR" .. (i + 1)

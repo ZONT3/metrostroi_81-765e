@@ -827,24 +827,26 @@ if SERVER then
         end
 
         local lastSt = self.LastStations[self.LastStationIdx]
+        local is_extra = station.idx == 1 and not station.is_dep
         local recordings = (
-            not station.is_dep and (station.arr or station.arrlast or {})[self.Path and 2 or 1] or
-            station.is_dep and station.dep[self.Path and 2 or 1] or
-            station.idx == 1 and lastSt and lastSt.not_last
+            is_extra and lastSt and lastSt.not_last or
+            not is_extra and not station.is_dep and (station.arr or station.arrlast or {})[self.Path and 2 or 1] or
+            not is_extra and station.is_dep and station.dep[self.Path and 2 or 1]
         ) or nil
         if not recordings then return end
         if not istable(recordings) then recordings = {recordings} end
+        while isnumber(recordings[1]) do table.remove(recordings, 1) end
 
         if station.is_dep and self.Train.BUKP.DoorClosed < 1 then self.DoorAlarm = CurTime() end
 
         local clicks = self.Train:GetNW2Bool("AnnouncerClicks", false)
         if clicks then
             self:QueueAnnounce("click1")
-        elseif station.idx ~= 1 then
+        elseif not is_extra then
             self:QueueAnnounce({self.MsgDelay})
         end
 
-        if not station.is_dep and lastSt and lastSt.idx == station.idx and station.arrlast and not station.is_terminus then
+        if not station.is_dep and lastSt and lastSt.idx == station.idx and station.arrlast and (not station.is_terminus or station.arr) then
             recordings = station.arrlast[self.Path and 2 or 1]
             if not istable(recordings) then recordings = {recordings} end
             for _, wag in pairs(self.Train.WagonList) do

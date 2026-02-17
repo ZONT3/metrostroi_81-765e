@@ -1044,8 +1044,8 @@ if SERVER then
 
                     self:CheckError("RedLightsAkb", Train.PpzBattLights.Value > 0.5)
 
-                    self:CheckError("RightBlock", (not doorRight or Train.DoorClose.Value > 0) and Train.DoorRight.Value > 0)
-                    self:CheckError("LeftBlock", (not doorLeft or Train.DoorClose.Value > 0) and Train.DoorLeft.Value > 0)
+                    self:CheckError("RightBlock", (not doorRight or Train.DoorClose.Value * Train.Panel.DoorCloseL > 0) and Train.DoorRight.Value > 0)
+                    self:CheckError("LeftBlock", (not doorLeft or Train.DoorClose.Value * Train.Panel.DoorCloseL > 0) and Train.DoorLeft.Value > 0)
 
                     self:CheckError("BrakeLine", self.BLTimer and CurTime() - self.BLTimer > 0)
                     self:CheckError("RvErr", false)
@@ -1328,7 +1328,7 @@ if SERVER then
                     self.MainMsg = Back and RvWork and MAINMSG_2RV or Back and MAINMSG_REAR or not RvWork and RV > 0 and MAINMSG_RVFAIL or not RvWork and MAINMSG_RVOFF or MAINMSG_NONE
                 end
 
-                if not (Train.DoorBlock.Value * Train.EmergencyDoors.Value == 1) and (Train.PpzUpi.Value * Train.DoorClose.Value) == 1 then doorClose = true end
+                if not (Train.DoorBlock.Value * Train.EmergencyDoors.Value == 1) and (Train.PpzUpi.Value * Train.DoorClose.Value * Train.Panel.DoorCloseL) == 1 then doorClose = true end
                 --if Train.DoorClose.Value == 1 then doorClose = true end
             else
                 self.DoorClosed = 0
@@ -1344,6 +1344,7 @@ if SERVER then
             self:CState("SelectLeft", selectLeft)
             self:CState("SelectRight", selectRight)
             self:CState("CloseDoors", doorClose)
+            self:CState("ZeroSpeed", self.CanZeroSpeed and Train.SF80F5.Value > 0)
             self:CState("AddressDoors", addrDoors)
             self:CState("Slope", Train.RV.KRRPosition == 0 and self.Slope)
             self:CState("SlopeSpeed", self.SlopeSpeed)
@@ -1408,7 +1409,6 @@ if SERVER then
                 self.PassLight = (1 - Train.PmvLights.Value) * Train.SF52F2.Value > 0 and self.State == 5
             end
 
-            self:CState("ZeroSpeed", self.CanZeroSpeed)
             self:CState("TP1", (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 2) and Train.PpzUpi.Value > 0)
             self:CState("TP2", (Train.PmvPant.Value == 0 or Train.PmvPant.Value == 1) and Train.PpzUpi.Value > 0)
             self:CState("PR", Train.Pr.Value * Train.PpzUpi.Value > 0)
