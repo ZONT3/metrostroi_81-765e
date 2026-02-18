@@ -121,6 +121,7 @@
       - [ ] TKL/FL option only for admins, ulx permission and/or per-map
     - [ ] Entity "Custom" for spawner that spawns base entity
   - [ ] Improvements
+    - [ ] Rewrite KRMSh sounds logic so its fill/leak sound plays only when V4 enabled, etc.
     - [ ] Rewrite pant logic
       - [ ] HV per-pant
       - [ ] UKKZ per-pant

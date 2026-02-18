@@ -1162,7 +1162,7 @@ function TRAIN_SYSTEM:DrawElectric(Wag, x, y, w, h)
                 return val, colorGreen
             elseif row == 6 then
                 if not async then return end
-                local val = Wag:GetNW2Int("Skif:I" .. idx, 0) / 10
+                local val = math.Round(Wag:GetNW2Int("Skif:I" .. idx, 0) / 10)
                 return val, colorGreen
             elseif row == 7 then
                 return 0, colorGreen
@@ -1220,34 +1220,34 @@ function TRAIN_SYSTEM:DrawPneumatic(Wag, x, y, w, h)
                 return nil, nil, val and colorGreen or colorRed
             elseif row == 8 then
                 local val = Wag:GetNW2Int("Skif:P" .. idx, 0) / 10
-                return val > 0 and string.format("%.1f", val) or "0", colorGreen
+                return string.format("%.1f", val), colorGreen
             elseif row == 9 then
                 local val = Wag:GetNW2Int("Skif:P2" .. idx, 0) / 10
-                return val > 0 and string.format("%.1f", val) or "0", colorGreen
+                return string.format("%.1f", val), colorGreen
             elseif row == 10 then
                 local val = Wag:GetNW2Int("Skif:Pnm" .. idx, 0) / 10
-                return val > 0 and string.format("%.1f", val) or "0", val >= 5.5 and colorGreen or colorRed
+                return string.format("%.1f", val), val >= 5.5 and colorGreen or colorRed
             elseif row == 11 then
                 local val = Wag:GetNW2Int("Skif:Ptm" .. idx, 0) / 10
-                return val > 0 and string.format("%.1f", val) or "0", val >= 2.9 and colorGreen or colorRed
+                return string.format("%.1f", val), val >= 2.9 and colorGreen or colorRed
             elseif row == 12 then
                 local val = Wag:GetNW2Int("Skif:Pstt" .. idx, 0) / 10
-                return val > 0 and string.format("%.1f", val) or "0", colorGreen
+                return string.format("%.1f", val), colorGreen
             elseif row == 13 then
                 local val = Wag:GetNW2Int("Skif:Pskk" .. idx, 0) / 10
-                return val > 0 and string.format("%.1f", val) or "0", colorGreen
+                return string.format("%.1f", val), colorGreen
             elseif row == 14 then
                 local val = Wag:GetNW2Int("Skif:Pauto1" .. idx, 0) / 10
-                return val > 0 and string.format("%.1f", val) or "0", val >= 1.0 and colorGreen or colorRed
+                return string.format("%.1f", val), val >= 1.0 and colorGreen or colorRed
             elseif row == 15 then
                 local val = Wag:GetNW2Int("Skif:Pauto2" .. idx, 0) / 10
-                return val > 0 and string.format("%.1f", val) or "0", val >= 1.0 and colorGreen or colorRed
+                return string.format("%.1f", val), val >= 1.0 and colorGreen or colorRed
             elseif row == 16 then
                 local val = Wag:GetNW2Int("Skif:Pauto3" .. idx, 0) / 10
-                return val > 0 and string.format("%.1f", val) or "0", val >= 1.0 and colorGreen or colorRed
+                return string.format("%.1f", val), val >= 1.0 and colorGreen or colorRed
             elseif row == 17 then
                 local val = Wag:GetNW2Int("Skif:Pauto4" .. idx, 0) / 10
-                return val > 0 and string.format("%.1f", val) or "0", val >= 1.0 and colorGreen or colorRed
+                return string.format("%.1f", val), val >= 1.0 and colorGreen or colorRed
             end
         end
     end, 26, 1)

@@ -12,9 +12,9 @@ local SettingDelay = 0.2  -- Seconds
 local ZeroTimer = 1.6  -- Seconds
 
 function TRAIN_SYSTEM:Initialize()
-    self.VisualPosition = -3
-    self.Position = -3
-    self.TargetPosition = -3
+    self.VisualPosition = 0
+    self.Position = 0
+    self.TargetPosition = 0
 
     self.Set1Pressed = false
     self.Set5Pressed = false

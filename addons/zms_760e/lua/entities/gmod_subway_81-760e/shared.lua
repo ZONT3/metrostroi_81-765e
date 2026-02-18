@@ -1092,11 +1092,9 @@ ENT.Spawner = {
                         SF43F3 = true,  -- PpzSmartdrive
                         SF51F2 = val ~= 3,  -- PpzBattLights
                         SF30F1 = val > 2,  -- PpzBsControl
-                        SF62F3 = val > 2,  -- PpzCabinAc
-                        SF62F4 = val > 2,  -- PpzCabinEpra
+                        SF62F3 = val > 1,  -- PpzCabinAc
+                        SF62F4 = val > 1,  -- PpzCabinEpra
                         SF70F4 = val > 2,  -- PpzAuxCabin
-                        SF51F1 = val > 2,  -- PpzHeadlights
-                        SF52F1 = val > 2,  -- PpzCabinLights
                     }
                     for _, cfg in ipairs(ent.PpzToggles or {}) do
                         if not leaveOff[cfg.relayName] then
@@ -1120,8 +1118,8 @@ ENT.Spawner = {
                     timer.Simple(1, function()
                         ent.PmvAddressDoors:TriggerInput("Set", ent:GetNW2Bool("AddressDoors", false) and 0 or 1)
                         ent.PmvParkingBrake:TriggerInput("Set", val == 3 and 1 or 0)
-                        ent.PmvLights:TriggerInput("Set", val <= 2 and 0 or 1)
-                        ent.PmvCond:TriggerInput("Set", val <= 2 and 0 or 1)
+                        ent.PmvLights:TriggerInput("Set", val <= 1 and 0 or 1)
+                        ent.PmvCond:TriggerInput("Set", val <= 1 and 0 or 1)
                     end)
 
                     local yd = os.date("!*t").yday
@@ -1137,10 +1135,10 @@ ENT.Spawner = {
                     ent.RearDoor = val == 4
                 end
 
-                ent.BUD.RightDoorState = val == 4 and {1, 1, 1, 1} or {0, 0, 0, 0}
-                ent.BUD.DoorRight = val == 4
-                ent.BUD.LeftDoorState = val == 4 and {1, 1, 1, 1} or {0, 0, 0, 0}
-                ent.BUD.DoorLeft = val == 4
+                -- ent.BUD.RightDoorState = val == 4 and {1, 1, 1, 1} or {0, 0, 0, 0}
+                -- ent.BUD.DoorRight = val == 4
+                -- ent.BUD.LeftDoorState = val == 4 and {1, 1, 1, 1} or {0, 0, 0, 0}
+                -- ent.BUD.DoorLeft = val == 4
                 for idx = 1, 8 do ent.BUD.DoorCommand[idx] = val == 4 end
 
                 ent.GV:TriggerInput("Set", val < 4 and 1 or 0)

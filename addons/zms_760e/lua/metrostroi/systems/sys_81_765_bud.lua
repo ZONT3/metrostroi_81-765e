@@ -84,10 +84,31 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     local stuckEmpty = true
-    local bupZeroSpeed = BUV.BupZeroSpeed
-    local zeroSpeed = bupZeroSpeed and BUV.ZeroSpeed
+    local zeroSpeed = BUV.BupZeroSpeed and BUV.ZeroSpeed
+    local bupActive = BUV.BupActive and zeroSpeed
     local addrMode = BUV.AddressDoors
     local addrForceOpen = false
+
+    if self.BupActive ~= bupActive then
+        if not self.BupChanging then
+            self.BupChanging = CurTime() + math.Rand(0.08, 0.2) + (bupActive and 0.7 or 0)
+        elseif CurTime() >= self.BupChanging then
+            self.BupChanging = nil
+            self.BupActive = bupActive
+        end
+    end
+
+    local visualZeroSpeed = zeroSpeed
+    if zeroSpeed then
+        visualZeroSpeed = false
+        if not self.VisualZeroSpeedTimer then
+            self.VisualZeroSpeedTimer = CurTime() + 1.4
+        elseif CurTime() >= self.VisualZeroSpeedTimer then
+            visualZeroSpeed = true
+        end
+    elseif self.VisualZeroSpeedTimer then
+        self.VisualZeroSpeedTimer = nil
+    end
 
     local workingLeft = masterWorking and BUV.Orientation and (Wag.SF80F10.Value * Wag.SF80F7.Value) > 0 or not BUV.Orientation and (Wag.SF80F10.Value * Wag.SF80F7.Value) > 0
     local workingRight = masterWorking and BUV.Orientation and (Wag.SF80F11.Value * Wag.SF80F6.Value) > 0 or not BUV.Orientation and (Wag.SF80F11.Value * Wag.SF80F6.Value) > 0
@@ -179,7 +200,7 @@ function TRAIN_SYSTEM:Think(dT)
             readyToOpen = false
         end
 
-        if self.OpenButton[idx] and not bupZeroSpeed and CurTime() >= self.OpenButton[idx] then
+        if self.OpenButton[idx] and not bupActive and CurTime() >= self.OpenButton[idx] then
             self.OpenButton[idx] = false
         elseif addrMode and working and selected then
             local btn = Wag["DoorAddressButton" .. idx]
@@ -273,16 +294,16 @@ function TRAIN_SYSTEM:Think(dT)
 
             announceState = (
                 not working and "Closing" or
+                self.BupChanging and "Moving" or
                 not commandOpen and not self.DoorClosed[idx] and "Closing" or
                 not commandOpen and self.DoorClosed[idx] and (
-                    not zeroSpeed and "Moving" or
-                    zeroSpeed and not selected and "Moving" or
-                    zeroSpeed and readyToOpen and not self.Depart and "Open" or
+                    not visualZeroSpeed and "Moving" or
+                    bupActive and readyToOpen and not self.Depart and "Open" or
                     "Closed"
                 ) or
                 commandOpen and not self.Depart and not self.DoorOpen[idx] and (block and "Closed" or addrMode and "Open" or "Opening") or
                 self.Depart and "Depart" or
-                not bupZeroSpeed and "Moving" or
+                not bupActive and "Unpowered" or
                 commandOpen and "Open" or
                 -- fallback, should not reach!
                 self.DoorClosed[idx] and "Opening" or "Closing"

@@ -224,8 +224,6 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("PTReady", Train.Pneumatic.AirDistributorPressure >= (2.4 + Train.Pneumatic.WeightLoadRatio * 0.9) - 0.1)
         self:CState("PTReplace", self.PTReplace)
         self:CState("BTBReady", Train.Pneumatic.BTBReady)
-        self:CState("BCPressure", (self.ADUVWork and self.ADUTWork) and math.Round(Train.Pneumatic.BrakeCylinderPressure, 1) or (not self.ADUVWork or not self.ADUTWork) and self.States.BCPressure)
-        self:CState("BCPressure2", (self.ADUVWork and self.ADUTWork) and math.Round(math.min(math.max(0, Train.Pneumatic.BrakeCylinderPressure + self.BC2Dev), Train.Pneumatic.BrakeCylinderPressure > 0.08 and 1 or 0), 1) or (not self.ADUVWork or not self.ADUTWork) and self.States.BCPressure)
         self:CState("PantDisabled", self.ADUVWork and self.Pant or not self.ADUVWork and self.States.PantDisabled)
         self:CState("PTEnabled", (self.States.BCPressure or 2.3) > 0.22)
         self:CState("HPPressure", self.ADUTWork and math.Round(Train.Pneumatic.AirDistributorPressure, 1) or not self.ADUTWork and self.States.HPPressure)
@@ -286,6 +284,11 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("BTOKTO2", self.BTOKTO2)
         self:CState("BTOKTO3", self.BTOKTO3)
         self:CState("BTOKTO4", self.BTOKTO4)
+
+        local bc = (self.ADUVWork and self.ADUTWork) and math.Round(Train.Pneumatic.BrakeCylinderPressure, 1) or (not self.ADUVWork or not self.ADUTWork) and self.States.BCPressure
+        self:CState("BCPressure", bc)
+        self:CState("BCPressure2", bc > 0.16 and math.max(0.12, bc + self.BC2Dev) or bc)
+
     else
         self:CState("BUVWork", false)
         for k, v in pairs(self.Commands) do
@@ -435,12 +438,14 @@ function TRAIN_SYSTEM:Think(dT)
         self.PSNSignal = self:Get("PSN")
         self.PowerOff = (self:Get("PowerOff") or Train.SF30F2 and Train.SF30F2.Value == 0) and 1 or 0
         self.PassLight = self:Get("PassLight")
+        self.BupActive = self:Get("BupActive")
         self.BupZeroSpeed = self:Get("ZeroSpeed")
     else
         self.PassLight = false
         self.PSNSignal = false
         self.MKSignal = false
         self.PowerOff = 0
+        self.BupActive = false
         self.BupZeroSpeed = false
     end
     self.ZeroSpeed = Train.SF80F9.Value > 0 and Train.Speed < 2.6

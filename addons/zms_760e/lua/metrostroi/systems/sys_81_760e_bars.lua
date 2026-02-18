@@ -86,7 +86,7 @@ function TRAIN_SYSTEM:Think(dT)
     if self.KVT then self.KVTTimer = CurTime() + 1 end
     if self.KVTTimer and CurTime() - self.KVTTimer > 0 then self.KVTTimer = nil end
 
-    local Active = Power
+    local Active = Power and Wag.BUKP.State == 5
     local Emer = Wag.RV["KRR15-16"] * Wag.PpzEmerControls.Value > 0.5
     local KMState = Wag.KV765.Position
     local BUPKMState = Wag.BUKP.ControllerState
@@ -154,8 +154,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.Drive1 = 0
     self.Drive2 = 0
 
-    if self.BarsPower and (Wag.BUKP.Active > 0 or UOS) and ALSVal == 0 then
-        Active = Active and Wag.BUKP.Active > 0
+    if self.BarsPower and (Wag.BUKP.State == 5 or UOS) and ALSVal == 0 then
         RVTB = Active or UOS
 
         local KmCur = KMState > 0 or Active and BUPKMState > 0
@@ -172,7 +171,7 @@ function TRAIN_SYSTEM:Think(dT)
             if Ring and Drive and not self.KvtTimer then
                 self.KvtTimer = CurTime() + 3.5
             end
-            if Ring and (self.KVT or ZeroSpeed) then
+            if Ring and self.KVT --[[or ZeroSpeed]] then
                 Ring = false
             end
             RVTB = RVTB and self:RvtbTimer("KvtTimer", not Ring and not (Brake and KmCur or not forgiveful and ALS.AO))
@@ -244,8 +243,7 @@ function TRAIN_SYSTEM:Think(dT)
 
             self.BUKPErr = (
                 Wag.BUKP.DoorClosed + Wag.DoorBlock.Value < 1 or
-                Wag.BUKP.Errors.NoOrient or
-                Wag.BUKP.Errors.EmergencyBrake
+                Wag.BUKP.Errors.NoOrient
             )
 
             local ZsError = self.BUKPErr and Wag.BUKP.ZeroSpeed < 1 and Speed < 7
@@ -335,17 +333,18 @@ function TRAIN_SYSTEM:Think(dT)
         self.Ring = 0
         self.PN1 = 0
         self.PN2 = 0
+        self.PN3 = 0
         self.Drive1 = 0
         self.Drive2 = 0
         self.RingingAO = true
         self.LN = Wag.BUKP.State > 0 and self.LN
         self.Ready = true
-        self.StillBrake = 1
+        self.StillBrake = 0
         self.SbTimer = 0
         self.DeadRvtb = false
     end
 
-    if self.BarsPower and (Active or ALSVal == 1) and not UOS then
+    if self.BarsPower and Active and not UOS then
         if KMState <= 0 and ZeroSpeed then
             if not self.SbTimer then
                 self.SbTimer = CurTime()

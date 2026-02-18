@@ -799,6 +799,9 @@ if SERVER then
                 end
             end
 
+            self.CanZeroSpeed = self.CurrentSpeed < 2.8
+            self.BudZeroSpeed = self.CanZeroSpeed and 1 or 0
+
             local kvSetting = 0
             local overrideKv = true
 
@@ -1030,8 +1033,6 @@ if SERVER then
                     if selectLeft and Train.Electric.DoorsControl > 0 and Train.DoorLeft.Value > 0 and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1) then doorLeft = true end
                     if selectRight and Train.Electric.DoorsControl > 0 and Train.DoorRight.Value > 0 and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1) then doorRight = true end
 
-                    self.CanZeroSpeed = self.CurrentSpeed < 2.8
-                    self.BudZeroSpeed = self.CanZeroSpeed and 1 or 0
                     Train:SetNW2Bool("Skif:Cond", self.CondLeto)
                     Train:SetNW2Bool("Skif:DoorBlockL", self.CanZeroSpeed and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1))
                     Train:SetNW2Bool("Skif:DoorBlockR", self.CanZeroSpeed and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1))
@@ -1344,6 +1345,7 @@ if SERVER then
             self:CState("SelectLeft", selectLeft)
             self:CState("SelectRight", selectRight)
             self:CState("CloseDoors", doorClose)
+            self:CState("BupActive", self.State == 5 and self.MainMsg == 0)
             self:CState("ZeroSpeed", self.CanZeroSpeed and Train.SF80F5.Value > 0)
             self:CState("AddressDoors", addrDoors)
             self:CState("Slope", Train.RV.KRRPosition == 0 and self.Slope)
