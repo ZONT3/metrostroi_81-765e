@@ -199,6 +199,12 @@ surface.CreateFont("Mfdu765.24", {
     outline = false,
 })
 
+surface.CreateFont("Mfdu765.MsgLog", {
+    font = "Open Sans",
+    extended = true,
+    size = 20,
+})
+
 surface.CreateFont("Mfdu765.28", {
     font = "Open Sans",
     extended = true,
@@ -1510,7 +1516,7 @@ function TRAIN_SYSTEM:DrawSfPage(Wag, x, y, w, h, pg)
 end
 
 local sizeMsgDate, sizeMsgTime, sizeMsgCat = 80, 80, 40
-local sizeMsgHeader, sizeMsgFooter = 40, 50
+local sizeMsgHeader, sizeMsgFooter = 32, 38
 local msgNull = {timeAppeared = "--:--:--"}
 function TRAIN_SYSTEM:DrawMessages(Wag, x, y, w, h)
     local ver = Wag:GetNW2Int("Skif:LogVer", -1)
@@ -1551,13 +1557,13 @@ function TRAIN_SYSTEM:DrawMessages(Wag, x, y, w, h)
             surface.DrawRect(x, y, w, sizeMsgH)
         end
         x = x + sizeMsgDate / 2
-        draw.SimpleText(msg.dateAppeared, "Mfdu765.24", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(msg.dateAppeared, "Mfdu765.MsgLog", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         x = x + sizeMsgDate / 2 + sizeBorder + sizeMsgTime / 2
-        draw.SimpleText(msg.timeAppeared, "Mfdu765.24", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(msg.timeAppeared, "Mfdu765.MsgLog", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         x = x + sizeMsgTime / 2 + sizeBorder + sizeMsgCat / 2
-        draw.SimpleText(msg.cat, "Mfdu765.24", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(msg.cat, "Mfdu765.MsgLog", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         x = x + sizeMsgCat / 2 + sizeBorder + 2
-        draw.SimpleText(msg.text, "Mfdu765.24", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        draw.SimpleText(msg.text, "Mfdu765.MsgLog", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
         x = x0
         y = y + sizeMsgH
     end
