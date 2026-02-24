@@ -34,9 +34,9 @@ function TRAIN_SYSTEM:SkifMonitor()
     if self.NormalWork then
         local Wag = self.Train
 
-        self.AlsArs = Wag:GetNW2Bool("Skif:AlsArs")
+        self.AlsArs = Wag:GetNW2Bool("Skif:AlsArs") or Wag:GetNW2Bool("AlsArs", false)
         self.UOS = Wag:GetNW2Bool("Skif:Uos", false)
-        self.FreqMode = self.UOS and "УОС" or self.AlsArs and "2/6" or "ДАУ"
+        self.FreqMode = self.UOS and "УОС" or Wag:GetNW2Bool("Skif:AlsArs") and "2/6" or Wag:GetNW2Bool("ArsDau", false) and "ДАУ" or "1/5"
         self.SpeedNext = Wag:GetNW2Bool("Skif:NextNoFreq", false) and "ОЧ" or Wag:GetNW2Int("Skif:NextSpeedLimit", 0)
         self.SpeedLimit = Wag:GetNW2Bool("Skif:Sao", false) and "АО" or Wag:GetNW2Bool("Skif:NoFreq", false) and "ОЧ" or Wag:GetNW2Int("Skif:SpeedLimit", 0)
         self.Speed = Wag:GetNW2Int("Skif:Speed", 0)

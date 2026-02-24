@@ -1026,6 +1026,19 @@ ENT.Spawner = {
     {"AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false},
     {"ForgivefulBars", "БАРС прощает ошибки", "Boolean", true},
     {"KdLongerDelay", "Задержка контроля дверей", "Boolean", false},
+    {
+        "ArsMode",
+        "Режим для АБ",
+        "List",
+        {"1/5", "ДАУ (АБ)", "ДАУ (АЛС-АРС)"},
+        1,
+        function(ent, val)
+            ent.AlsArs = val == 3
+            ent.ArsDau = val ~= 1
+            ent:SetNW2String("AlsArs", ent.AlsArs)
+            ent:SetNW2String("ArsDau", ent.ArsDau)
+        end
+    },
     {"BreakRedChance", "Шанс сломать габ. огни", "Slider", 0, 0, 35, 0, function(ent, val, rot, i)
         if ent.SA1 then
             local any = false

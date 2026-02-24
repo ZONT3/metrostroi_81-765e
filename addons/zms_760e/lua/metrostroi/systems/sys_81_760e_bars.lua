@@ -125,7 +125,7 @@ function TRAIN_SYSTEM:Think(dT)
         if self.BadFq and (self.F4 or self.F3 or self.F2 or self.F1) then self.SpeedLimit = self.LN and 40 or (self.KB and 20 or 0) end
         if self.SpeedLimit < 20 and self.KB and not ALS.AO then self.SpeedLimit = 20 end
         if self.NextLimit > self.SpeedLimit then self.NextLimit = self.SpeedLimit end
-        if DAU then self.NextLimit = nil end
+        if DAU then self.NextLimit = Wag.AlsArs and 0 or nil end
     else
         self.SpeedLimit = 0
         self.NextLimit = 0

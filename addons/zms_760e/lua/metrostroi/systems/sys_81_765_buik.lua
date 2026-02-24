@@ -329,7 +329,7 @@ if SERVER then
         end
 
         local alsArs = Wag:GetNW2Bool("Skif:AlsArs")
-        self:CheckDisplayState(1, alsArs and "2/6" or "ДАУ", STATE_NORMAL)
+        self:CheckDisplayState(1, alsArs and "2/6" or Wag.ArsDau and "ДАУ" or "1/5", STATE_NORMAL)
         self:CheckDisplayState(2, "АРС1", ars_states[Wag:GetNW2Int("Skif:ARS1", -1)] or STATE_INACTIVE)
         self:CheckDisplayState(3, "АРС2", ars_states[Wag:GetNW2Int("Skif:ARS2", -1)] or STATE_INACTIVE)
         self:CheckDisplayState(4, Wag.PmvAtsBlock.Value == 1 and "АТС1" or Wag.PmvAtsBlock.Value == 2 and "АТС2" or Wag.PmvAtsBlock.Value == 3 and "УОС" or "ШТАТ", STATE_NORMAL)
@@ -1343,8 +1343,8 @@ else
         local x = x0
         for line = 1, 2 do
             for col = 1, 5 do
-                if not (col == 5 and line ~= 2) and not (col == 1 and line == 2 and not Wag.BuikAlsArs) then
-                    local w = Wag.BuikAlsArs and line == 2 and sizeStatusStateShortW or sizeStatusStateW
+                if not (col == 5 and line ~= 2) and not (col == 1 and line == 2 and not Wag.BuikTwoToSix) then
+                    local w = Wag.BuikTwoToSix and line == 2 and sizeStatusStateShortW or sizeStatusStateW
 
                     local idx = 4 * (line - 1) + col
                     local state = Wag:GetNW2Int("BUIK:State" .. idx, STATE_INACTIVE)
@@ -1469,7 +1469,8 @@ else
         if state == STATE_NORMAL then
             surface.SetDrawColor(colorBackground)
             surface.DrawRect(0, 0, scr_w, scr_h)
-            self.Train.BuikAlsArs = self.Train:GetNW2String("BUIK:StateText1", "") == "2/6"
+            self.Train.BuikTwoToSix = self.Train:GetNW2Bool("Skif:AlsArs", false)
+            self.Train.BuikAlsArs = self.Train.BuikTwoToSix or self.Train:GetNW2Bool("AlsArs", false)
             drawBorders()
             updateHighlights(self.Train)
             drawWagons(self.Train)
