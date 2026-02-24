@@ -248,6 +248,17 @@ if SERVER then
                 self.IkCfg = nil
                 self.CisCfg = nil
                 self.CisCfgIdx = nil
+                self.Station = nil
+                self.Route = 0
+                self.LastStationDraft = "Посадки нет"
+                self.LastStation = "Посадки нет"
+                self.DoorAlarm = false
+                for idx = 1, 8 do
+                    for di = 1, 8 do
+                        Wag:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), false)
+                    end
+                    Wag:SetNW2String("BUIK:WagErr" .. idx, false)
+                end
             end
         end
 
@@ -286,6 +297,11 @@ if SERVER then
     function TRAIN_SYSTEM:TrainInfo(Wag)
         local bukpMessage = Wag:GetNW2Int("Skif:MainMsg", 1)
         self.Active = bukpMessage == 0 and Wag.BUKP.Active > 0
+        if not self.Active then
+            self.ActiveTimer = nil
+        elseif not self.ActiveTimer then
+            self.ActiveTimer = CurTime() + 2
+        end
         if not self.Active and self.ActiveOnly then
             self.State = STATE_INACTIVE_CABIN
             return
@@ -299,8 +315,9 @@ if SERVER then
         end
 
         for idx = 1, self.WagNum do
-            local wagon = Wag.BUKP.Trains[Wag.BUKP.Trains[idx]]
-            if not wagon or not wagon.WagNumber or not Wag.BUKP:CheckBuv(wagon) then
+            local wagnum = Wag.BUKP.Trains[idx]
+            local wagon = wagnum and Wag.BUKP.Trains[wagnum]
+            if not wagon then
                 for di = 1, 8 do
                     Wag:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), false)
                 end
@@ -308,22 +325,24 @@ if SERVER then
                 Wag:SetNW2String("BUIK:WagErr" .. idx, true)
 
             else
-                local orientation = wagon.Orientation
-                for di = 1, 4 do
-                    local r = wagon["Door" .. (orientation and di + 4 or di) .. "Closed"]
-                    local l = wagon["Door" .. (orientation and di or di + 4) .. "Closed"]
-                    Wag:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), r)
-                    Wag:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di + 4), l)
+                if self.ActiveTimer and CurTime() > self.ActiveTimer then
+                    local orientation = wagon.Orientation
+                    for di = 1, 4 do
+                        local r = wagon["Door" .. (orientation and di + 4 or di) .. "Closed"]
+                        local l = wagon["Door" .. (orientation and di or di + 4) .. "Closed"]
+                        Wag:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), r)
+                        Wag:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di + 4), l)
+                    end
+
+                    local err = wagon.ParkingBrakeEnabled or not wagon.BUVWork --[[ or not wagon.BTBReady]]
+                    Wag:SetNW2String("BUIK:WagErr" .. idx, err)
                 end
 
                 if idx == self.WagNum then
                     Wag:SetNW2Int("BUIK:RearCabinWagNum", idx)
                 end
 
-                local err = wagon.ParkingBrakeEnabled or not wagon.BTBReady
-
-                Wag:SetNW2String("BUIK:WagNum" .. idx, tostring(wagon.WagNumber))
-                Wag:SetNW2String("BUIK:WagErr" .. idx, err)
+                Wag:SetNW2String("BUIK:WagNum" .. idx, tostring(wagnum))
             end
 
         end
@@ -340,7 +359,7 @@ if SERVER then
         self:CheckDisplayState(9, "БОСД", Wag.DoorBlock.Value > 0.5 and STATE_RED or STATE_INACTIVE)
 
         Wag:SetNW2Int("BUIK:WagNum", self.WagNum)
-        Wag:SetNW2Bool("BUIK:ActiveCabin", self.Active)
+        Wag:SetNW2Bool("BUIK:ActiveCabin", --[[self.Active]] true)
     end
 
 

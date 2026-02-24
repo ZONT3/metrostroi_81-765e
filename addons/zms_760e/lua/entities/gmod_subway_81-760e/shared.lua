@@ -883,24 +883,28 @@ ENT.Spawner = {
         for i = 1, #trains do
             local ent = trains[i]
             if ent._SpawnerStarted <= 2 then
-                timer.Simple(6, function()
-                    if not IsValid(ent) then return end
-                    ent.BUV.OrientateBUP = wag1
-                    ent.BUV.CurrentBUP = wag1
-                end)
+                ent.BUV.OrientateBUP = wag1
+                ent.BUV.LastOrientate = wag1
+                ent.BUV.FirstHalf = i % 2 > 0
+                ent.BUV.Reset = CurTime()
             end
 
             if not ent.BUKP then continue end
-            ent.BUKP.State = 1
             local wagn = math.min(8, WagNum)
             ent.BUKP.WagNum = wagn
             ent.BUKP.Trains = {}
-            local first, last = 1, #trains
-            for i1 = 1, wagn do
-                local tent = trains[i == 1 and i1 or #trains - i1 + 1]
-                ent.BUKP.Trains[i1] = tent:GetWagonNumber()
-                ent.BUKP.Trains[tent:GetWagonNumber()] = {}
-                ent:SetNW2String("BMCISWagN" .. i1, tent:GetWagonNumber())
+            for j = 1, wagn do
+                local tent = trains[i == 1 and j or #trains - j + 1]
+                local oldNum = ent.BUKP.Trains[j]
+                local data = oldNum and ent.BUKP.Trains[oldNum]
+                if oldNum then ent.BUKP.Trains[oldNum] = nil end
+                ent.BUKP.Trains[j] = tent:GetWagonNumber()
+                ent.BUKP.Trains[tent:GetWagonNumber()] = data or {}
+            end
+            for j = wagn + 1, 8 do
+                local oldNum = ent.BUKP.Trains[j]
+                if oldNum then ent.BUKP.Trains[oldNum] = nil end
+                ent.BUKP.Trains[j] = nil
             end
 
             ent:SetNW2Int("CAMSWagNum", wagn)
@@ -1148,43 +1152,23 @@ ENT.Spawner = {
                     ent.RearDoor = val == 4
                 end
 
-                -- ent.BUD.RightDoorState = val == 4 and {1, 1, 1, 1} or {0, 0, 0, 0}
-                -- ent.BUD.DoorRight = val == 4
-                -- ent.BUD.LeftDoorState = val == 4 and {1, 1, 1, 1} or {0, 0, 0, 0}
-                -- ent.BUD.DoorLeft = val == 4
                 for idx = 1, 8 do ent.BUD.DoorCommand[idx] = val == 4 end
 
                 ent.GV:TriggerInput("Set", val < 4 and 1 or 0)
 
                 if val <= 2 then
                     if ent.SA1 then
-                        timer.Simple(first and 2 or 1, function()
+                        timer.Simple(2, function()
                             if not IsValid(ent) then return end
-                            ent:SetNW2Int("Skif:WagNum", ent.BUKP.WagNum)
-                            for i = 1, ent.BUKP.WagNum do
-                                ent:CANWrite("BUKP", ent:GetWagonNumber(), "BUV", ent.BUKP.Trains[i], "Orientate", i % 2 > 0)
-                            end
-
-                            ent.BUKP.Errors = {}
-                            ent.BUKP.InitTimer = CurTime() + 0.0
-                            ent.BUKP.BErrorsTimer = CurTime() + 3
                             ent.BUKP.State = 5
-                            ent.BUKP.State2 = 0
-                            ent.BUKP.Prost = true
-                            ent.BUKP.Kos = true
-                            ent.BUKP.Ovr = true
-                            ent.CAMS.State = -1
-                            ent.CAMS.StateTimer = CurTime() + 6
-                            ent.VentTimer = -20
+                            ent.BUIK.State = 4
+                            for idx = 1, 8 do
+                                ent:SetNW2String("BUIK:WagErr" .. idx, false)
+                                for di = 1, 8 do
+                                    ent:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), true)
+                                end
+                            end
                         end)
-
-                        if first then
-                            timer.Simple(8, function()
-                                if not IsValid(ent) then return end
-                                ent.BUKP.InitTimer = CurTime() + 0.5
-                                ent.BUKP.Reset = 1
-                            end)
-                        end
                     end
 
                     timer.Simple(7, function()
