@@ -360,7 +360,8 @@ if SERVER then
                 self.AutoChPage = nil
 
                 if self.State2 == 81 then self.MsgPage = 1 self:PrepareMessages() end
-                if self.State2 == 91 then self.State2 = 0 self.DepotMode = true end
+                -- if self.State2 == 91 then self.State2 = 0 self.DepotMode = true end
+                return
             end
 
             local page = math.floor(self.State2 / 10)
