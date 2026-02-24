@@ -237,7 +237,7 @@ function TRAIN_SYSTEM:Think(dT)
             end
 
             if not self.NoFreq and KmCur and Speed < 0.8 and not self.NoSpeedTimer then
-                self.NoSpeedTimer = CurTime() + (Emer and 6.8 or 4.8)
+                self.NoSpeedTimer = CurTime() + (Emer and 6.2 or 4.8)
             end
             RVTB = RVTB and self:RvtbTimer("NoSpeedTimer", self.NoFreq or not KmCur or Speed >= 0.8)
 
@@ -372,13 +372,13 @@ function TRAIN_SYSTEM:Think(dT)
         self.SbTimer = nil
     end
 
-    if Wag.Electric.V2 ~= self.ElectricBTB then
+    if not Emer and Wag.Electric.V2 ~= self.ElectricBTB then
         self.RVTB = 1
         self.BTB = 1
         self.ElectricBTB = Wag.Electric.V2
     end
 
-    self.RVTB = Wag.Electric.V2 == 0 and 1 or self.RVTB
+    self.RVTB = not Emer and Wag.Electric.V2 == 0 and 1 or self.RVTB
     self.Active = (Active or self.BarsPower and UOS) and 1 or 0
     self.ALSMode = ALSVal
 
