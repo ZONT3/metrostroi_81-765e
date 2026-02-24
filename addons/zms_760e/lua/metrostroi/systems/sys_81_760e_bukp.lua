@@ -1345,11 +1345,17 @@ if SERVER then
             self:CState("SelectLeft", selectLeft)
             self:CState("SelectRight", selectRight)
             self:CState("CloseDoors", doorClose)
-            self:CState("BupActive", self.State == 5 and self.MainMsg == 0)
-            self:CState("ZeroSpeed", self.CanZeroSpeed and Train.SF80F5.Value > 0)
+
+            local bupActive = self.State == 5 and self.MainMsg == 0
+            self:CState("BupActive", bupActive)
+            if bupActive then
+                self:CState("ZeroSpeed", self.CanZeroSpeed and Train.SF80F5.Value > 0)
+            end
+
             self:CState("AddressDoors", addrDoors)
             self:CState("Slope", Train.RV.KRRPosition == 0 and self.Slope)
             self:CState("SlopeSpeed", self.SlopeSpeed)
+
             if self.WagNum > 0 then
                 self.EnginesStrength = EnginesStrength / self.WagNum
             else

@@ -299,7 +299,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         end
 
         self.ZeroSpeed = S["RV"] * min(1, Train.BUKP.BudZeroSpeed * Train.BUKP.Active + C(Train.PmvAtsBlock.Value == 3) * Train.PmvParkingBrake.Value)
-        self.DoorsControl = self.ZeroSpeed * min(1, S["RV"] * Train.SF80F5.Value * Train.BUKP.Active * Train.SF23F2.Value + Train.EmergencyDoors.Value)
+        self.DoorsControl = self.ZeroSpeed * min(1, S["RV"] * Train.SF80F5.Value * C(Train.BUKP.State == 5) * Train.SF23F2.Value + Train.EmergencyDoors.Value)
 
         Train:WriteTrainWire(10, P * Train.Battery.Value * min(1, Train.EmergencyCompressor.Value + Train.EmergencyCompressor2.Value))
         local EmergencyDoors = self.DoorsControl * Train.EmergencyDoors.Value

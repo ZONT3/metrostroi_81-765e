@@ -291,6 +291,8 @@ function TRAIN_SYSTEM:Think(dT)
 
     else
         self:CState("BUVWork", false)
+        self.CurrentBUP = nil
+        self.BupZeroSpeed = false
         for k, v in pairs(self.Commands) do
             self.Commands[k] = false
         end
@@ -439,14 +441,13 @@ function TRAIN_SYSTEM:Think(dT)
         self.PowerOff = (self:Get("PowerOff") or Train.SF30F2 and Train.SF30F2.Value == 0) and 1 or 0
         self.PassLight = self:Get("PassLight")
         self.BupActive = self:Get("BupActive")
-        self.BupZeroSpeed = self:Get("ZeroSpeed")
+        self.BupZeroSpeed = self:Get("ZeroSpeed") ~= nil and self:Get("ZeroSpeed") or self.BupZeroSpeed
     else
         self.PassLight = false
         self.PSNSignal = false
         self.MKSignal = false
         self.PowerOff = 0
         self.BupActive = false
-        self.BupZeroSpeed = false
     end
     self.ZeroSpeed = Train.SF80F9.Value > 0 and Train.Speed < 2.6
     self.BupZeroSpeed = self.ZeroSpeed and self.BupZeroSpeed

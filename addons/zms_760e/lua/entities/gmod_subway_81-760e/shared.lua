@@ -1168,6 +1168,7 @@ ENT.Spawner = {
                                     ent:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), true)
                                 end
                             end
+                            ent.BUKP:CState("ZeroSpeed", true)
                         end)
                     end
 
