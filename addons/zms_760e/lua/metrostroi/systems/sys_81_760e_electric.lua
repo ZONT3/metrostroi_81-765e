@@ -170,7 +170,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
             Train:WriteTrainWire(73, bsOff and 1 or 0)
         end
 
-        local bsOff = not PBatt or Train:ReadTrainWire(73) > 0 or Train.SF30F2.Value < 1
+        local bsOff = Train:ReadTrainWire(73) > 0 or Train.SF30F2.Value < 1
         local bsOn = PBatt * Train.SF30F2.Value * (Train.PowerOn.Value + Train:ReadTrainWire(72)) > 0
 
         if BUV.AKBVoltage < 62 and self.Power then
@@ -299,7 +299,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         end
 
         self.ZeroSpeed = S["RV"] * min(1, Train.BUKP.BudZeroSpeed * Train.BUKP.Active + C(Train.PmvAtsBlock.Value == 3) * Train.PmvParkingBrake.Value)
-        self.DoorsControl = Train.SF80F5.Value * min(1, Train.BUKP.BudZeroSpeed * Train.BUKP.Active * Train.SF23F2.Value + Train.EmergencyDoors.Value)
+        self.DoorsControl = self.ZeroSpeed * min(1, S["RV"] * Train.SF80F5.Value * Train.BUKP.Active * Train.SF23F2.Value + Train.EmergencyDoors.Value)
 
         Train:WriteTrainWire(10, P * Train.Battery.Value * min(1, Train.EmergencyCompressor.Value + Train.EmergencyCompressor2.Value))
         local EmergencyDoors = self.DoorsControl * Train.EmergencyDoors.Value
@@ -315,8 +315,8 @@ function TRAIN_SYSTEM:Think(dT, iter)
         ASNP_VV.Power = P * Train.SF42F1.Value * Train.R_ASNPOn.Value
         Panel.CabLight = min(1, P + EmerBattPower) * Train.SF52F1.Value * min(2 - (1 - P) * EmerBattPower, Train.CabinLight.Value)
         Panel.PanelLights = min(1, P + EmerBattPower) * Train.SF52F1.Value
-        Panel.HeadlightsFull = UPIPower * Train.SF23F2.Value * Train.SF23F13.Value * Train.SF51F1.Value * RV["KRO11-12"] * max(0, Train.HeadlightsSwitch.Value - 1) + Train.EmergencyControls.Value * P
-        Panel.HeadlightsHalf = UPIPower * Train.SF23F2.Value * Train.SF23F13.Value * Train.SF51F1.Value * RV["KRO11-12"] * Train.HeadlightsSwitch.Value + Train.EmergencyControls.Value * P
+        Panel.HeadlightsFull = min(1, UPIPower * Train.SF23F2.Value * Train.SF23F13.Value * Train.SF51F1.Value * RV["KRO11-12"] * max(0, Train.HeadlightsSwitch.Value - 1) + RV["KRR3-4"] * P)
+        Panel.HeadlightsHalf = min(1, UPIPower * Train.SF23F2.Value * Train.SF23F13.Value * Train.SF51F1.Value * RV["KRO11-12"] * Train.HeadlightsSwitch.Value + RV["KRR3-4"] * P)
         Panel.RedLights = min(1, Train.SF51F2.Value * PBatt + RV["KRO7-8"] * Train.SF51F1.Value * P + Train.EmergencyControls.Value * P)
         Panel.CabVent = P * Train.SF62F3.Value
         Panel.DoorLeftL = self.DoorsControl * Train.DoorSelectL.Value * (1 - Train.DoorSelectR.Value)

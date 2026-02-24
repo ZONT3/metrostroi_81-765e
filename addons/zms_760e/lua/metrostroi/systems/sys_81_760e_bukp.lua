@@ -684,7 +684,6 @@ if SERVER then
 
         self.ESD = 0
         self.CanZeroSpeed = false
-        self.BudZeroSpeed = 0
         self.DoorClosed = 0
 
         local BARS = Train.BARS
@@ -800,7 +799,6 @@ if SERVER then
             end
 
             self.CanZeroSpeed = self.CurrentSpeed < 2.8
-            self.BudZeroSpeed = self.CanZeroSpeed and 1 or 0
 
             local kvSetting = 0
             local overrideKv = true
@@ -1045,8 +1043,8 @@ if SERVER then
 
                     self:CheckError("RedLightsAkb", Train.PpzBattLights.Value > 0.5)
 
-                    self:CheckError("RightBlock", (not doorRight or Train.DoorClose.Value * Train.Panel.DoorCloseL > 0) and Train.DoorRight.Value > 0)
-                    self:CheckError("LeftBlock", (not doorLeft or Train.DoorClose.Value * Train.Panel.DoorCloseL > 0) and Train.DoorLeft.Value > 0)
+                    self:CheckError("RightBlock", (not doorRight or Train.DoorClose.Value * Train.Panel.DoorCloseL > 0) and Train.DoorRight.Value * Train.PpzDoorsControl.Value > 0)
+                    self:CheckError("LeftBlock", (not doorLeft or Train.DoorClose.Value * Train.Panel.DoorCloseL > 0) and Train.DoorLeft.Value * Train.PpzDoorsControl.Value > 0)
 
                     self:CheckError("BrakeLine", self.BLTimer and CurTime() - self.BLTimer > 0)
                     self:CheckError("RvErr", false)
@@ -1331,6 +1329,7 @@ if SERVER then
 
                 if not (Train.DoorBlock.Value * Train.EmergencyDoors.Value == 1) and (Train.PpzUpi.Value * Train.DoorClose.Value * Train.Panel.DoorCloseL) == 1 then doorClose = true end
                 --if Train.DoorClose.Value == 1 then doorClose = true end
+
             else
                 self.DoorClosed = 0
             end
@@ -1356,11 +1355,15 @@ if SERVER then
                 self.EnginesStrength = 0
             end
 
-            if (Train.DoorLeft.Value + Train.DoorRight.Value) > 0 then
+            if (Train.DoorLeft.Value + Train.DoorRight.Value) * Train.PpzDoorsControl.Value > 0 then
                 if not self.AutoChPage then self.AutoChPage = self.State2 end
                 self.State2 = 21
                 self.AwaitOpenDoors = true
                 self.Select = false
+            end
+
+            if self.State == 5 then
+                self.BudZeroSpeed = self.CanZeroSpeed and 1 or 0
             end
 
             -- Потеря автомата "Управление основное", вариант 1: текущая уставка в БУВ и состояние сбора сх _зависает_

@@ -59,7 +59,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.ATS2 = self.BarsPower and (self.ATS2Bypass or Wag.PpzAts2.Value > 0.5)
 
     local PowerALS = self.ATS1 or self.ATS2
-    local Power = self.ATS1 and self.ATS2 and ALSVal == 0
+    local Power = self.ATS1 and self.ATS2
 
     self.NoFreq = ALS.NoFreq > 0
     self.F1 = ALS.F1 > 0 and not self.NoFreq
@@ -260,7 +260,7 @@ function TRAIN_SYSTEM:Think(dT)
 
             self.PN3 = (self.PN3 > 0 or ZsError or KmCur and self.BUKPErr) and 1 or 0
         elseif UOS then
-            SpeedLimit = not Emer and self.KB and 35 or 0
+            SpeedLimit = not Emer and self.KB and (TwoToSix and 45 or 80) or 0
             self.SpeedLimit = SpeedLimit
             self.NextLimit = nil
         end
@@ -273,11 +273,11 @@ function TRAIN_SYSTEM:Think(dT)
         end
         Drive = travel or AllowStart and KmCur
 
-        if UOS and not Emer and (Wag.PpzUpi.Value * Wag.KAH.Value < 1 or Speed > 35.5) then
+        if UOS and not Emer and (Wag.PpzUpi.Value * Wag.KAH.Value < 1 or Speed > (TwoToSix and 45.5 or 80.5)) then
             Drive = false
         end
 
-        if UOS and not Emer and Speed > 35.5 then
+        if UOS and not Emer and Speed > (TwoToSix and 45.5 or 80.5) then
             self.UosLimitTimer = CurTime() - 1
             RVTB = false
         end
@@ -293,6 +293,7 @@ function TRAIN_SYSTEM:Think(dT)
 
         if UOS then
             BTB = BTB and self.KB
+            self.PN3 = self.PN3 < 1 and BTB and 0 or 1
         end
 
         self.RVTB = RVTB and not self.DeadRvtb and 1 or 0
@@ -310,8 +311,8 @@ function TRAIN_SYSTEM:Think(dT)
             self.BrakeTimer = nil
         end
 
-        self.Drive1 = self.ATS1 and Drive and not self.BrakeTimer and 1 or 0
-        self.Drive2 = self.ATS2 and Drive and not self.BrakeTimer and 1 or 0
+        self.Drive1 = self.ATS1 and Drive and RVTB and BTB and not self.BrakeTimer and 1 or 0
+        self.Drive2 = self.ATS2 and Drive and RVTB and BTB and not self.BrakeTimer and 1 or 0
 
     elseif ALSVal == 1 then
         -- TODO Some BUKP logic for speed regulation
@@ -320,11 +321,13 @@ function TRAIN_SYSTEM:Think(dT)
         self.PN3 = 0
         self.Ring = 0
         self.Brake = 0
-        self.Drive = (KMState > 0 or not ZeroSpeed) and 1 or 0
-        self.Drive1 = self.ATS1 and self.Drive == 1 and 1 or 0
-        self.Drive2 = self.ATS2 and self.Drive == 1 and 1 or 0
+        self.Drive = 1
+        self.Drive1 = 1
+        self.Drive2 = 1
         self.BTB = 1
+        self.RVTB = 1
         self.DisableDrive = false
+        self.DeadRvtb = false
 
     else
         self.BTB = 0
