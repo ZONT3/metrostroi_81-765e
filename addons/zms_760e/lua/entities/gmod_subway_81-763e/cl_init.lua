@@ -787,8 +787,8 @@ end
 
 function ENT:ReInitBogeySounds(bogey)
     if not IsValid(bogey) then return end
-    bogey.EngineSNDConfig = {}
-    if Metrostroi.Version > 1537278077 then bogey.EngineSNDConfig[bogey.MotorSoundType or 2] = {} end
+    bogey.EngineSNDConfig = bogey.EngineSNDConfig or {}
+    -- if Metrostroi.Version > 1537278077 then bogey.EngineSNDConfig[bogey.MotorSoundType or 2] = {} end
     bogey.SoundNames = bogey.SoundNames or {}
     bogey.SoundNames["flangea"] = "subway_trains/765/rumble/bogey/skrip1.wav"
     bogey.SoundNames["flangeb"] = "subway_trains/765/rumble/bogey/skrip2.wav"

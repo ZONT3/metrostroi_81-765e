@@ -1198,11 +1198,11 @@ function ENT:ExperimentalAsync(asyncType, rolling_total, speed)
         self:SetSoundState("chopper_hitachi", rolling_total * self:GetPackedRatio("chopper"), 1)
 
     elseif asyncType == 8 then  -- Experimental for 765
-        local state = self:GetPackedRatio("asynccurrent")
-        local strength = self:GetPackedRatio("asyncstate") * math.Clamp((speed - 13) / 1, 0, 1) * (1 - math.Clamp((speed - 28) / 28, 0, 1)) * 0.5
-        local strengthls = self:GetPackedRatio("asyncstate") * (1 - math.Clamp((speed - 12.9) / 1, 0, 1)) * 0.7
-        self:SetSoundState("async1", rolling_total * math.Clamp(state / 0.26 + 0.2, 0, 1) * strength, 1)
-        self:SetSoundState("KATP_lowspeed", rolling_total * math.Clamp(state / 0.26 + 0.2, 0, 1) * strengthls, 1)
+        local state = self:GetPackedRatio("asynccurrent") --^1.5--RealTime()%2.5/2	
+        local strength = self:GetPackedRatio("asyncstate") * math.Clamp((speed - 13) / 1, 0, 1) * (1 - math.Clamp((math.min(52, speed) - 28) / 30, 0, 1)) * 0.4
+        local strengthls = self:GetPackedRatio("asyncstate") * (1 - math.Clamp((speed - 12.9) / 1, 0, 1)) * 1
+        self:SetSoundState("async1", rolling_total * math.Clamp(state / 0.26 + 0.2, 0, 1) * strength, 1) --+math.Clamp(state,0,1)*0.1)
+        self:SetSoundState("KATP_lowspeed", rolling_total * math.Clamp(state / 0.26 + 0.2, 0, 1) * strengthls, 0.85) --+math.Clamp(state,0,1)*0.1)
         self:SetSoundState("chopper_katp", rolling_total * self:GetPackedRatio("chopper"), 1)
     end
 end

@@ -110,7 +110,7 @@ function ENT:InitializeSounds()
     self.SoundNames["ONIX"] = { "subway_trains/760/engines/inverter.wav", loop = true }
     self.SoundPositions["ONIX"] = {400, 1e9, Vector(0, 0, -448), 0.5}
     self.SoundNames["KATP_lowspeed"] = { "subway_trains/720a/inverter_lowspeed.wav", loop = true }
-    self.SoundPositions["KATP_lowspeed"] = {400, 1e9, Vector(0, 0, -448), 1.8}
+    self.SoundPositions["KATP_lowspeed"] = {400, 1e9, Vector(0, 0, -448), 1}
     self.SoundNames["KATP"] = { "subway_trains/720a/inverter_katp3.wav", loop = true }
     self.SoundPositions["KATP"] = {400, 1e9, Vector(0, 0, -448), 2.5}
     self.SoundNames["Hitachi"] = { "subway_trains/720a/inverter.wav", loop = true }
@@ -166,7 +166,7 @@ function ENT:InitializeSounds()
         loop = true
     }
 
-    self.SoundPositions["async1"] = {400, 1e9, Vector(0, 0, 0), 0.5}
+    self.SoundPositions["async1"] = {400, 1e9, Vector(0, 0, 0), 1}
 
     for i = 1, 7 do
         self.SoundNames["vent" .. i] = {

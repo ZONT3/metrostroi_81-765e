@@ -4106,15 +4106,15 @@ function ENT:ReInitBogeySounds(bogey)
     local suffix = Metrostroi.Version > 1537278077 and "765" or "720"
 
     table.insert(tbl, { "ted1_" .. suffix, --40
-        08, 00, 16, 0.14 })
+        08, 00, 16, 0.09 })
     table.insert(tbl, { "ted2_" .. suffix, --35
-        16, 08 - 4, 24, 0.13 })
+        16, 08 - 4, 24, 0.11 })
     table.insert(tbl, { "ted3_" .. suffix, --32
-        24, 16 - 4, 32, 0.12 })
+        24, 16 - 4, 32, 0.09 })
     table.insert(tbl, { "ted4_" .. suffix, --28
-        32, 24 - 4, 40, 0.10 })
+        32, 24 - 4, 40, 0.08 })
     table.insert(tbl, { "ted5_" .. suffix, --22
-        40, 32 - 4, 48, 0.09 })
+        40, 32 - 4, 48, 0.07 })
     table.insert(tbl, { "ted6_" .. suffix, --18
         48, 40 - 4, 56, 0.06 })
     table.insert(tbl, { "ted7_" .. suffix, --15
@@ -4629,10 +4629,10 @@ function ENT:ExperimentalAsync(asyncType, rolling_total, speed)
 
     elseif asyncType == 8 then  -- Experimental for 765
         local state = self:GetPackedRatio("asynccurrent") --^1.5--RealTime()%2.5/2	
-        local strength = self:GetPackedRatio("asyncstate") * math.Clamp((speed - 13) / 1, 0, 1) * (1 - math.Clamp((speed - 28) / 28, 0, 1)) * 0.5
-        local strengthls = self:GetPackedRatio("asyncstate") * (1 - math.Clamp((speed - 12.9) / 1, 0, 1)) * 0.7
+        local strength = self:GetPackedRatio("asyncstate") * math.Clamp((speed - 13) / 1, 0, 1) * (1 - math.Clamp((math.min(52, speed) - 28) / 30, 0, 1)) * 0.4
+        local strengthls = self:GetPackedRatio("asyncstate") * (1 - math.Clamp((speed - 12.9) / 1, 0, 1)) * 1
         self:SetSoundState("async1", rolling_total * math.Clamp(state / 0.26 + 0.2, 0, 1) * strength, 1) --+math.Clamp(state,0,1)*0.1)
-        self:SetSoundState("KATP_lowspeed", rolling_total * math.Clamp(state / 0.26 + 0.2, 0, 1) * strengthls, 1) --+math.Clamp(state,0,1)*0.1)
+        self:SetSoundState("KATP_lowspeed", rolling_total * math.Clamp(state / 0.26 + 0.2, 0, 1) * strengthls, 0.85) --+math.Clamp(state,0,1)*0.1)
         self:SetSoundState("chopper_katp", rolling_total * self:GetPackedRatio("chopper"), 1)
     end
 end
