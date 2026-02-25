@@ -166,6 +166,7 @@ function TRAIN_SYSTEM:Think(dT)
                 Brake = true
             elseif Brake and not Ring and not KmCur then
                 Brake = false
+                self.PN1Timer = nil
             end
 
             if Ring and Drive and not self.KvtTimer then

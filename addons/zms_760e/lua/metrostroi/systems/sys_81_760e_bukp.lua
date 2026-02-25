@@ -124,8 +124,8 @@ function TRAIN_SYSTEM:Initialize()
     self.MotorWagc = 1
     self.TrailerWagc = 0
     self.CurTime = CurTime()
-    self.Prost = false
-    self.Kos = false
+    self.Prost = true
+    self.Kos = true
     self.DoorClosed = 0
     self.CurTime1 = CurTime()
     self.NextThink = CurTime()
@@ -677,11 +677,6 @@ if SERVER then
         Train:SetNW2Int("Skif:RV", RV * Train.Electric.UPIPower)
         if self.State ~= 5 then self.MainMsg = RV * Train.Electric.UPIPower > 0 and MAINMSG_NONE or MAINMSG_RVOFF end
         self.Active = RV and 1 or 0
-
-        if self.State < 5 then
-            self.Prost = false
-            self.Kos = false
-        end
 
         self.ESD = 0
         self.CanZeroSpeed = false
