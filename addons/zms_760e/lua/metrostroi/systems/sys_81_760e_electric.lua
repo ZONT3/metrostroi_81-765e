@@ -82,7 +82,7 @@ end
 
 function TRAIN_SYSTEM:Outputs()
     return {
-        "Brake", "Drive", "V2", "V1", "Main750V", "Power750V", "Aux750V", "Aux80V", "Lights80V", "Battery80V", "BTB", "ABESDr", "MK", "Power",
+        "Brake", "Drive", "V2", "V1", "Main750V", "Power750V", "Aux750V", "Aux80V", "Lights80V", "Battery80V", "BTB", "ABESDr", "MK",
         "SD", "KM2", "EmerXod", "BSPowered", "UPIPower", "PowerReserve", "Recurperation", "Iexit", "Itotal", "Chopper", "ElectricEnergyUsed",
         "ElectricEnergyDissipated", "EnergyChange", "BTO", "ZeroSpeed", "DoorsControl"
     }
@@ -205,7 +205,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         end
 
         if self.PowerOffTimer and CurTime() - self.PowerOffTimer > 0 then
-            if self.Power > 1 and not bsOff then
+            if self.Power and self.Power > 1 and not bsOff then
                 self.PowerOffTimer = nil
             else
                 self.Power = (self.Power or 0) - 1
@@ -227,7 +227,6 @@ function TRAIN_SYSTEM:Think(dT, iter)
             end
         end
 
-        self.Power = (P == 0) and nil or self.Power
         Train:WriteTrainWire(75, P * math.max(0, (self.Power or 0) - 1))
         Train:WriteTrainWire(74, PBatt * (1 - math.max(0, (self.Power or 0) - 1)))
 

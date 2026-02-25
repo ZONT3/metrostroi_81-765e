@@ -443,7 +443,6 @@ function ENT:Think()
     local powerUpi = self.Electric.UPIPower > 0
     local powerBs = self.Electric.BSPowered > 0
     local powerReserve = self.Electric.PowerReserve > 0
-    if self.Electric.Battery80V < 62 then self.Electric.Power = nil end
     local state = math.abs(self.AsyncInverter.InverterFrequency / (11 + self.AsyncInverter.State * 5))
     self:SetPackedRatio("asynccurrent", math.Clamp(state * (state + self.AsyncInverter.State / 1), 0, 1) * math.Clamp(self.Speed / 6, 0, 1))
     self:SetPackedRatio("asyncstate", math.Clamp(self.AsyncInverter.State / 0.2 * math.abs(self.AsyncInverter.Current) / 100, 0, 1))
