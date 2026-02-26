@@ -82,7 +82,7 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     self.KB = Wag.PB.Value > 0.5 or Wag.Attention.Value > 0.5
-    self.KVT = Wag.AttentionBrake.Value > 0.5 or self.KB
+    self.KVT = Wag.AttentionBrake.Value > 0.5 --or self.KB
     if self.KVT then self.KVTTimer = CurTime() + 1 end
     if self.KVTTimer and CurTime() - self.KVTTimer > 0 then self.KVTTimer = nil end
 
@@ -162,7 +162,10 @@ function TRAIN_SYSTEM:Think(dT)
             SpeedLimit = self.KB and not ALS.AO and 20 or SpeedLimit
 
             if Speed > SpeedLimit then
-                if not Brake then Ring = true self.PN1Timer = CurTime() + 1.6 end
+                if not Brake then
+                    Ring = SpeedLimit > self.SpeedLimit - 0.5
+                    self.PN1Timer = CurTime() + 1.6
+                end
                 Brake = true
             elseif Brake and not Ring and not KmCur then
                 Brake = false
