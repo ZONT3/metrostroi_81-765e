@@ -1,11 +1,14 @@
 --------------------------------------------------------------------------------
--- Конфиги ИК для 81-765 с обратной совместимостью с ЦИС
+-- Конфиги ЦИК для 81-765 с обратной совместимостью с ЦИС.
+-- Если на карте присутствует хотя бы один конфиг с префиксом [ИК] в названии,
+-- то в спавнере будут отображаться только конфиги с этим префиксом.
 --------------------------------------------------------------------------------
 
 local map = game.GetMap()
 
 if map:find("kalinin") then
     Metrostroi.AddCISConfig("[ИК] Калининская 2025", {{
+        -- Здесь все точно так же, как и в обычном конфиге ЦИС, для обратной совместимости с Окой.
         LED = {3, 4, 4, 4, 4, 4, 4, 3},
         Name = "Новокосино - Третьяковская",
         Loop = false,
@@ -20,20 +23,28 @@ if map:find("kalinin") then
         { 806, "Площадь Ильича","Ploschad Ilyicha",true,"Римская",10,"Rimskaya",Color(190,209,46),"Москва-Товарная",3,"Moskva-Tovarnaya",Color(223,71,124), },
         { 807, "Марксистская","Marksistskaya",true,"Таганская",5,"Taganskaya",Color(146,82,51),"Таганская",7,"Taganskaya",Color(148,63,144), },
         { 808, "Третьяковская","Tretyakovskaya",true,"Третьяковская",6,"Tretyakovskaya",Color(239,126,36),"Новокузнецкая",2,"Novokuznetskaya",Color(75,175,79), },
+
+        -- Отсюда идет расширение для ЦИК.
+        -- Если это поле предоставлено, то пересадки, определенные выше, игнорируются ЦИКом для указанных в этом поле станций.
         changes = {
-            [1] = {
+            [1] = {  -- Порядковый номер станции, начинающийся с единицы, в каком порядке они перечислены выше.
                 {
                     name = "Реутов",
                     nameEng = "Reutov",
                     icons = {
+                        -- Иконок может быть несколько, если одна станция обслуживает несколько направлений (например, Александровский сад - 4 и 4А)
+                        -- Но в подавляющем большинстве случаев, тут только одна иконка.
                         {
+                            -- Типы перечислены в lua/autorun/ik765.lua, и по идее все глобалы оттуда всегда доступны во всех скриптах configmaps, как этот
                             typ = IK_CHANGE_TYPE_CUSTOM,
+                            -- Цвет только в HEX. Для кастомных иконок это почти всегда должно быть "#ffffff"
                             color = "#ffffff",
+                            -- Можно предоставить свою PNG, например path = "foo/bar/baz.png"
                             path = IK_ICON_MCD4,
                         }
                     }
                 },
-                IK_TEMPLATE_PARKING, IK_TEMPLATE_ACCESS
+                IK_TEMPLATE_PARKING, IK_TEMPLATE_ACCESS  -- Шаблоны парковок и значка инвалидов. Все шаблоны перечислены в lua/autorun/ik765.lua
             },
             [2] = {
                 {
@@ -67,9 +78,9 @@ if map:find("kalinin") then
                     nameEng = "Aviamotornaya",
                     icons = {
                         {
-                            typ = IK_CHANGE_TYPE_NORMAL,
-                            symbol = "11",
-                            color = "#82C0C0",
+                            typ = IK_CHANGE_TYPE_NORMAL,  -- Пересадка на обычную линию метро
+                            symbol = "11",  -- БКЛ
+                            color = "#82C0C0",  -- Цвет рекомендуется брать из википедии через F12, если это реальная линия
                         }
                     }
                 }, {
@@ -91,7 +102,7 @@ if map:find("kalinin") then
                     icons = {
                         {
                             typ = IK_CHANGE_TYPE_NORMAL,
-                            symbol = "10",
+                            symbol = "10",  -- ЛДЛ
                             color = "#99CC00",
                         }
                     }
@@ -124,11 +135,11 @@ if map:find("kalinin") then
                     icons = {
                         {
                             typ = IK_CHANGE_TYPE_NORMAL,
-                            symbol = "5",
+                            symbol = "5",  -- КЛ
                             color = "#8D5B2D",
                         }, {
                             typ = IK_CHANGE_TYPE_NORMAL,
-                            symbol = "7",
+                            symbol = "7",  -- ТКЛ
                             color = "#800080",
                         }
                     }
@@ -141,7 +152,7 @@ if map:find("kalinin") then
                     icons = {
                         {
                             typ = IK_CHANGE_TYPE_NORMAL,
-                            symbol = "6",
+                            symbol = "6",  -- КРЛ
                             color = "#ED9121",
                         }
                     }
@@ -151,7 +162,7 @@ if map:find("kalinin") then
                     icons = {
                         {
                             typ = IK_CHANGE_TYPE_NORMAL,
-                            symbol = "2",
+                            symbol = "2",  -- ЗЛ
                             color = "#2DBE2C",
                         }
                     }
@@ -207,6 +218,7 @@ elseif map:find("nekrasovskaya") then
             [6] = { IK_TEMPLATE_ACCESS },
             [7] = { IK_TEMPLATE_ACCESS },
             [8] = {
+                -- Хоть все три станции и называются "Нижегородская", но это все еще три отдельные станции, поэтому не группируем
                 {
                     name = "Нижегородская",
                     nameEng = "Nizhegorodskaya",
