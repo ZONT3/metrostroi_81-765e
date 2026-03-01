@@ -383,7 +383,7 @@ local function pvzToggle(name, tooltip, x, y, idx)
         w = 29.8, h = 50,
         model = {
             var = name,
-            model = "models/metrostroi_train/81-765/switch_av.mdl",
+            model = "models/metrostroi_train/81-765/switch_breaker.mdl",
             z = 0, ang = Angle(-90, -180, 0), scale = 1,
             speed = 9, sndvol = 0.4, vmin = 0, vmax = 1,
             snd = function(val) return val and "sf_on" or "sf_off" end,
