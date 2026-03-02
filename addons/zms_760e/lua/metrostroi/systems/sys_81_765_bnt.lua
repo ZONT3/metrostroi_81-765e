@@ -404,6 +404,7 @@ else
             local offsetEngY = idx == 0 and Lerp(stationAnim, 24, 0) or idx == 1 and Lerp(stationAnim, 0, 24) or 0
             local offsetChangeY = idx == 0 and Lerp(stationAnim, 24, 6) or idx == 1 and Lerp(stationAnim, 6, 24) or 6
             local changeScale = idx == 0 and Lerp(stationAnim, 1.4, 1) or idx == 1 and Lerp(stationAnim, 1, 1.4) or 1
+            local textOffset = idx == 0 and Lerp(stationAnim, 14, 6) or idx == 1 and Lerp(stationAnim, 6, 14) or 1
             local fontFrame = math.floor((idx == 0 and 1 - stationAnim or stationAnim) * self.FontTransitionFrames)
             if idx < 2 then
                 font = "BNT.StationBig." .. fps .. "." .. fontFrame
@@ -420,8 +421,8 @@ else
                 end
             end
 
-            boxW, boxH = draw.SimpleText(stationName, font, x, y + offsetY, colorBlack, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
-            draw.SimpleText(cfg.nameEng, fontEng, x, y + offsetEngY - boxH, colorEng, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+            boxW, boxH = draw.SimpleText(stationName, font, x - textOffset, y + offsetY, colorBlack, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+            draw.SimpleText(cfg.nameEng, fontEng, x - textOffset, y + offsetEngY - boxH, colorEng, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
 
             local change = false
             local prevIcon = nil
