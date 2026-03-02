@@ -28,7 +28,7 @@ pmvToggle("PmvCond", {0, 3}, 1)
 local PpzToggles = {
     "SF42F1", "SF30F1", "SF23F2", "SF23F1", "SF23F3", "SF23F13", "SF23F7", "SF23F8", "SF22F5", "SF22F2", "SF22F3",
     "SF80F5", "SF80F1", "SF80F3", "SF62F1", "SF42F2", "SF30F5", "SF70F1", "SF45F11", "SF45F1", "SF43F3", "SF90F1",
-    "PPZUU1", "SF51F1", "SF51F2", "SF52F1", "SF62F3", "SF62F4", "SF61F8", "SF70F5", "SF70F3", "SF70F2",
+    "SF22F4", "SF51F1", "SF51F2", "SF52F1", "SF62F3", "SF62F4", "SF61F8", "SF70F5", "SF70F3", "SF70F2",
 }
 
 local PvzToggles = {

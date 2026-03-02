@@ -240,8 +240,11 @@ function TRAIN_SYSTEM:Think(dT, iter)
     -- Some internal electric
     ----------------------------------------------------------------------------
     if RV then
-        local ActiveCabin = P * min(1, RV["KRO13-14"] * Train.SF23F2.Value * Train.SF23F13.Value + RV["KRR11-12"] * Train.SF23F1.Value)
-        local OrientFwd = ActiveCabin * (1 - RV["KRO7-8"])
+        local ActiveCabin = P * min(1, RV["KRO13-14"] * Train.SF23F2.Value --[[* Train.SF23F13.Value]] + RV["KRR11-12"] * Train.SF23F1.Value)
+        local OrientFwd = ActiveCabin * Train.SF23F13.Value * (1 - RV["KRO7-8"])
+
+        local PpzKm = Train.BUKP.BtbuSd > 0 and Train.SF22F4.Value or Train.SF22F2.Value
+        local PpzBtbu = Train.SF22F2.Value
 
         local UPIPower = P * Train.SF23F8.Value
         self.UPIPower = UPIPower
@@ -265,7 +268,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Train:WriteTrainWire(13, P * (RV["KRR9-10"] + KM2))
         Train:WriteTrainWire(14, P * RV["KRR3-4"] * Orientation * Train.SF23F1.Value)
         Train:WriteTrainWire(15, P * RV["KRR9-10"] * Orientation * Train.SF23F1.Value)
-        local BTB = P * ActiveCabin * Train.SF22F2.Value  -- BTBU
+        local BTB = P * ActiveCabin * PpzBtbu
         local SDval = --[[RV["KRR7-8"] > 0 and Train.SD3.Value or]] Train.SD2.Value
         if P * Train.SD.Value > 0 then
             if S["RV"] ~= self.rv then
@@ -280,7 +283,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         end
 
         local BTBp = BTB * min(1, 1 - SDval + self.SD)
-        self.V2 = P * min(1, RV["KRO1-2"] * Train.SF22F2.Value * Train.SF23F2.Value + RV["KRR1-2"] * Train.SF22F2.Value)  -- KM
+        self.V2 = P * min(1, RV["KRO1-2"] * PpzKm * Train.SF23F2.Value + RV["KRR1-2"] * PpzKm)
         self.V1 = UPIPower * Train.SF70F3.Value * min(1, Train.HornB.Value + Train.HornC.Value)
         Train:WriteTrainWire(27, BTB)
         Train:WriteTrainWire(11, BTB * Train.PmvParkingBrake.Value * Train.SF22F3.Value * Train.BUKP.Active)

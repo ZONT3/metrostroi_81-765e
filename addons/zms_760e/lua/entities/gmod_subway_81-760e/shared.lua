@@ -696,7 +696,7 @@ ENT.PpzToggles = {
     ppzToggle("SF45F1", "45F1: Видеонаблюдение", 3.0, 536, 3),
     ppzToggle("SF43F3", "43F3: Штурман (антисон)", 3.0, 536, 4),
     ppzToggle("SF90F1", "90F1: АСОТП ЦБКИ", 3.0, 536, 5),
-    ppzToggle("PPZUU1", "Не используется", 3.0, 536, 6),
+    ppzToggle("SF22F4", "Не используется", 3.0, 536, 6),
     ppzToggle("SF51F1", "51F1: Фары, габаритные огни", 3.0, 536, 7),
     ppzToggle("SF51F2", "51F2: Габаритные огни от АКБ\n(ночной отстой)", 3.0, 536, 8),
     ppzToggle("SF52F1", "52F1: Освещение кабины", 3.0, 536, 9),
@@ -1030,6 +1030,7 @@ ENT.Spawner = {
     {"AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false},
     {"ForgivefulBars", "БАРС прощает ошибки", "Boolean", true},
     {"KdLongerDelay", "Задержка контроля дверей", "Boolean", false},
+    {"BtbuSd", "Автомат ППЗ БТБУ", "Boolean", false},
     {
         "ArsMode",
         "Режим для АБ",
@@ -1104,7 +1105,7 @@ ENT.Spawner = {
                 if _DoorsDelay then ent.BUD.DoorsDelayMax = _DoorsDelay end
                 if ent.SA1 then
                     local leaveOff = {
-                        PPZUU1 = true,
+                        SF22F4 = not ent:GetNW2Bool("BtbuSd", false),
                         SF70F2 = true,  -- PpzWindshieldHeat
                         SF43F3 = true,  -- PpzSmartdrive
                         SF51F2 = val ~= 3,  -- PpzBattLights

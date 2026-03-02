@@ -123,6 +123,7 @@ function TRAIN_SYSTEM:Initialize()
     self.Speed = 0
     self.MotorWagc = 1
     self.TrailerWagc = 0
+    self.BtbuSd = 0
     self.CurTime = CurTime()
     self.Prost = true
     self.Kos = true
@@ -172,7 +173,7 @@ function TRAIN_SYSTEM:InitShared()
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {"State", "ControllerState", "EmergencyBrake", "BTB", "WagNum", "Prost", "Kos", "CurrentSpeed", "InitTimer", "ZeroSpeed", "BudZeroSpeed", "Active", "DoorClosed", "ESD"}
+    return {"State", "ControllerState", "EmergencyBrake", "BTB", "WagNum", "Prost", "Kos", "CurrentSpeed", "InitTimer", "ZeroSpeed", "BudZeroSpeed", "Active", "DoorClosed", "ESD", "BtbuSd"}
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -606,6 +607,8 @@ if SERVER then
 
     function TRAIN_SYSTEM:Think(dT)
         local Train = self.Train
+
+        self.BtbuSd = Train:GetNW2Bool("BtbuSd", false) and 1 or 0
 
         if self.State > 0 then
             for k, v in pairs(self.TriggerNames) do

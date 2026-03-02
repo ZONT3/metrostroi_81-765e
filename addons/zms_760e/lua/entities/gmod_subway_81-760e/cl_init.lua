@@ -3514,6 +3514,13 @@ ENT.ClientProps["CabChairAdd"] = {
     hideseat = 0.5,
 }
 
+ENT.ClientProps["BtbuSdLabel"] = {
+    model = "models/metrostroi_train/81-765/btbu_label.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hideseat = 0.5,
+}
+
 -- ENT.ClientProps["wiper"] = {
 --     model = "models/metrostroi_train/81-760/81_760_wiper.mdl",
 --     pos = Vector(0, 0, 0),
@@ -4068,6 +4075,21 @@ function ENT:UpdateTextures()
     end
     if not IsValid(self.RearBogey) then self.RearBogey = self:GetNW2Entity("RearBogey") end
     if not IsValid(self.FrontBogey) then self.FrontBogey = self:GetNW2Entity("FrontBogey") end
+
+    self:ShowHide("BtbuSdLabel", self:GetNW2Bool("BtbuSd", false))
+
+    local foundOther = false
+    for _, btn in ipairs(self.ButtonMap["BackPPZ"].buttons) do
+        if btn.ID == "SF22F4Toggle" then
+            btn.tooltip = self:GetNW2Bool("BtbuSd", false) and "22F4: КМ" or "Не используется"
+            if foundOther then break end
+            foundOther = true
+        elseif btn.ID == "SF22F2Toggle" then
+            btn.tooltip = self:GetNW2Bool("BtbuSd", false) and "22F2: БТБУ, СД" or "22F2: КМ, БТБУ, СД"
+            if foundOther then break end
+            foundOther = true
+        end
+    end
 end
 
 local CranePos = {0, 0.28, 0.38, 0.48, 0.85, 1}
