@@ -240,12 +240,14 @@ function TRAIN_SYSTEM:Think(dT, iter)
     -- Some internal electric
     ----------------------------------------------------------------------------
     if RV then
+        local ActiveCabin = P * min(1, RV["KRO13-14"] * Train.SF23F2.Value * Train.SF23F13.Value + RV["KRR11-12"] * Train.SF23F1.Value)
+        local OrientFwd = ActiveCabin * (1 - RV["KRO7-8"])
+
         local UPIPower = P * Train.SF23F8.Value
         self.UPIPower = UPIPower
         local PowerReserve = P * min(1, (1 - Train.SF23F8.Value) * abs(RV.KRRPosition) + Train.SF23F8.Value)
         self.PowerReserve = PowerReserve
         Train:WriteTrainWire(20, P)
-        Train:WriteTrainWire(35, P * (RV["KRO1-2"] * Train.SF22F2.Value * Train.SF23F2.Value + RV["KRR1-2"] * Train.SF22F2.Value))
         Train:WriteTrainWire(36, Train.SF23F1.Value * Train.EmergencyControls.Value)
         local Drive = min(Train.BARS.UOS + Train.BARS.Drive * (Train.BUKP.DoorClosed + Train.DoorBlock.Value), 1)
         local Orientation = C(Train.SF23F13.Value * Train.BUKP.Active + RV["KRR7-8"] > 0)
@@ -263,7 +265,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Train:WriteTrainWire(13, P * (RV["KRR9-10"] + KM2))
         Train:WriteTrainWire(14, P * RV["KRR3-4"] * Orientation * Train.SF23F1.Value)
         Train:WriteTrainWire(15, P * RV["KRR9-10"] * Orientation * Train.SF23F1.Value)
-        local BTB = P * (RV["KRO13-14"] * Train.SF22F2.Value + RV["KRR11-12"] * Train.SF23F1.Value * Train.SF22F2.Value)
+        local BTB = P * ActiveCabin * Train.SF22F2.Value  -- BTBU
         local SDval = --[[RV["KRR7-8"] > 0 and Train.SD3.Value or]] Train.SD2.Value
         if P * Train.SD.Value > 0 then
             if S["RV"] ~= self.rv then
@@ -278,7 +280,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         end
 
         local BTBp = BTB * min(1, 1 - SDval + self.SD)
-        self.V2 = BTB * min(1, Train.SF23F2.Value + RV["KRR1-2"])
+        self.V2 = P * min(1, RV["KRO1-2"] * Train.SF22F2.Value * Train.SF23F2.Value + RV["KRR1-2"] * Train.SF22F2.Value)  -- KM
         self.V1 = UPIPower * Train.SF70F3.Value * min(1, Train.HornB.Value + Train.HornC.Value)
         Train:WriteTrainWire(27, BTB)
         Train:WriteTrainWire(11, BTB * Train.PmvParkingBrake.Value * Train.SF22F3.Value * Train.BUKP.Active)
@@ -312,18 +314,19 @@ function TRAIN_SYSTEM:Think(dT, iter)
         local EmerBattPower = Train.PmvEmerPower.Value * PBatt
         local ASNP_VV = Train.ASNP_VV
         ASNP_VV.Power = P * Train.SF42F1.Value * Train.R_ASNPOn.Value
+
         Panel.CabLight = min(1, P + EmerBattPower) * Train.SF52F1.Value * min(2 - (1 - P) * EmerBattPower, Train.CabinLight.Value)
         Panel.PanelLights = min(1, P + EmerBattPower) * Train.SF52F1.Value
-        Panel.HeadlightsFull = min(1, UPIPower * Train.SF23F2.Value * Train.SF23F13.Value * Train.SF51F1.Value * RV["KRO11-12"] * max(0, Train.HeadlightsSwitch.Value - 1) + RV["KRR3-4"] * P)
-        Panel.HeadlightsHalf = min(1, UPIPower * Train.SF23F2.Value * Train.SF23F13.Value * Train.SF51F1.Value * RV["KRO11-12"] * Train.HeadlightsSwitch.Value + RV["KRR3-4"] * P)
-        Panel.RedLights = min(1, Train.SF51F2.Value * PBatt + RV["KRO7-8"] * Train.SF51F1.Value * P + Train.EmergencyControls.Value * P)
+        Panel.HeadlightsFull = min(1, UPIPower * OrientFwd * Train.SF51F1.Value * RV["KRO11-12"] * max(0, Train.HeadlightsSwitch.Value - 1) + RV["KRR3-4"] * P)
+        Panel.HeadlightsHalf = min(1, UPIPower * OrientFwd * Train.SF51F1.Value * RV["KRO11-12"] * Train.HeadlightsSwitch.Value + RV["KRR3-4"] * P)
+        Panel.RedLights = min(1, Train.SF51F2.Value * PBatt + (1 - OrientFwd) * Train.SF51F1.Value * P + Train.EmergencyControls.Value * P)
         Panel.CabVent = P * Train.SF62F3.Value
         Panel.DoorLeftL = self.DoorsControl * Train.DoorSelectL.Value * (1 - Train.DoorSelectR.Value)
         Panel.DoorRightL = self.DoorsControl * Train.DoorSelectR.Value * (1 - Train.DoorSelectL.Value)
         Panel.DoorCloseL = min(1, UPIPower * Train.SF23F2.Value + self.DoorsControl) * Train.SF80F5.Value * Train.SF80F1.Value * S["RV"] * Train.BUKP.Active * Train.DoorClose.Value
         Panel.DoorBlockL = UPIPower * Train.DoorBlock.Value
         Panel.EmerBrakeL = PowerReserve * C(Train.Pneumatic.EmerBrakeWork == 1 or Train.Pneumatic.EmerBrakeWork == true) * BTB
-        Panel.EmerXodL = PowerReserve * abs(RV.KRRPosition) * (1 - Train.SD3.Value) * Train.BARS.Drive  -- FIXME Restore old BARS.Drive as separate field
+        Panel.EmerXodL = PowerReserve * abs(RV.KRRPosition) * (1 - Train.SD3.Value) * Train.BARS.Drive
         Panel.KAHl = UPIPower * Train.KAH.Value
         Panel.ALSl = UPIPower * Train.ALS.Value
         Panel.PRl = UPIPower * Train.Pr.Value * Train.SF70F3.Value

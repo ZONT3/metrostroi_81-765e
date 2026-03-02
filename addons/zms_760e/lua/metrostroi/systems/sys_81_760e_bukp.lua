@@ -1312,15 +1312,15 @@ if SERVER then
 
                 Train:SetNW2Bool("AOState", self.AO)
 
-                self:CheckError("RvErr", not RvWork and not Back)
-                if not self.InitTimer then
-                    self:CommitError()
-                end
-
                 if RV == 0 and not Back then
                     self.MainMsg = MAINMSG_RVOFF
                 else
                     self.MainMsg = Back and RvWork and MAINMSG_2RV or Back and MAINMSG_REAR or not RvWork and RV > 0 and MAINMSG_RVFAIL or not RvWork and MAINMSG_RVOFF or MAINMSG_NONE
+                end
+
+                self:CheckError("RvErr", self.MainMsg == MAINMSG_RVFAIL)
+                if not self.InitTimer then
+                    self:CommitError()
                 end
 
                 if not (Train.DoorBlock.Value * Train.EmergencyDoors.Value == 1) and (Train.PpzUpi.Value * Train.DoorClose.Value * Train.Panel.DoorCloseL) == 1 then doorClose = true end

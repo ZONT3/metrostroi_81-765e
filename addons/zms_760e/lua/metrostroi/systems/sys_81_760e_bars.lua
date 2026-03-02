@@ -250,7 +250,8 @@ function TRAIN_SYSTEM:Think(dT)
                 Wag.BUKP.Errors.NoOrient
             )
 
-            local ZsError = self.BUKPErr and Wag.BUKP.ZeroSpeed < 1 and Speed < 7
+            local EmerGood = Emer and not Wag.BUKP.Errors.RvErr
+            local ZsError = not EmerGood and self.BUKPErr and Wag.BUKP.ZeroSpeed < 1 and Speed < 7
             if ZsError then
                 ZsError = false
                 if not self.ZsErrorTimer then
@@ -262,7 +263,7 @@ function TRAIN_SYSTEM:Think(dT)
                 self.ZsErrorTimer = nil
             end
 
-            self.PN3 = (self.PN3 > 0 or ZsError or KmCur and self.BUKPErr) and 1 or 0
+            self.PN3 = (self.PN3 > 0 or ZsError or KmCur and not EmerGood and self.BUKPErr) and 1 or 0
         elseif UOS then
             SpeedLimit = not Emer and self.KB and (TwoToSix and 45 or 80) or 0
             self.SpeedLimit = SpeedLimit
