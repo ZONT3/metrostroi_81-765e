@@ -287,10 +287,10 @@ if SERVER then
 
     function TRAIN_SYSTEM:Speedometer(Wag)
         Wag:SetNW2Float("BUIK:ActualSpeed", Wag.BARS.Speed)
-        Wag:SetNW2Int("BUIK:MaxSpeed", Wag:GetNW2Int("Skif:SpeedLimit", 0))
-        Wag:SetNW2Int("BUIK:NextSpeed", Wag:GetNW2Int("Skif:NextSpeedLimit", 0))
+        Wag:SetNW2Int("BUIK:MaxSpeed", Wag:GetNW2Int("Skif:SpeedLimit", 0) or 0)
+        Wag:SetNW2Int("BUIK:NextSpeed", Wag:GetNW2Int("Skif:NextSpeedLimit", 0) or 0)
         Wag:SetNW2Bool("BUIK:SpeedometerBlink", Wag:GetNW2Bool("Skif:NoFreqReal", false) or Wag:GetNW2Bool("Skif:BarsBrake", false))
-        Wag:SetNW2Bool("BUIK:NoMaxSpeed", Wag:GetNW2Bool("Skif:NoFreq", false))
+        Wag:SetNW2Bool("BUIK:NoMaxSpeed", not self.Active and Wag.BARS.UOS < 1 or Wag:GetNW2Bool("Skif:NoFreq", false))
         Wag:SetNW2Int("BUIK:Odometer", math.floor((Wag.Odometer or 0) / 1000))
     end
 
