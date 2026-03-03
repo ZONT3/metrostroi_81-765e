@@ -245,11 +245,7 @@ function TRAIN_SYSTEM:Think(dT)
             end
             RVTB = RVTB and self:RvtbTimer("NoSpeedTimer", self.NoFreq or not KmCur or Speed >= 0.8)
 
-            self.BUKPErr = (
-                Wag.BUKP.DoorClosed + Wag.DoorBlock.Value < 1 or
-                Wag.BUKP.Errors.NoOrient
-            )
-
+            self.BUKPErr = Wag.BUKP.BupDisableDrive > 0
             local EmerGood = Emer and not Wag.BUKP.Errors.RvErr
             local ZsError = not EmerGood and self.BUKPErr and Wag.BUKP.ZeroSpeed < 1 and Speed < 7
             if ZsError then
@@ -263,7 +259,7 @@ function TRAIN_SYSTEM:Think(dT)
                 self.ZsErrorTimer = nil
             end
 
-            self.PN3 = (self.PN3 > 0 or ZsError or KmCur and not EmerGood and self.BUKPErr) and 1 or 0
+            self.PN3 = (self.PN3 > 0 or ZsError or KmCur and Speed < 7 and not EmerGood and self.BUKPErr) and 1 or 0
         elseif UOS then
             SpeedLimit = not Emer and self.KB and (TwoToSix and 45 or 80) or 0
             self.SpeedLimit = SpeedLimit

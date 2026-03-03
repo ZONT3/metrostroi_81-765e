@@ -128,6 +128,7 @@ function TRAIN_SYSTEM:Initialize()
     self.Prost = true
     self.Kos = true
     self.DoorClosed = 0
+    self.BupDisableDrive = 0
     self.CurTime1 = CurTime()
     self.NextThink = CurTime()
 
@@ -173,7 +174,7 @@ function TRAIN_SYSTEM:InitShared()
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {"State", "ControllerState", "EmergencyBrake", "BTB", "WagNum", "Prost", "Kos", "CurrentSpeed", "InitTimer", "ZeroSpeed", "BudZeroSpeed", "Active", "DoorClosed", "ESD", "BtbuSd"}
+    return {"State", "ControllerState", "EmergencyBrake", "BTB", "WagNum", "Prost", "Kos", "CurrentSpeed", "InitTimer", "ZeroSpeed", "BudZeroSpeed", "Active", "DoorClosed", "ESD", "BtbuSd", "BupDisableDrive"}
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -1084,8 +1085,14 @@ if SERVER then
                         end
                     end
 
+                    self.BupDisableDrive = (
+                        self.DoorClosed + Train.DoorBlock.Value < 1 or
+                        self.Errors.NoOrient or
+                        self.Errors.BuvDiscon
+                    ) and 1 or 0
+
                     if Train.RV["KRO5-6"] == 0 then
-                        local AllowDriveInput = BARS.Brake == 0 and BARS.BTB == 1 and BARS.Drive > 0 and not BARS.DisableDrive and not self.Errors.BuvDiscon and not self.Errors.ParkingBrake
+                        local AllowDriveInput = self.BupDisableDrive < 1 and BARS.Brake == 0 and BARS.BTB == 1 and BARS.Drive > 0 and not BARS.DisableDrive and not self.Errors.BuvDiscon and not self.Errors.ParkingBrake
                         if AllowDriveInput or Train.KV765.TractiveSetting <= 0 then
                             kvSetting = Train.KV765.TractiveSetting or self.ControllerState or kvSetting
                             if kvSetting ~= 0 then
@@ -1305,6 +1312,7 @@ if SERVER then
                     self.TimeEntered = nil
                     self.DateEntered = nil
                     self.EmergencyBrake = 0
+                    self.BupDisableDrive = 0
                     self.BTB = 0
                     self.BErrorsTimer = CurTime() + 3
                     if self.PTEnabled then self.PTEnabled = nil end
