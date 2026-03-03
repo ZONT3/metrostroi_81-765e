@@ -193,6 +193,7 @@ function ENT:Initialize()
         [KEY_PAD_6] = "PneumaticBrakeSet6",
         [KEY_PAD_DIVIDE] = "EmerX1Set",
         [KEY_PAD_MULTIPLY] = "EmerX2Set",
+        [KEY_PAD_8] = "EmergencyCompressor2Set",
         [KEY_PAD_9] = "EmerBrakeToggle",
         [KEY_BACKSPACE] = {"EmergencyBrakeToggle", helper="EmergencyBrakeValveToggle"},
         [KEY_L] = "HornEngage",
