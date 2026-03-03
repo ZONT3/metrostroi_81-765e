@@ -261,7 +261,7 @@ function TRAIN_SYSTEM:Think(dT)
 
             self.PN3 = (self.PN3 > 0 or ZsError or KmCur and Speed < 7 and not EmerGood and self.BUKPErr) and 1 or 0
         elseif UOS then
-            SpeedLimit = not Emer and self.KB and (TwoToSix and 45 or 80) or 0
+            SpeedLimit = self.KB and (TwoToSix and 45 or 80) + 0.5 or 0
             self.SpeedLimit = SpeedLimit
             self.NextLimit = nil
         end
@@ -272,29 +272,27 @@ function TRAIN_SYSTEM:Think(dT)
         if not travel and Drive and self.TravelTimer and CurTime() < self.TravelTimer then
             travel = true
         end
-        Drive = travel or AllowStart and KmCur
+        Drive = travel or AllowStart and (KmCur or UOS and Speed >= 7)
 
-        if UOS and not Emer and (Wag.PpzUpi.Value * Wag.KAH.Value < 1 or Speed > (TwoToSix and 45.5 or 80.5)) then
-            Drive = false
-        end
-
-        if UOS and not Emer and Speed > (TwoToSix and 45.5 or 80.5) then
-            self.UosLimitTimer = CurTime() - 1
-            RVTB = false
+        if UOS then
+            if not Emer and Wag.PpzUpi.Value * Wag.KAH.Value < 1 or Speed > SpeedLimit then
+                Drive = false
+            end
+            if Emer and Speed > SpeedLimit then
+                self.UosLimitTimer = CurTime() - 1
+                RVTB = false
+            end
+            BTB = BTB and self.KB and (Speed < 7 or Drive)
+            self.PN3 = self.PN3 < 1 and BTB and 0 or 1
         end
         RVTB = RVTB and self:RvtbTimer("UosLimitTimer", true, nil, ZeroSpeed)
 
         if Emer then
-            local EmerCondition = not UOS and Drive and not Brake or UOS and self.KB
+            local EmerCondition = not UOS and Drive and not (Brake and SpeedLimit > 21) or UOS and self.KB
             if not EmerCondition and not self.EmerTimer then
                 self.EmerTimer = CurTime()
             end
             RVTB = RVTB and self:RvtbTimer("EmerTimer", EmerCondition, nil, not UOS and ZeroSpeed and AllowStart and KmCur or UOS and self.KB)
-        end
-
-        if UOS then
-            BTB = BTB and self.KB
-            self.PN3 = self.PN3 < 1 and BTB and 0 or 1
         end
 
         self.RVTB = RVTB and not self.DeadRvtb and 1 or 0
@@ -348,7 +346,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.DeadRvtb = false
     end
 
-    if self.BarsPower and Active and not UOS then
+    if self.BarsPower and Active and not UOS and ALSVal < 1 then
         if KMState <= 0 and ZeroSpeed then
             if not self.SbTimer then
                 self.SbTimer = CurTime()
@@ -368,7 +366,7 @@ function TRAIN_SYSTEM:Think(dT)
                 self.PN1Timer = nil
             end
         end
-    elseif self.BarsPower and UOS then
+    elseif self.BarsPower then
         self.StillBrake = 0
         self.SbTimer = nil
     end

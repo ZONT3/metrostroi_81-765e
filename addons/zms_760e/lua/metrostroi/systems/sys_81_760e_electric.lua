@@ -252,7 +252,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         self.PowerReserve = PowerReserve
         Train:WriteTrainWire(20, P)
         Train:WriteTrainWire(36, Train.SF23F1.Value * Train.EmergencyControls.Value)
-        local Drive = min(Train.BARS.UOS + Train.BARS.Drive * (Train.BUKP.DoorClosed + Train.DoorBlock.Value), 1)
+        local Drive = Train.BARS.Drive * min(Train.BARS.UOS + (1 - Train.BARS.Brake) * (Train.BUKP.DoorClosed + Train.DoorBlock.Value), 1)
         local Orientation = C(Train.SF23F13.Value * Train.BUKP.Active + RV["KRR7-8"] > 0)
         Train:WriteTrainWire(19, PowerReserve * (1 - Train.SD3.Value) * RV["KRR7-8"] * Drive * Train.EmerX1.Value)
         Train:WriteTrainWire(45, PowerReserve * (1 - Train.SD3.Value) * RV["KRR7-8"] * Drive * Train.EmerX2.Value)
