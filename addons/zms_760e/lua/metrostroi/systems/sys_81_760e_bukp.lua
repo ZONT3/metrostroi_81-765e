@@ -826,7 +826,7 @@ if SERVER then
                 end
                 self.MotorWagc, self.TrailerWagc = motor, trailer
 
-                local doorsNotClosed = Train.PpzActiveCabin.Value < 1
+                local doorsNotClosed = Train.PpzActiveCabin.Value < 1 or Train.PpzDoorsSignal.Value < 1
 
                 self.PantDisabled = PantDisabled
                 if HVBad and not self.HVBad then self.HVBad = CurTime() end
@@ -982,6 +982,9 @@ if SERVER then
 
                     self:EndWagonsCheck()
 
+                    local errPT = self.PTEnabled and CurTime() - self.PTEnabled > 2 + (Train.BUV.Slope1 and 1.2 or 0)
+
+                    doorsNotClosed = doorsNotClosed or self.DoorsNotClosed and Train.KV765.Position > 0
                     if doorsNotClosed and not self.DoorControlTimer then
                         self.DoorControlTimer = true
                     end
@@ -994,11 +997,16 @@ if SERVER then
                             self.DoorControlTimer = nil
                         end
                     end
-                    self.DoorClosed = Train.SF80F1.Value > 0.5 and not doorsNotClosed and 1 or 0
 
-                    local errPT = self.PTEnabled and CurTime() - self.PTEnabled > 2 + (Train.BUV.Slope1 and 1.2 or 0)
+                    self.DoorClosed = not doorsNotClosed and 1 or 0
 
-                    Train:SetNW2Int("Skif:DoorsAll", Train.PpzOrient.Value * self.DoorClosed < 1 and 0 or 1)
+                    if self.DoorsNotClosed ~= doorsNotClosed and self.AutoChPage and not doorsNotClosed then
+                        self.State2 = self.AutoChPage
+                        self.Select = false
+                    end
+                    self.DoorsNotClosed = doorsNotClosed
+
+                    Train:SetNW2Int("Skif:DoorsAll", (Train.PpzOrient.Value < 1 or doorsNotClosed) and 0 or 1)
                     Train:SetNW2Int("Skif:HvAll", hvGood == 0 and 0 or hvBad == 0 and 1 or 2)
                     Train:SetNW2Int("Skif:BvAll", bvEnabled == 0 and 0 or bvDisabled == 0 and 1 or 2)
                     Train:SetNW2Bool("Skif:CondAny", condAny)
@@ -1009,7 +1017,7 @@ if SERVER then
                     Train:SetNW2Int("Skif:ALS", Train.ALS.Value * Train.ALSVal == 2 and 1 or -1)
                     Train:SetNW2Int("Skif:BOSD", Train.DoorBlock.Value == 1 and 0 or -1)
 
-                    Train:SetNW2Bool("Skif:ShowDoors", doorsNotClosed)
+                    Train:SetNW2Bool("Skif:ShowDoors", self.Errors.Doors)
                     Train:SetNW2Bool("Skif:ShowBV", bvDisabled > 0)
                     Train:SetNW2Bool("Skif:ShowScheme", self.SchemeTimer and self.SchemeTimer < CurTime())
                     Train:SetNW2Bool("Skif:ShowPTApply", errPT)
@@ -1050,23 +1058,8 @@ if SERVER then
                     self:CheckError("RvErr", false)
                     self:CheckError("KmErr", false)
                     self:CheckError("DisableDrive", BARS.DisableDrive)
-                    if not self.Errors.NoOrient then self:CheckError("NoOrient", noOrient and Train.KV765.Position > 0) end
-                    -- if not self.Errors.Doors then self:CheckError("Doors", self.DoorsNotClosed and Train.KV765.Position > 0) end
 
-                    local err11ch = self.DoorsNotClosed ~= doorsNotClosed
-                    if self.Errors.Doors and err11ch then
-                        if not self.AutoChPage then self.AutoChPage = self.State2 end
-                        self.State2 = 21
-                        self.Select = false
-                    end
-                    if not self.Errors.Doors and err11ch and self.AutoChPage and not self.AwaitOpenDoors then
-                        self.State2 = self.AutoChPage or self.State2
-                        self.Select = false
-                    end
-                    if self.AwaitOpenDoors and (not self.AutoChPage or self.Errors.Doors) then
-                        self.AwaitOpenDoors = false
-                    end
-                    self.DoorsNotClosed = doorsNotClosed
+                    if not self.Errors.NoOrient then self:CheckError("NoOrient", noOrient and Train.KV765.Position > 0) end
 
                     if CurTime() - self.BErrorsTimer > 0 then
                         if sfBroken ~= self.sfBroken then
@@ -1371,7 +1364,6 @@ if SERVER then
             if (Train.DoorLeft.Value + Train.DoorRight.Value) * Train.PpzDoorsControl.Value > 0 then
                 if not self.AutoChPage then self.AutoChPage = self.State2 end
                 self.State2 = 21
-                self.AwaitOpenDoors = true
                 self.Select = false
             end
 
