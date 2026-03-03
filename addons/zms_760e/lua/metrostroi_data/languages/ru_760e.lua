@@ -26,7 +26,7 @@ Entities.gmod_subway_81-760e.Spawner.SpawnMode.1             = @[Common.Spawner.
 Entities.gmod_subway_81-760e.Spawner.SpawnMode.2             = @[Common.Spawner.SpawnMode.Deadlock]
 Entities.gmod_subway_81-760e.Spawner.SpawnMode.3             = @[Common.Spawner.SpawnMode.NightDeadlock]
 Entities.gmod_subway_81-760e.Spawner.SpawnMode.4             = @[Common.Spawner.SpawnMode.Depot]
-Entities.gmod_subway_81-760e.Spawner.CISConfig.Name          = @[Spawner.760.CISConfig]
+Entities.gmod_subway_81-760e.Spawner.CISConfig.Name          = ИК / ЦИС Конфиг карты
 
 Entities.gmod_subway_81-760e.Spawner.HSEngines.Name          = @[Common.720.HSEngines]
 Entities.gmod_subway_81-760e.Spawner.FirstONIX.Name          = @[Common.720.FirstONIX]

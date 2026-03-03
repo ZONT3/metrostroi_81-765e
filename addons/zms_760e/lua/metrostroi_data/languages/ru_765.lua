@@ -40,7 +40,7 @@ Train.765.CameraCouple                                                         =
 Train.765.CameraSalon                                                          = Салон
 
 
-Entities.gmod_subway_81-760e.Spawner.Section.IkConfig = Информационный комплекс
+Entities.gmod_subway_81-760e.Spawner.Section.IkConfig = ЦИК
 Entities.gmod_subway_81-760e.Spawner.Section.Branding = Брендирование
 Entities.gmod_subway_81-760e.Spawner.Section.Settings = Настройки
 Entities.gmod_subway_81-760e.Spawner.Section.Wear = Износ
