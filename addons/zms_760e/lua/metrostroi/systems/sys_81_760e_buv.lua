@@ -260,7 +260,7 @@ function TRAIN_SYSTEM:Think(dT)
         end
 
         self:CState("LV", Train.Electric.Battery80V)
-        self:CState("HVBad", P < 550)
+        self:CState("HVBad", Train.Electric.Main750V < 550)
         self:CState("LVBad", Train.Electric.Battery80V < 62)
         self:CState("EnginesDone", self.EnginesDone)
         self:CState("PassLightEnabled", self.MainLights == 1)

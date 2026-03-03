@@ -126,4 +126,27 @@
       - [ ] HV per-pant
       - [ ] UKKZ per-pant
     - [x] Rewrite BARS
+
+
+---
+
+## 0.10.1
+- [ ] Circle service routes
+- [ ] GV HV
+- [ ] GV Sounds
+- [ ] Headlights
+- [ ] ENTER in depot mode
+- [x] Doors page only by button
+- [x] 100 to 40
+- [ ] ARS/BUP signal
+- [x] Throttle on PB on Emer
+- [x] ALS freq on Emer+UOS
+- [x] UOS/ALS conditions
+- [ ] BUV discon PN on trailer fix
+- [ ] LN adjust
+  > Переходе в другую кабину;
+  > Переключении блокиратора АТС в УОС;
+  > Переключении дешифратора в 1/5 и обратно;
+  > Отключении автомата АТС-2.
+- [ ] 
   

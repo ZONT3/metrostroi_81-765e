@@ -1153,7 +1153,7 @@ function TRAIN_SYSTEM:DrawElectric(Wag, x, y, w, h)
                 if not async then
                     return nil, nil, val >= 550 and colorGreen or colorRed
                 else
-                    return val, val >= 550 and colorGreen or colorRed
+                    return val, Wag:GetNW2Bool("Skif:HVGood" .. idx, false) and colorGreen or colorRed
                 end
             elseif row == 3 then
                 local val = Wag:GetNW2Int("Skif:UBS" .. idx, 0) / 10
