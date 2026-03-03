@@ -83,8 +83,6 @@ function TRAIN_SYSTEM:Think(dT)
 
     self.KB = Wag.PB.Value > 0.5 or Wag.Attention.Value > 0.5
     self.KVT = Wag.AttentionBrake.Value > 0.5 --or self.KB
-    if self.KVT then self.KVTTimer = CurTime() + 1 end
-    if self.KVTTimer and CurTime() - self.KVTTimer > 0 then self.KVTTimer = nil end
 
     local Active = Power and Wag.BUKP.State == 5
     local Emer = Wag.RV["KRR15-16"] * Wag.PpzEmerControls.Value > 0.5
@@ -156,6 +154,8 @@ function TRAIN_SYSTEM:Think(dT)
 
     if self.BarsPower and (Wag.BUKP.State == 5 or UOS) and ALSVal == 0 then
         RVTB = Active or UOS
+
+        if not TwoToSix or not Active or UOS then self.LN = false end
 
         local KmCur = KMState > 0 or Active and BUPKMState > 0
         if Active and not UOS then

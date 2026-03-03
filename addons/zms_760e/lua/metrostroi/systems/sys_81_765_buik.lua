@@ -352,9 +352,9 @@ if SERVER then
         self:CheckDisplayState(2, "АРС1", ars_states[Wag:GetNW2Int("Skif:ARS1", -1)] or STATE_INACTIVE)
         self:CheckDisplayState(3, "АРС2", ars_states[Wag:GetNW2Int("Skif:ARS2", -1)] or STATE_INACTIVE)
         self:CheckDisplayState(4, Wag.PmvAtsBlock.Value == 1 and "АТС1" or Wag.PmvAtsBlock.Value == 2 and "АТС2" or Wag.PmvAtsBlock.Value == 3 and "УОС" or "ШТАТ", STATE_NORMAL)
-        self:CheckDisplayState(5, "НД", alsArs and not Wag.BARS.NoFreq and (Wag.BARS.LN and STATE_NORMAL or STATE_RED) or STATE_INACTIVE)
+        self:CheckDisplayState(5, "НД", alsArs and not Wag.BARS.NoFreq and Wag.BARS.UOS < 1 and (Wag.BARS.LN and STATE_NORMAL or STATE_RED) or STATE_INACTIVE)
         self:CheckDisplayState(6, "0", not Wag.BARS.NoFreq and math.floor(Wag.BARS.SpeedLimit) < 21 and STATE_RED or STATE_NORMAL)
-        self:CheckDisplayState(7, "ОЧ", Wag.BARS.NoFreq and STATE_RED or STATE_NORMAL)  -- FIXME: or inactive?
+        self:CheckDisplayState(7, "ОЧ", Wag.BARS.NoFreq and STATE_RED or STATE_NORMAL)
         self:CheckDisplayState(8, "АО", Wag.ALSCoil.AO and STATE_RED or STATE_NORMAL)
         self:CheckDisplayState(9, "БОСД", Wag.DoorBlock.Value > 0.5 and STATE_RED or STATE_INACTIVE)
 
@@ -646,6 +646,19 @@ if SERVER then
         self.Routes = routes
     end
 
+    local function checkRoute(route)
+        if not istable(route) or #route < 2 then return false end
+        local first, second = false, false
+        for _, st in ipairs(route) do
+            if st.arrlast then
+                if st.arrlast[1] then first = true end
+                if st.arrlast[2] then second = true end
+                if first and second then return true end
+            end
+        end
+        return false
+    end
+
     function TRAIN_SYSTEM:InitRoute()
         local isServiceRoute
         if #self.InformerCfg < self.Route then
@@ -654,12 +667,13 @@ if SERVER then
             isServiceRoute = true
         else
             self.RouteCfg = self.InformerCfg[self.Route]
-            if #self.RouteCfg < 2 then
-                print("765 BUIK WARN: THERE IS LESS THAN 2 STATIONS IN SELECTED ANNOUNCER ROUTE (LINE) CONFIG!")
-                print("falling back to service route...")
-                local service = self.InformerServiceRoutes[#self.InformerServiceRoutes] or "Посадки нет"
+            if not checkRoute(self.RouteCfg) then
+                print("765 BUIK WARN: there is less than 2 possible last stations in selected announcer route (line) config!")
+                print("    You may safely ignore that warning, but checking the following ASNP config is advised:")
+                print(Format("    %s - %s", self.InformerCfg.name or "unknown config", self.RouteCfg and self.RouteCfg.Name or "unknown route"))
+                local service = self.RouteCfg and self.RouteCfg[1] and self.RouteCfg[1][2] or self.InformerServiceRoutes[#self.InformerServiceRoutes] or "Посадки нет"
+                print("    Falling to service route:", service)
                 self.RouteCfg = {{[1] = 991, [2] = service}, {[1] = 992, [2] = service}}
-                self.Route = #self.InformerCfg + #self.InformerServiceRoutes
                 isServiceRoute = true
             else
                 isServiceRoute = false
@@ -697,7 +711,7 @@ if SERVER then
                 end
             end
         end
-        if self.LoopRoute then
+        if self.LoopRoute and not self.IsServiceRoute then
             -- isert last station if it has arrlast
             if lastStations[0] and lastStations[0].arrlast and lastStations[0].arrlast[self.Path and 2 or 1] then
                 table.insert(lastStations, lastStations[0])
@@ -711,7 +725,7 @@ if SERVER then
 
         if #self.LastStations < self.LastStationIdx then self.LastStationIdx = 0 end
         local lastStation = self.LastStations[self.LastStationIdx]
-        if self.LastStationIdx == 0 and self.LoopRoute then self.Loop = true end
+        if self.LastStationIdx == 0 and self.LoopRoute and not self.IsServiceRoute then self.Loop = true end
 
         local routeStations = {}
         if not self.LoopRoute or self.Loop then
