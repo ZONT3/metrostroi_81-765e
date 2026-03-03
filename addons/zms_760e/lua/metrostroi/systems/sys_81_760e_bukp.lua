@@ -265,7 +265,7 @@ if SERVER then
             if not self.DepotWags then
                 if self.Entering then
                     local len = self.DepotSel == 6 and 3 or 1
-                    if name == BTN_MODE and value then
+                    if name == BTN_ENTER and value then
                         -- if self.DepotSel == 1 then
                         --     self.Date1 = os.date("!*t", 75601)
                         --     if not IsValidDate(self.Entering:sub(1, 2) .. "." .. self.Entering:sub(3, 4) .. "." .. self.Entering:sub(5, 8)) then
@@ -288,8 +288,12 @@ if SERVER then
 
                         local num = tonumber(self.Entering)
                         local changed = false
-                        if self.DepotSel == 2 and num and num < 9 then changed = self.WagNum ~= num self.WagNum = num end
-                        if self.DepotSel == 6 and num and #self.Entering > 0 and #self.Entering < 4 then self.RouteNumber = num end
+                        if self.DepotSel == 2 and num and num < 9 and num > 0 then changed = self.WagNum ~= num self.WagNum = num end
+                        if self.DepotSel == 6 and num and #self.Entering > 0 and #self.Entering < 4 then
+                            self.RouteNumber = num
+                            self.Train:CANWrite("BUKP", self.Train:GetWagonNumber(), "BUIK", nil, "RouteNumber", self.RouteNumber)
+                            self.Train:CANWrite("BUKP", self.Train:GetWagonNumber(), "BUIK", nil, "UpdateRn", true)
+                        end
                         self.Entering = false
                         if changed then
                             self:ReInit()
@@ -311,6 +315,10 @@ if SERVER then
                     if name == BTN_MODE and value then
                         if self.DepotSel == 3 then self.DepotWags = true end
                         if self.DepotSel == 2 or self.DepotSel == 6 then self.Entering = "" end
+                    end
+
+                    if char and char > 0 and char < 9 then
+                        self.DepotSel = char
                     end
                 end
             else
@@ -349,8 +357,11 @@ if SERVER then
                     if char and #self.Entering < 5 and value then self.Entering = self.Entering .. char end
                     Train:SetNW2String("Skif:Enter", self.Entering)
                 else
-                    if name == BTN_UP and value and self.DepotSel > 0 then self.DepotSel = self.DepotSel - 1 end
-                    if name == BTN_DOWN and value and self.DepotSel < 8 then self.DepotSel = self.DepotSel + 1 end
+                    if name == BTN_UP and value and self.DepotSel > 1 then self.DepotSel = self.DepotSel - 1 end
+                    if name == BTN_DOWN and value and self.DepotSel < self.WagNum then self.DepotSel = self.DepotSel + 1 end
+                    if char and char > 0 and char <= self.WagNum then
+                        self.DepotSel = char
+                    end
                 end
             end
         elseif self.State == 3 and name == BTN_ENTER and value and RV ~= 0 then
@@ -1081,7 +1092,8 @@ if SERVER then
                     self.BupDisableDrive = (
                         self.DoorClosed + Train.DoorBlock.Value < 1 or
                         self.Errors.NoOrient or
-                        self.Errors.BuvDiscon
+                        self.Errors.BuvDiscon or
+                        self.DepotMode
                     ) and 1 or 0
 
                     if Train.RV["KRO5-6"] == 0 then
