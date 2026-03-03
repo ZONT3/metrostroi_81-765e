@@ -38,4 +38,17 @@ Train.765.CameraBuik                                                           =
 Train.765.CameraMfdu                                                           = МФДУ (САУ Скиф-М)
 Train.765.CameraCouple                                                         = Автосцепка
 Train.765.CameraSalon                                                          = Салон
+
+
+Entities.gmod_subway_81-760e.Spawner.Section.IkConfig = Информационный комплекс
+Entities.gmod_subway_81-760e.Spawner.Section.Branding = Брендирование
+Entities.gmod_subway_81-760e.Spawner.Section.Settings = Настройки
+Entities.gmod_subway_81-760e.Spawner.Section.Wear = Износ
+
+Entities.gmod_subway_81-760e.Spawner.Section.AudioEvents = Конфигурация звуков
+Entities.gmod_subway_81-760e.Spawner.Section.Sounds = Кастомизация звуков
+Entities.gmod_subway_81-760e.Spawner.Section.FunctionalSettings = Функционал
+Entities.gmod_subway_81-760e.Spawner.Section.VisualSettings = Визуальные опции
+Entities.gmod_subway_81-760e.Spawner.Section.AsyncSounds = Звуки ТЭД
+
 ]]

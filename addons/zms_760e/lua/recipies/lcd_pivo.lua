@@ -7,7 +7,8 @@ function RECIPE:InjectSpawner(entclass)
             Name = "PixelatedLCD",
             Translation = "Pixelated LCD",
             Type = "Boolean",
-            Section = "Cabine",
+            Section = "Settings",
+            Subsection = "VisualSettings",
             Default = true,
         })
     end

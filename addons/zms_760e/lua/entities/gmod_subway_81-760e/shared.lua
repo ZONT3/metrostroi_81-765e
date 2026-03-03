@@ -878,6 +878,9 @@ ENT.SubwayTrain = {
 ENT.NumberRanges = {{37500, 37699}}
 
 
+local skins = Metrostroi.Skins.GetTable("Texture", "Spawner.Texture", false, "train")
+skins.Section = "Branding"
+
 ENT.Spawner = {
     model = {"models/metrostroi_train/81-760e/81_760e_body.mdl", "models/metrostroi_train/81-760/81_760a_int.mdl", "models/metrostroi_train/81-765/cabin.mdl", "models/metrostroi_train/81-765/headlights_main_off.mdl",},
     spawnfunc = function(i, tbls, tblt)
@@ -927,7 +930,7 @@ ENT.Spawner = {
             ent.ASNP.Path = i ~= 1
         end
     end,
-    Metrostroi.Skins.GetTable("Texture", "Spawner.Texture", false, "train"),
+    skins,
     -- Metrostroi.Skins.GetTable("PassTexture","Spawner.PassTexture",PassTexture,"pass"),
     -- Metrostroi.Skins.GetTable("CabTexture","Spawner.CabTexture",CabTexture,"cab"),
     {
@@ -940,7 +943,8 @@ ENT.Spawner = {
                 if not v.riu then Announcer[k] = v.name or k end
             end
             return Announcer
-        end
+        end,
+        Section = "IkConfig",
     },
     {
         "CISConfig",
@@ -960,7 +964,8 @@ ENT.Spawner = {
                 end
             end
             return CISConfig
-        end
+        end,
+        Section = "IkConfig",
     },
     {
         "BLIK:Logo",
@@ -994,14 +999,12 @@ ENT.Spawner = {
                     sl[id](v, true)
                 end
             end
-        end
+        end,
+        Section = "Branding",
     },
-    { "BLIK:Anim", "Анимация БЛ-ИК", "Boolean" },
-    { "SarmatBeep", "Звук теста аппаратуры от \"Сармат\"", "Boolean" },
-    { "AnnouncerClicks", "Звук клика в оповещениях", "Boolean" },
-    { "HornType", "Тифон", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5 },
-    { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1 },
-    { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3 },
+    { "BLIK:Anim", "Анимация БЛ-ИК", "Boolean", Section = "Branding" },
+    { "SarmatBeep", "Звук теста аппаратуры от \"Сармат\"", "Boolean", Section = "Settings", Subsection = "AudioEvents", },
+    { "AnnouncerClicks", "Звук клика в оповещениях", "Boolean", Section = "Settings", Subsection = "AudioEvents" },
     {
         "SingleRing",
         "Один тип звонка",
@@ -1012,21 +1015,85 @@ ENT.Spawner = {
             if sl.RingType then
                 sl.RingType:SetDisabled(not self:GetChecked())
             end
-        end
+        end,
+        Section = "Settings", Subsection = "AudioEvents"
     },
-    { "RingType", "Тип звонка", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1 },
+    { "RingType", "Тип звонка", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
+    { "HornType", "Тифон", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
+    { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3, Section = "Settings", Subsection = "Sounds" },
+    { "AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "ForgivefulBars", "БАРС прощает ошибки", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "BtbuSd", "Автомат ППЗ БТБУ", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
+    {
+        "NoTrailers", "Без прицепных 763Э", "Boolean", false, nil,
+        function(self, stbl)
+            local wagnField = stbl.WagNum
+            if self.TrainInjected == wagnField then return end
+            self.TrainInjected = wagnField
+            local t = self.Think or function() end
+            self.Think = function(_self)
+                local retval = { t(_self) }
+                local wagn = wagnField:GetValue()
+                if wagnField == self.TrainInjected and wagn ~= self.PrevWagn then
+                    local enable = wagn < 6 and wagn > 3
+                    self:SetEnabled(enable)
+                    if not enable then
+                        self:SetValue(wagn <= 3)
+                    else
+                        self:SetValue(false)
+                    end
+                    self.PrevWagn = wagn
+                end
+                return unpack(retval)
+            end
+        end,
+        Section = "Settings", Subsection = "FunctionalSettings"
+    },
+    { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
+    {
+        "ArsMode",
+        "Режим для АБ",
+        "List",
+        {"1/5", "ДАУ (АБ)", "ДАУ (АЛС-АРС)"},
+        1,
+        function(ent, val)
+            ent.AlsArs = val == 3
+            ent.ArsDau = val ~= 1
+            ent:SetNW2String("AlsArs", ent.AlsArs)
+            ent:SetNW2String("ArsDau", ent.ArsDau)
+        end,
+        Section = "Settings", Subsection = "VisualSettings"
+    },
+    { "KdLongerDelay", "Задержка контроля дверей", "Boolean", false, Section = "Wear" },
+    {
+        "BreakRedChance", "Шанс сломать габ. огни", "Slider", 0, 0, 35, 0,
+        function(ent, val, rot, i)
+            if ent.SA1 then
+                local any = false
+                for idx = 1, 4 do
+                    local broke = math.random() < (val / 100)
+                    any = any or broke
+                    ent:SetNW2Bool("RlBroken" .. idx, broke)
+                end
+                if not any and val > 20 and i ~= 1 then
+                    ent:SetNW2Bool("RlBroken" .. math.random(4), true)
+                end
+            end
+        end,
+        Section = "Wear"
+    },
     {
         "VVVFSound",
-        "Spawner.720a.VVVFSound",
+        "Звук инвертора",
         "List",
         {
             "Стоковый с 81-760",
-            "Spawner.720a.VVVFSound.1", -- ALSTOM ONIX IGBT
-            "Spawner.720a.VVVFSound.2", -- ТМХ КАТП-1
-            "Spawner.720a.VVVFSound.3", -- ТМХ КАТП-3
-            "Spawner.720a.VVVFSound.4", -- Hitachi GTO
-            "Spawner.720a.VVVFSound.5", -- Hitachi IGBT
-            "Spawner.720a.VVVFSound.6", -- Hitachi VFI-HD1420F
+            "ALSTOM ONIX IGBT",
+            "ТМХ КАТП-1",
+            "ТМХ КАТП-3",
+            "Hitachi GTO",
+            "Hitachi IGBT",
+            "Hitachi VFI-HD1420F",
             "КАТП-3 Экспериментальный (81-765Э)"
         },
         8,
@@ -1049,61 +1116,11 @@ ENT.Spawner = {
                 spawnerList.FirstONIX:SetDisabled(false)
                 spawnerList.FirstONIX.Disable = false
             end
-        end
+        end,
+        Section = "Settings", Subsection = "AsyncSounds"
     },
-    {"HSEngines", "Spawner.720a.HSEngines", "Boolean"},
-    {"FirstONIX", "Spawner.720a.FirstONIX", "Boolean"},
-    {"AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false},
-    {"ForgivefulBars", "БАРС прощает ошибки", "Boolean", true},
-    {"KdLongerDelay", "Задержка контроля дверей", "Boolean", false},
-    {"BtbuSd", "Автомат ППЗ БТБУ", "Boolean", false},
-    {
-        "ArsMode",
-        "Режим для АБ",
-        "List",
-        {"1/5", "ДАУ (АБ)", "ДАУ (АЛС-АРС)"},
-        1,
-        function(ent, val)
-            ent.AlsArs = val == 3
-            ent.ArsDau = val ~= 1
-            ent:SetNW2String("AlsArs", ent.AlsArs)
-            ent:SetNW2String("ArsDau", ent.ArsDau)
-        end
-    },
-    {"BreakRedChance", "Шанс сломать габ. огни", "Slider", 0, 0, 35, 0, function(ent, val, rot, i)
-        if ent.SA1 then
-            local any = false
-            for idx = 1, 4 do
-                local broke = math.random() < (val / 100)
-                any = any or broke
-                ent:SetNW2Bool("RlBroken" .. idx, broke)
-            end
-            if not any and val > 20 and i ~= 1 then
-                ent:SetNW2Bool("RlBroken" .. math.random(4), true)
-            end
-        end
-    end},
-    {"NoTrailers", "Без прицепных 763Э", "Boolean", false, nil, function(self, stbl)
-        local wagnField = stbl.WagNum
-        if self.TrainInjected == wagnField then return end
-        self.TrainInjected = wagnField
-        local t = self.Think or function() end
-        self.Think = function(_self)
-            local retval = { t(_self) }
-            local wagn = wagnField:GetValue()
-            if wagnField == self.TrainInjected and wagn ~= self.PrevWagn then
-                local enable = wagn < 6 and wagn > 3
-                self:SetEnabled(enable)
-                if not enable then
-                    self:SetValue(wagn <= 3)
-                else
-                    self:SetValue(false)
-                end
-                self.PrevWagn = wagn
-            end
-            return unpack(retval)
-        end
-    end},
+    { "HSEngines", "Spawner.720a.HSEngines", "Boolean", Section = "Settings", Subsection = "AsyncSounds" },
+    { "FirstONIX", "Spawner.720a.FirstONIX", "Boolean", Section = "Settings", Subsection = "AsyncSounds" },
     {
         "SpawnMode",
         "Spawner.Common.SpawnMode",
