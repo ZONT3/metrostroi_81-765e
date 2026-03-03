@@ -191,7 +191,7 @@ function TRAIN_SYSTEM:Think(dT)
                     else
                         if self.DeltaDelay then
                             direction = self.DeltaDir or direction
-                            if self.Accel40 and CurTime() < self.DeltaDelay then
+                            if self.Accel40 and self.TargetTractiveSetting >= 40 then
                                 new = 40
                             else
                                 new = target + math.max(10, math.floor((self.DeltaDelay - CurTime()) * SettingSpeed / 10) * 10) * direction
