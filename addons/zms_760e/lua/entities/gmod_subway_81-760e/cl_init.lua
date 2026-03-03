@@ -4208,6 +4208,23 @@ function ENT:PlayDoorSound(bool, door)
     end
 end
 
+-- ne rabotaet(
+local sounds = { "HornType", "KvType", "RingType" }
+function ENT:IsSoundsChanged()
+    local result = false
+    for _, k in ipairs(sounds) do
+        local sndk = "Sndk" .. k
+        local val = self:GetNW2Int(k, 1)
+        if not self[sndk] then
+            self[sndk] = val
+        elseif self[sndk] ~= val then
+            self[sndk] = val
+            result = true
+        end
+    end
+    return result
+end
+
 function ENT:Think()
     self.BaseClass.Think(self)
     if not self.RenderClientEnts or self.CreatingCSEnts then
@@ -4222,6 +4239,7 @@ function ENT:Think()
     if self.PassTexture ~= self:GetNW2String("passtexture") then self:UpdateTextures() end
     if self.CabinTexture ~= self:GetNW2String("cabtexture") then self:UpdateTextures() end
     if self:IsNumberBroken() then self:UpdateTextures() end
+    -- if self:IsSoundsChanged() then self:InitializeSounds() end
 
     local ValidfB, ValidrB = IsValid(self.FrontBogey), IsValid(self.RearBogey)
     self:ShowHide("ASHook", ValidfB)

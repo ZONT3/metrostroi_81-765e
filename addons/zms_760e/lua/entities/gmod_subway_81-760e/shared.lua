@@ -500,11 +500,24 @@ function ENT:InitializeSounds()
     self.SoundNames["bkpu"] = {"subway_trains/760/vb_on.wav"}
     self.SoundPositions["bkpu"] = {800, 1e9, Vector(410.2, 59, 1), 0.5}
 
-    self.SoundNames["ring_call"] = { loop = true, "subway_trains/765/rumble/ring_vityaz.wav" }
+    local ring = self:GetNW2Bool("SingleRing", false) and self:GetNW2Int("RingType", 1) or nil
+    if ring then
+        if ring == 1 then
+            ring = math.random(2, 4)
+        end
+        if ring == 2 then
+            ring = "subway_trains/765/rumble/ring_vityaz.wav"
+        elseif ring == 3 then
+            ring = "subway_trains/765/ring_msg.wav"
+        elseif ring == 4 then
+            ring = "subway_trains/760/new/ring_ars.wav"
+        end
+    end
+    self.SoundNames["ring_call"] = { loop = true, ring or "subway_trains/765/rumble/ring_vityaz.wav" }
     self.SoundPositions["ring_call"] = {800, 1e9, Vector(490, 21.6, -9.2), 0.5}
-    self.SoundNames["ring_ppz"] = { loop = true, "subway_trains/765/rumble/ring_vityaz.wav" }
+    self.SoundNames["ring_ppz"] = { loop = true, ring or "subway_trains/765/rumble/ring_vityaz.wav" }
     self.SoundPositions["ring_ppz"] = {800, 1e9, Vector(417, 36, 31.3), 0.5}
-    self.SoundNames["ring"] = { loop = true, "subway_trains/760/new/ring_ars.wav" }
+    self.SoundNames["ring"] = { loop = true, ring or "subway_trains/760/new/ring_ars.wav" }
     self.SoundPositions["ring"] = {100, 1e9, Vector(417, 36, 31.3)}
 
     self.SoundNames["powerreserve"] = {"subway_trains/760/vb_on.wav"}
@@ -989,6 +1002,19 @@ ENT.Spawner = {
     { "HornType", "Тифон", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5 },
     { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1 },
     { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3 },
+    {
+        "SingleRing",
+        "Один тип звонка",
+        "Boolean",
+        false,
+        nil,
+        function(self, sl)
+            if sl.RingType then
+                sl.RingType:SetDisabled(not self:GetChecked())
+            end
+        end
+    },
+    { "RingType", "Тип звонка", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1 },
     {
         "VVVFSound",
         "Spawner.720a.VVVFSound",
