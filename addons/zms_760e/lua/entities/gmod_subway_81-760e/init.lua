@@ -1,30 +1,28 @@
 --------------------------------------------------------------------------------
 -- 81-760Э «Чурá» by ZONT_ a.k.a. enabled person
--- Based on code by Cricket, Hell et al.
 --------------------------------------------------------------------------------
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
-ENT.BogeyDistance = 650
-ENT.SyncTable = {
+ENT.SyncTable = ENT.SyncTable or {}
+table.Add(ENT.SyncTable, {
     "EnableBVEmer", "Ticker", "KAH", "KAHk", "ALS", "ALSk", "ABESD", "ABESDk", "SD", "SDk", "FDepot", "PassScheme", "EnableBV",
     "DisableBV", "Ring", "R_Program2", "R_Announcer", "R_Line", "R_Micro", "R_Emer", "R_Program1", "R_Program11", "R_ChangeRoute",
     "R_ToBack", "DoorSelectL", "DoorSelectR", "DoorBlock", "EmerBrakeAdd", "EmerBrakeRelease", "EmerBrake", "DoorClose", "AttentionMessage",
     "Attention", "AttentionBrake", "EmergencyBrake", "Pr", "OtklR", "GlassHeating", "Washer", "SC",
     "Stand", "EmergencyCompressor", "EmergencyCompressor2", "EmergencyControls", "EmergencyControlsK", "Wiper", "DoorLeft", "AccelRate", "HornB", "HornC", "DoorRight",
     "AutoDrive", "Micro", "Vent1", "Vent2", "Vent", "PassLight", "CabLight", "HeadlightsSwitch", "ParkingBrake",
-    "BBER", "BBE", "Compressor", "CabLightStrength", "AppLights1", "AppLights2", "Battery", "MfduF1", "MfduF2", "MfduF3",
+    "BBER", "BBE", "Compressor", "CabLightStrength", "AppLights1", "AppLights2", "MfduF1", "MfduF2", "MfduF3",
     "MfduF4", "Mfdu1", "Mfdu4", "Mfdu7", "Mfdu2", "Mfdu5", "Mfdu8", "Mfdu0", "Mfdu3", "Mfdu6", "Mfdu9", "MfduF5",
-    "MfduF6", "MfduF7", "MfduF8", "MfduF9", "K29", "UAVA", "K9", "K31", "EmerX1", "EmerX2", "EmerCloseDoors", "EmergencyDoors",
-    "R_ASNPMenu", "R_ASNPUp", "R_ASNPDown", "R_ASNPOn", "VentHeatMode", "PowerOn", "PowerOff", "RearBrakeLineIsolation",
-    "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "PB", "GV", "K23", "EmergencyBrakeValve",
+    "MfduF6", "MfduF7", "MfduF8", "MfduF9", "K29", "UAVA", "K9", "EmerX1", "EmerX2", "EmerCloseDoors", "EmergencyDoors",
+    "R_ASNPMenu", "R_ASNPUp", "R_ASNPDown", "R_ASNPOn", "VentHeatMode", "PowerOff", "PB",
     "CAMS1", "CAMS2", "CAMS3", "CAMS4", "CAMS5", "CAMS6", "CAMS7", "CAMS8", "CAMS9", "CAMS10",
     "IGLA1", "IGLA2", "IGLA3", "IGLA4",
     "MfduHelp", "MfduKontr", "MfduTv", "MfduTv1", "MfduTv2",
     "Buik_EMsg1", "Buik_EMsg2", "Buik_Unused1", "Buik_Mode", "Buik_Path", "Buik_Return", "Buik_Down", "Buik_Up", "Buik_MicLine", "Buik_MicBtn", "Buik_Asotp", "Buik_Ik",
     "BatteryCharge"
-}
+})
 
 if not ENT.PpzToggles then print("ACHTUNG! PIZDEC!") end
 for _, cfg in ipairs(ENT.PpzToggles or {}) do
@@ -43,12 +41,12 @@ for k, cfg in pairs(ENT.PakToggles or {}) do
     end
 end
 
-for idx = 1, 8 do
-    table.insert(ENT.SyncTable, "DoorManualBlock" .. idx)
-end
-
 --------------------------------------------------------------------------------
+local BaseClass = baseclass.Get("gmod_81-765_base")
+ENT.Base = "gmod_subway_base"  -- TODO Implement 765_base instead when (if) moving to metrostroi 2025+
+
 function ENT:Initialize()
+    BaseClass.Initialize(self)
     self.Plombs = {
         ABESD = {true, "ABESDk"},
         ABESDk = true,
@@ -62,16 +60,13 @@ function ENT:Initialize()
         Init = true,
     }
 
-    -- Set model and initialize
-    self:SetModel("models/metrostroi_train/81-760e/81_760e_body.mdl")
-    self.BaseClass.Initialize(self)
-    self:SetPos(self:GetPos() + Vector(0, 0, 140))
     -- Create seat entities
     self.DriverSeat = self:CreateSeat("driver", Vector(461, 14, -27)) --Vector(427,17.5,-35))--  -- +Vector(21,7,-10)) 447.8   455            Vector(455,18.1,-35)
     self.InstructorsSeat = self:CreateSeat("instructor", Vector(435.8, -12, -40), Angle(0, 90, 0), "models/vehicles/prisoner_pod_inner.mdl")
     self.InstructorsSeat2 = self:CreateSeat("instructor", Vector(435.8, 45, -40), Angle(0, 90, 0), "models/vehicles/prisoner_pod_inner.mdl")
     self.InstructorsSeat3 = self:CreateSeat("instructor", Vector(425, -43, -37))
     self.InstructorsSeat4 = self:CreateSeat("instructor", Vector(462, -35, -40), Angle(0, 90, 0), "models/vehicles/prisoner_pod_inner.mdl")
+
     -- Hide seats
     self.DriverSeat:SetRenderMode(RENDERMODE_TRANSALPHA)
     self.DriverSeat:SetColor(Color(0, 0, 0, 0))
@@ -83,18 +78,10 @@ function ENT:Initialize()
     self.InstructorsSeat3:SetColor(Color(0, 0, 0, 0))
     self.InstructorsSeat4:SetRenderMode(RENDERMODE_TRANSALPHA)
     self.InstructorsSeat4:SetColor(Color(0, 0, 0, 0))
+
     self.LightSensor = self:AddLightSensor(Vector(460, 0, -130), Angle(0, 90, 0))
+
     -- Create bogeys
-    self.FrontBogey = self:CreateBogey(Vector(297 + 20.8, 0, -70), Angle(0, 180, 0), true, "760F")
-    self.RearBogey = self:CreateBogey(Vector(-338 + 20.8, 0, -70), Angle(0, 0, 0), false, "760")
-    self.FrontBogey:SetNWBool("Async", true)
-    self.RearBogey:SetNWBool("Async", true)
-    self.FrontBogey:SetNWInt("MotorSoundType", Metrostroi.Version > 1537278077 and 3 or 2)
-    self.RearBogey:SetNWInt("MotorSoundType", Metrostroi.Version > 1537278077 and 3 or 2)
-    self.FrontBogey:SetNWFloat("SqualPitch", 0.75)
-    self.RearBogey:SetNWFloat("SqualPitch", 0.75)
-    self.FrontCouple = self:CreateCouple(Vector(442.2 + 30, 0, -68), Angle(0, 0, 0), true, "722")
-    self.RearCouple = self:CreateCouple(Vector(-439 + 20.8, 0, -68), Angle(0, 180, 0), false, "763")
     self.FrontCouple:SetModel("models/metrostroi_train/81-760/81_760_couple_wtht_ekk.mdl")
     self.FrontCouple:PhysicsInit(SOLID_VPHYSICS)
     constraint.AdvBallsocket(self, self.FrontCouple, 0, --bone
@@ -114,10 +101,6 @@ function ENT:Initialize()
         1) -- nocollide
     self.FrontCouple.CouplingPointOffset = Vector(65, 0, 0)
     self.FrontCouple.SnakePos = Vector(65.1, 1, -4.9)
-    self:SetNW2Entity("FrontBogey", self.FrontBogey)
-    self:SetNW2Entity("RearBogey", self.RearBogey)
-    self:SetNW2Entity("FrontCouple", self.FrontCouple)
-    self:SetNW2Entity("RearCouple", self.RearCouple)
 
     -- Initialize key mapping
     self.KeyMap = {
@@ -203,16 +186,6 @@ function ENT:Initialize()
     self.KeyMap[KEY_RSHIFT] = self.KeyMap[KEY_LSHIFT]
     self.KeyMap[KEY_RCONTROL] = self.KeyMap[KEY_LCONTROL]
 
-    self.LeftDoorPositions = self.LeftDoorPositionsBAK
-    self.RightDoorPositions = self.RightDoorPositionsBAK
-
-    -- Cross connections in train wires
-    self.TrainWireCrossConnections = {
-        [4] = 3, -- Orientation F<->B
-        [13] = 12, -- Reverser F<->B
-        [38] = 37, -- Doors L<->R
-    }
-
     self.Lights = {
         [1] = {
             "light",
@@ -290,7 +263,8 @@ function ENT:Initialize()
         },
     }
 
-    self.InteractionZones = {
+    self.InteractionZones = self.InteractionZones or {}
+    table.Add(self.InteractionZones, {
         {
             Pos = Vector(466, 64, -15),
             Radius = 48,
@@ -306,18 +280,7 @@ function ENT:Initialize()
             Radius = 10,
             ID = "CraneNM"
         },
-    }
-
-    for k, tbl in ipairs({self.LeftDoorPositions or {}, self.RightDoorPositions or {}}) do
-        for i, pos in ipairs(tbl) do
-            local idx = (k - 1) * 4 + i
-            table.insert(self.InteractionZones, {
-                Pos = pos,
-                Radius = 48,
-                ID = "SalonDoor" .. idx
-            })
-        end
-    end
+    })
 
     self.PassengerDoor = false
     self.CabinDoorLeft = false
@@ -382,49 +345,6 @@ function ENT:NonSupportTrigger()
     self.Plombs.ALSk = nil
 end
 
-local doorTrigSize = 5
-function ENT:CreateDoorTriggers()
-    for k, tbl in ipairs({self.LeftDoorPositions or {}, self.RightDoorPositions or {}}) do
-        for i, pos in ipairs(tbl) do
-            local idx = (k - 1) * 4 + i
-            local trigger = ents.Create("base_entity")
-            trigger:SetPos(self:LocalToWorld(pos))
-            trigger:SetAngles(self:GetAngles())
-            trigger:SetParent(self)
-            trigger:Spawn()
-            trigger:SetModel("models/hunter/blocks/cube05x05x05.mdl")
-            trigger:SetNoDraw(true)
-            trigger:SetNotSolid(true)
-            trigger:SetCollisionBounds(
-                Vector(-doorTrigSize, -doorTrigSize, -doorTrigSize),
-                Vector(doorTrigSize, doorTrigSize, doorTrigSize)
-            )
-            trigger:SetSolid(SOLID_BBOX)
-            trigger:SetTrigger(true)
-            trigger:SetCollisionGroup(COLLISION_GROUP_DEBRIS_TRIGGER)
-            trigger:AddEFlags(EFL_SERVER_ONLY)
-
-            trigger.count = 0
-            trigger.entMap = {}
-            trigger.StartTouch = function(this, ent)
-                if IsValid(self) and IsValid(ent) and ent:IsPlayer() then
-                    this.count = this.count + 1
-                    this.entMap[ent] = true
-                    self.BUD.ForeignObject[idx] = this.count > 0
-                end
-            end
-            trigger.EndTouch = function(this, ent)
-                if this.entMap[ent] then
-                    this.count = this.count - 1
-                    this.entMap[ent] = nil
-                    self.BUD.ForeignObject[idx] = this.count > 0
-                end
-            end
-            table.insert(self.TrainEntities, trigger)
-        end
-    end
-end
-
 function ENT:TriggerLightSensor(coil, plate)
     self.ProstKos:TriggerSensor(plate)
 end
@@ -439,16 +359,11 @@ function ENT:TrainSpawnerUpdate()
 end
 
 function ENT:Think()
-    local retVal = self.BaseClass.Think(self)
+    local retVal = BaseClass.Think(self)
     local Panel = self.Panel
     local powerUpi = self.Electric.UPIPower > 0
-    local powerBs = self.Electric.BSPowered > 0
     local powerReserve = self.Electric.PowerReserve > 0
-    local state = math.abs(self.AsyncInverter.InverterFrequency / (11 + self.AsyncInverter.State * 5))
-    self:SetPackedRatio("asynccurrent", math.Clamp(state * (state + self.AsyncInverter.State / 1), 0, 1) * math.Clamp(self.Speed / 6, 0, 1))
-    self:SetPackedRatio("asyncstate", math.Clamp(self.AsyncInverter.State / 0.2 * math.abs(self.AsyncInverter.Current) / 100, 0, 1))
-    self:SetPackedRatio("chopper", math.Clamp(self.Electric.Chopper > 0 and self.Electric.Iexit / 100 or 0, 0, 1))
-    self:SetPackedRatio("Speed", self.Speed)
+
     self:SetPackedRatio("Controller", self.KV765.VisualPosition)
     self:SetPackedRatio("KRO", (self.RV.KROPosition + 1) / 2)
     self:SetPackedRatio("KRR", (self.RV.KRRPosition + 1) / 2)
@@ -457,12 +372,6 @@ function ENT:Think()
     self:SetPackedBool("PowerOnLamp", Panel.PowerOnl > 0)
     self:SetPackedBool("PowerOffLamp", Panel.PowerOffl > 0)
     self:SetPackedBool("BatteryChargeLamp", Panel.BatteryChargel > 0)
-
-    local bogeyF, bogeyR = self.FrontBogey, self.RearBogey
-    local fbValid, rbValid = IsValid(bogeyF), IsValid(bogeyR)
-    for i = 1, 4 do
-        self:SetPackedBool("TR" .. i, self.BUV.Pant or i <= 2 and fbValid and bogeyF.DisableContactsManual or i > 2 and rbValid and bogeyR.DisableContactsManual)
-    end
 
     for k, cfg in pairs(self.PakToggles or {}) do
         local r = self[k]
@@ -478,7 +387,6 @@ function ENT:Think()
         self.AsHookTimer = nil
     end
 
-    self:SetPackedBool("WorkBeep", powerBs)
     self:SetPackedBool("WorkCabVent", Panel.CabVent > 0)
 
     if Panel.CabVent > 0 then
@@ -502,7 +410,6 @@ function ENT:Think()
     self:SetPackedBool("BUKPRing", powerUpi and self.BUKP.State == 5 and self.BUKP.ErrorRinging)
     self:SetPackedBool("CallRing", powerUpi and self.BUKP.State == 5 and self.BUKP.CallRing)
     self:SetPackedBool("RingEnabled", powerUpi and self.BUKP.Ring)
-    self:SetPackedBool("WorkFan", Panel.WorkFan > 0)
     self:SetPackedBool("PanelLighting", Panel.PanelLights > 0)
 
     local HeadlightsPower = Panel.HeadlightsFull > 0 and 1 or Panel.HeadlightsHalf > 0 and 0.5 or 0
@@ -521,18 +428,6 @@ function ENT:Think()
     self:SetLightPower(10, cabl, cablight)
     self:SetPackedBool("CabinEnabledEmer", cabl)
     self:SetPackedBool("CabinEnabledFull", cablight > 0.25)
-
-    local passlight = Panel.SalonLighting1 * 0.25 + Panel.SalonLighting2 * 0.75
-    local passl = passlight > 0
-    self:SetLightPower(11, passl, passlight)
-    self:SetLightPower(12, passl, passlight)
-    self:SetLightPower(13, passl, passlight)
-    self:SetPackedBool("SalonLighting1", Panel.SalonLighting1 > 0)
-    self:SetPackedBool("SalonLighting2", Panel.SalonLighting2 > 0)
-
-    for idx = 1, 8 do
-        self:SetNW2Bool("DoorButtonLed" .. idx, self.Electric.BSPowered > 0 and self.BUD.OpenButton[idx] and true)
-    end
 
     self:SetNW2Bool("MfduLamp", powerUpi and self.BUKP.State ~= 0)
     self:SetNW2Bool("DoorsClosed", powerReserve and self.BUKP.DoorClosed > 0)
@@ -557,9 +452,6 @@ function ENT:Think()
     self:SetNW2Bool("DoorCloseLamp", Panel.DoorCloseL > 0)
     self:SetNW2Bool("DoorBlockLamp", Panel.DoorBlockL > 0)
     self:SetPackedRatio("CabinLight", self.CabinLight.Value / 2)
-    self:SetPackedRatio("LV", Panel.LV / 150)
-    self:SetPackedRatio("HV", (self.SF42F2.Value * self.Electric.BSPowered > 0.5 and self.Electric.Main750V or 0) / 1000)
-    self:SetPackedRatio("IVO", 0.5 + self.BUV.IVO / 150)
     self:SetPackedBool("PassengerDoor", self.PassengerDoor)
     self:SetPackedBool("CabinDoorLeft", self.CabinDoorLeft)
     self:SetPackedBool("CabinDoorRight", self.CabinDoorRight)
@@ -567,64 +459,9 @@ function ENT:Think()
     self:SetPackedBool("CabinWindowRight", self.CabinWindowRight)
     self:SetPackedBool("CabinDoorRightLimit", self.Closet1Val or self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
     self:SetPackedBool("Closet1Val", self.Closet1Val)
-    self:SetPackedBool("DoorK31", self.DoorK31)
     self:SetPackedBool("CabChairAdd", self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
-    self:SetPackedBool("CompressorWork", self.Pneumatic.Compressor and CurTime() - self.Pneumatic.Compressor > 0)
-
-    if self.FrontTrain ~= self.PrevFrontTrain then
-        self:SetNW2Entity("FrontTrain", self.FrontTrain)
-        self.PrevFrontTrain = self.FrontTrain
-    end
-
-    if self.RearTrain ~= self.PrevRearTrain then
-        self:SetNW2Entity("RearTrain", self.RearTrain)
-        self.PrevRearTrain = self.RearTrain
-    end
 
     self:SetPackedRatio("Cran", self.Pneumatic.DriverValvePosition)
-    self:SetPackedRatio("BL", self.Pneumatic.BrakeLinePressure / 16.0)
-    self:SetPackedRatio("TL", self.Pneumatic.TrainLinePressure / 16.0)
-    self:SetPackedRatio("BC", math.min(3.8, self.Pneumatic.BrakeCylinderPressure) / 6.0)
-
-    for i = 1, 8 do
-        if i == 1 or i == 4 or i == 5 or i == 8 then
-            self:SetPackedBool("BC" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (fbValid and bogeyF.DisableParking and 0 or 1) or i > 4 and (rbValid and bogeyR.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2) <= 0.1)
-            self:SetPackedRatio("DPBTPressure" .. i, math.max(self.Pneumatic.BrakeCylinderPressure, (i < 5 and (fbValid and bogeyF.DisableParking and 0 or 1) or i > 4 and (rbValid and bogeyR.DisableParking and 0 or 1)) * (3.8 - self.Pneumatic.ParkingBrakePressure) / 2))
-        else
-            self:SetPackedBool("BC" .. i, self.Pneumatic.BrakeCylinderPressure <= 0.1)
-            self:SetPackedRatio("DPBTPressure" .. i, self.Pneumatic.BrakeCylinderPressure)
-        end
-    end
-
-    self.AsyncInverter:TriggerInput("Speed", self.Speed)
-    if fbValid and rbValid and not self.IgnoreEngine then
-        local A = self.AsyncInverter.Torque
-        local add = 1
-        if math.abs(self:GetAngles().pitch) > 4 then add = math.min((math.abs(self:GetAngles().pitch) - 4) / 2, 1) end
-        bogeyF.MotorForce = (40000 + 5000 * (A < 0 and 1 or 0)) * add
-        bogeyF.Reversed = self.BUV.Reverser < 0.5 --<
-        bogeyR.MotorForce = (40000 + 5000 * (A < 0 and 1 or 0)) * add
-        bogeyR.Reversed = self.BUV.Reverser > 0.5 -->
-
-        -- These corrections are required to beat source engine friction at very low values of motor powerUpi
-        local P = math.max(0, 0.04449 + 1.06879 * math.abs(A) - 0.465729 * A ^ 2)
-        if math.abs(A) > 0.4 then P = math.abs(A) end
-        if math.abs(A) < 0.05 then P = 0 end
-        if self.Speed < 10 then P = P * (1.0 + 0.6 * (10.0 - self.Speed) / 10.0) end
-        bogeyR.MotorPower = P * 0.5 * ((A > 0) and 1 or -1)
-        bogeyF.MotorPower = P * 0.5 * ((A > 0) and 1 or -1)
-
-        bogeyF.PneumaticBrakeForce = 50000.0
-        bogeyF.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
-        bogeyF.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
-        bogeyF.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
-        bogeyF.DisableContacts = self.BUV.Pant
-        bogeyR.PneumaticBrakeForce = 50000.0
-        bogeyR.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
-        bogeyR.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
-        bogeyR.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
-        bogeyR.DisableContacts = self.BUV.Pant
-    end
 
     if (self.RV.KRRPosition ~= 0) ~= (self.EmergencyControls.Value > 0) then
         self.EmergencyControls:TriggerInput("Set", (self.RV.KRRPosition ~= 0) and 1 or 0)
@@ -636,96 +473,6 @@ function ENT:Think()
         self.EmerCloseDoors:TriggerInput("Set", (self.RV.KRRPosition ~= 0 and self.DoorClose.Value > 0) and 1 or 0)
     end
     return retVal
-end
-
-function ENT:FenceConnectable(other, headAcceptable)
-    local compatible = other:GetClass():find("76") and other:GetClass()[19] == "e" or string.match(other:GetClass(), "76[567]")
-    if headAcceptable then return compatible end
-    local lit = other:GetClass()[18]
-    return compatible and lit ~= "5" and lit ~= "0"
-end
-
-function ENT:CreateFence(other)
-    local otherWag = other:GetNW2Entity("TrainEntity")
-    local front = other ~= otherWag.RearCouple
-    local otherSide = front and "FenceF" or "FenceR"
-    if not (IsValid(otherWag) and IsValid(otherWag.RearCouple) and IsValid(otherWag.FrontCouple)) then return end
-    if not IsValid(self.FenceR) and self:FenceConnectable(otherWag, not front) then
-        local k = front and -1 or 1
-        local pos1, pos2 = self:GetPos(), otherWag:GetPos()
-        local fwd1, fwd2 = -self:GetForward(), -otherWag:GetForward() * k
-        local min, pos
-        for i = 467, 495, 0.001 do
-            local cpos = pos1 + fwd1 * i
-            local dist = cpos:DistToSqr(pos2 + fwd2 * i)
-            if not min or dist < min then
-                min = dist
-                pos = cpos
-            elseif min then
-                break
-            end
-        end
-
-        if not pos then return end
-        pos = self:WorldToLocal(pos)
-        pos.y = 0 pos.z = 0
-        pos = self:LocalToWorld(pos)
-
-        local ent = ents.Create("prop_ragdoll")
-        if not IsValid(ent) then return end
-        ent:SetModel("models/metrostroi_train/81-760/81_760_fence_corrugated.mdl")
-        ent:SetPos(pos)
-        ent:SetAngles(self:GetAngles())
-        ent:Spawn()
-        ent:SetOwner(self)
-        ent:SetCollisionGroup(COLLISION_GROUP_WORLD)
-        if CPPI and IsValid(self:CPPIGetOwner()) then ent:CPPISetOwner(self:CPPIGetOwner()) end
-        ent:GetPhysicsObject():SetMass(1)
-        table.insert(self.TrainEntities, ent)
-        table.insert(otherWag.TrainEntities, ent)
-
-        local bone1, bone2 = 0, 1
-        local bonen1, bonen2 = ent:GetPhysicsObjectNum(bone1), ent:GetPhysicsObjectNum(bone2)
-        bonen1:SetPos(otherWag:LocalToWorld(Vector(front and 464.37 or -464.07, 0, 0)))
-        bonen2:SetPos(self:LocalToWorld(Vector(-464.07, 0, 0)))
-        bonen1:SetAngles(otherWag:LocalToWorldAngles(Angle(0, front and 180 or 0, 90)))
-        bonen2:SetAngles(self:LocalToWorldAngles(Angle(0, 0, -90)))
-        constraint.Weld(ent, self, bone2, 0, 0, true)
-        constraint.Weld(ent, otherWag, bone1, 0, 0, true)
-        otherWag[otherSide] = ent
-        self.FenceR = ent
-    end
-end
-
-function ENT:OnCouple(train, isfront)
-    if isfront and self.FrontAutoCouple then
-        self.FrontBrakeLineIsolation:TriggerInput("Open", 1.0)
-        self.FrontTrainLineIsolation:TriggerInput("Open", 1.0)
-        self.FrontAutoCouple = false
-    elseif not isfront and self.RearAutoCouple then
-        self.RearBrakeLineIsolation:TriggerInput("Open", 1.0)
-        self.RearTrainLineIsolation:TriggerInput("Open", 1.0)
-        self.RearAutoCouple = false
-    end
-
-    if not isfront then self:CreateFence(train) end
-
-    self.BaseClass.OnCouple(self, train, isfront)
-end
-
-function ENT:OnDecouple(isfront)
-    if isfront then
-        self.FrontCoupledBogey = nil
-    else
-        self.RearCoupledBogey = nil
-    end
-
-    self:OnConnectDisconnect()
-    if self.OnDecoupled then self:OnDecoupled() end
-
-    if not isfront and IsValid(self.FenceR) then
-        self.FenceR:Remove()
-    end
 end
 
 function ENT:OnButtonPress(button, ply)
@@ -868,6 +615,8 @@ function ENT:OnButtonPress(button, ply)
 end
 
 function ENT:OnButtonRelease(button, ply)
+    BaseClass.OnButtonRelease(self, button, ply)
+
     if button == "Attention" then
         self.AttentionBrake:TriggerInput("Set", 0)
         self.PB:TriggerInput("Set", 0)

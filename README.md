@@ -115,11 +115,12 @@
       - [x] Early variant
       - [ ] Improved variant
   - [ ] Variations
-    - [ ] Base entity class `81-765 base`
-    - [ ] Derived entities 81-765, ~~766, 767~~, .2, .4
+    - [ ] Base entity class `81-765 base` for all wagons
+    - [ ] Derived entities 81-765, 766, 767 based on wagon base, hiding most of the parameters from the spawner  <-- Chura becomes this
+    - [ ] Derived entities .2, .3, .4 based on 81-765, 766, 767 wagons
+    - [ ] Derived entities 81-765Э, 766Э, 767Э based on 81-765, 766, 767 wagons, revealing all the parameters to the spawner  <-- This becomes Chura
     - [ ] TKL/FL/Normal ARS options
       - [ ] TKL/FL option only for admins, ulx permission and/or per-map
-    - [ ] Entity "Custom" for spawner that spawns base entity
   - [ ] Improvements
     - [ ] Rewrite KRMSh sounds logic so its fill/leak sound plays only when V4 enabled, etc.
     - [ ] Rewrite pant logic
