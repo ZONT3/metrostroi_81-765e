@@ -417,7 +417,8 @@ for i = 1, 4 do
     table.insert(ENT.AnnouncerPositions, {Vector(323 - (i - 1) * 230, -47, 44), i == 1 and 60 or 100, 0.1})
 end
 
-local sharedFields = {
+ENT.ExportTable = "Base765"
+ENT.SharedFields = {
     "Version",
     "IkVersion",
     "PvzToggles",
@@ -428,16 +429,16 @@ local sharedFields = {
     "RightDoorPositionsBAK",
 }
 function ENT:ExportFields(...)
-    if not Metrostroi.Base765 then Metrostroi.Base765 = {} end
+    if not Metrostroi[self.ExportTable] then Metrostroi[self.ExportTable] = {} end
     local tbl = {...}
-    table.Add(tbl, sharedFields)
+    table.Add(tbl, self.SharedFields)
     for _, field in ipairs(tbl) do
-        Metrostroi.Base765[field] = self[field]
-        self[field] = nil
+        Metrostroi[self.ExportTable][field] = istable(self[field]) and table.Copy(self[field]) or self[field]
+        if self.NoTrain then self[field] = nil end
     end
     for k in pairs(self) do
-        if isfunction(self[k]) and k ~= "ExportFields" then
-            Metrostroi.Base765[k] = self[k]
+        if isfunction(self[k]) then
+            Metrostroi[self.ExportTable][k] = self[k]
         end
     end
 end

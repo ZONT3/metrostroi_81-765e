@@ -672,6 +672,16 @@ end
 
 ENT.Lights = {}
 
+ENT.PakPositions = {
+    [0] = 270,
+    [1] = 235,
+    [2] = 210,
+    [3] = 180,
+    [4] = 140,
+    [5] = 115,
+    [6] = 90,
+}
+
 --------------------------------------------------------------------------------
 DEFINE_BASECLASS("gmod_subway_base")
 
@@ -882,6 +892,16 @@ function ENT:SetupFence(fence, wag)
     fence:ManipulateBonePosition(0, Vector(vec.x / 2, vec.y / 2, vec.z / 2))
 end
 
+function ENT:FenceConnectable(wag)
+    local compatible = IsValid(wag) and (wag:GetClass():find("76") and wag:GetClass()[19] == "e" or string.match(wag:GetClass(), "76[567]"))
+    return (
+        compatible and (
+            wag:GetNW2Entity("RearTrain") == self and not IsValid(wag.ClientEnts["FenceR"]) or
+            wag:GetNW2Entity("FrontTrain") == self and not IsValid(wag.ClientEnts["FenceF"])
+        ) and true
+    )
+end
+
 local CranePos = {0, 0.28, 0.38, 0.48, 0.85, 1}
 local ControllerPos = {0, 0.22, 0.41, 0.6, 0.8, 1}
 function ENT:Think()
@@ -913,9 +933,9 @@ function ENT:Think()
     end
 
     local RearTrain, FrontTrain = self:GetNW2Entity("RearTrain"), self:GetNW2Entity("FrontTrain")
-    self:ShowHide("FenceR", IsValid(RearTrain) and (RearTrain:GetClass():find("760") and false or (RearTrain:GetClass():find("761a") or RearTrain:GetClass():find("763a") or RearTrain:GetClass():find("761e") or RearTrain:GetClass():find("763e")) and (RearTrain:GetNW2Entity("RearTrain") == self and not IsValid(RearTrain.ClientEnts["FenceR"]) or RearTrain:GetNW2Entity("FrontTrain") == self and not IsValid(RearTrain.ClientEnts["FenceF"])) and true))
+    self:ShowHide("FenceR", self:FenceConnectable(RearTrain))
     if self.IsIntermediate then
-        self:ShowHide("FenceF", IsValid(FrontTrain) and (FrontTrain:GetClass():find("760") and false or (FrontTrain:GetClass():find("761a") or FrontTrain:GetClass():find("763a") or FrontTrain:GetClass():find("761e") or FrontTrain:GetClass():find("763e")) and (FrontTrain:GetNW2Entity("RearTrain") == self and not IsValid(FrontTrain.ClientEnts["FenceR"]) or FrontTrain:GetNW2Entity("FrontTrain") == self and not IsValid(FrontTrain.ClientEnts["FenceF"])) and true))
+        self:ShowHide("FenceF", self:FenceConnectable(FrontTrain))
     end
 
     local fenceRear, fenceFront = self.ClientEnts["FenceR"], self.ClientEnts["FenceF"]
@@ -1518,5 +1538,6 @@ ENT:ExportFields(
     "ClientSounds",
     "AutoAnims",
     "ClientPropsInitialized",
-    "Lights"
+    "Lights",
+    "PakPositions"
 )

@@ -103,6 +103,15 @@ for id, panel in pairs(ENT.ButtonMap) do
     end
 end
 
+ENT:ExportFields(
+    "ClientProps",
+    "ButtonMap",
+    "ClientSounds",
+    "AutoAnims",
+    "ClientPropsInitialized",
+    "Lights"
+)
+
 Metrostroi.GenerateClientProps()
 
 -- see gmod_81-765_base

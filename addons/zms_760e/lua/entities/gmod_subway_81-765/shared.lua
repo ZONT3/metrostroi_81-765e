@@ -2,7 +2,7 @@
 -- 81-760Э «Чурá» by ZONT_ a.k.a. enabled person
 --------------------------------------------------------------------------------
 ENT.Type = "anim"
-ENT.PrintName = "81-760E PvVZ"
+ENT.PrintName = "81-765 MVM"
 ENT.Author = ""
 ENT.Contact = ""
 ENT.Purpose = ""
@@ -223,7 +223,7 @@ function ENT:InitializeSounds()
     self.SoundNames["bkpu"] = {"subway_trains/760/vb_on.wav"}
     self.SoundPositions["bkpu"] = {800, 1e9, Vector(410.2, 59, 1), 0.5}
 
-    local ring = self:GetNW2Bool("SingleRing", false) and self:GetNW2Int("RingType", 1) or nil
+    local ring = self:GetNW2Bool("SingleRing", false) and self:GetNW2Int("RingType765", 1) or nil
     if ring then
         if ring == 1 then
             ring = math.random(2, 4)
@@ -542,10 +542,10 @@ ENT.Cameras = {
 -- 2 = Only intherim
 ---------------------------------------------------
 ENT.SubwayTrain = {
-    Type = "81-760E",
-    Name = "81-760E",
+    Type = "81-765",
+    Name = "81-765",
     WagType = 1,
-    Manufacturer = "PvVZ",
+    Manufacturer = "MVM",
     ALS = {
         HaveAutostop = true,
         TwoToSix = true,
@@ -557,25 +557,91 @@ ENT.SubwayTrain = {
     NoFrontEKK = true,
 }
 
-ENT.NumberRanges = {{37500, 37699}}
+ENT.NumberRanges = {{65001, 65499}}
 
 
 local skins = Metrostroi.Skins.GetTable("Texture", "Spawner.Texture", false, "train")
 skins.Section = "Branding"
 
-ENT.Spawner = {
-    model = {"models/metrostroi_train/81-760e/81_760e_body.mdl", "models/metrostroi_train/81-760/81_760a_int.mdl", "models/metrostroi_train/81-765/cabin.mdl", "models/metrostroi_train/81-765/headlights_main_off.mdl",},
-    spawnfunc = function(i, tbls, tblt)
+ENT.SpawnerSkins = function(prefix, ...)
+    local extra = { }
+    for _, k in ipairs({ ... }) do extra[k] = true end
+    local tbl = Metrostroi.Skins.GetTable("Texture", "Spawner.Texture", false, "train")
+    local typ = ENT and ENT.SkinsType
+    tbl.Section = "Branding"
+    tbl[4] = function()
+        local result = {}
+        for k, v in pairs(Metrostroi.Skins["train"]) do
+            if v.typ == typ and (extra[k] or string.StartsWith(k, prefix)) and not hook.Run("MetrostroiSkinsCheck", typ, "train", v.name or k, k) then
+                result[k] = v.name or k
+            end
+        end
+        if table.IsEmpty(result) then result = {["760e.MosBrend"] = "Чура"} end
+        return result
+    end
+    return tbl
+end
+
+ENT.SpawnerLogos = function(...)
+    local arg = { ... }
+    local whitelist = #arg > 0 and {} or nil
+    for _, k in ipairs(arg) do whitelist[k] = true end
+    return {
+        "BLIK:Logo",
+        "Логотип БЛ-ИК",
+        "List",
+        function()
+            local tbl = { ["-"] = "Нет" }  -- FIXME translation
+            if not Metrostroi.Skins or not Metrostroi.Skins["765logo"] then return tbl end
+            for k, v in pairs(Metrostroi.Skins["765logo"]) do
+                if not whitelist or whitelist[k] then
+                    tbl[k] = v.name or k
+                end
+            end
+            return tbl
+        end,
+        "-",
+        function(ent, val)
+            ent:SetNW2String("BLIK:Logo", val)
+        end,
+        function(self, sl)
+            local val = self:GetOptionData(self:GetSelectedID())
+            local cfg = Metrostroi.Skins and Metrostroi.Skins["765logo"] and Metrostroi.Skins["765logo"][val]
+            local d = val == "-" or not cfg or not isfunction(cfg.anim)
+            local a = sl["BLIK:Anim"]
+            a:SetValue(not d)
+            a:SetDisabled(d)
+            a.Disable = d
+
+            if not cfg or not cfg.defaults then return end
+            for k,v in pairs(cfg.defaults) do
+                local id = sl[k].ID
+                if id and sl[id] then
+                    sl[id](v, true)
+                end
+            end
+        end,
+        Section = "Branding",
+    }
+end
+
+ENT.SpawnerSpawnFnc = function(mg, mp, pp)
+    return function(i, tbls)
         local WagNum = tbls.WagNum
         if i > 1 and i < WagNum then
             return (
                 WagNum < 6 and not tbls.NoTrailers and i == 3 or
                 WagNum >= 6 and i % 3 == 0
-            ) and "gmod_subway_81-763e" or "gmod_subway_81-761e"
+            ) and pp or mp
         else
-            return "gmod_subway_81-760e"
+            return mg
         end
-    end,
+    end
+end
+
+ENT.SpawnerCustom = {
+    model = {"models/metrostroi_train/81-760e/81_760e_body.mdl", "models/metrostroi_train/81-760/81_760a_int.mdl", "models/metrostroi_train/81-765/cabin.mdl", "models/metrostroi_train/81-765/headlights_main_off.mdl",},
+    spawnfunc = ENT.SpawnerSpawnFnc("gmod_subway_81-765e", "gmod_subway_81-766e", "gmod_subway_81-767e"),
     postfunc = function(trains, WagNum)
         local wag1 = trains[1]:GetWagonNumber()
         for i = 1, #trains do
@@ -649,41 +715,7 @@ ENT.Spawner = {
         end,
         Section = "IkConfig",
     },
-    {
-        "BLIK:Logo",
-        "Логотип БЛ-ИК",
-        "List",
-        function()
-            local tbl = { ["-"] = "Нет" }  -- FIXME translation
-            if not Metrostroi.Skins or not Metrostroi.Skins["765logo"] then return tbl end
-            for k, v in pairs(Metrostroi.Skins["765logo"]) do
-                tbl[k] = v.name or k
-            end
-            return tbl
-        end,
-        "-",
-        function(ent, val)
-            ent:SetNW2String("BLIK:Logo", val)
-        end,
-        function(self, sl)
-            local val = self:GetOptionData(self:GetSelectedID())
-            local cfg = Metrostroi.Skins and Metrostroi.Skins["765logo"] and Metrostroi.Skins["765logo"][val]
-            local d = val == "-" or not cfg or not isfunction(cfg.anim)
-            local a = sl["BLIK:Anim"]
-            a:SetValue(not d)
-            a:SetDisabled(d)
-            a.Disable = d
-
-            if not cfg or not cfg.defaults then return end
-            for k,v in pairs(cfg.defaults) do
-                local id = sl[k].ID
-                if id and sl[id] then
-                    sl[id](v, true)
-                end
-            end
-        end,
-        Section = "Branding",
-    },
+    ENT.SpawnerLogos(),
     { "BLIK:Anim", "Анимация БЛ-ИК", "Boolean", Section = "Branding" },
     { "SarmatBeep", "Звук теста аппаратуры от \"Сармат\"", "Boolean", Section = "Settings", Subsection = "AudioEvents", },
     { "AnnouncerClicks", "Звук клика в оповещениях", "Boolean", Section = "Settings", Subsection = "AudioEvents" },
@@ -694,13 +726,13 @@ ENT.Spawner = {
         false,
         nil,
         function(self, sl)
-            if sl.RingType then
-                sl.RingType:SetDisabled(not self:GetChecked())
+            if sl.RingType765 then
+                sl.RingType765:SetDisabled(not self:GetChecked())
             end
         end,
         Section = "Settings", Subsection = "AudioEvents"
     },
-    { "RingType", "Тип звонка", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
+    { "RingType765", "Тип звонка", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
     { "HornType", "Тифон", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
     { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3, Section = "Settings", Subsection = "Sounds" },
     { "AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
@@ -731,7 +763,9 @@ ENT.Spawner = {
         end,
         Section = "Settings", Subsection = "FunctionalSettings"
     },
+    { "CikColor", "Цвет БМТ, БНМ", "List", { "Метроспецтехника (желтый)", "Сармат (рыжий)", "Ранний (зеленый)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
+    { "BuikType", "БУ-ИК", "List", { "Метроспецтехника (Москва)", "Метроспецтехника (Чура)", "Сармат" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     {
         "ArsMode",
         "Режим для АБ",
@@ -928,9 +962,52 @@ ENT.Spawner = {
                 ent._SpawnerStarted = val
             end
         end
-    },
+    }
 }
 
 for idx = 1, 4 do
-    table.insert(ENT.Spawner.model, "models/metrostroi_train/81-765/headlights_" .. idx .. "_off.mdl")
+    table.insert(ENT.SpawnerCustom.model, "models/metrostroi_train/81-765/headlights_" .. idx .. "_off.mdl")
+end
+
+ENT.Spawner = {
+    model = ENT.SpawnerCustom.model,
+    spawnfunc = ENT.SpawnerSpawnFnc("gmod_subway_81-765", "gmod_subway_81-766", "gmod_subway_81-767"),
+    postfunc = ENT.SpawnerCustom.postfunc,
+    ENT.SpawnerSkins("765", "760e.Moscow"),
+    ENT.SpawnerCustom[2], ENT.SpawnerCustom[3],
+    ENT.SpawnerLogos("MosMetro", "MosBrend", "MosBrend3D"),
+    ENT.SpawnerCustom[5],  -- BLIK:Anim
+    ENT.SpawnerCustom[9],  -- RingType765
+    ENT.SpawnerCustom[15],  -- NoTrailers
+    ENT.SpawnerCustom[19],  -- ArsMode
+    ENT.SpawnerCustom[20],  -- KdLongerDelay
+    ENT.SpawnerCustom[21],  -- BreakRedChance
+    { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
+    ENT.SpawnerCustom[#ENT.SpawnerCustom]
+}
+
+
+ENT.ExportTable = "Impl765"
+ENT.SharedFields = {
+    "Version",
+    "IkVersion",
+    "Spawner",
+    "SpawnerCustom",
+    "SpawnerSkins",
+    "SpawnerLogos",
+    "Cameras",
+    "PakToggles",
+    "PpzToggles",
+    "PvzToggles",
+    "AnnouncerPositions",
+    "LeftDoorPositions",
+    "RightDoorPositions",
+    "LeftDoorPositionsBAK",
+    "RightDoorPositionsBAK",
+}
+
+function Metrostroi.ImportImpl765(ent_tbl)
+    for k, v in pairs(Metrostroi.Impl765 or {}) do
+        ent_tbl[k] = istable(v) and table.Copy(v) or v
+    end
 end

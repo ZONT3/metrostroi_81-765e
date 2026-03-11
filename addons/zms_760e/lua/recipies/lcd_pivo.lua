@@ -1,8 +1,8 @@
-MEL.DefineRecipe("pivo_lcd", {"gmod_subway_81-760e", "gmod_subway_81-761e", "gmod_subway_81-763e"})
+MEL.DefineRecipe("pivo_lcd", {"gmod_subway_81-765e", "gmod_subway_81-766e", "gmod_subway_81-767e"})
 RECIPE.Description = "Adds Pixelated LCD Shader for PIVO trains"
 
 function RECIPE:InjectSpawner(entclass)
-    if entclass == "gmod_subway_81-760e" then
+    if entclass == "gmod_subway_81-765e" then
         MEL.AddSpawnerField(entclass, {
             Name = "PixelatedLCD",
             Translation = "Pixelated LCD",

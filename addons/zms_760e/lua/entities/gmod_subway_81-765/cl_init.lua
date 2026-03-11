@@ -3652,16 +3652,6 @@ for _, bm in ipairs({"PU5", "PU2", "PU3", "RV"}) do
     end
 end
 
-ENT.PakPositions = {
-    [0] = 270,
-    [1] = 235,
-    [2] = 210,
-    [3] = 180,
-    [4] = 140,
-    [5] = 115,
-    [6] = 90,
-}
-
 function ENT:Initialize()
     BaseClass.Initialize(self)
     self.MFDU = self:CreateRT("765MFDU", 1024, 768)
@@ -3767,4 +3757,15 @@ for id, panel in pairs(ENT.ButtonMap) do
     end
 end
 
+ENT:ExportFields(
+    "ClientProps",
+    "ButtonMap",
+    "ClientSounds",
+    "AutoAnims",
+    "ClientPropsInitialized",
+    "Lights",
+    "PakPositions"
+)
+
 Metrostroi.GenerateClientProps()
+

@@ -2,6 +2,9 @@ return [[
 # 81-765
 
 [ru]
+Entities.gmod_subway_81-765.Name = 81-765 (Москва головной)
+Entities.gmod_subway_81-766.Name = 81-766 (Москва промежуточный моторный)
+Entities.gmod_subway_81-767.Name = 81-767 (Москва промежуточный немоторный)
 
 Common.765.CabLight.Off                                                        = Выключено
 Common.765.CabLight.Normal                                                     = Нормальное
@@ -40,15 +43,15 @@ Train.765.CameraCouple                                                         =
 Train.765.CameraSalon                                                          = Салон
 
 
-Entities.gmod_subway_81-760e.Spawner.Section.IkConfig = ЦИК
-Entities.gmod_subway_81-760e.Spawner.Section.Branding = Брендирование
-Entities.gmod_subway_81-760e.Spawner.Section.Settings = Настройки
-Entities.gmod_subway_81-760e.Spawner.Section.Wear = Износ
+Entities.gmod_subway_81-765e.Spawner.Section.IkConfig = ЦИК
+Entities.gmod_subway_81-765e.Spawner.Section.Branding = Брендирование
+Entities.gmod_subway_81-765e.Spawner.Section.Settings = Настройки
+Entities.gmod_subway_81-765e.Spawner.Section.Wear = Износ
 
-Entities.gmod_subway_81-760e.Spawner.Section.AudioEvents = Конфигурация звуков
-Entities.gmod_subway_81-760e.Spawner.Section.Sounds = Кастомизация звуков
-Entities.gmod_subway_81-760e.Spawner.Section.FunctionalSettings = Функционал
-Entities.gmod_subway_81-760e.Spawner.Section.VisualSettings = Визуальные опции
-Entities.gmod_subway_81-760e.Spawner.Section.AsyncSounds = Звуки ТЭД
+Entities.gmod_subway_81-765e.Spawner.Section.AudioEvents = Конфигурация звуков
+Entities.gmod_subway_81-765e.Spawner.Section.Sounds = Кастомизация звуков
+Entities.gmod_subway_81-765e.Spawner.Section.FunctionalSettings = Функционал
+Entities.gmod_subway_81-765e.Spawner.Section.VisualSettings = Визуальные опции
+Entities.gmod_subway_81-765e.Spawner.Section.AsyncSounds = Звуки ТЭД
 
 ]]

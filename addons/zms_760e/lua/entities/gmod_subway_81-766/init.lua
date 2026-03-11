@@ -16,5 +16,9 @@ function ENT:Think(...)
     return BaseClass.Think(self, ...)
 end
 
+ENT:ExportFields(
+    "SyncTable"
+)
+
 -- Nothing :D
 -- see gmod_81-765_base

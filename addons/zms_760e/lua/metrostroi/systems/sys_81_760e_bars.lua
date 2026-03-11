@@ -45,7 +45,7 @@ function TRAIN_SYSTEM:Think(dT)
     local Wag = self.Train
     local ALS = Wag.ALSCoil
     local ALSVal = Wag.ALS.Value * (Wag.ALSVal == 2 and 1 or 0) * Wag.PpzUpi.Value
-    local UOS = (Wag.PmvAtsBlock.Value == 3) and (Wag.RV["KRO5-6"] == 0 or Wag.RV["KRR15-16"] > 0) --and ALSVal == 0
+    local UOS = (Wag.PmvAtsBlock.Value == 3) and (Wag.RV["KRO5-6"] == 0 or Wag.RV["KRR15-16"] > 0)
     local EnableALS = Wag.Electric.Battery80V > 62 and (1 - Wag.RV["KRO5-6"]) + Wag.RV["KRR15-16"] > 0
     local DAU = Wag.PmvFreq.Value == 0
     local TwoToSix = Wag.PmvFreq.Value > 0
@@ -310,8 +310,8 @@ function TRAIN_SYSTEM:Think(dT)
             self.BrakeTimer = nil
         end
 
-        self.Drive1 = self.ATS1 and Drive and RVTB and BTB and not self.BrakeTimer and 1 or 0
-        self.Drive2 = self.ATS2 and Drive and RVTB and BTB and not self.BrakeTimer and 1 or 0
+        self.Drive1 = self.ATS1 and Drive and (not Emer and not UOS or RVTB and BTB) and not self.BrakeTimer and 1 or 0
+        self.Drive2 = self.ATS2 and Drive and (not Emer and not UOS or RVTB and BTB) and not self.BrakeTimer and 1 or 0
 
     elseif ALSVal == 1 then
         -- TODO Some BUKP logic for speed regulation
@@ -346,7 +346,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.DeadRvtb = false
     end
 
-    if self.BarsPower and Active and not UOS and ALSVal < 1 then
+    if self.BarsPower and not UOS and ALSVal < 1 then
         if KMState <= 0 and ZeroSpeed then
             if not self.SbTimer then
                 self.SbTimer = CurTime()

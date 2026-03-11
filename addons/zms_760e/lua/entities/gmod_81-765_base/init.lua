@@ -176,7 +176,36 @@ function ENT:CreateDoorTriggers()
 end
 
 function ENT:TrainSpawnerUpdate()
+    if self.InitializeSounds then
+        self:InitializeSounds()
+    end
+    if self.ResetSettings then
+        self:ResetSettings()
+    end
+
+    self:SetNW2Int("BNT:ScreenFps", self:GetNW2Int("BntFps", 2) == 2 and 60 or 15)
     self:UpdateTextures()
+end
+
+function ENT:ResetSettings()
+    local cikType = self:GetNW2Int("CikType", 1)
+    self:SetNW2Int("CikColor", cikType)
+    self:SetNW2Int("BntFps", cikType == 2 and 2 or 1)
+    self:SetNW2Int("BuikType", cikType == 2 and 3 or 1)
+    self:SetNW2Bool("SarmatBeep", cikType == 2)
+
+    local val = self:GetNW2String("BLIK:Logo", "")
+    local cfg = Metrostroi.Skins and Metrostroi.Skins["765logo"]
+    local red = val .. "R"
+    if cikType == 2 and cfg and cfg[red] then
+        self:SetNW2String("BLIK:Logo", red)
+    end
+
+    self:SetNW2Int("VVVFSound", 8)
+    self:SetNW2Int("HornType", 5)
+    self:SetNW2Int("KvType", 3)
+    self:SetNW2Bool("BtbuSd", true)
+    self:SetNW2Bool("SingleRing", true)
 end
 
 function ENT:Think()

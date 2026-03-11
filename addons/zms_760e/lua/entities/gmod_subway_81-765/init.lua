@@ -293,9 +293,6 @@ function ENT:Initialize()
     self.ALSVal = 0
     self.Closet1Val = false
     self.DoorK31 = false
-
-    self:CreateDoorTriggers()
-    self:TrainSpawnerUpdate()
 end
 
 function ENT:InitializeSystemsServer()
@@ -349,15 +346,6 @@ function ENT:TriggerLightSensor(coil, plate)
     self.ProstKos:TriggerSensor(plate)
 end
 
-function ENT:TrainSpawnerUpdate()
-    if self.InitializeSounds then
-        self:InitializeSounds()
-    end
-
-    self:SetNW2Int("BNT:ScreenFps", self:GetNW2Int("BntFps", 2) == 2 and 60 or 15)
-    self:UpdateTextures()
-end
-
 function ENT:Think()
     local retVal = BaseClass.Think(self)
     local Panel = self.Panel
@@ -407,9 +395,9 @@ function ENT:Think()
     end
 
     self:SetPackedRatio("VentTimer", self.VentTimer or 0)
-    self:SetPackedBool("BUKPRing", powerUpi and self.BUKP.State == 5 and self.BUKP.ErrorRinging)
+    self:SetPackedBool("BUKPRing", not self:GetNW2Bool("SingleRing", false) and (powerUpi and self.BUKP.State == 5 and self.BUKP.ErrorRinging) or false)
     self:SetPackedBool("CallRing", powerUpi and self.BUKP.State == 5 and self.BUKP.CallRing)
-    self:SetPackedBool("RingEnabled", powerUpi and self.BUKP.Ring)
+    self:SetPackedBool("RingEnabled", powerUpi and (self.BUKP.Ring or self:GetNW2Bool("SingleRing", false) and self.BUKP.ErrorRinging))
     self:SetPackedBool("PanelLighting", Panel.PanelLights > 0)
 
     local HeadlightsPower = Panel.HeadlightsFull > 0 and 1 or Panel.HeadlightsHalf > 0 and 0.5 or 0
@@ -647,3 +635,7 @@ function ENT:OnButtonRelease(button, ply)
 
     if button == "EmergencyBrakeValveToggle" and (self.K29.Value == 1 or self.Pneumatic.V4 and self:ReadTrainWire(27) == 1) and not self.Pneumatic.RVTBTimer then self:PlayOnce("valve_brake_close", "", 1, 1) end
 end
+
+ENT:ExportFields(
+    "SyncTable"
+)

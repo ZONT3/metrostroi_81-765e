@@ -1424,7 +1424,7 @@ if SERVER then
             self.CallRing = ring
 
             self.Ring = Train.BARS.Ring > 0
-            self.ErrorRinging = (Train.ProstKos.Receiving and Train.Speed > 2 or Train.ProstKos.CommandKos > 0) or self.ErrorRing and CurTime() - self.ErrorRing < 2
+            self.ErrorRinging = (not Train:GetNW2Bool("SingleRing", false) and Train.ProstKos.Receiving and Train.Speed > 2 or Train.ProstKos.CommandKos > 0) or self.ErrorRing and CurTime() - self.ErrorRing < 2
             if self.MainMsg < 2 then
                 self.PSN = (Train.PpzUpi.Value > 0) and self.State == 5
                 self.Compressor = (Train.PpzUpi.Value * Train.SF30F4.Value * Train.Battery.Value > 0) and self.State == 5 and Train.AK.Value > 0

@@ -70,9 +70,15 @@ else
     local line_w = 1340
     local blFt = 1 / 25
 
+    local YELLOW = Color(236, 233, 19)
+    local ORANGE = Color(255, 151, 17)
+    local GREEN  = Color(29, 248, 127)
+    local COLORS = { YELLOW, ORANGE, GREEN }
+
     function TRAIN_SYSTEM:ClientThink()
         local Wag = self.Train
         local power = Wag:GetNW2Bool("BMIK:Power", power)
+        self.Color = COLORS[Wag:GetNW2Int("CikColor", 1)] or YELLOW
         self.Working = Wag:GetNW2Bool("IK:Working", true)
         local fail = not self.Working and power
         if not fail then
@@ -119,10 +125,6 @@ else
                 end
             end
         end
-    end
-
-    function TRAIN_SYSTEM:ClientInitialize()
-        self.Color = Color(236, 233, 19)
     end
 
     surface.CreateFont("BMIK:Size1", {
