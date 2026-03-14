@@ -429,22 +429,17 @@ ENT.SharedFields = {
     "RightDoorPositionsBAK",
 }
 function ENT:ExportFields(...)
-    if not Metrostroi[self.ExportTable] then Metrostroi[self.ExportTable] = {} end
+    Metrostroi.BaseEnts = Metrostroi.BaseEnts or {}
+    if not Metrostroi.BaseEnts[self.ExportTable] then Metrostroi.BaseEnts[self.ExportTable] = {} end
     local tbl = {...}
     table.Add(tbl, self.SharedFields)
     for _, field in ipairs(tbl) do
-        Metrostroi[self.ExportTable][field] = istable(self[field]) and table.Copy(self[field]) or self[field]
+        Metrostroi.BaseEnts[self.ExportTable][field] = istable(self[field]) and table.Copy(self[field]) or self[field]
         if self.NoTrain then self[field] = nil end
     end
     for k in pairs(self) do
         if isfunction(self[k]) then
-            Metrostroi[self.ExportTable][k] = self[k]
+            Metrostroi.BaseEnts[self.ExportTable][k] = self[k]
         end
-    end
-end
-
-function Metrostroi.ImportBase765(ent_tbl)
-    for k, v in pairs(Metrostroi.Base765 or {}) do
-        ent_tbl[k] = istable(v) and table.Copy(v) or v
     end
 end

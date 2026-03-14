@@ -130,3 +130,43 @@ timer.Simple(0, function()
         if v then util.PrecacheModel(k) end
     end
 end)
+
+ZMS = ZMS or {}
+function ZMS.ImportBaseEnt(name, entName)
+    if ENT then
+        -- local path = "entities/" .. entName
+        -- if file.IsDir(path, "LUA") then
+        --     if CLIENT then
+        --         path = path .. "/cl_init.lua"
+        --     else
+        --         path = path .. "/init.lua"
+        --     end
+        -- else
+        --     path = path .. ".lua"
+        --     if not file.Exists(path, "LUA") then
+        --         path = nil
+        --     end
+        -- end
+
+        -- if path then
+        --     -- HACK for lua refresh and load order ensurance
+        --     print("HACK", path)
+
+        --     local oldEnt = ENT
+        --     ENT = {}
+        --     local oldClPr = Metrostroi.GenerateClientProps
+        --     if oldClPr then Metrostroi.GenerateClientProps = function() end end
+
+        --     local succ, err = pcall(function() include(path) end)
+
+        --     ENT = oldEnt
+        --     if oldClPr then Metrostroi.GenerateClientProps = oldClPr end
+        --     if not succ then ErrorNoHaltWithStack(err) end
+        -- end
+
+        Metrostroi.BaseEnts = Metrostroi.BaseEnts or {}
+        for k, v in pairs(Metrostroi.BaseEnts[name] or {}) do
+            ENT[k] = istable(v) and table.Copy(v) or v
+        end
+    end
+end

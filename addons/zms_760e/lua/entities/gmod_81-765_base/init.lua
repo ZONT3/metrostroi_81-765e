@@ -316,67 +316,6 @@ function ENT:Think()
     return retVal
 end
 
-function ENT:FenceConnectable(other, headAcceptable)
-    local compatible = other:GetClass():find("76") and other:GetClass()[19] == "e" or string.match(other:GetClass(), "76[567]")
-    if headAcceptable then return compatible end
-    local lit = other:GetClass()[18]
-    return compatible and lit ~= "5" and lit ~= "0"
-end
-
-function ENT:CreateFence(other, front)
-    local otherWag = other:GetNW2Entity("TrainEntity")
-    local otherFront = other ~= otherWag.RearCouple
-    local otherSide = otherFront and "FenceF" or "FenceR"
-    local side = front and "FenceF" or "FenceR"
-    if not (IsValid(otherWag) and IsValid(otherWag.RearCouple) and IsValid(otherWag.FrontCouple)) then return end
-    if not IsValid(self[side]) and self:FenceConnectable(otherWag, not otherFront) then
-        local k1 = front and -1 or 1
-        local k2 = otherFront and -1 or 1
-        local pos1, pos2 = self:GetPos(), otherWag:GetPos()
-        local fwd1, fwd2 = -self:GetForward() * k1, -otherWag:GetForward() * k2
-        local min, pos
-        for i = 467, 495, 0.001 do
-            local cpos = pos1 + fwd1 * i
-            local dist = cpos:DistToSqr(pos2 + fwd2 * i)
-            if not min or dist < min then
-                min = dist
-                pos = cpos
-            elseif min then
-                break
-            end
-        end
-
-        if not pos then return end
-        pos = self:WorldToLocal(pos)
-        pos.y = 0 pos.z = 0
-        pos = self:LocalToWorld(pos)
-
-        local ent = ents.Create("prop_ragdoll")
-        if not IsValid(ent) then return end
-        ent:SetModel("models/metrostroi_train/81-760/81_760_fence_corrugated.mdl")
-        ent:SetPos(pos)
-        ent:SetAngles(self:GetAngles())
-        ent:Spawn()
-        ent:SetOwner(self)
-        ent:SetCollisionGroup(COLLISION_GROUP_WORLD)
-        if CPPI and IsValid(self:CPPIGetOwner()) then ent:CPPISetOwner(self:CPPIGetOwner()) end
-        ent:GetPhysicsObject():SetMass(1)
-        table.insert(self.TrainEntities, ent)
-        table.insert(otherWag.TrainEntities, ent)
-
-        local bone1, bone2 = 0, 1
-        local bonen1, bonen2 = ent:GetPhysicsObjectNum(bone1), ent:GetPhysicsObjectNum(bone2)
-        bonen1:SetPos(otherWag:LocalToWorld(Vector(otherFront and 464.37 or -464.07, 0, 0)))
-        bonen2:SetPos(self:LocalToWorld(Vector(front and 464.37 or -464.07, 0, 0)))
-        bonen1:SetAngles(otherWag:LocalToWorldAngles(Angle(0, otherFront and 180 or 0, 90)))
-        bonen2:SetAngles(self:LocalToWorldAngles(Angle(0, front and 180 or 0, -90)))
-        constraint.Weld(ent, self, bone2, 0, 0, true)
-        constraint.Weld(ent, otherWag, bone1, 0, 0, true)
-        otherWag[otherSide] = ent
-        self[side] = ent
-    end
-end
-
 function ENT:OnCouple(train, isfront)
     if isfront and self.FrontAutoCouple then
         self.FrontBrakeLineIsolation:TriggerInput("Open", 1.0)
@@ -389,8 +328,6 @@ function ENT:OnCouple(train, isfront)
     end
 
     BaseClass.OnCouple(self, train, isfront)
-    if isfront and not self.IsIntermediate then return end
-    self:CreateFence(train, isfront)
 end
 
 function ENT:OnDecouple(isfront)
@@ -402,10 +339,6 @@ function ENT:OnDecouple(isfront)
 
     self:OnConnectDisconnect()
     if self.OnDecoupled then self:OnDecoupled() end
-
-    if isfront and not self.IsIntermediate then return end
-    local fence = isfront and self.FenceF or self.FenceR
-    if IsValid(fence) then fence:Remove() end
 end
 
 function ENT:OnButtonPress(button, ply)

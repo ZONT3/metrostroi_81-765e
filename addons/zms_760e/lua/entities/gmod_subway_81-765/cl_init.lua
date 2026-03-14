@@ -3405,13 +3405,6 @@ ENT.ClientProps["PB"] = {
 if not ENT.ClientSounds["PB"] then ENT.ClientSounds["PB"] = {} end
 table.insert(ENT.ClientSounds["PB"], {"PB", function(ent, var) return var > 0 and "pb_on" or "pb_off" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)})
 
-ENT.ClientProps["FenceR"] = {
-    model = "models/metrostroi_train/81-760/81_760_fence_corrugated_platform.mdl",
-    pos = Vector(-480.15, 0, 0),
-    ang = Angle(0, 90, 0),
-    hide = 2,
-}
-
 ENT.ClientProps["ASHook"] = {
     model = "models/metrostroi_train/81-760/81_760_brake_valve.mdl",
     pos = Vector(0, 0, -78),
@@ -3428,6 +3421,7 @@ ENT.ClientProps["ASHook"] = {
 }
 
 ENT.ClientProps["FenceF"] = nil
+ENT.ClientProps["FencePlF"] = nil
 ENT.ClientProps["BoxDoorL"] = nil
 ENT.ClientProps["BoxDoorR"] = nil
 ENT.ButtonMap["Power"] = nil
@@ -3768,4 +3762,3 @@ ENT:ExportFields(
 )
 
 Metrostroi.GenerateClientProps()
-

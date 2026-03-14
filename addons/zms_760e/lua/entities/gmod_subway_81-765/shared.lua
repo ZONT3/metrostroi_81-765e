@@ -15,7 +15,7 @@ ENT.Spawnable = false
 ENT.AdminSpawnable = false
 ENT.DontAccelerateSimulation = false
 
-Metrostroi.ImportBase765(ENT)
+ZMS.ImportBaseEnt("Base765", "gmod_81-765_base")
 
 --------------------------------------------------------------------------------
 local BaseClass = baseclass.Get("gmod_81-765_base")
@@ -1005,9 +1005,3 @@ ENT.SharedFields = {
     "LeftDoorPositionsBAK",
     "RightDoorPositionsBAK",
 }
-
-function Metrostroi.ImportImpl765(ent_tbl)
-    for k, v in pairs(Metrostroi.Impl765 or {}) do
-        ent_tbl[k] = istable(v) and table.Copy(v) or v
-    end
-end

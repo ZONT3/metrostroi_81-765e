@@ -13,7 +13,7 @@ ENT.Spawnable = true
 ENT.AdminSpawnable = false
 ENT.DontAccelerateSimulation = false
 
-Metrostroi.ImportImpl767(ENT)
+ZMS.ImportBaseEnt("Impl767", "gmod_subway_81-767")
 if CLIENT then
     if not ENT.ButtonMap then ErrorNoHaltWithStack("Failed to load 767 impl\n") else print("### 767 impl found") end
 else

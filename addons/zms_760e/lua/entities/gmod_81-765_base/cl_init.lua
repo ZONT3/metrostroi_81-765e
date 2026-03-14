@@ -393,17 +393,31 @@ ENT.ClientProps["MnBl"] = {
 }
 
 ENT.ClientProps["FenceR"] = {
-    model = "models/metrostroi_train/81-760/81_760_fence_corrugated_platform.mdl",
-    pos = Vector(-480.15, 0, 0),
-    ang = Angle(0, 90, 0),
-    hide = 2,
+    model = "models/metrostroi_train/81-760/81_760_fence_corrugated.mdl",
+    pos = Vector(-464.07, 0, 0),
+    ang = Angle(0, 0, 0),
+    nohide = true,
 }
 
 ENT.ClientProps["FenceF"] = {
+    model = "models/metrostroi_train/81-760/81_760_fence_corrugated.mdl",
+    pos = Vector(464.37, 0, 0),
+    ang = Angle(0, 0, 0),
+    nohide = true,
+}
+
+ENT.ClientProps["FencePlR"] = {
+    model = "models/metrostroi_train/81-760/81_760_fence_corrugated_platform.mdl",
+    pos = Vector(-480.15, 0, 0),
+    ang = Angle(0, 90, 0),
+    hide = 1,
+}
+
+ENT.ClientProps["FencePlF"] = {
     model = "models/metrostroi_train/81-760/81_760_fence_corrugated_platform.mdl",
     pos = Vector(480.15, 0, 0),
     ang = Angle(0, -90, 0),
-    hide = 2,
+    hide = 1,
 }
 
 local bs_pos = {
@@ -884,21 +898,46 @@ function ENT:CheckBogeySounds(bogey)
     )
 end
 
-function ENT:SetupFence(fence, wag)
-    local a = wag:GetNW2Entity("RearTrain") == self and -1 or 1
-    local ang1 = fence:WorldToLocalAngles(wag:LocalToWorldAngles(Angle(0, 90 * a, 0)))
-    local vec = fence:WorldToLocal(wag:LocalToWorld(Vector(480.1 * a, a * ang1.p * 1.585, 0.6)))
-    fence:ManipulateBoneAngles(0, Angle(-ang1.r / 2, ang1.y / 2, ang1.p / 3) + Angle(0, 90, 0))
-    fence:ManipulateBonePosition(0, Vector(vec.x / 2, vec.y / 2, vec.z / 2))
+function ENT:SetupFence(platform, fence, wag, front)
+    local otherFront = wag:GetNW2Entity("FrontTrain") == self
+    local k = not otherFront and -1 or 1
+    if IsValid(platform) then
+        local ang1 = platform:WorldToLocalAngles(wag:LocalToWorldAngles(Angle(0, 90 * k, 0)))
+        local vec = platform:WorldToLocal(wag:LocalToWorld(Vector(480.1 * k, k * ang1.p * 1.585, 0.6)))
+        platform:ManipulateBoneAngles(0, Angle(-ang1.r / 2, ang1.y / 2, ang1.p / 3) + Angle(0, 90, 0))
+        platform:ManipulateBonePosition(0, Vector(vec.x / 2, vec.y / 2, vec.z / 2))
+    end
+    if IsValid(fence) then
+        if not fence.HasCallback then
+            fence:AddCallback("BuildBonePositions", function(ent)
+                if ent:IsMarkedForDeletion() then return end
+                if not ent.fpos1 or not ent.fpos2 or not ent.fang1 or not ent.fang2 then return end
+                local m = Matrix()
+                for idx = 1, 2 do
+                    local bidx = ent:LookupBone("Bone0" .. (idx + 2))
+                    if bidx and ent:GetBoneName(bidx) ~= "__INVALIDBONE__" then
+                        m:SetTranslation(ent["fpos" .. idx])
+                        m:SetAngles(ent["fang" .. idx])
+                        ent:SetBoneMatrix(bidx, m)
+                    end
+                end
+            end)
+            fence.HasCallback = true
+        end
+        fence.fpos1 = wag:LocalToWorld(Vector(otherFront and 464.37 or -464.07, 0, 0))
+        fence.fpos2 = self:LocalToWorld(Vector(front and 464.37 or -464.07, 0, 0))
+        fence.fang1 = wag:LocalToWorldAngles(Angle(0, otherFront and 180 or 0, -90))
+        fence.fang2 = self:LocalToWorldAngles(Angle(0, front and 180 or 0, 90))
+    end
 end
 
-function ENT:FenceConnectable(wag)
+function ENT:FenceConnectable(wag, prefix)
     local compatible = IsValid(wag) and (wag:GetClass():find("76") and wag:GetClass()[19] == "e" or string.match(wag:GetClass(), "76[567]"))
     return (
         compatible and (
-            wag:GetNW2Entity("RearTrain") == self and not IsValid(wag.ClientEnts["FenceR"]) or
-            wag:GetNW2Entity("FrontTrain") == self and not IsValid(wag.ClientEnts["FenceF"])
-        ) and true
+            wag:GetNW2Entity("RearTrain") == self and not IsValid(wag.ClientEnts[prefix .. "R"]) or
+            wag:GetNW2Entity("FrontTrain") == self and not IsValid(wag.ClientEnts[prefix .. "F"])
+        )
     )
 end
 
@@ -933,17 +972,20 @@ function ENT:Think()
     end
 
     local RearTrain, FrontTrain = self:GetNW2Entity("RearTrain"), self:GetNW2Entity("FrontTrain")
-    self:ShowHide("FenceR", self:FenceConnectable(RearTrain))
+    self:ShowHide("FenceR", self:FenceConnectable(RearTrain, "Fence"))
+    self:ShowHide("FencePlR", self:FenceConnectable(RearTrain, "FencePl"))
     if self.IsIntermediate then
-        self:ShowHide("FenceF", self:FenceConnectable(FrontTrain))
+        self:ShowHide("FenceF", self:FenceConnectable(FrontTrain, "Fence"))
+        self:ShowHide("FencePlF", self:FenceConnectable(FrontTrain, "FencePl"))
     end
 
     local fenceRear, fenceFront = self.ClientEnts["FenceR"], self.ClientEnts["FenceF"]
-    if IsValid(fenceRear) and IsValid(RearTrain) then
-        self:SetupFence(fenceRear, RearTrain)
+    local platformRear, platformFront = self.ClientEnts["FencePlR"], self.ClientEnts["FencePlF"]
+    if IsValid(RearTrain) then
+        self:SetupFence(platformRear, fenceRear, RearTrain)
     end
-    if self.IsIntermediate and IsValid(fenceFront) and IsValid(FrontTrain) then
-        self:SetupFence(fenceFront, FrontTrain)
+    if self.IsIntermediate and IsValid(FrontTrain) then
+        self:SetupFence(platformFront, fenceFront, FrontTrain, true)
     end
 
     local speed = self:GetPackedRatio("Speed", 0)
