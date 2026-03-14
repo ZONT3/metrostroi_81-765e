@@ -6,7 +6,7 @@
 Metrostroi.DefineSystem("81_765_BUIK")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
-local dbg = false
+local dbg = true 
 
 function TRAIN_SYSTEM:Initialize()
     self:InitTrigger("Buik_EMsg1")  -- Экстр. Сообщение 1
@@ -183,6 +183,11 @@ if SERVER then
         if activate then self.Activate = false end
 
         local Wag = self.Train
+        local sarmat = Wag:GetNW2Int("BuikType", 1) == 3
+        if sarmat ~= self.Sarmat then
+            self.Sarmat = sarmat
+            self.IkTypeChanged = true
+        end
 
         local battery = Wag.Electric.Battery80V > 62
         local power = battery and Wag.SF45F11.Value > 0.5
@@ -436,6 +441,8 @@ if SERVER then
             self:Highlight("LastStation")
             self:ReturnInformer(true)
             self:UpdatePage(true)
+        elseif self.IkTypeChanged then
+            self:UpdatePage(true, false)
         end
 
         if self.DoorAlarm and Wag.BUKP.DoorClosed > 0 then self.DoorAlarm = false end
@@ -471,12 +478,13 @@ if SERVER then
         end
 
         Wag:SetNW2Int("BUIK:InformerState", self.InformerState)
-        Wag:SetNW2String("BUIK:LastStation", toUpperCase(self.LastStationDraft))
+        Wag:SetNW2String("BUIK:LastStation", self.Sarmat and self.LastStationDraft or toUpperCase(self.LastStationDraft))
         Wag:SetNW2String("BUIK:Page", self.Page)
-        Wag:SetNW2String("BUIK:RouteNumber", self.RouteNumber >= 0 and string.format("%03d", math.floor(self.RouteNumber)) or "---")
+        Wag:SetNW2String("BUIK:RouteNumber", self.RouteNumber >= 0 and string.format(self.Sarmat and "%d" or "%03d", math.floor(self.RouteNumber)) or "---")
     end
 
     function TRAIN_SYSTEM:UpdatePage(displayOnly, ikNow)
+        self.IkTypeChanged = false
         if (self.Page == PAGE_MAIN or self.Page == PAGE_LAST_ST) and (
             not self.Stations or #self.Stations < 2 or not self.Station or self.Station < 1 or self.Station > #self.Stations
         ) then
@@ -486,9 +494,13 @@ if SERVER then
         end
 
         if self.Page == PAGE_MAIN then
-            self:SetListLine(1, self.Station > 1 and self.Stations[self.Station - 1].name or self.Loop and self.Stations[#self.Stations].name or "")
-            self:SetListLine(2, self.Stations[self.Station].name)
-            self:SetListLine(3, #self.Stations > self.Station and self.Stations[self.Station + 1].name or self.Loop and self.Stations[1].name or "")
+            if self.Sarmat then
+                self:SetSarmatList(self.Stations, self.Station, self.Loop, true)
+            else
+                self:SetListLine(1, self.Station > 1 and self.Stations[self.Station - 1].name or self.Loop and self.Stations[#self.Stations].name or "")
+                self:SetListLine(2, self.Stations[self.Station].name)
+                self:SetListLine(3, #self.Stations > self.Station and self.Stations[self.Station + 1].name or self.Loop and self.Stations[1].name or "")
+            end
             if not ikNow then
                 self.UpdateIkTimer = CurTime() + 5
             else
@@ -496,35 +508,89 @@ if SERVER then
                 self:UpdateIk()
             end
         elseif self.Page == PAGE_LAST_ST then
-            if #self.LastStations > 0 or self.LastStations[0] then
-                self:SetListLine(1, self.LastStationIdx > 0 and self.LastStations[self.LastStationIdx - 1].name or "Выберите станцию оборота:")
-                self:SetListLine(2, self.LastStations[self.LastStationIdx].name)
-                self:SetListLine(3, #self.LastStations > self.LastStationIdx and self.LastStations[self.LastStationIdx + 1].name or "")
+            if self.Sarmat then
+                self:SetSarmatList(self.LastStations, self.LastStationIdx, false, true)
+            else
+                if #self.LastStations > 0 or self.LastStations[0] then
+                    self:SetListLine(1, self.LastStationIdx > 0 and self.LastStations[self.LastStationIdx - 1].name or "Выберите станцию оборота:")
+                    self:SetListLine(2, self.LastStations[self.LastStationIdx].name)
+                    self:SetListLine(3, #self.LastStations > self.LastStationIdx and self.LastStations[self.LastStationIdx + 1].name or "")
+                else
+                    self:SetListLine(1, "Выберите станцию оборота:")
+                    self:ClearListLines(2, 3)
+                end
             end
             if not displayOnly then
                 self:UpdateLastStation()
             end
         elseif self.Page == PAGE_ROUTES then
+            local errmsg = nil
             if not self.Routes or #self.Routes == 0 then
-                self:ClearListLines(1, 3)
-                self:SetListLine(2, "Память пуста")
-                return
+                errmsg = "Память пуста"
             elseif self.Route > #self.Routes then
-                self:ClearListLines(1, 3)
-                self:SetListLine(2, "Ошибка чтения конфигурации")
+                errmsg = "Ошибка чтения конфигурации"
+            end
+            if errmsg then
+                self:SetErrMsg(errmsg)
                 return
             end
-            self:SetListLine(1, self.Route > 1 and self.Routes[self.Route - 1] or "Выберите маршрут:")
-            self:SetListLine(2, self.Routes[self.Route])
-            self:SetListLine(3, #self.Routes > self.Route and self.Routes[self.Route + 1] or "")
+            if self.Sarmat then
+                self:SetSarmatList(self.Routes, self.Route, false, false)
+            else
+                self:SetListLine(1, self.Route > 1 and self.Routes[self.Route - 1] or "Выберите маршрут:")
+                self:SetListLine(2, self.Routes[self.Route])
+                self:SetListLine(3, #self.Routes > self.Route and self.Routes[self.Route + 1] or "")
+            end
             if not displayOnly then
                 self.RouteChanged = true
                 self:Highlight("LastStation")
                 self:UpdateRoute()
             end
         else
+            self:SetErrMsg("Не заведено")
+        end
+    end
+
+    function TRAIN_SYSTEM:SetErrMsg(msg)
+        if self.Sarmat then
+            self:SetSarmatList({msg}, 1, false, false)
+        else
             self:ClearListLines(1, 3)
-            self:SetListLine(2, "Не заведено")
+            self:SetListLine(2, msg)
+        end
+    end
+
+    function TRAIN_SYSTEM:SetSarmatList(tbl, selected, loop, nameAccessor)
+        local count = #tbl
+        local zeroBased = tbl[0]
+        if count < (zeroBased and 8 or 9) then
+            for idx = 1, 8 do
+                local val = tbl[idx - (zeroBased and 1 or 0)]
+                self.Train:SetNW2String("BUIK:Line" .. idx, val and (nameAccessor and (val.name or "-") or val) or "")
+            end
+            self.Train:SetNW2Int("BUIK:SarmatCursor", selected + (zeroBased and 1 or 0))
+            return
+        end
+
+        self.Train:SetNW2Int("BUIK:SarmatCursor", 0)
+        local idx = 1
+        local top = math.min(3, selected - (zeroBased and 0 or 1))
+        local bot = math.min(4, #tbl - selected)
+        for cidx = selected - (loop and 3 or (top - bot + 4)), selected + (loop and 4 or (bot - top + 3)) do
+            if idx > 8 then return end
+            if loop then
+                while cidx < 1    do cidx = #tbl + cidx end
+                while cidx > #tbl do cidx = cidx - #tbl end
+            end
+
+            local text = ""
+            if cidx >= 0 and cidx <= #tbl then
+                local val = tbl[cidx]
+                text = val and (nameAccessor and (val.name or "-") or val) or ""
+            end
+            if cidx == selected then self.Train:SetNW2Int("BUIK:SarmatCursor", idx) end
+            self.Train:SetNW2String("BUIK:Line" .. idx, text)
+            idx = idx + 1
         end
     end
 
@@ -536,7 +602,7 @@ if SERVER then
 
     function TRAIN_SYSTEM:SetListLine(idx, str)
         if #str > 200 then
-            str = string.sub(str, 1, 200)
+            str = utf8.sub(str, 1, 200)
         end
         self.Train:SetNW2String("BUIK:Line" .. idx, str)
     end
@@ -850,7 +916,7 @@ if SERVER then
         self:WriteToIk("RouteId", string.format("%d.%d.%d.%s", self.CisCfgIdx, self.Route, lastSt.index or -1, self.Path and "II" or "I"))
         self:WriteToIk("Station", station.idx)
         self:WriteToIk("Depart", station.is_dep and canBeDepart or false)
-        self:WriteToIk("Terminus", station.is_terminus or lastSt and lastSt.idx == station.idx and station.arrlast and true or false)
+        self:WriteToIk("Terminus", not station.ignorelast and (station.is_terminus or lastSt and lastSt.idx == station.idx and station.arrlast) and true or false)
         self:WriteToIk("Execute", true)
     end
 
@@ -1079,7 +1145,7 @@ else
     surface.CreateFont("BUIKSystem", {
         extended = true,
         font = "Arimo",
-        size = 40,
+        size = 36,
         weight = 700,
     })
     surface.CreateFont("BUIKSpeedometerClock", {
@@ -1087,6 +1153,24 @@ else
         font = "Arimo",
         size = 38,
         weight = 700,
+    })
+    surface.CreateFont("BUIKSpeedometerClockSarmatSmall", {
+        extended = true,
+        font = "Nunito Sans Normal",
+        size = 26,
+        weight = 500,
+    })
+    surface.CreateFont("BUIKSpeedometerClockSarmat", {
+        extended = true,
+        font = "Nunito Sans Normal",
+        size = 38,
+        weight = 500,
+    })
+    surface.CreateFont("BUIKSpeedometerSarmat", {
+        extended = true,
+        font = "Nunito Sans Normal",
+        size = 255,
+        weight = 800,
     })
     surface.CreateFont("BUIKSpeedometer", {
         extended = true,
@@ -1115,29 +1199,25 @@ else
         size = 56,
         weight = 700,
     })
-    surface.CreateFont("BUIKRoute", {
+    surface.CreateFont("BUIKSarmat", {
         extended = true,
-        font = "Rationale",
-        size = 140,
+        font = "Arimo",
+        size = 46,
+        weight = 500,
+    })
+    surface.CreateFont("BUIKRoute", {
+        font = "Digital-7 Mono",
+        size = 112,
+    })
+    surface.CreateFont("BUIKRouteSarmat", {
+        font = "Digital-7 Mono",
+        size = 80,
     })
 
-    local colorWhite = Color(255, 255, 255)
-    local colorDarkerWhite = Color(190, 190, 190)
-    local colorDisabled = Color(27, 27, 27)
-    local colorBackground = Color(13, 14, 17)
-    local colorBackgroundSpeedometer = Color(13, 14, 17)
-    local colorBackgroundSpeedometerTop = Color(21, 23, 27)
-    local colorInactive = Color(22, 41, 99)
-    local colorActive = Color(209, 215, 233)
-    local colorSelected = Color(83, 164, 201)
-    local colorActiveCabin = Color(16, 112, 255)
     local colorRed = Color(255, 75, 75)
     local colorYellow = Color(209, 245, 55)
     local colorGreen = Color(55, 245, 55)
-    local colorSelectedLineActive = Color(10, 192, 216)
-    local colorSelectedLineInactive = Color(7, 50, 180)
-    local colorLineTextActive = Color(223, 223, 223)
-    local colorLineTextInactive = Color(67, 151, 190)
+    local colorBlue = Color(26, 89, 247)
     local logo = Material("zxc765/PIVO_logo_lt.png", "smooth ignorez")
 
     local sizeSpeedometrW = 740
@@ -1205,8 +1285,8 @@ else
         surface.DrawRect(x + (not noVerticalBorders and 2 or 0), y + 2, w - (not noVerticalBorders and 4 or 0), h - 4)
     end
 
-    local function drawBorders()
-        surface.SetDrawColor(colorInactive)
+    function TRAIN_SYSTEM:DrawBorders()
+        surface.SetDrawColor(self.colorInactive)
         surface.DrawRect(sizeWagonsW, 0, 2, scr_h)
         surface.DrawRect(sizeLeftPanelW, sizeWagonsH, 2, scr_h - sizeWagonsH)
         surface.DrawRect(sizeLeftPanelW + sizeStationsW, sizeWagonsH, 2, scr_h - sizeWagonsH)
@@ -1216,7 +1296,7 @@ else
     end
 
     local highlightsState = {}
-    local function updateHighlights(Wag)
+    function TRAIN_SYSTEM:UpdateHighlights(Wag)
         for k, v in ipairs(highlights) do
             highlightsState[v] = (CurTime() - Wag:GetNW2Float("BUIK:Highlight" .. k, 0)) < GENERAL_TIMEOUT
         end
@@ -1225,14 +1305,15 @@ else
 
     local wagonsMarginX, wagonsMarginY = 12, 12
     local sizeWagHead = 52
-    local sizeWagGap = 8
+    local sizeWagGap = 6
+    local sizeWagDoorGap = 12
     local sizeMaxTrainLen = sizeWagonsW - sizeWagHead * 2 - wagonsMarginX * 2
     local sizeWagW = (sizeMaxTrainLen - sizeWagGap * 2 * 7) / 8
     local sizeWagH = sizeWagonsH - wagonsMarginY * 2
-    local sizeWagDoorW = (sizeWagW - sizeWagGap * 5) / 4
-    local sizeWagDoorH = sizeWagGap * 2
+    local sizeWagDoorW = (sizeWagW - sizeWagDoorGap * 5) / 4
+    local sizeWagDoorH = 14
 
-    local function drawWagons(Wag)
+    function TRAIN_SYSTEM:DrawWagons(Wag)
         local wagNum = Wag:GetNW2Int("BUIK:WagNum", 0)
         local wagDoors = {}
 
@@ -1246,47 +1327,47 @@ else
                 doorsClosed = doorsClosed and closed
             end
 
-            local color = err and colorRed or not doorsClosed and colorActive or colorInactive
+            local color = err and colorRed or not doorsClosed and self.colorActive or self.colorInactive
 
             local extendStart, extendEnd = 0, 0
             if idx == 1 then
-                local cabinColor = Wag:GetNW2Bool("BUIK:ActiveCabin", false) and colorActiveCabin or colorBackground
+                local cabinColor = Wag:GetNW2Bool("BUIK:ActiveCabin", false) and self.colorActiveCabin or self.colorBackground
                 draw.RoundedBoxEx(sizeWagHead, wagX, wagY, sizeWagHead * 2, sizeWagH, color, true, false, true, false)
                 draw.RoundedBoxEx(sizeWagHead, wagX + 2, wagY + 2, (sizeWagHead * 2) - 4, sizeWagH - 4, cabinColor, true, false, true, false)
-                wagX = wagX + sizeWagHead
+                wagX = math.floor(wagX + sizeWagHead)
                 extendStart = sizeWagGap
             elseif idx == Wag:GetNW2Int("BUIK:RearCabinWagNum", 0) then
-                local cabinColor = Wag:GetNW2Bool("BUIK:ActiveRearCabin", false) and colorActiveCabin or colorBackground
+                local cabinColor = Wag:GetNW2Bool("BUIK:ActiveRearCabin", false) and self.colorActiveCabin or self.colorBackground
                 draw.RoundedBoxEx(sizeWagHead, wagX + sizeWagW - sizeWagHead, wagY, sizeWagHead * 2, sizeWagH, color, false, true, false, true)
                 draw.RoundedBoxEx(sizeWagHead, wagX + sizeWagW - sizeWagHead + 2, wagY + 2, (sizeWagHead * 2) - 4, sizeWagH - 4, cabinColor, false, true, false, true)
                 extendEnd = sizeWagGap
             end
 
-            drawOutlinedRect(wagX - extendStart, wagY, sizeWagW + extendStart + extendEnd, sizeWagH, color, colorBackground)
+            drawOutlinedRect(math.floor(wagX - extendStart), wagY, math.floor(sizeWagW + extendStart + extendEnd), sizeWagH, color, self.colorBackground)
             if idx < wagNum then
-                drawOutlinedRect(wagX + sizeWagW - 3, wagY + (sizeWagH / 3), sizeWagGap + 2, sizeWagH / 3, color, colorBackground, true)
+                drawOutlinedRect(math.floor(wagX + sizeWagW - 2), wagY + (sizeWagH / 3), math.floor(sizeWagGap + 2), sizeWagH / 3, color, self.colorBackground, true)
             end
             if idx > 1 then
-                drawOutlinedRect(wagX - sizeWagGap - 1, wagY + (sizeWagH / 3), sizeWagGap + 3, sizeWagH / 3, color, colorBackground, true)
+                drawOutlinedRect(math.floor(wagX - sizeWagGap), wagY + (sizeWagH / 3), math.floor(sizeWagGap + 2), sizeWagH / 3, color, self.colorBackground, true)
             end
 
             local dx, dy
-            dx, dy = wagX + sizeWagGap, wagY - sizeWagDoorH / 2
+            dx, dy = wagX + sizeWagDoorGap, wagY - sizeWagDoorH / 2
             for di = 1, 4 do
-                local dc = wagDoors[5 - di] and (not doorsClosed and colorActive or colorInactive) or colorRed
+                local dc = wagDoors[5 - di] and (not doorsClosed and self.colorActive or self.colorInactive) or colorRed
                 drawOutlinedRect(dx, dy, sizeWagDoorW, sizeWagDoorH, color, dc)
-                dx = dx + sizeWagGap + sizeWagDoorW
+                dx = dx + sizeWagDoorGap + sizeWagDoorW
             end
-            dx, dy = wagX + sizeWagGap, wagY - sizeWagDoorH / 2 + sizeWagH - 2
+            dx, dy = wagX + sizeWagDoorGap, wagY - sizeWagDoorH / 2 + sizeWagH - 2
             for di = 1, 4 do
-                local dc = wagDoors[di + 4] and (not doorsClosed and colorActive or colorInactive) or colorRed
+                local dc = wagDoors[di + 4] and (not doorsClosed and self.colorActive or self.colorInactive) or colorRed
                 drawOutlinedRect(dx, dy, sizeWagDoorW, sizeWagDoorH, color, dc)
-                dx = dx + sizeWagGap + sizeWagDoorW
+                dx = dx + sizeWagDoorGap + sizeWagDoorW
             end
 
             draw.SimpleText(Wag:GetNW2String("BUIK:WagNum" .. idx, "?????"), "BUIK64", wagX + sizeWagW / 2,  wagY + sizeWagH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
-            wagX = wagX + sizeWagGap * 2 + sizeWagW
+            wagX = math.floor(wagX + sizeWagGap * 2 + sizeWagW)
         end
     end
 
@@ -1295,31 +1376,31 @@ else
     local sizeRnDigitBoxW = sizeRnW - sizeRnMarginX * 2
     local sizeRnDigitBoxH = sizeRnH - 46 - sizeRnMarginY * 2
 
-    local function drawRouteNumber(Wag)
+    function TRAIN_SYSTEM:DrawRouteNumber(Wag)
         local x, y = sizeRnMarginX, sizeWagonsH + sizeRnH - sizeRnDigitBoxH - sizeRnMarginY
 
-        draw.RoundedBox(sizeRnMarginY, x, y, sizeRnDigitBoxW, sizeRnDigitBoxH, colorInactive)
-        draw.RoundedBox(sizeRnMarginY, x + 2, y + 2, sizeRnDigitBoxW - 4, sizeRnDigitBoxH - 4, colorBackground)
+        draw.RoundedBox(sizeRnMarginY, x, y, sizeRnDigitBoxW, sizeRnDigitBoxH, self.colorInactive)
+        draw.RoundedBox(sizeRnMarginY, x + 2, y + 2, sizeRnDigitBoxW - 4, sizeRnDigitBoxH - 4, self.colorBackground)
 
-        local color = highlightsState["RouteNumber"] and colorActive or colorInactive
-        draw.SimpleText(Wag:GetNW2String("BUIK:RouteNumber", "---"), "BUIKRoute", x + sizeRnDigitBoxW / 2, y + sizeRnDigitBoxH / 2 - 10, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        local color = highlightsState["RouteNumber"] and self.colorActive or self.colorInactive
+        draw.SimpleText(Wag:GetNW2String("BUIK:RouteNumber", "---"), "BUIKRoute", x + sizeRnDigitBoxW / 2, y + sizeRnDigitBoxH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
         local rnText = "№ Маршрута"
         draw.SimpleText(rnText, getLastStationFont(rnText, 0.8), x + sizeRnDigitBoxW / 2, y + sizeRnDigitBoxH / 2 - 70, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
     local lastStationCvar = CreateClientConVar("zms_765ls", "ОШИБКА", false, false)
-    local function drawLastStation(Wag)
+    function TRAIN_SYSTEM:DrawLastStation(Wag)
         local x, y = 0, scr_h - sizeFooterH * 2
         local lastStation = Wag:GetNW2String("BUIK:LastStation", lastStationCvar:GetString())
-        local color = highlightsState["LastStation"] and colorActive or colorInactive
+        local color = highlightsState["LastStation"] and self.colorActive or self.colorInactive
         draw.SimpleText(lastStation, getLastStationFont(lastStation), x + sizeLeftPanelW / 2, y + sizeFooterH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
-    local function drawClock(Wag)
+    function TRAIN_SYSTEM:DrawClock(Wag)
         local x, y = 0, scr_h - sizeFooterH
         local time = Wag:GetNW2String("BUIK:Clock", "--:--:--")
-        draw.SimpleText(time, "BUIKClock", x + sizeLeftPanelW / 2, y + sizeFooterH / 2, colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(time, "BUIKClock", x + sizeLeftPanelW / 2, y + sizeFooterH / 2, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
     local sizePgGap = 16
@@ -1329,49 +1410,35 @@ else
     local sizePgH = sizeFooterH - sizePgMargin * 2
     local pageNames = {"Станция", "Доп. инфо.", "Ст. оборота", "Маршруты"}
     local functionNames = {"AUTO PLAY", "СВЯЗЬ С СЦ"}
-    local function drawFooter(Wag)
+    function TRAIN_SYSTEM:DrawFooter(Wag)
         local selected = Wag:GetNW2Int("BUIK:Page", 0)
         local x, y = sizeLeftPanelW + sizePgGap, scr_h - sizeFooterH + sizePgMargin
         for idx = 1, 4 do
-            draw.RoundedBox(10, x, y, sizePgW, sizePgH, selected == idx and colorSelected or colorInactive)
-            draw.SimpleText(pageNames[idx], "BUIKSystemSmall", x + sizePgW / 2, y + sizePgH / 2, colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.RoundedBox(10, x, y, sizePgW, sizePgH, selected == idx and self.colorSelected or self.colorInactive)
+            draw.SimpleText(pageNames[idx], "BUIKSystemSmall", x + sizePgW / 2, y + sizePgH / 2, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             x = x + sizePgW + sizePgGap
         end
 
         x = x + sizePgGap + 2
         for idx = 1, 2 do
-            draw.RoundedBox(16, x, y, sizePgW, sizePgH, colorInactive)
-            draw.SimpleText(functionNames[idx], "BUIKSystemSmall", x + sizePgW / 2, y + sizePgH / 2, colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.RoundedBox(16, x, y, sizePgW, sizePgH, self.colorInactive)
+            draw.SimpleText(functionNames[idx], "BUIKSystemSmall", x + sizePgW / 2, y + sizePgH / 2, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             x = x + sizePgW + sizePgGap
         end
 
-        surface.SetDrawColor(colorInactive)
+        surface.SetDrawColor(self.colorInactive)
         surface.DrawRect(x, y - sizePgMargin, 2, sizeFooterH)
-        draw.SimpleText("км", "BUIKOdometer", scr_w - sizeSpeedometrW - sizeRightMargin, y + sizePgH / 2 + 1, colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-        draw.SimpleText(string.format("%07d", Wag:GetNW2Int("BUIK:Odometer", 0)), "BUIKClock", scr_w - sizeSpeedometrW - sizeRightMargin - 60, y + sizePgH / 2, colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+        draw.SimpleText("км", "BUIKOdometer", scr_w - sizeSpeedometrW - sizeRightMargin, y + sizePgH / 2 + 1, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+        draw.SimpleText(string.format("%07d", Wag:GetNW2Int("BUIK:Odometer", 0)), "BUIKClock", scr_w - sizeSpeedometrW - sizeRightMargin - 60, y + sizePgH / 2, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     end
 
-    local sizeStatusGapX = 24
-    local sizeStatusGapY = 24
+    local sizeStatusGapX = 28
+    local sizeStatusGapY = 30
     local sizeStatusStateW = (sizeStatusW - sizeStatusGapX * 5) / 4
     local sizeStatusStateShortW = (sizeStatusW - sizeStatusGapX * 6) / 5
     local sizeStatusStateH = (sizeStatusH - sizeStatusGapY * 3) / 2
-    local statesDefaults = {"???", "АРС1", "АРС2", "???", "НД", "0", "ОЧ", "АО", "БОСД"}
-    local statesColors = {
-        [STATE_INACTIVE] = colorInactive,
-        [STATE_NORMAL] = colorSelected,
-        [STATE_RED] = ColorAlpha(colorRed, 60),
-        [STATE_YELLOW] = ColorAlpha(colorYellow, 60),
-        [STATE_GREEN] = ColorAlpha(colorGreen, 60),
-    }
-    local statesColorsHighlighted = {
-        [STATE_INACTIVE] = colorInactive,
-        [STATE_NORMAL] = colorActive,
-        [STATE_RED] = colorRed,
-        [STATE_YELLOW] = colorYellow,
-        [STATE_GREEN] = colorGreen,
-    }
-    local function drawStatus(Wag)
+    local statesDefaults = {"", "АРС1", "АРС2", "", "НД", "0", "ОЧ", "АО", "БОСД"}
+    function TRAIN_SYSTEM:DrawStatus(Wag)
         local x0, y = scr_w - sizeSpeedometrW - sizeStatusW + sizeStatusGapX, sizeWagonsH + sizeStatusGapY
         local x = x0
         for line = 1, 2 do
@@ -1389,9 +1456,9 @@ else
                         -- ОЧ, 0, НД (ЛН)
                         highlight = highlight or state == STATE_RED
                     end
-                    local color = highlight and statesColorsHighlighted[state] or statesColors[state]
+                    local color = highlight and self.statesColorsHighlighted[state] or self.statesColors[state]
                     if not color then print(idx, highlight, state) end
-                    local textColor = (state ~= STATE_RED) and colorBackground or highlight and colorWhite or colorDarkerWhite
+                    local textColor = (state ~= STATE_RED) and self.colorBackground or highlight and self.colorWhite or self.colorDarkerWhite
 
                     draw.RoundedBox(10, x, y, w, sizeStatusStateH, color)
                     draw.SimpleText(
@@ -1410,27 +1477,28 @@ else
     local sizeListMargin = 4
     local sizeListLineW = sizeStationsW - sizeListMargin * 2
     local sizeListLineH = (sizeStationsH - sizeListMargin * 2) / 3
-    local function drawList(Wag)
+    function TRAIN_SYSTEM:DrawList(Wag)
         local x, y = sizeLeftPanelW + sizeListMargin, sizeWagonsH + sizeListMargin
         local active = highlightsState["List"]
         for idx = 1, 3 do
             if idx == 2 then
-                draw.RoundedBox(10, x, y, sizeListLineW, sizeListLineH, active and colorSelectedLineActive or colorSelectedLineInactive)
+                draw.RoundedBox(10, x, y, sizeListLineW, sizeListLineH, active and self.colorSelectedLineActive or self.colorSelectedLineInactive)
             end
-            local color = active and colorLineTextActive or idx == 2 and colorLineTextInactive or colorInactive
+            local color = active and self.colorLineTextActive or idx == 2 and self.colorLineTextInactive or self.colorInactive
             draw.SimpleText(Wag:GetNW2String("BUIK:Line" .. idx, ""), "BUIK64", x + sizeListMargin, y + sizeListLineH / 2, color, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
             y = y + sizeListLineH
         end
     end
 
 
-    local sizeSpeedometerPadding = 110
-    local sizeSpeedometerInnerRadius = (sizeSpeedometrW - sizeSpeedometerPadding * 2) / 2
-    local sizeSpeedometerLineGap = 6
+    local sizeSpeedometerMargin = 48
+    local sizeSpeedometerBar = 58
+    local sizeSpeedometerInnerRadius = (sizeSpeedometrW - sizeSpeedometerBar * 2 - sizeSpeedometerMargin * 2) / 2
+    local sizeSpeedometerLineOffset = 4
     local circleResolution = 200
-    function drawCircle(x, y, r, color, percent, invert)
-        local extend = not not percent
-        local a1, a2 = math.pi * (not extend and 1.0 or 1.015), math.pi * (not extend and 0 or -0.015)
+    function drawCircle(x, y, r, color, percent, invert, noExtend)
+        local extend = not noExtend and not not percent
+        local a1, a2 = math.pi * (not extend and 1.0 or 1.007), math.pi * (not extend and 0 or -0.007)
         percent = percent and math.Clamp(percent, 0, 1) or 1
 
         local vtx = {}
@@ -1449,49 +1517,289 @@ else
             surface.DrawPoly(vtx)
         end
     end
-    function drawSpeedometer(Wag)
-        local x0, y0 = scr_w - sizeSpeedometrW + sizeSpeedometerPadding + sizeSpeedometerInnerRadius, sizeSpeedometerPadding + sizeSpeedometerInnerRadius
+    function TRAIN_SYSTEM:DrawSpeedometer(Wag)
+        local x0, y0 = scr_w - sizeSpeedometrW + sizeSpeedometerBar + sizeSpeedometerMargin + sizeSpeedometerInnerRadius, sizeSpeedometerBar + sizeSpeedometerMargin + sizeSpeedometerInnerRadius
 
-        local r1 = sizeSpeedometerInnerRadius + sizeSpeedometerLineGap - 4
-        local r2 = sizeSpeedometerInnerRadius + sizeSpeedometerPadding - sizeSpeedometerLineGap - 40
-        local r3 = sizeSpeedometerInnerRadius + sizeSpeedometerPadding - sizeSpeedometerLineGap - 18
-        local r12 = r1 + (r2 - r1) / 2 + 2
+        local r1 = sizeSpeedometerInnerRadius
+        local r2 = r1 + sizeSpeedometerBar / 2
+        local r3 = r1 + sizeSpeedometerBar
+        local r4 = r3 + sizeSpeedometerLineOffset
 
         local speed = Wag:GetNW2Float("BUIK:ActualSpeed", 0)
         local maxSpeed = Wag:GetNW2Int("BUIK:MaxSpeed", 0)
         local nextSpeed = Wag.BuikAlsArs and Wag:GetNW2Bool("BUIK:ActiveCabin", false) and Wag:GetNW2Int("BUIK:NextSpeed", 0) or nil
+        local maxSpeedColor = not Wag:GetNW2Bool("BUIK:NoMaxSpeed", false) and colorRed or self.colorBackgroundSpeedometerTop
 
-        local maxSpeedColor = not Wag:GetNW2Bool("BUIK:NoMaxSpeed", false) and colorRed or colorBackgroundSpeedometerTop
-        drawCircle(x0, y0, r2, colorBackgroundSpeedometerTop, maxSpeed / 100)
-        drawCircle(x0, y0, r2, maxSpeedColor, maxSpeed / 100, true)
-        drawCircle(x0, y0, r2, colorGreen, speed / 100)
-        drawCircle(x0, y0, r12, colorBackgroundSpeedometerTop, 1)
+        drawCircle(x0, y0, r3, self.colorBackgroundSpeedometerTop, maxSpeed / 100)
+        drawCircle(x0, y0, r3, maxSpeedColor, maxSpeed / 100, true)
+        drawCircle(x0, y0, r3, colorGreen, speed / 100)
+
+        drawCircle(x0, y0, r2 + sizeSpeedometerLineOffset / 2.8, self.colorBackgroundSpeedometer, 1)
+
         if nextSpeed then
-            drawCircle(x0, y0, r12, colorYellow, nextSpeed / 100, true)
+            drawCircle(x0, y0, r2 - sizeSpeedometerLineOffset / 2.8, colorYellow, nextSpeed / 100, true)
+            drawCircle(x0, y0, r2 - sizeSpeedometerLineOffset / 2.8, self.colorBackgroundSpeedometerTop, nextSpeed / 100)
+        else
+            drawCircle(x0, y0, r2 - sizeSpeedometerLineOffset / 2.8, self.colorBackgroundSpeedometerTop, 1)
         end
 
         for i = 0, 20 do
-            local a = Lerp(i / 20, math.pi * 1.015, -math.pi * 0.015)
+            local a = Lerp(i / 20, math.pi * 1.007, -math.pi * 0.007)
             local cosa, sina = math.cos(a), math.sin(a)
-            local rt = i < 20 and (r3 - 6) or r3
+            local rt = r4 + 18
             local x1, y1 = x0 + cosa * r1, y0 - sina * r1
-            local x2, y2 = x0 + cosa * r2, y0 - sina * r2
+            local x2, y2 = x0 + cosa * r4, y0 - sina * r4
             local xl, yl = (x1 + x2) / 2, (y1 + y2) / 2
             local x3, y3 = x0 + cosa * rt, y0 - sina * rt
             surface.SetDrawColor(255, 255, 255)
             draw.NoTexture()
-            surface.DrawTexturedRectRotated(xl, yl, r2 - r1, 2, math.deg(a))
-            draw.SimpleText(tostring(i * 5), "BUIKSpeedometerClock", x3, y3, maxSpeed > 0 and i * 5 == math.floor(maxSpeed) and colorRed or colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            surface.DrawTexturedRectRotated(xl, yl, r4 - r1, 2, math.deg(a))
+            draw.SimpleText(tostring(i * 5), "BUIKSpeedometerClock", x3, y3, maxSpeed > 0 and i * 5 == math.floor(maxSpeed) and colorRed or self.colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         end
 
-        drawCircle(x0, y0, sizeSpeedometerInnerRadius, colorBackgroundSpeedometer, 1)
+        drawCircle(x0, y0, r1, self.colorBackgroundSpeedometer, 1)
         if Wag:GetNW2Bool("BUIK:SpeedometerBlink", false) and CurTime() % 1.2 < 0.6 then
-            drawCircle(x0, y0, sizeSpeedometerInnerRadius, colorRed, 1)
+            drawCircle(x0, y0, r1, colorRed)
         end
 
-        draw.SimpleText("00", "BUIKSpeedometer", x0, y0 - 80, colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-        draw.SimpleText(tostring(math.floor(speed) % 100), "BUIKSpeedometer", x0 + (speed < 10 and 70 or 0), y0 - 80, colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText("00", "BUIKSpeedometer", x0, y0 - 88, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(tostring(math.floor(speed) % 100), "BUIKSpeedometer", x0 + (speed < 10 and 70 or 0), y0 - 88, self.colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
+
+    local function drawOutlinedRoundedRect(r, x, y, w, h, borderColor, color, ...)
+        local args = {...}
+        if #args < 1 then
+            draw.RoundedBox(r, x, y, w, h, borderColor)
+            draw.RoundedBox(r, x + 2, y + 2, w - 4, h - 4, color)
+        else
+            draw.RoundedBoxEx(r, x, y, w, h, borderColor, ...)
+            draw.RoundedBoxEx(r, x + 2, y + 2, w - 4, h - 4, color, ...)
+        end
+    end
+
+    local sizeSarmatFooterH = 80
+    local sizeSarmatSpeedometerW = 739
+    local sizeSarmatSpeedometerH = scr_h - sizeSarmatFooterH
+    local sizeSarmatWagonsH = 160
+    local sizeSarmatWagonsW = scr_w - sizeSarmatSpeedometerW
+    local sizeSarmatCentralW = 800
+    local sizeSarmatCentralH = scr_h - sizeSarmatWagonsH - sizeSarmatFooterH
+    local sizeSarmatLeftBarW = 200
+    local sizeSarmatRnBox = 160
+    local sizeSarmatRnBoxMargin = 8
+    local sizeSarmatTextLineH = sizeSarmatCentralH - sizeSarmatRnBox - sizeSarmatRnBoxMargin * 2
+    local sizeSarmatCursorBoxH = 74
+    local sizeSarmatFooterW = sizeSarmatSpeedometerW + sizeSarmatCentralW
+    local sizeSarmatLeftBarStatusH = scr_h - sizeSarmatWagonsH - sizeSarmatCursorBoxH - 5
+    local sizeSarmatLeftBarStateH = (sizeSarmatLeftBarStatusH - 8 * 3) / 3
+    local sizeSarmatWagLabelH = 40
+    local sizeSarmatWagW = (sizeSarmatWagonsW - 2 * 7) / 8
+    local sizeSarmatWagH = sizeSarmatWagonsH - 2 - sizeSarmatWagLabelH / 2
+    local sizeSarmatWagLabelW = sizeSarmatWagH * 0.75
+    local sizeSarmatStatusBoxW = (sizeSarmatFooterW - 4 * 9 - 4) / 8
+    local sizeSarmatStatusBoxH = sizeSarmatFooterH - 12
+    local sizeSarmatStatusBoxSmW = (sizeSarmatFooterW - 4 * 10 - 4) / 9
+    function TRAIN_SYSTEM:DrawBordersSarmat()
+        -- drawOutlinedRect(x, y, w, h, borderColor, color, noVerticalBorders)
+        drawOutlinedRoundedRect(4, 1, sizeSarmatWagonsH, sizeSarmatWagonsW, scr_h - sizeSarmatWagonsH + 2, self.colorActive, self.colorBackground)
+        drawOutlinedRoundedRect(4, scr_w - sizeSarmatFooterW, scr_h - sizeSarmatFooterH - 1, sizeSarmatFooterW, sizeSarmatFooterH + 3, self.colorActive, self.colorBackground, false, true, false, true)
+        drawOutlinedRoundedRect(8, scr_w - sizeSarmatFooterW + sizeSarmatRnBoxMargin, sizeSarmatWagonsH + sizeSarmatRnBoxMargin, sizeSarmatRnBox, sizeSarmatRnBox, self.colorActive, self.colorBackground)
+        surface.SetDrawColor(self.colorActive)
+        surface.DrawRect(scr_w - sizeSarmatFooterW, sizeSarmatWagonsH, 2, scr_h - sizeSarmatWagonsH - 1)
+        surface.DrawRect(scr_w - sizeSarmatFooterW, sizeSarmatWagonsH + sizeSarmatCentralH - sizeSarmatTextLineH, sizeSarmatCentralW, 2)
+        surface.DrawRect(1, sizeSarmatWagonsH + sizeSarmatCursorBoxH, sizeSarmatLeftBarW, 2)
+        surface.DrawRect(sizeSarmatLeftBarW + 1, sizeSarmatWagonsH, 2, scr_h - sizeSarmatWagonsH - 1)
+    end
+
+    local sizeSarmatDoorGap = 4
+    local sizeSarmatDoorW = (sizeSarmatWagW - 5 * sizeSarmatDoorGap - 4) / 4
+    local sizeSarmatDoorH = 12
+    function TRAIN_SYSTEM:DrawWagonsSarmat(Wag)
+        local wagNum = Wag:GetNW2Int("BUIK:WagNum", 0)
+        local x = 1
+        local y = 1
+        for idx = 1, wagNum do
+            local err = Wag:GetNW2Bool("BUIK:WagErr" .. idx, false)
+            local borderColor = err and colorRed or self.colorActive
+            drawOutlinedRoundedRect(4, x, y + sizeSarmatWagLabelH / 2, sizeSarmatWagW, sizeSarmatWagH, borderColor, self.colorBackground)
+            drawOutlinedRoundedRect(4, x + (sizeSarmatWagW - sizeSarmatWagLabelW) / 2, y, sizeSarmatWagLabelW, sizeSarmatWagLabelH, err and colorRed or self.colorActive, self.colorBackground)
+            draw.SimpleText(
+                Wag:GetNW2String("BUIK:WagNum" .. idx, "?????"), "BUIKSarmat",
+                x + (sizeSarmatWagW - sizeSarmatWagLabelW) / 2 + sizeSarmatWagLabelW / 2,
+                y + sizeSarmatWagLabelH / 2,
+                borderColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER
+            )
+
+            local dx = x + 2 + sizeSarmatDoorGap
+            local dy1 = y + sizeSarmatWagLabelH + sizeSarmatDoorGap
+            local dy2 = y + sizeSarmatWagH + sizeSarmatWagLabelH / 2 - sizeSarmatDoorGap - sizeSarmatDoorH - 2
+            for di = 1, 4 do
+                local dc1 = Wag:GetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, 5 - di), false)
+                local dc2 = Wag:GetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, 4 + di), false)
+                drawOutlinedRoundedRect(6, dx, dy1, sizeSarmatDoorW, sizeSarmatDoorH, not dc1 and colorRed or self.colorActive, not dc1 and colorRed or self.colorInactive)
+                drawOutlinedRoundedRect(6, dx, dy2, sizeSarmatDoorW, sizeSarmatDoorH, not dc2 and colorRed or self.colorActive, not dc2 and colorRed or self.colorInactive)
+                dx = dx + sizeSarmatDoorW + sizeSarmatDoorGap
+            end
+
+            x = x + sizeSarmatWagW + 2
+        end
+    end
+
+    function TRAIN_SYSTEM:DrawRouteNumberSarmat(Wag)
+        local x, y = scr_w - sizeSarmatFooterW + sizeSarmatRnBoxMargin + sizeSarmatRnBox / 2, sizeSarmatWagonsH + sizeSarmatRnBoxMargin + sizeSarmatRnBox / 2
+        draw.SimpleText(Wag:GetNW2String("BUIK:RouteNumber", "---"), "BUIKRouteSarmat", x + 52, y, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+    end
+
+    function TRAIN_SYSTEM:DrawLastStationSarmat(Wag)
+        draw.SimpleText(Wag:GetNW2String("BUIK:LastStation", "---"), "BUIKSarmat",
+            scr_w - sizeSarmatSpeedometerW - 8, sizeSarmatWagonsH + (sizeSarmatCentralH - sizeSarmatTextLineH) / 2,
+            self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+    end
+
+    local sizeSarmatCursorHalfS = sizeSarmatCursorBoxH / 6
+    local posSarmatCursorY = sizeSarmatWagonsH + 2 + sizeSarmatCursorBoxH / 3
+    local vtxSarmatCursor = {
+        {x = sizeSarmatLeftBarW, y = posSarmatCursorY + sizeSarmatCursorHalfS},
+        {x = sizeSarmatLeftBarW - sizeSarmatCursorHalfS * 1.4, y = posSarmatCursorY + sizeSarmatCursorHalfS * 2},
+        {x = sizeSarmatLeftBarW - sizeSarmatCursorHalfS * 1.4, y = posSarmatCursorY},
+    }
+    local sarmatPages = {"Станция", "Доп. сообщ.", "Конечная", "Маршрут"}
+    function TRAIN_SYSTEM:DrawLeftBarSarmat(Wag)
+        local x = 10
+        local y = sizeSarmatWagonsH + sizeSarmatCursorBoxH + 8
+        local toX = (sizeSarmatLeftBarW - 16) / 2
+        local toY = sizeSarmatLeftBarStateH / 2 + 1
+        drawOutlinedRoundedRect(8, x, y, sizeSarmatLeftBarW - 16, sizeSarmatLeftBarStateH, self.colorActive, self.colorSelected)
+        draw.SimpleText("АВТОВОСПР.", "BUIKSystemSmall", x + toX, y + toY, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        y = y + sizeSarmatLeftBarStateH + 8
+        drawOutlinedRoundedRect(8, x, y, sizeSarmatLeftBarW - 16, sizeSarmatLeftBarStateH, self.colorActive, self.colorSelected)
+        draw.SimpleText("СВЯЗЬ С СЦ", "BUIKSystemSmall", x + toX, y + toY, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        y = y + sizeSarmatLeftBarStateH + 8
+        drawOutlinedRoundedRect(8, x, y, (sizeSarmatLeftBarW - 16 - 8) / 2, sizeSarmatLeftBarStateH, self.colorActive, self.colorSelected)
+        x = x + ((sizeSarmatLeftBarW - 16 - 8) / 2) + 8
+        drawOutlinedRoundedRect(8, x, y, (sizeSarmatLeftBarW - 16 - 8) / 2, sizeSarmatLeftBarStateH, self.colorActive, self.colorSelected)
+
+        surface.SetDrawColor(self.colorActive)
+        draw.NoTexture()
+        surface.DrawPoly(vtxSarmatCursor)
+
+        local selected = Wag:GetNW2Int("BUIK:Page", 0)
+        draw.SimpleText(sarmatPages[selected] or "", "BUIKSystemSmall",
+            sizeSarmatLeftBarW - sizeSarmatCursorHalfS * 2 - 4, sizeSarmatWagonsH + sizeSarmatCursorBoxH / 2,
+            self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+    end
+
+    function TRAIN_SYSTEM:DrawStatusSarmat(Wag)
+        local x = scr_w - sizeSarmatFooterW + 6
+        local y = scr_h - sizeSarmatFooterH + 6
+        local w = Wag.BuikTwoToSix and sizeSarmatStatusBoxSmW or sizeSarmatStatusBoxW
+        for idx = 1, 9 do
+            if idx ~= 5 or Wag.BuikTwoToSix then
+                local trueIdx = idx == 8 and 7 or idx == 7 and 8 or idx
+                local state = Wag:GetNW2Int("BUIK:State" .. trueIdx, STATE_INACTIVE)
+                -- if state == STATE_INACTIVE then state = STATE_NORMAL end
+                local highlight = (
+                    trueIdx == 4 or
+                    trueIdx == 1 and Wag.BuikTwoToSix or
+                    trueIdx == 5 and state == STATE_NORMAL or
+                    state == STATE_RED or
+                    state == STATE_YELLOW or
+                    state == STATE_GREEN
+                )
+                local color = highlight and self.statesColorsHighlighted[state] or self.statesColors[state]
+                if not color then print(trueIdx, highlight, state) end
+
+                drawOutlinedRoundedRect(8, x, y, w, sizeSarmatStatusBoxH, self.colorActive, color)
+                draw.SimpleText(
+                    Wag:GetNW2String("BUIK:StateText" .. trueIdx, statesDefaults[trueIdx]), "BUIKSystem",
+                    x + w / 2, y + sizeSarmatStatusBoxH / 2, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER
+                )
+
+                x = x + w + 4
+            end
+        end
+    end
+
+    local sizeSarmatSpeedometerMargin = 52
+    local sizeSarmatSpeedometerBar = 58
+    local sizeSarmatSpeedometerInnerRadius = (sizeSarmatSpeedometerW - sizeSarmatSpeedometerBar * 2 - sizeSarmatSpeedometerMargin * 2) / 2
+    local sizeSarmatSpeedometerLineOffset = 6
+    function TRAIN_SYSTEM:DrawSpeedometerSarmat(Wag)
+        local x0, y0 = scr_w - sizeSarmatSpeedometerW + sizeSarmatSpeedometerBar + sizeSarmatSpeedometerMargin + sizeSarmatSpeedometerInnerRadius, sizeSarmatSpeedometerBar + sizeSarmatSpeedometerMargin + sizeSpeedometerInnerRadius
+
+        local r1 = sizeSarmatSpeedometerInnerRadius
+        local r2 = r1 + sizeSarmatSpeedometerBar * 0.3
+        local r3 = r1 + sizeSarmatSpeedometerBar
+        local r4 = r3 + sizeSarmatSpeedometerLineOffset
+
+        local noMaxSpeed = Wag:GetNW2Bool("BUIK:NoMaxSpeed", false)
+        local speed = Wag:GetNW2Float("BUIK:ActualSpeed", 0)
+        local maxSpeed = not noMaxSpeed and Wag:GetNW2Int("BUIK:MaxSpeed", 0) or 0
+        local nextSpeed = Wag.BuikAlsArs and Wag:GetNW2Bool("BUIK:ActiveCabin", false) and (not noMaxSpeed and Wag:GetNW2Int("BUIK:NextSpeed", 0) or 0) or nil
+        local maxSpeedColor = not noMaxSpeed and colorRed or self.colorBackgroundSpeedometerTop
+
+        drawCircle(x0, y0, r3, self.colorBackgroundSpeedometerTop, maxSpeed / 100, false, true)
+        drawCircle(x0, y0, r3, maxSpeedColor, maxSpeed / 100, true, true)
+        drawCircle(x0, y0, r3, colorGreen, speed / 100, false, true)
+        drawCircle(x0, y0, r2 + sizeSpeedometerLineOffset / 2.8, self.colorBackgroundSpeedometer, 1, false, true)
+
+        if nextSpeed then
+            drawCircle(x0, y0, r2 - sizeSpeedometerLineOffset / 2.8, colorYellow, nextSpeed / 100, true, true)
+            drawCircle(x0, y0, r2 - sizeSpeedometerLineOffset / 2.8, self.colorBackgroundSpeedometerTop, nextSpeed / 100, false, true)
+        else
+            drawCircle(x0, y0, r2 - sizeSpeedometerLineOffset / 2.8, self.colorBackgroundSpeedometerTop, 1, false, true)
+        end
+        drawCircle(x0, y0, r2 + 2, colorBlue, 0.04)
+
+        for i = 0, 20 do
+            local a = Lerp(i / 20, math.pi, 0)
+            local cosa, sina = math.cos(a), math.sin(a)
+            local rt = r4 + 20
+            local x1, y1 = x0 + cosa * r1, y0 - sina * r1
+            local x2, y2 = x0 + cosa * r4, y0 - sina * r4
+            local xl, yl = (x1 + x2) / 2, (y1 + y2) / 2
+            local x3, y3 = x0 + cosa * rt, y0 - sina * rt
+            surface.SetDrawColor(255, 255, 255)
+            draw.NoTexture()
+            surface.DrawTexturedRectRotated(xl, yl, r4 - r1, 2, math.deg(a))
+            clColor = not noMaxSpeed and (
+                i * 5 >= math.floor(maxSpeed) and colorRed or
+                nextSpeed and i * 5 >= math.floor(nextSpeed) and colorYellow
+            ) or self.colorWhite
+            draw.SimpleText(tostring(i * 5), i % 2 == 0 and "BUIKSpeedometerClockSarmat" or "BUIKSpeedometerClockSarmatSmall", x3, y3, clColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        end
+
+        drawCircle(x0, y0, r1, self.colorBackgroundSpeedometer, 1)
+        if Wag:GetNW2Bool("BUIK:SpeedometerBlink", false) and CurTime() % 1.2 < 0.6 then
+            drawCircle(x0, y0, r1, colorRed)
+        end
+
+        draw.SimpleText(Format("%02d", math.floor(speed) % 100), "BUIKSpeedometerSarmat", x0, y0 - 106, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(tostring(math.floor(speed) % 100), "BUIKSpeedometerSarmat", x0 + (speed < 10 and 54 or 0), y0 - 106, self.colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
+
+    local sizeSarmatListLineW = scr_w - sizeSarmatLeftBarW - sizeSarmatCentralW - sizeSarmatSpeedometerW - 3
+    local sizeSarmatListLineH = (scr_h - sizeSarmatWagonsH - 4) / 8
+    function TRAIN_SYSTEM:DrawListSarmat(Wag)
+        local cursor = Wag:GetNW2Int("BUIK:SarmatCursor", 1)
+        local x, y = sizeSarmatLeftBarW + 3, sizeSarmatWagonsH + 2
+        local textFound = false
+        for idx = 1, 8 do
+            local text = Wag:GetNW2String("BUIK:Line" .. idx, "")
+            if #text > 0 then
+                textFound = true
+                if idx == cursor then
+                    surface.SetDrawColor(self.colorSelectedLineActive)
+                    surface.DrawRect(x, y, sizeSarmatListLineW, sizeSarmatListLineH)
+                end
+                draw.SimpleText(text, "BUIKSarmat", x + 4, y + sizeSarmatListLineH / 2, color, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+                y = y + sizeSarmatListLineH
+            elseif textFound then
+                break
+            end
+        end
+    end
+
 
     function TRAIN_SYSTEM:DrawBuik(state)
         state = state or self.Train:GetNW2Int("BUIK:State", -1)
@@ -1499,51 +1807,133 @@ else
             self.LastState = state
         end
 
+        local colors = self.Train:GetNW2Int("BuikType", 1)
+        local sarmat = colors == 3
+        if dbg or self.colors ~= colors then
+            if colors == 1 then
+                self.colorWhite = Color(255, 255, 255)
+                self.colorDarkerWhite = Color(190, 190, 190)
+                self.colorDisabled = Color(10, 10, 10)
+                self.colorBackground = Color(10, 10, 10)
+                self.colorBackgroundSpeedometer = Color(10, 10, 10)
+                self.colorBackgroundSpeedometerTop = Color(29, 34, 43)
+                self.colorInactive = Color(58, 71, 88)
+                self.colorActive = Color(255, 255, 255)
+                self.colorSelected = Color(150, 192, 197)
+                self.colorActiveCabin = Color(27, 156, 245)
+                self.colorSelectedLineActive = Color(89, 182, 243)
+                self.colorSelectedLineInactive = Color(25, 118, 180)
+                self.colorLineTextActive = Color(255, 255, 255)
+                self.colorLineTextInactive = Color(168, 231, 140)
+
+            elseif colors == 3 then
+                self.colorWhite = Color(255, 255, 255)
+                self.colorDarkerWhite = Color(190, 190, 190)
+                self.colorDisabled = Color(10, 10, 10)
+                self.colorBackground = Color(10, 10, 10)
+                self.colorBackgroundSpeedometer = Color(10, 10, 10)
+                self.colorBackgroundSpeedometerTop = Color(85, 101, 122)
+                self.colorInactive = Color(75, 91, 112)
+                self.colorActive = Color(235, 235, 235)
+                self.colorSelected = Color(75, 91, 112)
+                self.colorActiveCabin = Color(27, 156, 245)
+                self.colorSelectedLineActive = Color(52, 230, 230)
+                self.colorSelectedLineInactive = Color(25, 118, 180)
+                self.colorLineTextActive = Color(255, 255, 255)
+                self.colorLineTextInactive = Color(168, 231, 140)
+
+            else
+                self.colorWhite = Color(255, 255, 255)
+                self.colorDarkerWhite = Color(190, 190, 190)
+                self.colorDisabled = Color(27, 27, 27)
+                self.colorBackground = Color(13, 14, 17)
+                self.colorBackgroundSpeedometer = Color(13, 14, 17)
+                self.colorBackgroundSpeedometerTop = Color(21, 23, 27)
+                self.colorInactive = Color(22, 41, 99)
+                self.colorActive = Color(209, 215, 233)
+                self.colorSelected = Color(83, 164, 201)
+                self.colorActiveCabin = Color(16, 112, 255)
+                self.colorSelectedLineActive = Color(10, 192, 216)
+                self.colorSelectedLineInactive = Color(7, 50, 180)
+                self.colorLineTextActive = Color(223, 223, 223)
+                self.colorLineTextInactive = Color(67, 151, 190)
+            end
+
+            self.statesColors = {
+                [STATE_INACTIVE] = self.colorInactive,
+                [STATE_NORMAL] = self.colorSelected,
+                [STATE_RED] = ColorAlpha(colorRed, 60),
+                [STATE_YELLOW] = ColorAlpha(colorYellow, 60),
+                [STATE_GREEN] = ColorAlpha(colorGreen, 60),
+            }
+            self.statesColorsHighlighted = {
+                [STATE_INACTIVE] = self.colorInactive,
+                [STATE_NORMAL] = self.colorActive,
+                [STATE_RED] = colorRed,
+                [STATE_YELLOW] = colorYellow,
+                [STATE_GREEN] = colorGreen,
+            }
+
+            self.colors = colors
+        end
+
         if state == STATE_NORMAL then
-            surface.SetDrawColor(colorBackground)
+
+            surface.SetDrawColor(self.colorBackground)
             surface.DrawRect(0, 0, scr_w, scr_h)
             self.Train.BuikTwoToSix = self.Train:GetNW2Bool("Skif:AlsArs", false)
             self.Train.BuikAlsArs = self.Train.BuikTwoToSix or self.Train:GetNW2Bool("AlsArs", false)
-            drawBorders()
-            updateHighlights(self.Train)
-            drawWagons(self.Train)
-            drawRouteNumber(self.Train)
-            drawLastStation(self.Train)
-            drawClock(self.Train)
-            drawFooter(self.Train)
-            drawStatus(self.Train)
-            drawSpeedometer(self.Train)
-            drawList(self.Train)
+            if sarmat then
+                self:DrawBordersSarmat()
+                self:DrawWagonsSarmat(self.Train)
+                self:DrawRouteNumberSarmat(self.Train)
+                self:DrawLastStationSarmat(self.Train)
+                self:DrawLeftBarSarmat(self.Train)
+                self:DrawStatusSarmat(self.Train)
+                self:DrawSpeedometerSarmat(self.Train)
+                self:DrawListSarmat(self.Train)
+            else
+                self:DrawBorders()
+                self:UpdateHighlights(self.Train)
+                self:DrawWagons(self.Train)
+                self:DrawRouteNumber(self.Train)
+                self:DrawLastStation(self.Train)
+                self:DrawClock(self.Train)
+                self:DrawFooter(self.Train)
+                self:DrawStatus(self.Train)
+                self:DrawSpeedometer(self.Train)
+                self:DrawList(self.Train)
+            end
 
         elseif state == STATE_INACTIVE then
             if not self.LastState then
-                surface.SetDrawColor(colorDisabled)
+                surface.SetDrawColor(self.colorDisabled)
                 surface.DrawRect(0, 0, scr_w, scr_h)
-                draw.SimpleText("БЛОК НЕАКТИВЕН", "BUIKSystemHeader", scr_w / 2, scr_h / 2, colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+                draw.SimpleText("БЛОК НЕАКТИВЕН", "BUIKSystemHeader", scr_w / 2, scr_h / 2, self.colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             else
                 self:DrawBuik(self.LastState)
             end
 
         elseif state == STATE_INACTIVE_CABIN then
-            surface.SetDrawColor(colorDisabled)
+            surface.SetDrawColor(self.colorDisabled)
             surface.DrawRect(0, 0, scr_w, scr_h)
-            draw.SimpleText("НЕАКТИВНАЯ КАБИНА", "BUIKSystemHeader", scr_w / 2, scr_h / 2, colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText("НЕАКТИВНАЯ КАБИНА", "BUIKSystemHeader", scr_w / 2, scr_h / 2, self.colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
         elseif state == STATE_BOOTING then
             local bootState = self.Train:GetNW2Int("BUIK:State", -1) == STATE_INACTIVE and 8 or self.Train:GetNW2Int("BUIK:BootState", 1)
-            surface.SetDrawColor(colorDisabled)
+            surface.SetDrawColor(self.colorDisabled)
             surface.DrawRect(0, 0, scr_w, scr_h)
             if bootState == 2 then
-                draw.SimpleText("НПО \"ПИВО\"", "BUIKSystemHeader", scr_w / 2, scr_h / 2 - 65, colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-                draw.SimpleText("совместно с ПвВЗ", "BUIKSystemHeader", scr_w / 2 + 170, scr_h / 2 + 65, colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+                draw.SimpleText("НПО \"ПИВО\"", "BUIKSystemHeader", scr_w / 2, scr_h / 2 - 65, self.colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+                draw.SimpleText("совместно с ПвВЗ", "BUIKSystemHeader", scr_w / 2 + 170, scr_h / 2 + 65, self.colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
                 surface.SetDrawColor(255, 255, 255, 255)
                 surface.SetMaterial(logo)
                 surface.DrawTexturedRectRotated(scr_w / 2 - 700, scr_h / 2, 300, 300, (CurTime() % 10) * 360 / 10)
-                draw.SimpleText("ver. " .. self.Train.IkVersion, "BUIKSystem", scr_w - 20, scr_h - 20, colorWhite, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
+                draw.SimpleText("ver. " .. self.Train.IkVersion, "BUIKSystem", scr_w - 20, scr_h - 20, self.colorWhite, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
             elseif bootState == 4 or bootState == 8 then
-                draw.SimpleText("БЛОК НЕАКТИВЕН", "BUIKSystemHeader", scr_w / 2, scr_h / 2, colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+                draw.SimpleText("БЛОК НЕАКТИВЕН", "BUIKSystemHeader", scr_w / 2, scr_h / 2, self.colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             elseif bootState == 6 then
-                draw.SimpleText("ПОИСК ОБОРУДОВАНИЯ...", "BUIKSystemHeader", scr_w / 2, scr_h / 2, colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+                draw.SimpleText("ПОИСК ОБОРУДОВАНИЯ...", "BUIKSystemHeader", scr_w / 2, scr_h / 2, self.colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             end
 
         -- Unpowered
