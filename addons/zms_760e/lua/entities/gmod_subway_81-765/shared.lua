@@ -763,6 +763,7 @@ ENT.SpawnerCustom = {
         end,
         Section = "Settings", Subsection = "FunctionalSettings"
     },
+    { "BMIK:Font", "Шрифт БМТ, БНМ", "List", { "Тип 1 (2017)", "Тип 2 (2019)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "CikColor", "Цвет БМТ, БНМ", "List", { "Метроспецтехника (желтый)", "Сармат (рыжий)", "Ранний (зеленый)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "BuikType", "БУ-ИК", "List", { "Метроспецтехника (Москва)", "Метроспецтехника (Чура)", "Сармат" }, 1, Section = "Settings", Subsection = "VisualSettings" },
@@ -979,9 +980,9 @@ ENT.Spawner = {
     ENT.SpawnerCustom[5],  -- BLIK:Anim
     ENT.SpawnerCustom[9],  -- RingType765
     ENT.SpawnerCustom[15],  -- NoTrailers
-    ENT.SpawnerCustom[19],  -- ArsMode
-    ENT.SpawnerCustom[20],  -- KdLongerDelay
-    ENT.SpawnerCustom[21],  -- BreakRedChance
+    ENT.SpawnerCustom[20],  -- ArsMode
+    ENT.SpawnerCustom[21],  -- KdLongerDelay
+    ENT.SpawnerCustom[22],  -- BreakRedChance
     { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
     ENT.SpawnerCustom[#ENT.SpawnerCustom]
 }

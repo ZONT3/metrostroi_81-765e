@@ -141,8 +141,29 @@ else
         weight = 400,
         antialias = true,
     })
-    surface.CreateFont("BNMIK", {
+    surface.CreateFont("BMIK:Size1B", {
+        font = "MOSCOW2019",
+        extended = true,
+        size = 182,
+        weight = 500,
+        antialias = true,
+    })
+    surface.CreateFont("BMIK:Size2B", {
+        font = "MOSCOW2019 Light",
+        extended = true,
+        size = 130,
+        weight = 400,
+        antialias = true,
+    })
+    surface.CreateFont("BNMIK:A", {
         font = "Moscow2017_EMU",
+        extended = true,
+        size = 180,
+        weight = 500,
+        antialias = true,
+    })
+    surface.CreateFont("BNMIK:B", {
+        font = "MOS",
         extended = true,
         size = 180,
         weight = 500,
@@ -156,12 +177,15 @@ else
 
     function TRAIN_SYSTEM:DrawBm()
         local curText = self.Train:GetNW2String("BMIK:Station", "")
-        if true then
-            self.BmText = curText
+        local fontType = self.Train:GetNW2Int("BMIK:Font", 1) == 1 and "" or "B"
+        local textHash = curText .. fontType
+        if self.BmText ~= textHash then
+            self.BmText = textHash
             self.BmLines = 1
-            surface.SetFont("BMIK:Size1")
+            surface.SetFont("BMIK:Size1" .. fontType)
             local len = surface.GetTextSize(curText)
             self.BmFont = len >= line_w and "BMIK:Size2" or "BMIK:Size1"
+            self.BmFont = self.BmFont .. fontType
             if len >= line_w then
                 surface.SetFont("BMIK:Size2")
                 len = surface.GetTextSize(curText)
@@ -210,7 +234,8 @@ else
             self.BnmText = curText
             self.BnmDisplText = Format("%03d", curText)
         end
-        draw.SimpleText(self.BnmDisplText, "BNMIK", scw_bnm / 2, sch_bnm / 2 + 18, self.Color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        local fontType = self.Train:GetNW2Int("BMIK:Font", 1) == 1
+        draw.SimpleText(self.BnmDisplText, "BNMIK:" .. (fontType and "A" or "B"), scw_bnm / 2, sch_bnm / 2 + 18, self.Color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
     local function defaultRender(_, mat, w, h)
