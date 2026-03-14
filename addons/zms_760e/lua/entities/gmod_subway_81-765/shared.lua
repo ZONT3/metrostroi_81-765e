@@ -10,8 +10,8 @@ ENT.Instructions = ""
 ENT.Category = "Metrostroi (trains)"
 ENT.SkinsType = "81-760e"
 ENT.Model = "models/metrostroi_train/81-760e/81_760e_body.mdl"
-ENT.NoTrain = false
-ENT.Spawnable = true
+ENT.NoTrain = true
+ENT.Spawnable = false
 ENT.AdminSpawnable = false
 ENT.DontAccelerateSimulation = false
 
