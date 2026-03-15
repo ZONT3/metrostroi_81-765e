@@ -867,8 +867,10 @@ if SERVER then
                                 if not uHvmin or train.HVVoltage < uHvmin then uHvmin = train.HVVoltage end
                                 if not uHvmax or train.HVVoltage > uHvmax then uHvmax = train.HVVoltage end
                             end
-                            if not uLvmin or train.LV < uLvmin then uLvmin = train.LV end
-                            if not uLvmax or train.LV > uLvmax then uLvmax = train.LV end
+                            if train.LV then
+                                if not uLvmin or train.LV < uLvmin then uLvmin = train.LV end
+                                if not uLvmax or train.LV > uLvmax then uLvmax = train.LV end
+                            end
                         end
                     end
 
