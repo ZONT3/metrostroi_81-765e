@@ -135,6 +135,7 @@ function ENT:Initialize()
             [KEY_G] = "DisableBVSet",
             [KEY_2] = "RingSet",
             [KEY_L] = "HornBSet",
+            [KEY_8] = "Buik_ModeSet",
             [KEY_MINUS] = "Buik_DownSet",
             [KEY_EQUAL] = "Buik_UpSet",
         },
