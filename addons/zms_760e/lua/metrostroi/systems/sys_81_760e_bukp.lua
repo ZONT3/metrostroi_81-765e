@@ -1361,6 +1361,7 @@ if SERVER then
             self:CState("BupActive", bupActive)
             if bupActive then
                 self:CState("ZeroSpeed", self.CanZeroSpeed and Train.SF80F5.Value > 0)
+                self.BudZeroSpeed = self.CanZeroSpeed and 1 or 0
             end
 
             self:CState("AddressDoors", addrDoors)
@@ -1377,10 +1378,6 @@ if SERVER then
                 if not self.AutoChPage then self.AutoChPage = self.State2 end
                 self.State2 = 21
                 self.Select = false
-            end
-
-            if self.State == 5 then
-                self.BudZeroSpeed = self.CanZeroSpeed and 1 or 0
             end
 
             -- Потеря автомата "Управление основное", вариант 1: текущая уставка в БУВ и состояние сбора сх _зависает_

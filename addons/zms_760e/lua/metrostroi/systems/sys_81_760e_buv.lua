@@ -441,7 +441,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.PowerOff = (self:Get("PowerOff") or Train.SF30F2 and Train.SF30F2.Value == 0) and 1 or 0
         self.PassLight = self:Get("PassLight")
         self.BupActive = self:Get("BupActive")
-        self.BupZeroSpeed = self:Get("ZeroSpeed") ~= nil and self:Get("ZeroSpeed") or self.BupZeroSpeed
+        self.BupZeroSpeed = self:Get("ZeroSpeed") ~= nil and self:Get("ZeroSpeed") or self:Get("ZeroSpeed") == nil and self.BupZeroSpeed
     else
         self.PassLight = false
         self.PSNSignal = false
