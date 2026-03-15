@@ -1066,7 +1066,7 @@ function TRAIN_SYSTEM:DrawAsyncPage(Wag, x, y, w, h)
         self:DrawThrottle(math.Clamp(thr * 100 / 150, -100, 100), xb, yb, barW)
 
         local buvDisabled = not Wag:GetNW2Bool("Skif:BUVState" .. idx, false)
-        local color = buvDisabled and colorBrightText or not Wag:GetNW2Bool("Skif:AsyncInverter" .. idx, false) and colorMainDarker or Wag:GetNW2Bool("Skif:HVGood" .. idx, false) and colorGreen or colorRed
+        local color = buvDisabled and colorBrightText or not Wag:GetNW2Bool("Skif:AsyncInverter" .. idx, false) and colorMainDarker or Wag:GetNW2Int("Skif:U" .. idx, 0) / 10 > 550 and colorGreen or colorRed
         draw.RoundedBox(
             sizeCellBorderRadius, xb + sizeBorder, yb + sizeThrottleBarH + sizeBorder,
             barW - sizeBorder * 2, barW - sizeBorder, color

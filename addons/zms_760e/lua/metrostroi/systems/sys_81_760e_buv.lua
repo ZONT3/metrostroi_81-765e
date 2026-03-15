@@ -342,7 +342,7 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     if self.Slope and self.TargetStrength > 0 then self.SchemeSlope = true end
-    if self.SchemeSlope and self.TargetStrength <= 0 then self.SchemeSlope = false end
+    if self.SchemeSlope and (self.TargetStrength <= 0 or Train.Speed > 12.2) then self.SchemeSlope = false end
     if not self:Get("Slope") and self.Slope and (self:Get("SlopeSpeed") and self.TargetStrength > 0 and CurTime() - self.Slope > 2 or not self:Get("SlopeSpeed") and self.TargetStrength ~= 0) then --Train.Pneumatic.BrakeCylinderPressure < 1.5 then self.Slope = false end
         self.Slope = false
     end
@@ -379,11 +379,14 @@ function TRAIN_SYSTEM:Think(dT)
         drive = 0
     end
 
+    if self.TargetStrength > 0 and self.SchemeSlope then self.TargetStrength = 4 strength = 4 end
+
     self.Brake = brake
     self.Drive = drive
     self.Strength = (self.Brake == 1 and -1 or 1) * strength * SchemeWork
     if HasEngine then Train.Electric:TriggerInput("Slope", self.SchemeSlope) end
     self.TargetStrength = (self:Get("Brake") == 1 and -1 or 1) * (self:Get("DriveStrength") or 0) + ((Train:ReadTrainWire(45) == 1 and 4 or Train:ReadTrainWire(19) == 1 and 2) or 0)
+
     local strongerBrake
     if HasEngine then
         strongerBrake = self.TargetStrength < 0 and self:Get("StrongerBrake") and self:Get("StrongerBrake") > 0

@@ -856,15 +856,19 @@ if SERVER then
                     for i = 1, self.WagNum do
                         local trainid = self.Trains[i]
                         local train = self.Trains[trainid]
-                        if train and train.BCPressure and train.BLPressure then
-                            if not pbcMin or train.BCPressure < pbcMin then pbcMin = train.BCPressure end
-                            if not pbcMax or train.BCPressure > pbcMax then pbcMax = train.BCPressure end
+                        if train then
+                            if train.BCPressure and train.BLPressure then
+                                if not pbcMin or train.BCPressure < pbcMin then pbcMin = train.BCPressure end
+                                if not pbcMax or train.BCPressure > pbcMax then pbcMax = train.BCPressure end
+                                if train.BLPressure and train.BLPressure < 2.1 then countBL = countBL + 1 end
+                                if train.BLPressure and train.BLPressure < 2.6 then countEsd = countEsd + 1 end
+                            end
+                            if train.AsyncInverter then
+                                if not uHvmin or train.HVVoltage < uHvmin then uHvmin = train.HVVoltage end
+                                if not uHvmax or train.HVVoltage > uHvmax then uHvmax = train.HVVoltage end
+                            end
                             if not uLvmin or train.LV < uLvmin then uLvmin = train.LV end
                             if not uLvmax or train.LV > uLvmax then uLvmax = train.LV end
-                            if not uHvmin or train.HVVoltage < uHvmin then uHvmin = train.HVVoltage end
-                            if not uHvmax or train.HVVoltage > uHvmax then uHvmax = train.HVVoltage end
-                            if train.BLPressure and train.BLPressure < 2.1 then countBL = countBL + 1 end
-                            if train.BLPressure and train.BLPressure < 2.6 then countEsd = countEsd + 1 end
                         end
                     end
 
@@ -1254,7 +1258,7 @@ if SERVER then
                             Train:SetNW2Int("Skif:DriveStrength" .. i, math.abs(train.DriveStrength or 0) * 100)
                             Train:SetNW2Int("Skif:Power" .. i, train.ElectricEnergyUsed)
                             Train:SetNW2Int("Skif:I" .. i, train.I)
-                            Train:SetNW2Int("Skif:U" .. i, train.HVVoltage)
+                            Train:SetNW2Int("Skif:U" .. i, train.HVVoltage and train.HVVoltage * 10 or 0)
                         end
                     elseif self.State2 == 41 then
                         for i = 1, self.WagNum do
