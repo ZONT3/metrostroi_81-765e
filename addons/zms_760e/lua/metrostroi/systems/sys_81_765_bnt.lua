@@ -553,7 +553,7 @@ else
         if self.RouteId == "" then return end
 
         local cfg = Metrostroi.CISConfig[Wag:GetNW2Int("CISConfig", 1)]
-        cfg = cfg and cfg[Wag:GetNW2Int("BNT:Route", -1)] or {}
+        cfg = cfg and cfg[Wag:GetNW2Int("BNT:Route", -1)] or cfg[1] or {}
         local fallbackCfg = Metrostroi.ASNPSetup[Wag:GetNW2Int("Announcer", 1)]
         fallbackCfg = fallbackCfg and fallbackCfg[Wag:GetNW2Int("BNT:Route", -1)] or {}
 

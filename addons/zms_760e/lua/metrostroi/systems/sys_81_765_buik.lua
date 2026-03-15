@@ -428,7 +428,10 @@ if SERVER then
         end
 
         if self.InformerCfgIdx ~= -1 and (
-            not self.InformerCfg or self.InformerState == STATE_INACTIVE or self.InformerCfgIdx ~= Wag:GetNW2Int("Announcer", 1)
+            not self.InformerCfg or
+            self.InformerState == STATE_INACTIVE or
+            self.InformerCfgIdx ~= Wag:GetNW2Int("Announcer", 1) or
+            self.CisCfgIdx ~= Wag:GetNW2Int("CISConfig", 0)
         ) then
             self:SetupInformer(Wag)
             return
@@ -442,6 +445,7 @@ if SERVER then
             self:ReturnInformer(true)
             self:UpdatePage(true)
         elseif self.IkTypeChanged then
+            self:InitRoutes()
             self:UpdatePage(true, false)
         end
 
@@ -700,7 +704,16 @@ if SERVER then
                 first = first[2] or first[1] or "ОШИБКА"
                 local last = route[#route]
                 last = last[2] or last[1] or "ОШИБКА"
-                table.insert(routes, string.format("%s - %s", first, last))
+                if route.Loop then
+                    text = "Кольцевой: " .. string.format("%s — %s", first, last)
+                else
+                    text = string.format("%s — %s", first, last)
+                end
+                local maxlen = self.Sarmat and 41 or 31
+                if utf8.len(text) > maxlen then
+                    text = utf8.sub(text, 1, maxlen) .. "…"
+                end
+                table.insert(routes, text)
             end
         end
 
@@ -893,7 +906,7 @@ if SERVER then
             self:WriteToIk("Date", BUP.DateStr)
 
             local lastStation = self.LastStations[self.LastStationIdx]
-            self:WriteToIk("RouteId", string.format("%d.%d.%d.%s", self.CisCfgIdx, self.Route, lastStation.index or -1, self.Path and "II" or "I"))
+            self:WriteToIk("RouteId", string.format("%d.%d.%d.%d.%s", self.CisCfgIdx, self.InformerCfgIdx, self.Route, lastStation.index or -1, self.Path and "II" or "I"))
             self:WriteToIk("Route", self.Route)
             self:WriteToIk("CfgIdx", self.CisCfgIdx)
             self:WriteToIk("LastStation", lastSt)
@@ -913,7 +926,7 @@ if SERVER then
         local station = self.Stations[self.Station]
         if not station then return end
         local lastSt = self.LastStations[self.LastStationIdx]
-        self:WriteToIk("RouteId", string.format("%d.%d.%d.%s", self.CisCfgIdx, self.Route, lastSt.index or -1, self.Path and "II" or "I"))
+        self:WriteToIk("RouteId", string.format("%d.%d.%d.%d.%s", self.CisCfgIdx, self.InformerCfgIdx, self.Route, lastSt.index or -1, self.Path and "II" or "I"))
         self:WriteToIk("Station", station.idx)
         self:WriteToIk("Depart", station.is_dep and canBeDepart or false)
         self:WriteToIk("Terminus", not station.ignorelast and (station.is_terminus or lastSt and lastSt.idx == station.idx and station.arrlast) and true or false)
@@ -1918,6 +1931,7 @@ else
                 surface.SetDrawColor(self.colorDisabled)
                 surface.DrawRect(0, 0, scr_w, scr_h)
                 draw.SimpleText("БЛОК НЕАКТИВЕН", "BUIKSystemHeader", scr_w / 2, scr_h / 2, self.colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+                draw.SimpleText("ver. " .. self.Train.IkVersion, "BUIKSystem", scr_w - 20, scr_h - 20, self.colorWhite, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
             else
                 self:DrawBuik(self.LastState)
             end
@@ -1926,6 +1940,7 @@ else
             surface.SetDrawColor(self.colorDisabled)
             surface.DrawRect(0, 0, scr_w, scr_h)
             draw.SimpleText("НЕАКТИВНАЯ КАБИНА", "BUIKSystemHeader", scr_w / 2, scr_h / 2, self.colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText("ver. " .. self.Train.IkVersion, "BUIKSystem", scr_w - 20, scr_h - 20, self.colorWhite, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
 
         elseif state == STATE_BOOTING then
             local bootState = self.Train:GetNW2Int("BUIK:State", -1) == STATE_INACTIVE and 8 or self.Train:GetNW2Int("BUIK:BootState", 1)
