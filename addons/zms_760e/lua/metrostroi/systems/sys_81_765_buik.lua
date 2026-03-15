@@ -1219,6 +1219,7 @@ else
     local colorGreen = Color(55, 245, 55)
     local colorBlue = Color(26, 89, 247)
     local logo = Material("zxc765/PIVO_logo_lt.png", "smooth ignorez")
+    local sarmat_call = Material("zxc765/sarmat_call.png", "smooth ignorez")
 
     local sizeSpeedometrW = 740
     local sizeSpeedometrH = scr_h
@@ -1675,9 +1676,16 @@ else
         drawOutlinedRoundedRect(8, x, y, sizeSarmatLeftBarW - 16, sizeSarmatLeftBarStateH, self.colorActive, self.colorSelected)
         draw.SimpleText("СВЯЗЬ С СЦ", "BUIKSystemSmall", x + toX, y + toY, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         y = y + sizeSarmatLeftBarStateH + 8
-        drawOutlinedRoundedRect(8, x, y, (sizeSarmatLeftBarW - 16 - 8) / 2, sizeSarmatLeftBarStateH, self.colorActive, self.colorSelected)
-        x = x + ((sizeSarmatLeftBarW - 16 - 8) / 2) + 8
-        drawOutlinedRoundedRect(8, x, y, (sizeSarmatLeftBarW - 16 - 8) / 2, sizeSarmatLeftBarStateH, self.colorActive, self.colorSelected)
+        local w = (sizeSarmatLeftBarW - 16 - 8) / 2
+        local picmargin = 10
+        local picsize = sizeSarmatLeftBarStateH - picmargin * 2
+        for idx = 1, 2 do
+            drawOutlinedRoundedRect(8, x, y, w, sizeSarmatLeftBarStateH, self.colorActive, self.colorSelected)
+            surface.SetMaterial(sarmat_call)
+            surface.SetDrawColor(self.colorBackground)
+            surface.DrawTexturedRect(x + w / 2 - picsize / 2, y + picmargin, picsize, picsize)
+            x = x + w + 8
+        end
 
         surface.SetDrawColor(self.colorActive)
         draw.NoTexture()
