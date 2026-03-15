@@ -118,7 +118,7 @@ function TRAIN_SYSTEM:Think(dT)
     local selectRight = workingRight and BUV.SelectRight
     local commandLeft = workingLeft and (selectLeft and BUV.OpenLeft or reserveLeft)
     local commandRight = workingRight and (selectRight and BUV.OpenRight or reserveRight)
-    local commandClose = (masterWorking and BUV.CloseDoors and BUV.Power * Wag.SF80F8.Value > 0 or masterPower and Wag:ReadTrainWire(39) > 0)
+    local commandClose = (masterWorking and BUV.CloseDoors and BUV.Power * Wag.SF80F8.Value > 0 and Wag:ReadTrainWire(40) < 1 or masterPower and Wag:ReadTrainWire(39) > 0)
 
     if addrMode and (commandLeft or commandRight) then
         if not self.ForceOpenTimer then
