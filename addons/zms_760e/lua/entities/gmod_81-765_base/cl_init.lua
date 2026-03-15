@@ -697,8 +697,6 @@ ENT.PakPositions = {
 }
 
 --------------------------------------------------------------------------------
-DEFINE_BASECLASS("gmod_subway_base")
-
 function ENT:Initialize()
     -- FIXME possible lag creation on spawn
     -- find another solution etogo pizdeca
@@ -707,6 +705,7 @@ function ENT:Initialize()
     -- self:RecursiveRemoveBaseclass(self.ClientProps)
     -- self.ClientProps.BaseClass = {}
 
+    local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.Initialize(self)
     self.LBnt = self:CreateRT("765LBnt", 3840, 512)
     self.RBnt = self:CreateRT("765RBnt", 3840, 512)
@@ -719,6 +718,8 @@ function ENT:Initialize()
     self.VentRand = {}
     self.VentState = {}
     self.VentVol = {}
+    -- self.GlowingLights = self.GlowingLights or {}
+    -- self.LightBrightness = self.LightBrightness or {}
     for i = 1, 8 do
         self.VentRand[i] = math.Rand(0.5, 2)
         self.VentState[i] = 0
@@ -751,6 +752,7 @@ function ENT:RecursiveRemoveBaseclass(tbl)
 end
 
 function ENT:UpdateTextures()
+    local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     if isfunction(BaseClass.UpdateTextures) then BaseClass.UpdateTextures(self) end
     self.Number = self:GetWagonNumber()
     for i = 0, 4 do
@@ -944,6 +946,7 @@ end
 local CranePos = {0, 0.28, 0.38, 0.48, 0.85, 1}
 local ControllerPos = {0, 0.22, 0.41, 0.6, 0.8, 1}
 function ENT:Think()
+    local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.Think(self)
     if not self.RenderClientEnts or self.CreatingCSEnts then
         self.Number = 0
@@ -1536,6 +1539,7 @@ function ENT:PlayDoorSound(bool, door)
 end
 
 function ENT:Draw()
+    local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.Draw(self)
 end
 

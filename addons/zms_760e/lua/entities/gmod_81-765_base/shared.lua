@@ -38,13 +38,12 @@ ENT.LeftDoorPositionsBAK = ENT.LeftDoorPositions
 ENT.RightDoorPositionsBAK = ENT.RightDoorPositions
 
 --------------------------------------------------------------------------------
-DEFINE_BASECLASS("gmod_subway_base")
-
 function ENT:PassengerCapacity()
     return 300
 end
 
 function ENT:InitializeSounds()
+    local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.InitializeSounds(self)
     -- [[                            BEGIN EXPERIMENTAL ENGINES                            ]]
     self.SoundNames["gto1"] = { "subway_trains/720a/VVVF/motor1.mp3", loop = true }

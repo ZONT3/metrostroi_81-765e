@@ -21,11 +21,11 @@ for idx = 1, 8 do
 end
 
 --------------------------------------------------------------------------------
-DEFINE_BASECLASS("gmod_subway_base")
 
 function ENT:Initialize()
     -- Set model and initialize
     self:SetModel(self.IsIntermediate and "models/metrostroi_train/81-760e/81_761e_body.mdl" or "models/metrostroi_train/81-760e/81_760e_body.mdl")
+    local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.Initialize(self)
     self:SetPos(self:GetPos() + Vector(0, 0, 140))
 
@@ -209,6 +209,7 @@ function ENT:ResetSettings()
 end
 
 function ENT:Think()
+    local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     local retVal = BaseClass.Think(self)
     local Panel = self.Panel
     local power = self.Electric.BSPowered > 0
@@ -327,6 +328,7 @@ function ENT:OnCouple(train, isfront)
         self.RearAutoCouple = false
     end
 
+    local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.OnCouple(self, train, isfront)
 end
 
