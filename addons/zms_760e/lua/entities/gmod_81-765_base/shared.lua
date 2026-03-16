@@ -18,8 +18,8 @@ ENT.DontAccelerateSimulation = false
 -- 'dev' means the current commit is not backed by any release on github so the scripts may depend on unreleased resources
 -- 'devN', where N - any number starting from 1, means the current commit is backed with release whth the same tag
 -- 'pre', 'preN' or no suffix means the current version is meant to be the workshop published one
-ENT.Version = "0.10.2"
-ENT.IkVersion = "1.10.2"
+ENT.Version = "0.10.3-dev"
+ENT.IkVersion = "1.10.3-dev"
 
 
 local function GetDoorPosition(i, k, j)

@@ -131,6 +131,56 @@ timer.Simple(0, function()
     end
 end)
 
+timer.Simple(1, function()
+    local swep = weapons.GetStored("train_hammer")
+    if not swep then ErrorNoHaltWithStack("No train_hammer SWEP") return end
+
+    function swep:PrimaryAttack()
+        self.Weapon:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
+        local tr = {}
+        local owner = self:GetOwner()
+        tr.start = owner:GetShootPos()
+        tr.endpos = owner:GetShootPos() + (owner:GetAimVector() * 100)
+        tr.filter = owner
+        tr.mask = MASK_SHOT
+        local trace = owner:GetEyeTrace()
+        if trace.HitPos:Distance(owner:GetShootPos()) <= 130 then
+            self.Weapon:SendWeaponAnim(ACT_VM_MISSCENTER)
+            bullet = {}
+            bullet.Num = 1
+            bullet.Src = owner:GetShootPos()
+            bullet.Dir = owner:GetAimVector()
+            bullet.Spread = Vector(0, 0, 0)
+            bullet.Tracer = 0
+            bullet.Force = 1
+            bullet.Damage = owner:IsAdmin() and 1e9 or 0
+            owner:FireBullets(bullet)
+            self.Weapon:EmitSound("physics/flesh/flesh_impact_bullet" .. math.random(3, 5) .. ".wav")
+            owner:SetAnimation(PLAYER_ATTACK1)
+        else
+            self.Weapon:EmitSound("weapons/iceaxe/iceaxe_swing1.wav")
+            self.Weapon:SendWeaponAnim(ACT_VM_MISSCENTER)
+            owner:SetAnimation(PLAYER_ATTACK1)
+        end
+
+        if SERVER and IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_train_bogey" then
+            local ent = trace.Entity
+            local wag = ent:GetNW2Entity("TrainEntity")
+            if wag.CPPICanPickup and not wag:CPPICanPickup(owner) then return end
+            hook.Run("TrainHammerSwing", ent, wag, trace, self)
+        end
+    end
+end)
+
+hook.Add("TrainHammerSwing", "765.TrainHammer", function(ent, wag, trace)
+    local hit = ent:WorldToLocal(trace.HitPos)
+    if (hit.x > -26 and hit.x < 2) and (hit.y > 40 and hit.y < 58) and (hit.z > -34 and hit.z < -15) and IsValid(wag) and string.match(wag:GetClass(), "76[05]") then
+        wag.EmergencyValveTimer = CurTime() - 0.5
+        wag.Pneumatic.EmergencyValve = true
+    end
+end)
+
+
 ZMS = ZMS or {}
 function ZMS.ImportBaseEnt(name, entName)
     if ENT then
