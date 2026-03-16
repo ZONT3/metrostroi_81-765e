@@ -6,7 +6,7 @@
 Metrostroi.DefineSystem("81_765_BUIK")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
-local dbg = true 
+local dbg = false
 
 function TRAIN_SYSTEM:Initialize()
     self:InitTrigger("Buik_EMsg1")  -- Экстр. Сообщение 1
@@ -719,7 +719,7 @@ if SERVER then
 
         for _, serviceRoute in ipairs(self.InformerServiceRoutes) do
             -- it is intended -- source: https://youtu.be/4LIZseVyUvw?si=thJTgjNnY74HbIXC&t=3188
-            table.insert(routes, string.format("%s - %s", serviceRoute, serviceRoute))
+            table.insert(routes, string.format("%s — %s", serviceRoute, serviceRoute))
         end
 
         self.Routes = routes
