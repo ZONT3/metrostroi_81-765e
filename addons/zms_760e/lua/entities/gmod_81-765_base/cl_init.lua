@@ -1313,20 +1313,36 @@ function ENT:Think()
 
         local ramp = self:GetPackedRatio("Crane_dPdT", 0)
         if ramp > 0 then
-            self.CraneRamp = self.CraneRamp + ((0.4 * ramp) - self.CraneRamp) * dT
+            self.CraneRamp = self.CraneRamp + ((0.4 * ramp) - self.CraneRamp) * dT * 2
         else
             self.CraneRamp = self.CraneRamp + ((1.2 * ramp) - self.CraneRamp) * dT
         end
-        self.CraneRRamp = math.Clamp(self.CraneRRamp + 1.0 * ((1 * ramp) - self.CraneRRamp) * dT, 0, 1)
+        self.CraneRRamp = math.Clamp(self.CraneRRamp + 1.0 * ((1 * ramp) - self.CraneRRamp) * dT * 2, 0, 1)
 
         self:SetSoundState("crane013_release", self.CraneRRamp ^ 1.5, 1.0)
         self:SetSoundState("crane013_brake", math.Clamp(-self.CraneRamp * 1.5, 0, 1) ^ 1.3, 1.0)
         self:SetSoundState("crane013_brake2", math.Clamp(-self.CraneRamp * 1.5 - 0.95, 0, 1.5) ^ 2, 1.0)
 
-        local emergencyValveEPK = self:GetPackedRatio("EmergencyValveEPK_dPdT", 0)
-        self.EmergencyValveEPKRamp = math.Clamp(self.EmergencyValveEPKRamp + 1.0 * ((0.5 * emergencyValveEPK) - self.EmergencyValveEPKRamp) * dT, 0, 1)
-        if self.EmergencyValveEPKRamp < 0.01 then self.EmergencyValveEPKRamp = 0 end
-        self:SetSoundState("epk_brake", self.EmergencyValveEPKRamp, 1.0)
+        -- self.EmergencyValveEPKRamp = math.Clamp(self.EmergencyValveEPKRamp + 1.0 * ((0.4 * emergencyValveEPK) - self.EmergencyValveEPKRamp) * dT, 0, 1)
+        local prevRvtbRamp = self.EmergencyValveEPKRamp
+        self.EmergencyValveEPKRamp = self:GetPackedRatio("EmergencyValveEPK_dPdT", 0) * 0.24
+        if self.EmergencyValveEPKRamp < 0.01 then self.EmergencyValveEPKRamp = 0
+        elseif self.EmergencyValveEPKRamp < 0.08 then self.EmergencyValveEPKRamp = 0.08 end
+
+        if self.EmergencyValveEPKRamp > 0 and not self.RvtbLeak then
+            self.RvtbLeak = CurTime() + 0.3
+            self.RvtbLeakEnd = nil
+        elseif self.EmergencyValveEPKRamp == 0 and self.RvtbLeak then
+            self.RvtbLeak = nil
+            self.RvtbLeakEnd = CurTime() + 0.1
+            self.RvtbLeakEndRamp = prevRvtbRamp
+        end
+        local rvtb_start = self.RvtbLeak and math.Clamp(1.25 - (CurTime() - self.RvtbLeak), 0, 1.25) / 1.25 or 0
+        local rvtb_end = self.RvtbLeakEnd and math.Clamp(0.28 - (CurTime() - self.RvtbLeakEnd), 0, 0.28) / 0.28 or 0
+        local rvtb_loop = 1 - math.max(rvtb_start, rvtb_end)
+        self:SetSoundState("rvtb_leak", self.EmergencyValveEPKRamp * rvtb_loop, 1.0)
+        self:SetSoundState("rvtb_leak_start", self.EmergencyValveEPKRamp * rvtb_start, 1.0)
+        self:SetSoundState("rvtb_leak_end", math.max(0.08, self.RvtbLeakEndRamp or 0) * rvtb_end, 1.0)
 
         local emergencyBrakeValve = self:GetPackedRatio("EmergencyBrakeValve_dPdT", 0)
         self.EmergencyBrakeValveRamp = math.Clamp(self.EmergencyBrakeValveRamp + (emergencyBrakeValve - self.EmergencyBrakeValveRamp) * dT * 8, 0, 1)

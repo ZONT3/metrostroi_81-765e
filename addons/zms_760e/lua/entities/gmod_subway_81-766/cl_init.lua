@@ -3,8 +3,8 @@
 --------------------------------------------------------------------------------
 include("shared.lua")
 
-local BaseClass = baseclass.Get("gmod_81-765_base")
-ENT.Base = "gmod_subway_base"  -- TODO Implement 765_base instead when (if) moving to metrostroi 2025+
+-- local BaseClass = baseclass.Get("gmod_81-765_base")
+-- ENT.Base = "gmod_subway_base"  -- TODO Implement 765_base instead when (if) moving to metrostroi 2025+
 
 if not ENT.ButtonMap.RearPneumatic then ErrorNoHaltWithStack("BaseClass not initialized!\n") end
 
@@ -81,10 +81,12 @@ ENT.ClientProps["GvWrench"] = {
 }
 
 function ENT:Initialize(...)
+    local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     return BaseClass.Initialize(self, ...)
 end
 
 function ENT:Think(...)
+    local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     return BaseClass.Think(self, ...)
 end
 

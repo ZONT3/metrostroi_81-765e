@@ -42,10 +42,11 @@ for k, cfg in pairs(ENT.PakToggles or {}) do
 end
 
 --------------------------------------------------------------------------------
-local BaseClass = baseclass.Get("gmod_81-765_base")
-ENT.Base = "gmod_subway_base"  -- TODO Implement 765_base instead when (if) moving to metrostroi 2025+
+-- local BaseClass = baseclass.Get("gmod_81-765_base")
+-- ENT.Base = "gmod_subway_base"  -- TODO Implement 765_base instead when (if) moving to metrostroi 2025+
 
 function ENT:Initialize()
+    local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.Initialize(self)
     self.Plombs = {
         ABESD = {true, "ABESDk"},
@@ -348,6 +349,7 @@ function ENT:TriggerLightSensor(coil, plate)
 end
 
 function ENT:Think()
+    local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     local retVal = BaseClass.Think(self)
     local Panel = self.Panel
     local powerUpi = self.Electric.UPIPower > 0
@@ -604,6 +606,7 @@ function ENT:OnButtonPress(button, ply)
 end
 
 function ENT:OnButtonRelease(button, ply)
+    local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.OnButtonRelease(self, button, ply)
 
     if button == "Attention" then

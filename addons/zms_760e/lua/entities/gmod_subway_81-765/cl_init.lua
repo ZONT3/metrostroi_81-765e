@@ -3,8 +3,8 @@
 --------------------------------------------------------------------------------
 include("shared.lua")
 
-local BaseClass = baseclass.Get("gmod_81-765_base")
-ENT.Base = "gmod_subway_base"  -- TODO Implement 765_base instead when (if) moving to metrostroi 2025+
+-- local BaseClass = baseclass.Get("gmod_81-765_base")
+-- ENT.Base = "gmod_subway_base"  -- TODO Implement 765_base instead when (if) moving to metrostroi 2025+
 
 if not ENT.ButtonMap.RearPneumatic then ErrorNoHaltWithStack("BaseClass not initialized!\n") end
 
@@ -3647,6 +3647,7 @@ for _, bm in ipairs({"PU5", "PU2", "PU3", "RV"}) do
 end
 
 function ENT:Initialize()
+    local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.Initialize(self)
     self.MFDU = self:CreateRT("765MFDU", 1024, 768)
     self.BUIK = self:CreateRT("765BUIK", 2486, 496)
@@ -3660,10 +3661,12 @@ function ENT:Initialize()
 end
 
 function ENT:Think(...)
+    local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     return BaseClass.Think(self, ...)
 end
 
 function ENT:DrawPost(special)
+    local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.DrawPost(self, special)
 
     self.RTMaterial:SetTexture("$basetexture", self.MFDU)

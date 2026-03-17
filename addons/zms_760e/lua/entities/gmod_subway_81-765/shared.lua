@@ -8,6 +8,7 @@ ENT.Contact = ""
 ENT.Purpose = ""
 ENT.Instructions = ""
 ENT.Category = "Metrostroi (trains)"
+ENT.Base = "gmod_subway_base"
 ENT.SkinsType = "81-760e"
 ENT.Model = "models/metrostroi_train/81-760e/81_760e_body.mdl"
 ENT.NoTrain = true
@@ -18,14 +19,15 @@ ENT.DontAccelerateSimulation = false
 ZMS.ImportBaseEnt("Base765", "gmod_81-765_base")
 
 --------------------------------------------------------------------------------
-local BaseClass = baseclass.Get("gmod_81-765_base")
-ENT.Base = "gmod_subway_base"  -- TODO Implement 765_base instead when (if) moving to metrostroi 2025+
+-- local BaseClass = baseclass.Get("gmod_81-765_base")
+-- ENT.Base = "gmod_subway_base"  -- TODO Implement 765_base instead when (if) moving to metrostroi 2025+
 
 function ENT:GetStandingArea()
     return Vector(-450, -30, -53), Vector(360, 30, -53)
 end
 
 function ENT:InitializeSounds()
+    local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.InitializeSounds(self)
 
     self.SoundNames["crane013_brake"] = {
@@ -162,15 +164,15 @@ function ENT:InitializeSounds()
     self.SoundPositions["igla_alarm2"] = {50, 1e9, Vector(410.56, 48.32, 12.62), 0.5}
     self.SoundPositions["igla_alarm3"] = {50, 1e9, Vector(410.56, 48.32, 12.62), 0.5}
 
-    self.SoundNames["epk_brake"] = {
+    self.SoundNames["rvtb_leak"] = {
         loop = true,
         "subway_trains/760/new/rvtb_loop.wav"
     }
-    self.SoundPositions["epk_brake"] = {80, 1e9, Vector(458, 56.5, -61), 0.65}  -- FIXME pos
-    self.SoundNames["epk_brake_close"] = {"subway_trains/760/new/rvtb_end.wav"}
-    self.SoundPositions["epk_brake_close"] = {80, 1e9, Vector(458, 56.5, -61), 0.65}  -- FIXME pos
-    self.SoundNames["epk_brake_open"] = {"subway_trains/760/new/rvtb_start.wav"}
-    self.SoundPositions["epk_brake_open"] = {80, 1e9, Vector(458, 56.5, -61), 0.65}  -- FIXME pos
+    self.SoundPositions["rvtb_leak"] = {80, 1e9, Vector(478, -45, -61), 0.65}
+    self.SoundNames["rvtb_leak_start"] = { "subway_trains/760/new/rvtb_start.wav" }
+    self.SoundPositions["rvtb_leak_start"] = self.SoundPositions["rvtb_leak"]
+    self.SoundNames["rvtb_leak_end"] = { "subway_trains/760/new/rvtb_end.wav" }
+    self.SoundPositions["rvtb_leak_end"] = self.SoundPositions["rvtb_leak"]
 
     self.SoundNames["valve_brake"] = {
         loop = true,

@@ -121,7 +121,6 @@ function TRAIN_SYSTEM:Initialize(is722)
     self.MaxPosition = 6
     self.RVTBLeak = 0
     self.DisconnectType = false
-    self.PrevLeak = 0
     self.WeightLoadRatio = 0
     self.EmerBrakeWork = false
     self.BrakeCylinderRegulationError = (math.random() > 0.5 and 1 or -1) * math.random() * 0.05
@@ -346,12 +345,6 @@ function TRAIN_SYSTEM:Think(dT)
         trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0, self.BrakeLinePressure_dPdT)
     end
 
-    -- 013: 7 0.0 Atm рвтб
-    if self.RVTBLeak == 1 and V4 then
-        self:equalizePressure(dT, "BrakeLinePressure", 0.25, pr_speed, nil, 8.0)
-        trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0, self.BrakeLinePressure_dPdT)
-    end
-
     if (self.DriverValvePosition == 7) and (V4 or BLDisconnect) then
         self:equalizePressure(dT, "BrakeLinePressure", 0.0, pr_speed, nil, 8.0)
         trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0, self.BrakeLinePressure_dPdT)
@@ -359,27 +352,9 @@ function TRAIN_SYSTEM:Think(dT)
 
     pr_speed = 1.25 * wagc
     self.Leak = false
+    local leak = 0
+
     if Train.BARS then
-        local leak = 0
-        if self.EmergencyValve then
-            local leakst = 1.45 * Train:GetWagonCount() --*(Train:GetWagonCount())
-            leak = self:equalizePressure(dT, "BrakeLinePressure", 0.0, leakst, false, false, 0.4)
-            if Train.UAVA.Value > 0 or self.BrakeLinePressure < 0.6 then --[[leak > -0.7*(Train:GetWagonCount()) or]]
-                self.EmergencyValve = false
-            end
-
-            if not self.EmergencyValveWasOpen then
-                Train:SetPackedRatio("EmerValveAutost", CurTime() + 1.65)
-                self.EmergencyValveWasOpen = true
-            end
-
-            self.Leak = true
-        elseif self.EmergencyValveWasOpen then
-            self.EmergencyValveWasOpen = false
-        end
-
-        self.Train:SetPackedRatio("EmergencyValve_dPdT", -leak)
-        leak = 0
         if (Train.BARS.RVTB == 0 or Train.BARS.UOS == 0 and Train.BUKP.State < 5 and Train.ALS.Value == 0 and (Train.RV.KROPosition + Train.RV.KRRPosition ~= 0)) and not self.RVTBTimer then
             self.RVTBTimer = CurTime()
         elseif (Train.BARS.RVTB > 0 and not (Train.BARS.UOS == 0 and Train.BUKP.State < 5 and Train.ALS.Value == 0 and (Train.RV.KROPosition + Train.RV.KRRPosition ~= 0))) and self.RVTBTimer then
@@ -393,26 +368,42 @@ function TRAIN_SYSTEM:Think(dT)
 
         if Train.K9.Value == 1 and (V4 and self.RVTBTimer and CurTime() - self.RVTBTimer > 0 or self.V6 or V4 and Train.PpzRvtb.Value == 0) then
             self.RVTBLeak = 1
-            leak = self:equalizePressure(dT, "BrakeLinePressure", 0.0, 3 * Train:GetWagonCount(), false, false, 0.55)
-            if self.PrevLeak ~= 1 then
-                Train:PlayOnce("epk_brake_open", "", -leak / 3, 1)
-                self.PrevLeak = 1
-            end
-
+            leak = self:equalizePressure(dT, "BrakeLinePressure", 0.21, 3 * Train:GetWagonCount(), false, false, 0.55)
+            -- waek fill-leak loop
+            if leak > -0.08 then self.BrakeLinePressure_dPdT = self.BrakeLinePressure_dPdT + (-0.08 - leak) end
+            leak = math.min(leak, -0.08)
             self.Leak = true
-            self.leak = leak
         else
             self.RVTBLeak = 0
-            if self.PrevLeak ~= 0 then
-                Train:PlayOnce("epk_brake_close", "", -self.leak / 3, 1)
-                self.PrevLeak = 0
-            end
         end
 
         self.Train:SetPackedRatio("EmergencyValveEPK_dPdT", -leak)
     end
 
-    local leak = 0
+    self.Train:SetPackedRatio("Crane_dPdT", self.BrakeLinePressure_dPdT)
+
+    if Train.BARS then
+        leak = 0
+        if self.EmergencyValve then
+            local leakst = 1.45 * Train:GetWagonCount()
+            leak = self:equalizePressure(dT, "BrakeLinePressure", 0.0, leakst, false, false, 0.4)
+            if Train.UAVA.Value > 0 or self.BrakeLinePressure < 0.6 then
+                self.EmergencyValve = false
+            end
+
+            if not self.EmergencyValveWasOpen then
+                Train:SetPackedRatio("EmerValveAutost", CurTime() + 1.65)
+                self.EmergencyValveWasOpen = true
+            end
+
+            self.Leak = true
+        elseif self.EmergencyValveWasOpen then
+            self.EmergencyValveWasOpen = false
+        end
+        self.Train:SetPackedRatio("EmergencyValve_dPdT", -leak)
+    end
+
+    leak = 0
     if self.Train.EmergencyBrakeValve.Value > 0.5 then
         leak = self:equalizePressure(dT, "BrakeLinePressure", 0.0, 2.2 * wagc, false, false, 1)
         self.Leak = true
@@ -426,7 +417,7 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     self.Train:SetPackedRatio("stopkran_dPdT", -leak)
-    self.Train:SetPackedRatio("Crane_dPdT", self.BrakeLinePressure_dPdT)
+
     trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0, self.BrakeLinePressure_dPdT)
     local targetPressure = 0
     local PMPressure = 0
