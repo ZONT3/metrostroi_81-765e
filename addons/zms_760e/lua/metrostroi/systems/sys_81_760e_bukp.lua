@@ -131,6 +131,7 @@ function TRAIN_SYSTEM:Initialize()
     self.BupDisableDrive = 0
     self.CurTime1 = CurTime()
     self.NextThink = CurTime()
+    self.HVLamp = false
 
     self:InitShared()
 end
@@ -646,7 +647,7 @@ if SERVER then
         if not SkifWork then
             self.State = 0
             self.State2 = 0
-            self.HVBad = CurTime()
+            self.HVBadMsg = CurTime()
             self.SkifTimer = nil
         end
 
@@ -685,7 +686,7 @@ if SERVER then
                 if self.Trains[v] then self.Trains[v] = {} end
             end
             self.PTEnabled = nil
-            self.HVBad = CurTime()
+            self.HVBadMsg = CurTime()
         end
 
         local RV = (1 - Train.RV["KRO5-6"]) + Train.RV["KRR15-16"]
@@ -824,7 +825,7 @@ if SERVER then
                 local Back = false
                 local sfBroken = false
                 local shortAny = false
-                local HVBad, PantDisabled = false, false
+                local HVBad, HVLamp, PantDisabled = false, true, false
                 local motor, trailer = 0, 0
                 for i = 1, self.WagNum do
                     local train = self.Trains[self.Trains[i]]
@@ -832,6 +833,7 @@ if SERVER then
                     if train.BrakeStrength then EnginesStrength = EnginesStrength + train.BrakeStrength end
                     if train.RV and self.Trains[i] ~= Train:GetWagonNumber() then Back = true end
                     if train.HVBad and train.AsyncInverter then HVBad = true end
+                    if train.HVVoltage and train.AsyncInverter and train.HVVoltage < 550 then HVLamp = false end
                     if train.PantDisabled then PantDisabled = true end
                     if train.AsyncInverter then motor = motor + 1 else trailer = trailer + 1 end
                 end
@@ -840,8 +842,9 @@ if SERVER then
                 local doorsNotClosed = Train.PpzActiveCabin.Value < 1 or Train.PpzDoorsSignal.Value < 1
 
                 self.PantDisabled = PantDisabled
-                if HVBad and not self.HVBad then self.HVBad = CurTime() end
-                if not HVBad and self.HVBad then self.HVBad = false end
+                if HVBad and not self.HVBadMsg then self.HVBadMsg = CurTime() end
+                if not HVBad and self.HVBadMsg then self.HVBadMsg = false end
+                self.HVLamp = HVLamp
                 self.SchemeEngaged = false
                 if RvWork and not Back then
                     for i = 1, self.WagNum do
@@ -1156,7 +1159,7 @@ if SERVER then
                     if self.PTEnabled and not checkPt then self.PTEnabled = nil end
 
                     self:CheckError("PneumoBrake", errPT and ptApplied, ptApplied)
-                    self:CheckError("HV", self.HVBad and CurTime() - self.HVBad > 10)
+                    self:CheckError("HV", self.HVBadMsg and CurTime() - self.HVBadMsg > 10)
 
                     local buv = self.Trains[self.Trains[1]]
                     Train:SetNW2Int("Skif:BUVStrength", math.abs(Train.BUV.Strength))
