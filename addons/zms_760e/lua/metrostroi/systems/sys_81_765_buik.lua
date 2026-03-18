@@ -390,7 +390,7 @@ if SERVER then
         local reset = self.InformerCfgIdx ~= Wag:GetNW2Int("Announcer", 1) or self.CisCfgIdx ~= Wag:GetNW2Int("CISConfig", 0) or self.RouteNumber < 0
         local idx = Wag:GetNW2Int("Announcer", 1)
         local cfg = Metrostroi.ASNPSetup[idx]
-        local cisIdx = Wag:GetNW2Int("CISConfig", 1)
+        local cisIdx = Wag:GetNW2Int("CISConfig", 0)
         local cisCfg = (Metrostroi.CISConfig or {})[cisIdx]
         if not cfg[1] then
             self.InformerState = STATE_SETUP
@@ -704,6 +704,7 @@ if SERVER then
                 first = first[2] or first[1] or "ОШИБКА"
                 local last = route[#route]
                 last = last[2] or last[1] or "ОШИБКА"
+                local text
                 if route.Loop then
                     text = "Кольцевой: " .. string.format("%s — %s", first, last)
                 else
@@ -1813,7 +1814,7 @@ else
                     surface.SetDrawColor(self.colorSelectedLineActive)
                     surface.DrawRect(x, y, sizeSarmatListLineW, sizeSarmatListLineH)
                 end
-                draw.SimpleText(text, "BUIKSarmat", x + 4, y + sizeSarmatListLineH / 2, color, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+                draw.SimpleText(text, "BUIKSarmat", x + 4, y + sizeSarmatListLineH / 2, self.colorLineTextActive, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
                 y = y + sizeSarmatListLineH
             elseif textFound then
                 break

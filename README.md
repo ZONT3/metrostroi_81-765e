@@ -149,4 +149,5 @@
       - [ ] HV per-pant
       - [ ] UKKZ per-pant
     - [x] Rewrite BARS
+    - [ ] Electric-side doors closed signal
   
