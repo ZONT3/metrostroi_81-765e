@@ -71,15 +71,17 @@ Metrostroi.AddSkin("765logo", "MosBrendR", {
 })
 
 
-function BLIK_ANIM_FROM_FRAMES(frameCount, duration, cols, rows)
+function BLIK_ANIM_FROM_FRAMES(frameCount, duration, cols, rows, size)
     if CLIENT then
-        local cw, ch = 1 / cols, 1 / rows
+        local totalW, totalH = cols * size - 1, rows * size - 1
         return function(self, mat, w, h)
             local idx = math.min(frameCount - 1, math.floor(frameCount * (CurTime() % duration) / duration))
-            local u, v = idx % cols, math.floor(idx / cols)
+            local i, j = idx % cols, math.floor(idx / cols)
+            local x, y = i * size, j * size
+            local us, vs, ue, ve = x / totalW, y / totalH, (x + size - 1) / totalW, (y + size - 1) / totalH
             surface.SetDrawColor(255, 255, 255, 255)
             surface.SetMaterial(mat)
-            surface.DrawTexturedRectUV(0, 0, w, h, u * cw, v * ch, (u + 1) * cw, (v + 1) * ch)
+            surface.DrawTexturedRectUV(0, 0, w, h, us, vs, ue, ve)
         end
     else
         return function() end
@@ -88,11 +90,10 @@ end
 
 function BLIK_ANIM_STATIC(cols, rows)
     if CLIENT then
-        local cw, ch = 1 / cols, 1 / rows
         return function(self, mat, w, h)
             surface.SetDrawColor(255, 255, 255, 255)
             surface.SetMaterial(mat)
-            surface.DrawTexturedRectUV(0, 0, w, h, 0, 0, cw, ch)
+            surface.DrawTexturedRectUV(0, 0, w, h, 0, 0, 1 / cols, 1 / rows)
         end
     else
         return function() end
@@ -103,7 +104,7 @@ Metrostroi.AddSkin("765logo", "MosBrend3D", {
     typ = "81-760e",
     name = "Московский Транспорт (3D, LCD)",
     path = "zxc765/bl/MosBrendAnim.png",
-    anim = BLIK_ANIM_FROM_FRAMES(32, 5, 8, 4),  -- frameCount, duration, cols, rows
+    anim = BLIK_ANIM_FROM_FRAMES(32, 5, 8, 4, 512),  -- frameCount, duration, cols, rows, frameSize
     static = BLIK_ANIM_STATIC(8, 4),  -- cols, rows
 })
 
@@ -111,7 +112,7 @@ Metrostroi.AddSkin("765logo", "MosMetro765", {
     typ = "81-760e",
     name = "МосМетро (3D, 81-765 САРМАТ LED 128px)",
     path = "zxc765/bl/MosMetroAnim765.png",
-    anim = BLIK_ANIM_FROM_FRAMES(64, 10, 8, 8),  -- frameCount, duration, cols, rows
+    anim = BLIK_ANIM_FROM_FRAMES(64, 10, 8, 8, 512),  -- frameCount, duration, cols, rows, frameSize
     static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
 })
 
@@ -119,7 +120,7 @@ Metrostroi.AddSkin("765logo", "MosMetro765x64", {
     typ = "81-760e",
     name = "МосМетро (3D, 81-765 САРМАТ LED 64px)",
     path = "zxc765/bl/MosMetroAnim765x64.png",
-    anim = BLIK_ANIM_FROM_FRAMES(64, 10, 8, 8),  -- frameCount, duration, cols, rows
+    anim = BLIK_ANIM_FROM_FRAMES(64, 10, 8, 8, 512),  -- frameCount, duration, cols, rows, frameSize
     static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
 })
 
@@ -127,6 +128,6 @@ Metrostroi.AddSkin("765logo", "MosMetro775", {
     typ = "81-760e",
     name = "МосМетро (3D, 81-775 LCD)",
     path = "zxc765/bl/MosMetroAnim775.png",
-    anim = BLIK_ANIM_FROM_FRAMES(64, 5, 8, 8),  -- frameCount, duration, cols, rows
+    anim = BLIK_ANIM_FROM_FRAMES(64, 5, 8, 8, 512),  -- frameCount, duration, cols, rows, frameSize
     static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
 })
