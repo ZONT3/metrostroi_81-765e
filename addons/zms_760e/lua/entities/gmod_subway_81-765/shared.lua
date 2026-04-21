@@ -877,11 +877,9 @@ ENT.SpawnerCustom = {
                         SF70F4 = val > 2,  -- PpzAuxCabin
                     }
                     for _, cfg in ipairs(ent.PpzToggles or {}) do
-                        if not leaveOff[cfg.relayName] then
-                            local r = ent[cfg.relayName]
-                            if r and r.TriggerInput then
-                                r:TriggerInput("Set", 1)
-                            end
+                        local r = ent[cfg.relayName]
+                        if r and r.TriggerInput then
+                            r:TriggerInput("Set", leaveOff[cfg.relayName] and 0 or 1)
                         end
                     end
 
