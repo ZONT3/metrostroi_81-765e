@@ -248,8 +248,10 @@ else
         if cfg then
             if not self.BlMat then self.BlMat = {} end
             local mat = self.BlMat[cfg.path]
-            if not mat then mat = Material(cfg.path, cfg.params or "smooth ignorez") end
-            self.BlMat[cfg.path] = mat
+            if not mat then
+                mat = Material(cfg.path, cfg.params or cfg.anim and "smooth ignorez noclamp" or "smooth ignorez")
+                self.BlMat[cfg.path] = mat
+            end
             local fnc = anim and cfg.anim or cfg.static or defaultRender
             fnc(self, mat, scw_bl, sch_bl)
             -- TODO else draw error msg

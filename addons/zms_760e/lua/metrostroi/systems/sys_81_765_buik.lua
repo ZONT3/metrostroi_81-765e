@@ -363,6 +363,7 @@ if SERVER then
         self:CheckDisplayState(8, "АО", Wag.ALSCoil.AO and STATE_RED or STATE_NORMAL)
         self:CheckDisplayState(9, "БОСД", Wag.DoorBlock.Value > 0.5 and STATE_RED or STATE_INACTIVE)
 
+        Wag:SetNW2Int("BUIK:AutoPlay", IsValid(Wag.Owner) and Wag.Owner:GetInfoNum("ma_autoinformator", 1) == 1)
         Wag:SetNW2Int("BUIK:WagNum", self.WagNum)
         Wag:SetNW2Bool("BUIK:ActiveCabin", --[[self.Active]] true)
     end
@@ -1436,7 +1437,7 @@ else
 
         x = x + sizePgGap + 2
         for idx = 1, 2 do
-            draw.RoundedBox(16, x, y, sizePgW, sizePgH, self.colorInactive)
+            draw.RoundedBox(16, x, y, sizePgW, sizePgH, idx == 1 and Wag.BuikAutoPlay and self.colorSelected or self.colorInactive)
             draw.SimpleText(functionNames[idx], "BUIKSystemSmall", x + sizePgW / 2, y + sizePgH / 2, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             x = x + sizePgW + sizePgGap
         end
@@ -1684,7 +1685,7 @@ else
         local y = sizeSarmatWagonsH + sizeSarmatCursorBoxH + 8
         local toX = (sizeSarmatLeftBarW - 16) / 2
         local toY = sizeSarmatLeftBarStateH / 2 + 1
-        drawOutlinedRoundedRect(8, x, y, sizeSarmatLeftBarW - 16, sizeSarmatLeftBarStateH, self.colorActive, self.colorSelected)
+        drawOutlinedRoundedRect(8, x, y, sizeSarmatLeftBarW - 16, sizeSarmatLeftBarStateH, self.colorActive, Wag.BuikAutoPlay and self.colorActive or self.colorSelected)
         draw.SimpleText("АВТОВОСПР.", "BUIKSystemSmall", x + toX, y + toY, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         y = y + sizeSarmatLeftBarStateH + 8
         drawOutlinedRoundedRect(8, x, y, sizeSarmatLeftBarW - 16, sizeSarmatLeftBarStateH, self.colorActive, self.colorSelected)
@@ -1905,6 +1906,7 @@ else
             surface.DrawRect(0, 0, scr_w, scr_h)
             self.Train.BuikTwoToSix = self.Train:GetNW2Bool("Skif:AlsArs", false)
             self.Train.BuikAlsArs = self.Train.BuikTwoToSix or self.Train:GetNW2Bool("AlsArs", false)
+            self.Train.BuikAutoPlay = self.Train:GetNW2Bool("BUIK:AutoPlay", false)
             if sarmat then
                 self:DrawBordersSarmat()
                 self:DrawWagonsSarmat(self.Train)

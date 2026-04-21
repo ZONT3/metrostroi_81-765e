@@ -101,8 +101,32 @@ end
 
 Metrostroi.AddSkin("765logo", "MosBrend3D", {
     typ = "81-760e",
-    name = "Московский Транспорт (3D)",
+    name = "Московский Транспорт (3D, LCD)",
     path = "zxc765/bl/MosBrendAnim.png",
     anim = BLIK_ANIM_FROM_FRAMES(32, 5, 8, 4),  -- frameCount, duration, cols, rows
     static = BLIK_ANIM_STATIC(8, 4),  -- cols, rows
+})
+
+Metrostroi.AddSkin("765logo", "MosMetro765", {
+    typ = "81-760e",
+    name = "МосМетро (3D, 81-765 САРМАТ LED 128px)",
+    path = "zxc765/bl/MosMetroAnim765.png",
+    anim = BLIK_ANIM_FROM_FRAMES(64, 10, 8, 8),  -- frameCount, duration, cols, rows
+    static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
+})
+
+Metrostroi.AddSkin("765logo", "MosMetro765x64", {
+    typ = "81-760e",
+    name = "МосМетро (3D, 81-765 САРМАТ LED 64px)",
+    path = "zxc765/bl/MosMetroAnim765x64.png",
+    anim = BLIK_ANIM_FROM_FRAMES(64, 10, 8, 8),  -- frameCount, duration, cols, rows
+    static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
+})
+
+Metrostroi.AddSkin("765logo", "MosMetro775", {
+    typ = "81-760e",
+    name = "МосМетро (3D, 81-775 LCD)",
+    path = "zxc765/bl/MosMetroAnim775.png",
+    anim = BLIK_ANIM_FROM_FRAMES(64, 5, 8, 8),  -- frameCount, duration, cols, rows
+    static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
 })
