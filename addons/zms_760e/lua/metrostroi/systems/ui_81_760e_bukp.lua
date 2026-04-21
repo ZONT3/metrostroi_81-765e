@@ -240,9 +240,16 @@ surface.CreateFont("Mfdu765.Message", {
 })
 
 surface.CreateFont("Mfdu765.Speed", {
-    font = "Open Sans",
+    font = "Eurostar Metrostroi",
     extended = true,
-    size = 120,
+    size = 96,
+    weight = 500,
+})
+
+surface.CreateFont("Mfdu765.SpeedSmall", {
+    font = "Eurostar Metrostroi",
+    extended = true,
+    size = 64,
     weight = 500,
 })
 
@@ -529,15 +536,15 @@ function TRAIN_SYSTEM:DrawMainPage()
     draw.SimpleText("км/ч", "Mfdu765.SpeedTextMain", x + 8, y - 0.6 * sizeMainSpeedH, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
 
     y = y + sizeMainLinesGapSmall + sizeMainLinesH
-    draw.SimpleText("V", "Mfdu765.SpeedLetter", x, y + 10, colorRed, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
-    draw.SimpleText("доп", "Mfdu765.BodyTextLarge", x, y + 10, colorRed, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
-    draw.SimpleText(tostring(self.SpeedLimit), "Mfdu765.SpeedLetter", x, y, colorRed, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+    draw.SimpleText("V", "Mfdu765.SpeedLetter", x, y + 4, colorRed, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
+    draw.SimpleText("доп", "Mfdu765.BodyTextLarge", x, y + 4, colorRed, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+    draw.SimpleText(tostring(self.SpeedLimit), "Mfdu765.SpeedLetter", x, y - 12, colorRed, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
 
     if self.AlsArs then
         y = y + sizeMainLinesGapSmall * 2 + sizeMainLinesH * 2
-        draw.SimpleText("V", "Mfdu765.SpeedLetter", x, y, colorYellow, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
-        draw.SimpleText("пред", "Mfdu765.BodyTextLarge", x, y, colorYellow, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
-        draw.SimpleText(tostring(self.SpeedNext), "Mfdu765.SpeedLetter", x, y - 10, colorYellow, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        draw.SimpleText("V", "Mfdu765.SpeedLetter", x, y - 12, colorYellow, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
+        draw.SimpleText("пред", "Mfdu765.BodyTextLarge", x, y - 12, colorYellow, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+        draw.SimpleText(tostring(self.SpeedNext), "Mfdu765.SpeedLetter", x, y - 24, colorYellow, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
     end
 
     self:DrawMainStatus(self.Train, sizeThrottleW + sizeMainMargin + 490, posPageStartY + 4, sizeMainW - 500, sizeMainH - 8)
@@ -673,11 +680,11 @@ function TRAIN_SYSTEM:DrawStatus(Wag)
 
         x = 1 * w / 2 + sizeBorder
         y = scrOffsetY + scrH - sizeFooter - sizeBorder - 32
-        draw.SimpleText(self.Speed, "Mfdu765.StatusValueSpeed", x, y - 4, colorGreen, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
-        draw.SimpleText("км/ч", "Mfdu765.24", x, y - 8, colorBrightText, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        draw.SimpleText(self.Speed, "Mfdu765.SpeedSmall", x, y - 18, colorGreen, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+        draw.SimpleText("км/ч", "Mfdu765.24", x, y - 16, colorBrightText, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
 
         x = w / 2
-        y = scrOffsetY + scrH - sizeFooter - sizeBorder - sizeStatus * 0.75
+        y = scrOffsetY + scrH - sizeFooter - sizeBorder - sizeStatus * 0.75 - 24
         draw.SimpleText("Режим " .. self.FreqMode, "Mfdu765.24", x, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
