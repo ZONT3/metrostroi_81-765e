@@ -47,8 +47,8 @@ function ENT:Initialize()
         self.RearBogey.DisableSound = 1
     end
 
-    self.FrontCouple = self:CreateCouple(self.IsIntermediate and Vector(437 - 20.8, 0, -68) or Vector(442.2 + 30, 0, -68), Angle(0, 0, 0), true, self.IsIntermediate and "763" or "722")
-    self.RearCouple = self:CreateCouple(self.IsIntermediate and Vector(-437 + 20.8, 0, -68) or Vector(-439 + 20.8, 0, -68), Angle(0, 180, 0), false, "763")
+    self.FrontCouple = self:CreateCouple(self.IsIntermediate and Vector(437 - 24, 0, -68) or Vector(442.2 + 30, 0, -68), Angle(0, 0, 0), true, self.IsIntermediate and "763" or "722")
+    self.RearCouple = self:CreateCouple(self.IsIntermediate and Vector(-437 + 24, 0, -68) or Vector(-439 + 24, 0, -68), Angle(0, 180, 0), false, "763")
     self:SetNW2Entity("FrontBogey", self.FrontBogey)
     self:SetNW2Entity("RearBogey", self.RearBogey)
     self:SetNW2Entity("FrontCouple", self.FrontCouple)
