@@ -131,3 +131,43 @@ Metrostroi.AddSkin("765logo", "MosMetro775", {
     anim = BLIK_ANIM_FROM_FRAMES(64, 5, 8, 8, 512),  -- frameCount, duration, cols, rows, frameSize
     static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
 })
+
+Metrostroi.AddSkin("765logo", "Pivo3D", {
+    typ = "81-760e",
+    name = "PIVO (3D, LCD)",
+    path = "zxc765/bl/PivoAnim.png",
+    anim = BLIK_ANIM_FROM_FRAMES(64, 5, 8, 8, 512),  -- frameCount, duration, cols, rows, frameSize
+    static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
+})
+
+Metrostroi.AddSkin("765logo", "Pivo3Dx128", {
+    typ = "81-760e",
+    name = "PIVO (3D, LED 128px)",
+    path = "zxc765/bl/PivoAnim128x.png",
+    anim = BLIK_ANIM_FROM_FRAMES(64, 10, 8, 8, 512),  -- frameCount, duration, cols, rows, frameSize
+    static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
+})
+
+Metrostroi.AddSkin("765logo", "Pivo3Dx64", {
+    typ = "81-760e",
+    name = "PIVO (3D, LED 64px)",
+    path = "zxc765/bl/PivoAnim64x.png",
+    anim = BLIK_ANIM_FROM_FRAMES(64, 10, 8, 8, 512),  -- frameCount, duration, cols, rows, frameSize
+    static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
+})
+
+Metrostroi.AddSkin("765logo", "Lainie128", {
+    typ = "81-760e",
+    name = "UMP40 (3D, LED 128px)",
+    path = "zxc765/bl/Lainie128x.png",
+    anim = BLIK_ANIM_FROM_FRAMES(64, 10, 8, 8, 512),  -- frameCount, duration, cols, rows, frameSize
+    static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
+})
+
+Metrostroi.AddSkin("765logo", "Lainie64", {
+    typ = "81-760e",
+    name = "UMP40 (3D, LED 64px)",
+    path = "zxc765/bl/Lainie64x.png",
+    anim = BLIK_ANIM_FROM_FRAMES(64, 10, 8, 8, 512),  -- frameCount, duration, cols, rows, frameSize
+    static = BLIK_ANIM_STATIC(8, 8),  -- cols, rows
+})
