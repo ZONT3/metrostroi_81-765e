@@ -1189,12 +1189,12 @@ if SERVER then
                     Train:SetNW2Bool("Skif:NoFreq", BARS.NoFreq and not BARS.KB)
                     Train:SetNW2Bool("Skif:NoFreqReal", BARS.NoFreq)
                     Train:SetNW2Bool("Skif:NextNoFreq", BARS.NextNoFq and not BARS.NoFreq)
-                    Train:SetNW2Bool("Skif:Sao", Train.ALSCoil.AO)
+                    Train:SetNW2Bool("Skif:Sao", BARS.AO == 1)
                     Train:SetNW2Bool("Skif:Uos", Train.PmvAtsBlock.Value == 3)
                     Train:SetNW2Bool("Skif:AlsArs", Train.PmvFreq.Value > 0)
                     Train:SetNW2Bool("Skif:BarsBrake", Train.BARS.Brake > 0)
 
-                    Train:SetNW2Int("Skif:SpeedLimit", (Train.ALSCoil.AO or BARS.NoFreq and not BARS.KB) and 0 or Train.BARS.SpeedLimit)
+                    Train:SetNW2Int("Skif:SpeedLimit", (BARS.AO == 1 or BARS.NoFreq and not BARS.KB) and 0 or Train.BARS.SpeedLimit)
                     Train:SetNW2Int("Skif:NextSpeedLimit", (BARS.NoFreq or BARS.NextNoFq) and 0 or Train.BARS.NextLimit)
 
                     Train:SetNW2Bool("Skif:BTB", Train.BUV.BTB)
@@ -1203,7 +1203,7 @@ if SERVER then
                     Train:SetNW2Bool("Skif:ParkEnabled", self.Errors.ParkingBrake)
                     Train:SetNW2Bool("Skif:PtApplied", not not ptApplied)
                     Train:SetNW2Bool("Skif:PtAppliedRear", self.Trains[self.WagNum] and self.Trains[self.Trains[self.WagNum]] and self.Trains[self.Trains[self.WagNum]].PTEnabled or false)
-                    self.AO = Train.ALSCoil.AO
+                    self.AO = BARS.AO == 1
 
                     for i = 1, self.WagNum do
                         local train = self.Trains[self.Trains[i]]

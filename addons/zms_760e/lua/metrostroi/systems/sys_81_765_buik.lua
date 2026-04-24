@@ -360,7 +360,7 @@ if SERVER then
         self:CheckDisplayState(5, "НД", alsArs and not Wag.BARS.NoFreq and Wag.BARS.UOS < 1 and (Wag.BARS.LN and STATE_NORMAL or STATE_RED) or STATE_INACTIVE)
         self:CheckDisplayState(6, "0", not Wag.BARS.NoFreq and math.floor(Wag.BARS.SpeedLimit) < 21 and STATE_RED or STATE_NORMAL)
         self:CheckDisplayState(7, "ОЧ", Wag.BARS.NoFreq and STATE_RED or STATE_NORMAL)
-        self:CheckDisplayState(8, "АО", Wag.ALSCoil.AO and STATE_RED or STATE_NORMAL)
+        self:CheckDisplayState(8, "АО", Wag.BARS.AO == 1 and STATE_RED or STATE_NORMAL)
         self:CheckDisplayState(9, "БОСД", Wag.DoorBlock.Value > 0.5 and STATE_RED or STATE_INACTIVE)
 
         Wag:SetNW2Int("BUIK:AutoPlay", IsValid(Wag.Owner) and Wag.Owner:GetInfoNum("ma_autoinformator", 1) == 1)
