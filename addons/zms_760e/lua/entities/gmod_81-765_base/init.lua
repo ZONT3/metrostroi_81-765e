@@ -303,13 +303,21 @@ function ENT:Think()
             bogeyF.MotorPower = P * 0.5 * ((A > 0) and 1 or -1)
         end
 
-        bogeyF.PneumaticBrakeForce = 50000.0
-        bogeyF.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
+        local bc = self.Pneumatic.BrakeCylinderPressure
+
+        -- Increasing brake force at around 1.18 kgf/cm2 of BC
+        local x = (1.5 - bc) / bc
+        local auxF = (x < 0 or x > 1) and 0 or (
+            1 / (1 + math.exp(-40 * (x - 0.173))) -
+            1 / (1 + math.exp(-35 * (x - 0.24)))
+        )
+        bogeyF.PneumaticBrakeForce = 50000.0 + auxF * 13000
+        bogeyF.BrakeCylinderPressure = bc
         bogeyF.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
         bogeyF.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
         bogeyF.DisableContacts = self.BUV.Pant
-        bogeyR.PneumaticBrakeForce = 50000.0
-        bogeyR.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
+        bogeyR.PneumaticBrakeForce = 50000.0 + auxF * 13000
+        bogeyR.BrakeCylinderPressure = bc
         bogeyR.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
         bogeyR.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
         bogeyR.DisableContacts = self.BUV.Pant
@@ -368,3 +376,20 @@ end
 ENT:ExportFields(
     "SyncTable"
 )
+
+
+local chura_files = {
+    "entities/gmod_81-765_base/shared.lua",
+    "entities/gmod_subway_81-765/shared.lua",
+    "entities/gmod_subway_81-766/shared.lua",
+    "entities/gmod_subway_81-767/shared.lua",
+    "entities/gmod_subway_81-765e.lua",
+    "entities/gmod_subway_81-766e.lua",
+    "entities/gmod_subway_81-767e.lua",
+}
+concommand.Add("zms_refresh_chura", function(ply)
+    if IsValid(ply) then return end
+    for _, fp in ipairs(chura_files) do
+        game.ConsoleCommand("lua_refresh_file " .. fp .. "\n")
+    end
+end)
