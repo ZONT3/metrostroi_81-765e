@@ -11,8 +11,8 @@ ENT.Category = "Metrostroi (trains)"
 ENT.Base = "gmod_subway_base"
 ENT.SkinsType = "81-760e"
 ENT.Model = "models/metrostroi_train/81-760e/81_760e_body.mdl"
-ENT.NoTrain = true
-ENT.Spawnable = false
+ENT.NoTrain = false
+ENT.Spawnable = true
 ENT.AdminSpawnable = false
 ENT.DontAccelerateSimulation = false
 
@@ -976,7 +976,7 @@ ENT.Spawner = {
     postfunc = ENT.SpawnerCustom.postfunc,
     ENT.SpawnerSkins("765", "760e.Moscow"),
     ENT.SpawnerCustom[2], ENT.SpawnerCustom[3],
-    ENT.SpawnerLogos("MosMetro", "MosBrend", "MosBrend3D"),
+    ENT.SpawnerLogos("MosMetro", "MosBrend", "MosMetro765"),
     ENT.SpawnerCustom[5],  -- BLIK:Anim
     ENT.SpawnerCustom[9],  -- RingType765
     ENT.SpawnerCustom[15],  -- NoTrailers

@@ -40,5 +40,17 @@ ENT.SubwayTrain = {
 ENT.NumberRanges = {{30503, 30999}}
 
 if CLIENT then
+    ENT.ClientProps["FenceR"] = {
+        model = "models/metrostroi_train/81-760/81_760_fence_corrugated.mdl",
+        pos = Vector(-464.07, 0, 0),
+        ang = Angle(0, 0, 0),
+        nohide = true,
+    }
+    ENT.ClientProps["FenceF"] = {
+        model = "models/metrostroi_train/81-760/81_760_fence_corrugated.mdl",
+        pos = Vector(464.37, 0, 0),
+        ang = Angle(0, 0, 0),
+        nohide = true,
+    }
     Metrostroi.GenerateClientProps()
 end

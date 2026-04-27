@@ -393,14 +393,14 @@ ENT.ClientProps["MnBl"] = {
 }
 
 ENT.ClientProps["FenceR"] = {
-    model = "models/metrostroi_train/81-760/81_760_fence_corrugated.mdl",
+    model = "models/metrostroi_train/81-765/fence.mdl",
     pos = Vector(-464.07, 0, 0),
     ang = Angle(0, 0, 0),
     nohide = true,
 }
 
 ENT.ClientProps["FenceF"] = {
-    model = "models/metrostroi_train/81-760/81_760_fence_corrugated.mdl",
+    model = "models/metrostroi_train/81-765/fence.mdl",
     pos = Vector(464.37, 0, 0),
     ang = Angle(0, 0, 0),
     nohide = true,
@@ -900,7 +900,148 @@ function ENT:CheckBogeySounds(bogey)
     )
 end
 
-function ENT:SetupFence(platform, fence, wag, front)
+local function old_fence(ent, m)
+    for idx = 1, 2 do
+        local bidx = ent:LookupBone("Bone0" .. (idx + 2))
+        if bidx and ent:GetBoneName(bidx) ~= "__INVALIDBONE__" then
+            m:SetTranslation(ent["fpos" .. idx])
+            m:SetAngles(ent["fang" .. idx])
+            ent:SetBoneMatrix(bidx, m)
+        end
+    end
+end
+
+local new_fence_bones = { "Bone.L", "Bone.R", "Bone.C" }
+local function new_fence(ent, m)
+    for idx = 1, 3 do
+        local bidx = ent:LookupBone(new_fence_bones[idx])
+        if bidx and ent:GetBoneName(bidx) ~= "__INVALIDBONE__" then
+            m:SetTranslation(ent["fpos" .. idx])
+            m:SetAngles(ent["fang" .. idx])
+            ent:SetBoneMatrix(bidx, m)
+        end
+    end
+end
+
+local posFreqXY  = 3.0  -- higher = faster response
+local posFreqUpZ = 2.5  -- slower when moving up
+local posFreqDownZ = 5.0  -- faster when moving down
+local posDamping = 0.4  -- < 1 = overshoot, = 1 = critically damped-ish
+local posGravity = 120.0  -- extra downward bias on Z (units/s^2)
+local maxPosOffsetSqr = 24 * 24  -- squared distance
+local angFreq = 3.0
+local angDamping = 0.2  -- < 1 = overshoot
+local maxAngOffset = Angle(12, 12, 12)
+local angCorrection = Angle(-90, 0, 90)
+local targetOffset = Vector(0, 0, -2)
+
+local function spring_fnc(cur, target, vel, freq, damping, dt)
+    local omega = freq * 2 * math.pi
+    local x = cur - target
+    local a = -omega * omega * x - (2 * damping * omega * vel)
+
+    vel = vel + a * dt
+    cur = cur + vel * dt
+
+    return cur, vel
+end
+
+local function ang_diff(a, b)
+    return (b - a + 180) % 360 - 180
+end
+
+local function clamp_axis(cur, target, maxDeg)
+    if maxDeg <= 0 then return cur end
+    local d = ang_diff(target, cur) -- shortest delta from target to current
+    d = math.Clamp(d, -maxDeg, maxDeg)
+    return target + d
+end
+
+local function spring_angle_axis(cur, target, vel, dt)
+    local unwrappedTarget = cur + ang_diff(cur, target)
+    return spring_fnc(cur, unwrappedTarget, vel, angFreq, angDamping, dt)
+end
+
+
+local function calculate_fence_mid(fence, dt)
+    if dt <= 0 then return end
+
+    local origin = fence:GetPos()
+
+    local fwdAng = fence:GetAngles()
+    if fence:WorldToLocal(fence.fpos1).x > fence:WorldToLocal(fence.fpos2).x then
+        fwdAng:RotateAroundAxis(fwdAng:Up(), 180)
+    end
+    fwdAng:Normalize()
+
+    local targetWorldPos = (fence.fpos1 + fence.fpos2) * 0.5
+    local targetRelPos = targetWorldPos - origin + targetOffset
+    local dir = fence.fpos2 - fence.fpos1
+    if dir:LengthSqr() < 1e-8 then
+        dir = Vector(1, 0, 0)
+    end
+
+    local targetAng = dir:Angle()
+    targetAng:Normalize()
+
+    if not fence.randomPitch then
+        fence.randomPitch = math.Rand(-0.75, 0.75)
+    end
+    targetAng.p = (targetAng.p + fence.randomPitch) * 3
+    targetAng.y = targetAng.y * 1.01
+
+    -- Low fps throttling
+    if not system.HasFocus() or dt > 0.1 then
+        targetAng.p = clamp_axis(targetAng.p, fwdAng.p, maxAngOffset.p)
+        targetAng.y = clamp_axis(targetAng.y, fwdAng.y, maxAngOffset.y)
+        targetAng.r = clamp_axis(targetAng.r, fwdAng.r, maxAngOffset.r)
+        origin:Add(targetRelPos)
+        targetAng:Add(angCorrection)
+        fence.fpos3 = origin
+        fence.fang3 = targetAng
+        return
+    end
+
+    fence._bone3Pos = fence._bone3Pos or targetRelPos
+    fence._bone3PosVel = fence._bone3PosVel or Vector(0, 0, 0)
+    fence._bone3Ang = fence._bone3Ang or targetAng
+    fence._bone3AngVel = fence._bone3AngVel or Vector(0, 0, 0)
+
+    local pos = fence._bone3Pos
+    local posVel = fence._bone3PosVel
+    local ang = fence._bone3Ang
+    local angVel = fence._bone3AngVel
+
+    pos.x, posVel.x = spring_fnc(pos.x, targetRelPos.x, posVel.x, posFreqXY, posDamping, dt)
+    pos.y, posVel.y = spring_fnc(pos.y, targetRelPos.y, posVel.y, posFreqXY, posDamping, dt)
+
+    local zFreq = (targetRelPos.z > pos.z) and posFreqUpZ or posFreqDownZ
+    pos.z, posVel.z = spring_fnc(pos.z, targetRelPos.z, posVel.z, zFreq, posDamping, dt)
+    posVel.z = posVel.z - posGravity * dt
+
+    local posErr = pos - targetRelPos
+    local posErrSqr = posErr:LengthSqr()
+    if maxPosOffsetSqr > 0 and posErrSqr > maxPosOffsetSqr then
+        pos = targetRelPos + posErr:GetNormalized() * math.sqrt(maxPosOffsetSqr)
+        fence._bone3Pos = pos
+    end
+
+    ang.p, angVel.x = spring_angle_axis(ang.p, targetAng.p, angVel.x, dt)
+    ang.y, angVel.y = spring_angle_axis(ang.y, targetAng.y, angVel.y, dt)
+    ang.r, angVel.z = spring_angle_axis(ang.r, targetAng.r, angVel.z, dt)
+
+    ang.p = clamp_axis(ang.p, fwdAng.p, maxAngOffset.p)
+    ang.y = clamp_axis(ang.y, fwdAng.y, maxAngOffset.y)
+    ang.r = clamp_axis(ang.r, fwdAng.r, maxAngOffset.r)
+
+    fence._bone3Pos = pos
+    fence._bone3Ang = ang
+
+    fence.fpos3 = origin + pos
+    fence.fang3 = ang + angCorrection
+end
+
+function ENT:SetupFence(platform, fence, wag, front, dt)
     local otherFront = wag:GetNW2Entity("FrontTrain") == self
     local k = not otherFront and -1 or 1
     if IsValid(platform) then
@@ -914,14 +1055,12 @@ function ENT:SetupFence(platform, fence, wag, front)
             fence:AddCallback("BuildBonePositions", function(ent)
                 if ent:IsMarkedForDeletion() then return end
                 if not ent.fpos1 or not ent.fpos2 or not ent.fang1 or not ent.fang2 then return end
+                local mdl = ent:GetModel()
                 local m = Matrix()
-                for idx = 1, 2 do
-                    local bidx = ent:LookupBone("Bone0" .. (idx + 2))
-                    if bidx and ent:GetBoneName(bidx) ~= "__INVALIDBONE__" then
-                        m:SetTranslation(ent["fpos" .. idx])
-                        m:SetAngles(ent["fang" .. idx])
-                        ent:SetBoneMatrix(bidx, m)
-                    end
+                if mdl == "models/metrostroi_train/81-765/fence.mdl" then
+                    new_fence(ent, m)
+                else
+                    old_fence(ent, m)
                 end
             end)
             fence.HasCallback = true
@@ -930,6 +1069,7 @@ function ENT:SetupFence(platform, fence, wag, front)
         fence.fpos2 = self:LocalToWorld(Vector(front and 464.37 or -464.07, 0, 0))
         fence.fang1 = wag:LocalToWorldAngles(Angle(0, otherFront and 180 or 0, -90))
         fence.fang2 = self:LocalToWorldAngles(Angle(0, front and 180 or 0, 90))
+        calculate_fence_mid(fence, dt)
     end
 end
 
@@ -982,13 +1122,15 @@ function ENT:Think()
         self:ShowHide("FencePlF", self:FenceConnectable(FrontTrain, "FencePl"))
     end
 
+    local dT = self.DeltaTime
+
     local fenceRear, fenceFront = self.ClientEnts["FenceR"], self.ClientEnts["FenceF"]
     local platformRear, platformFront = self.ClientEnts["FencePlR"], self.ClientEnts["FencePlF"]
     if IsValid(RearTrain) then
-        self:SetupFence(platformRear, fenceRear, RearTrain)
+        self:SetupFence(platformRear, fenceRear, RearTrain, false, dT)
     end
     if self.IsIntermediate and IsValid(FrontTrain) then
-        self:SetupFence(platformFront, fenceFront, FrontTrain, true)
+        self:SetupFence(platformFront, fenceFront, FrontTrain, true, dT)
     end
 
     local speed = self:GetPackedRatio("Speed", 0)
@@ -1115,8 +1257,6 @@ function ENT:Think()
             btn:SetSubMaterial(1, led and "models/metrostroi_train/81-765/led_green" or "models/metrostroi_train/81-765/led_off")
         end
     end
-
-    local dT = self.DeltaTime
 
     self.FrontLeak = math.Clamp(self.FrontLeak + 10 * (-self:GetPackedRatio("FrontLeak") - self.FrontLeak) * dT, 0, 1)
     self.RearLeak = math.Clamp(self.RearLeak + 10 * (-self:GetPackedRatio("RearLeak") - self.RearLeak) * dT, 0, 1)

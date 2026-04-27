@@ -11,8 +11,8 @@ ENT.Instructions = ""
 ENT.Category = "Metrostroi (trains)"
 ENT.SkinsType = "81-760e"
 ENT.Model = "models/metrostroi_train/81-760e/81_761e_body.mdl"
-ENT.NoTrain = true
-ENT.Spawnable = false
+ENT.NoTrain = false
+ENT.Spawnable = true
 ENT.AdminSpawnable = false
 
 ZMS.ImportBaseEnt("Base765", "gmod_81-765_base")
