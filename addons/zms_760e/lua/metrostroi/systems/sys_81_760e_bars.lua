@@ -16,6 +16,7 @@ function TRAIN_SYSTEM:Initialize()
     self.Drive = 0
     self.Drive1 = 0
     self.Drive2 = 0
+    self.Emer = 0
     self.LN = false
     self.StillBrake = 0
     self.SbTimer = 0
@@ -350,7 +351,7 @@ function TRAIN_SYSTEM:Think(dT)
         RVTB = RVTB and self:RvtbTimer("UosLimitTimer", true, ZeroSpeed)
 
         if Emer then
-            local EmerCondition = not UOS and Drive and not (Brake and SpeedLimit > 21) or UOS and self.KB
+            local EmerCondition = not UOS and Drive and not (Brake and SpeedLimit > 21) and self.Emer == 1 or UOS and self.KB
             if not EmerCondition and not self.EmerTimer then
                 self.EmerTimer = CurTime()
             end
@@ -362,6 +363,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.Brake = Brake and 1 or 0
         self.Ring = Ring and 1 or 0
         self.Drive = Drive and 1 or 0
+        self.Emer = Emer and 1 or 0
         self.AllowStart = AllowStart and 1 or 0
         self.DisableDrive = DisableDrive
         self.SpeedLimit = SpeedLimit > self.SpeedLimit and SpeedLimit or self.SpeedLimit
