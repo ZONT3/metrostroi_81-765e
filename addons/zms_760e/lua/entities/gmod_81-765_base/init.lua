@@ -306,7 +306,7 @@ function ENT:Think()
         local bc = self.Pneumatic.BrakeCylinderPressure
 
         -- Increasing brake force at around 1.18 kgf/cm2 of BC
-        local x = (1.5 - bc) / bc
+        local x = (1.5 - bc + self.Pneumatic.WeightLoadRatio * 0.8) / bc
         local auxF = (x < 0 or x > 1) and 0 or (
             1 / (1 + math.exp(-40 * (x - 0.173))) -
             1 / (1 + math.exp(-35 * (x - 0.24)))
