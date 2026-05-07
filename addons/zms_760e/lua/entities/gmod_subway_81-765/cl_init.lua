@@ -3649,7 +3649,7 @@ end
 function ENT:Initialize()
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.Initialize(self)
-    self.MFDU = self:CreateRT("765MFDU", 1024, 768)
+    self.MFDUrt = self:CreateRT("765MFDU", 1024, 768)
     self.BUIK = self:CreateRT("765BUIK", 2486, 496)
     self.CAMS = self:CreateRT("760CAMS", 1024, 768)
     self.ASNP = self:CreateRT("760ASNP", 512, 128)
@@ -3669,7 +3669,7 @@ function ENT:DrawPost(special)
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.DrawPost(self, special)
 
-    self.RTMaterial:SetTexture("$basetexture", self.MFDU)
+    self.RTMaterial:SetTexture("$basetexture", self.MFDUrt)
     self:DrawOnPanel("MFDU", function(...)
         surface.SetMaterial(self.RTMaterial)
         surface.SetDrawColor(255, 255, 255)

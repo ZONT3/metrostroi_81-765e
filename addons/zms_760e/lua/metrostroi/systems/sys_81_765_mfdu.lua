@@ -2,9 +2,55 @@
 -- UI МФДУ САУ Скиф-М 81-765
 -- Автор - ZONT_ a.k.a. enabled person
 --------------------------------------------------------------------------------
-if SERVER then
-    AddCSLuaFile()
-    return
+Metrostroi.DefineSystem("81_765_MFDU")
+TRAIN_SYSTEM.DontAccelerateSimulation = true
+
+function TRAIN_SYSTEM:Initialize() end
+function TRAIN_SYSTEM:Outputs() return {} end
+function TRAIN_SYSTEM:Inputs() return {} end
+if TURBOSTROI then return end
+if SERVER then return end
+
+function TRAIN_SYSTEM:ClientThink()
+    if not self.Train:ShouldDrawPanel("MFDU") then return end
+
+    self.SFTbl = self.SFTbl or self.Train.BUKP.SFTbl
+    if not self.SFTbl then return end
+
+    if not self.DrawTimer then
+        render.PushRenderTarget(self.Train.MFDUrt, 0, 0, 1024, 768)
+        render.Clear(0, 0, 0, 0)
+        render.PopRenderTarget()
+    end
+
+    local drawThrottle = self.NormalWork and self.DrawMainThrottle
+    local skipOther = self.DrawTimer and CurTime() - self.DrawTimer < 0.1
+    if not drawThrottle and skipOther then return end
+    if not skipOther then self.DrawTimer = CurTime() end
+
+    local state = self.Train:GetNW2Int("Skif:State", 0)
+    local poweroff = state == 0
+    skipOther = skipOther or state == -2 or poweroff
+    if not skipOther then
+        self.State = self.Train:GetNW2Bool("Skif:DepotMode", false) and 2 or state
+        self.State2 = self.State ~= 2 and self.Train:GetNW2Int("Skif:State2", 0) or self.Train:GetNW2Bool("Skif:DepotWags", false) and 1 or 0
+        self.Select = self.Train:GetNW2Int("Skif:Select", 0)
+        self.WagNum = self.Train:GetNW2Int("Skif:WagNum", 0)
+        self.MainScreen = self.State == 5 and self.State2 == 0
+    end
+    render.PushRenderTarget(self.Train.MFDUrt, 0, 0, 1024, 768)
+    if not skipOther or poweroff then
+        render.Clear(0, 0, 0, 0)
+    end
+    cam.Start2D()
+    if not skipOther then
+        self:SkifMonitor(self.Train)
+    end
+    if state == 5 and drawThrottle and self.NormalWork then
+        self:DrawMainThrottle()
+    end
+    cam.End2D()
+    render.PopRenderTarget()
 end
 
 local MainMsg = {
@@ -79,6 +125,9 @@ function TRAIN_SYSTEM:SkifMonitor()
             elseif page == 8 then
                 self.Page = 8
                 self:DrawPage(self.DrawMessages, "Журнал")
+            elseif page == 9 then
+                self.Page = 9
+                self:DrawPage(self.DrawBupu, "БУПЮ")
             elseif page == 0 then
                 self.Page = 10
                 self:DrawPage(self.DrawPvu, "Повагонное управление")
@@ -725,14 +774,15 @@ function TRAIN_SYSTEM:DrawStatus(Wag)
     end
 
     for idx, icon in ipairs(icons) do
-        if idx <= 10 then continue end
-        local x, y = sizeStatusSide + sizeBorder + (idx - 11) * (sizeStatusIcon + sizeStatusIconsGap) - sizeStatusIconSpread, scrOffsetY + scrH - sizeFooter - sizeStatus - sizeMainMargin + sizeBorder * 2 - sizeStatusIconSpread
-        local getter = statusGetters[idx]
-        local color = getter and getter(self, Wag) or colorMainDisabled
-        local light = color ~= colorMainDisabled and color ~= colorMain
-        surface.SetDrawColor(color)
-        surface.SetMaterial(icon[light and 2 or 1])
-        surface.DrawTexturedRect(x, y, sizeStatusIcon + sizeStatusIconSpread * 2, sizeStatusIcon + sizeStatusIconSpread * 2)
+        if idx > 10 then
+            local x, y = sizeStatusSide + sizeBorder + (idx - 11) * (sizeStatusIcon + sizeStatusIconsGap) - sizeStatusIconSpread, scrOffsetY + scrH - sizeFooter - sizeStatus - sizeMainMargin + sizeBorder * 2 - sizeStatusIconSpread
+            local getter = statusGetters[idx]
+            local color = getter and getter(self, Wag) or colorMainDisabled
+            local light = color ~= colorMainDisabled and color ~= colorMain
+            surface.SetDrawColor(color)
+            surface.SetMaterial(icon[light and 2 or 1])
+            surface.DrawTexturedRect(x, y, sizeStatusIcon + sizeStatusIconSpread * 2, sizeStatusIcon + sizeStatusIconSpread * 2)
+        end
     end
 end
 
@@ -1641,4 +1691,39 @@ function TRAIN_SYSTEM:DrawPvu(Wag, x, y, w, h)
         x = x0
         y = y + ch + sizeMainMargin
     end
+end
+
+local sizeBupuIndexW = 250
+local sizeBupuCellMargin = 20
+local bupuLabels = {
+    "ПЮ функционирует", "Скольжение", "Задание бандажа", "Ошибка ПЮ", "Процессор",
+    "Модуль расширения", "Питание клапанов", "Питание энкодера",
+    "Клапан 1 ось", "Клапан 2 ось", "Клапан 3 ось", "Клапан 4 ось",
+    "Энкодер 1 ось", "Энкодер 2 ось", "Энкодер 3 ось", "Энкодер 4 ось",
+}
+local puFnc = function(x) return function(self, w, idx) return w:GetNW2Bool("Skif:PU" .. x .. idx, false) end end
+local puAllFnc = function(self, w, idx) return w:GetNW2Bool("Skif:PU1" .. idx, false) and w:GetNW2Bool("Skif:PU2" .. idx, false) end
+local bupuGetters = {
+    [1] = function(self, w, idx) return w:GetNW2Bool("Skif:PuWork" .. idx, false) end,
+    [2] = puAllFnc,
+    [4] = function(self, w, idx) return puAllFnc(self, w, idx) or not w:GetNW2Bool("Skif:Scheme" .. idx, false) or self.Throttle >= 0 end,
+    [13] = puFnc(1), [14] = puFnc(1),
+    [15] = puFnc(2), [16] = puFnc(2),
+}
+function TRAIN_SYSTEM:DrawBupu(Wag, x, y, w, h)
+    draw.SimpleText("Параметр", "Mfdu765.VoLabel", x + sizeBupuIndexW / 2, y + sizeVoIndexH - sizeVoCellMargin / 2, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+    local gx, gy, gw, gh = x + sizeBupuIndexW, y + sizeVoIndexH, w - sizeBupuIndexW, h - sizeVoIndexH - 4
+    self:DrawGrid(
+        gx, gy, gw, gh, true, {2, sizeBupuCellMargin},
+        bupuLabels, "Mfdu765.VoLabel",
+        true, "Mfdu765.VoLabel",
+        0, sizeVoCellMargin / 2,
+        function(idx, field)
+            if not Wag:GetNW2Bool("Skif:BUVState" .. idx, false) or not Wag:GetNW2Bool("Skif:PuWork" .. idx, false) and field > 1 then
+                return colorBrightText
+            end
+            local getter = bupuGetters[field]
+            return (not getter or getter(self, Wag, idx)) and colorGreen or colorRed
+        end
+    )
 end

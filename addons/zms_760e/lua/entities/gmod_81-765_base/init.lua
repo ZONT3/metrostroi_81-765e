@@ -304,6 +304,8 @@ function ENT:Think()
         end
 
         local bc = self.Pneumatic.BrakeCylinderPressure
+        local wheelsF = bogeyF:GetNW2Entity("TrainWheels")
+        local wheelsR = bogeyR:GetNW2Entity("TrainWheels")
 
         -- Increasing brake force at around 1.18 kgf/cm2 of BC
         local x = (1.5 - bc + self.Pneumatic.WeightLoadRatio * 0.8) / bc
@@ -313,12 +315,12 @@ function ENT:Think()
         )
         bogeyF.PneumaticBrakeForce = 50000.0 + auxF * 13000
         bogeyF.BrakeCylinderPressure = bc
-        bogeyF.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
+        bogeyF.ParkingBrakePressure = math.max(IsValid(wheelsF) and wheelsF:GetNW2Bool("Disabled", false) and 2.8 or 0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
         bogeyF.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
         bogeyF.DisableContacts = self.BUV.Pant
         bogeyR.PneumaticBrakeForce = 50000.0 + auxF * 13000
         bogeyR.BrakeCylinderPressure = bc
-        bogeyR.ParkingBrakePressure = math.max(0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
+        bogeyR.ParkingBrakePressure = math.max(IsValid(wheelsR) and wheelsR:GetNW2Bool("Disabled", false) and 2.8 or 0, 3.8 - self.Pneumatic.ParkingBrakePressure) / 2
         bogeyR.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
         bogeyR.DisableContacts = self.BUV.Pant
     end

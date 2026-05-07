@@ -66,6 +66,9 @@ function TRAIN_SYSTEM:Initialize()
     self.BTOKTO2Val = randomGaussian(1.7, 2.7, 3.0)
     self.BTOKTO3Val = randomGaussian(1.7, 2.7, 3.0)
     self.BTOKTO4Val = randomGaussian(1.7, 2.7, 3.0)
+    self.EncoderWork = 1
+    self.EncoderFWork = 1
+    self.EncoderRWork = 1
 
     self.WagIdx = 1
     self.TrainLen = 1
@@ -165,6 +168,8 @@ function TRAIN_SYSTEM:Think(dT)
         (Train:ReadTrainWire(14) + Train:ReadTrainWire(15) == 1 and 1 or 0) * Train.SF23F6.Value > 0
     ) and 1 or (not HasEngine and 1 or 0)
 
+    self.PuWork = self.State and Train.SF23F10.Value > 0
+
     if self.State and Train.SF23F11.Value > 0.5 then
         if not self.States.BUVWork then self.Train:CANWrite("BUV", Train:GetWagonNumber(), "BUKP", nil, "Get", 1) end
         self:CState("Battery", Train.Battery.Value == 1)
@@ -212,6 +217,8 @@ function TRAIN_SYSTEM:Think(dT)
         for i = 1, 8 do
             self:CState("DPBT" .. i, self.ADUVWork and Train:GetPackedBool("BC" .. i) or not self.ADUVWork and self.States["DPBT" .. i])
         end
+
+        self:CState("PuWork", self.PuWork)
 
         for _, sf in ipairs(SFTbl) do
             self:CState(sf, not Train[sf] or Train[sf].Value == 1)
@@ -296,6 +303,23 @@ function TRAIN_SYSTEM:Think(dT)
         for k, v in pairs(self.Commands) do
             self.Commands[k] = false
         end
+    end
+
+    if self.PuWork then
+        local WheelsF = IsValid(Train.FrontBogey) and Train.FrontBogey:GetNW2Entity("TrainWheels")
+        local EncoderF = self.EncoderFWork == 1 and IsValid(WheelsF) and not WheelsF:GetNW2Bool("Disabled", false) and constraint.Find(Train.FrontBogey, WheelsF, "Weld", 0, 0) or Train.Speed < 2.8 and self.EncoderFWork == 1
+        local WheelsR = IsValid(Train.RearBogey) and Train.RearBogey:GetNW2Entity("TrainWheels")
+        local EncoderR = self.EncoderRWork == 1 and IsValid(WheelsR) and not WheelsR:GetNW2Bool("Disabled", false) and constraint.Find(Train.RearBogey, WheelsR, "Weld", 0, 0) or Train.Speed < 2.8 and self.EncoderRWork == 1
+        self.EncoderFWork = EncoderF and 1 or 0
+        self.EncoderRWork = EncoderR and 1 or 0
+        self.EncoderWork = EncoderF and EncoderR and 1 or 0
+
+        self:CState("EncoderF", EncoderF)
+        self:CState("EncoderR", EncoderR)
+    else
+        self.EncoderFWork = 1
+        self.EncoderRWork = 1
+        self.EncoderWork = 1
     end
 
     if self.Reset and self.Reset ~= CurTime() then self.Reset = nil end
