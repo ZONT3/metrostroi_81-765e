@@ -173,8 +173,6 @@ function TRAIN_SYSTEM:Think(dT)
         self.NextLimit = 0
     end
 
-    self.AO = AO and 1 or 0
-
     local forgiveful = Wag:GetNW2Bool("ForgivefulBars", true)
 
     local Backward = Emer and Wag.RV["KRR13-14"] > 0 or Wag.RV["KRO15-16"] > 0
@@ -263,7 +261,7 @@ function TRAIN_SYSTEM:Think(dT)
                 end
                 Ring = true
             end
-            RVTB = RVTB and self:RvtbTimer("DisableDriveAttempt")
+            RVTB = RVTB and self:RvtbTimer("DisableDriveAttempt", not KmCur)
 
             if AO and Drive then
                 Brake = true
@@ -364,6 +362,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.Ring = Ring and 1 or 0
         self.Drive = Drive and 1 or 0
         self.Emer = Emer and 1 or 0
+        self.AO = AO and 1 or 0
         self.AllowStart = AllowStart and 1 or 0
         self.DisableDrive = DisableDrive
         self.SpeedLimit = SpeedLimit > self.SpeedLimit and SpeedLimit or self.SpeedLimit
@@ -391,6 +390,12 @@ function TRAIN_SYSTEM:Think(dT)
         self.RVTB = 1
         self.DisableDrive = false
 
+        self.AO = 0
+        self.WasAlsZero = false
+        self.WasAlsNoFq = false
+        self.LastAoFeature = nil
+        self.NoAoFeatureChangeTimer = nil
+
     else
         self.BTB = 0
         self.Brake = 0
@@ -406,6 +411,12 @@ function TRAIN_SYSTEM:Think(dT)
         self.Ready = true
         self.StillBrake = 0
         self.SbTimer = 0
+
+        self.AO = 0
+        self.WasAlsZero = false
+        self.WasAlsNoFq = false
+        self.LastAoFeature = nil
+        self.NoAoFeatureChangeTimer = nil
     end
 
     if not DvMeasured then
