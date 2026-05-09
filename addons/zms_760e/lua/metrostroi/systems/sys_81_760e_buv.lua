@@ -170,6 +170,9 @@ function TRAIN_SYSTEM:Think(dT)
 
     self.PuWork = self.State and Train.SF23F10.Value > 0
 
+    local WheelsF = IsValid(Train.FrontBogey) and Train.FrontBogey.Wheels
+    local WheelsR = IsValid(Train.RearBogey) and Train.RearBogey.Wheels
+
     if self.State and Train.SF23F11.Value > 0.5 then
         if not self.States.BUVWork then self.Train:CANWrite("BUV", Train:GetWagonNumber(), "BUKP", nil, "Get", 1) end
         self:CState("Battery", Train.Battery.Value == 1)
@@ -219,6 +222,8 @@ function TRAIN_SYSTEM:Think(dT)
         end
 
         self:CState("PuWork", self.PuWork)
+        self:CState("WheelsOkF", self:WheelsCheck(WheelsF))
+        self:CState("WheelsOkR", self:WheelsCheck(WheelsR))
 
         for _, sf in ipairs(SFTbl) do
             self:CState(sf, not Train[sf] or Train[sf].Value == 1)
@@ -306,16 +311,16 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     if self.PuWork then
-        local WheelsF = IsValid(Train.FrontBogey) and Train.FrontBogey:GetNW2Entity("TrainWheels")
-        local EncoderF = self.EncoderFWork == 1 and IsValid(WheelsF) and not WheelsF:GetNW2Bool("Disabled", false) and constraint.Find(Train.FrontBogey, WheelsF, "Weld", 0, 0) or Train.Speed < 2.8 and self.EncoderFWork == 1
-        local WheelsR = IsValid(Train.RearBogey) and Train.RearBogey:GetNW2Entity("TrainWheels")
-        local EncoderR = self.EncoderRWork == 1 and IsValid(WheelsR) and not WheelsR:GetNW2Bool("Disabled", false) and constraint.Find(Train.RearBogey, WheelsR, "Weld", 0, 0) or Train.Speed < 2.8 and self.EncoderRWork == 1
+        local CheckEncoderF = self:EncoderCheck(WheelsF, Train.FrontBogey)
+        local EncoderF = self.EncoderFWork == 1 and CheckEncoderF > 0 or Train.Speed < 1.8 and self.EncoderFWork == 1
+        local CheckEncoderR = self:EncoderCheck(WheelsR, Train.RearBogey)
+        local EncoderR = self.EncoderRWork == 1 and CheckEncoderR > 0 or Train.Speed < 1.8 and self.EncoderRWork == 1
         self.EncoderFWork = EncoderF and 1 or 0
         self.EncoderRWork = EncoderR and 1 or 0
         self.EncoderWork = EncoderF and EncoderR and 1 or 0
 
-        self:CState("EncoderF", EncoderF)
-        self:CState("EncoderR", EncoderR)
+        self:CState("EncoderF", EncoderF and CheckEncoderF > 1)
+        self:CState("EncoderR", EncoderR and CheckEncoderR > 1)
     else
         self.EncoderFWork = 1
         self.EncoderRWork = 1
@@ -551,4 +556,24 @@ function TRAIN_SYSTEM:Think(dT)
     self.BTOKTO2 = self.BTOKTO2 + (math.min(Train.Pneumatic.TrainLinePressure, Train.K31.Value > 0 and (self.BTOKTO2Val + (math.random() * 2 - 1) * 0.08) or 0) - self.BTOKTO2) * 2 * dT
     self.BTOKTO3 = self.BTOKTO3 + (math.min(Train.Pneumatic.TrainLinePressure, Train.K31.Value > 0 and (self.BTOKTO3Val + (math.random() * 2 - 1) * 0.08) or 0) - self.BTOKTO3) * 2 * dT
     self.BTOKTO4 = self.BTOKTO4 + (math.min(Train.Pneumatic.TrainLinePressure, Train.K31.Value > 0 and (self.BTOKTO4Val + (math.random() * 2 - 1) * 0.08) or 0) - self.BTOKTO4) * 2 * dT
+end
+
+function TRAIN_SYSTEM:WheelsCheck(wheels)
+    if not IsValid(wheels) then return false end
+    for idx = 1, 4 do
+        if wheels.KpResult and wheels.KpResult[idx] and wheels.KpResult[idx] > 4 then
+            return false
+        end
+    end
+    return true
+end
+
+function TRAIN_SYSTEM:EncoderCheck(wheels, bogey)
+    if not IsValid(wheels) then return 0 end
+    for idx = 1, 4 do
+        if wheels.KpResult and wheels.KpResult[idx] and wheels.KpResult[idx] > 2 then
+            return wheels.KpResult[idx] > 4 and 0 or 1
+        end
+    end
+    return not wheels:GetNW2Bool("Disabled", false) and constraint.Find(bogey, wheels, "Weld", 0, 0) and 2 or 0
 end

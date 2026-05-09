@@ -27,6 +27,7 @@ local ErrorsA = {
     {"ArsFail",  "Неисправность АРС.", "Неисправность АРС. Переведи\nблокиратор в положение АТС%d"},
     {"BuvDiscon", "Нет связи с БУВ-С.", "Нет связи с БУВ-С на %d вагоне."},
     {"NoOrient", "Вагон не ориентирован.", "Вагон %d не ориентирован."},
+    {"WheelsFail", "КП не в норме.", "КП не в норме на %d вагоне."},
     {"EncoderFail", "ДС не в норме.", "ДС не в норме на %d вагоне."},
     {"BrakeLine", "Низкое давление ТМ."},
     {"DisableDrive", "Запрет ТР от АРС.",},
@@ -558,7 +559,7 @@ function TRAIN_SYSTEM:CommitError()
             if isnumber(param) and str[3] then
                 self.Train:SetNW2String("Skif:ErrorStr", string.format(str[3], param))
             else
-                self.Train:SetNW2String("Skif:ErrorStr", str[2])
+                self.Train:SetNW2String("Skif:ErrorStr", str[1] == "WheelsFail" and math.random() < 0.2 and "Пизда поезду." or str[2])
             end
         end
     end
@@ -918,6 +919,7 @@ function TRAIN_SYSTEM:Think(dT)
                     self:CheckWagError(i, "PassLights", working and not train.PassLightEnabled)
                     self:CheckWagError(i, "BvDisabled", working and train.AsyncInverter and not train.BVEnabled)
                     self:CheckWagError(i, "EncoderFail", working and not (train.EncoderF and train.EncoderR))
+                    self:CheckWagError(i, "WheelsFail", working and not (train.WheelsOkF and train.WheelsOkR))
 
                     doorsNotClosed = doorsNotClosed or not doorclose
                     if working then
@@ -1101,6 +1103,7 @@ function TRAIN_SYSTEM:Think(dT)
                     self.Errors.NoOrient or
                     self.Errors.BuvDiscon or
                     self.Errors.EncoderFail or
+                    self.Errors.WheelsFail or
                     self.DepotMode
                 ) and 1 or 0
 
@@ -1217,7 +1220,7 @@ function TRAIN_SYSTEM:Think(dT)
                         Train:SetNW2Bool("Skif:LightsWork" .. i, train.PassLightEnabled)
                         Train:SetNW2Bool("Skif:PantDisabled" .. i, not train.PantDisabled)
                         Train:SetNW2Bool("Skif:RessoraGood" .. i, true)
-                        Train:SetNW2Bool("Skif:PUGood" .. i, true)
+                        Train:SetNW2Bool("Skif:PUGood" .. i, train.WheelsOkF and train.WheelsOkR and train.PuWork)
                         Train:SetNW2Bool("Skif:BUDWork" .. i, Train.PpzOrient.Value > 0 and Train.PpzActiveCabin.Value > 0 and train.BUDWork)
                     end
                 elseif self.State2 == 13 then
@@ -1302,6 +1305,7 @@ function TRAIN_SYSTEM:Think(dT)
                 elseif self.State2 == 91 then
                     for i = 1, self.WagNum do
                         local train = self.Trains[self.Trains[i]]
+                        Train:SetNW2Bool("Skif:PUGood" .. i, train.WheelsOkF and train.WheelsOkR and train.PuWork)
                         Train:SetNW2Bool("Skif:PuWork" .. i, train.PuWork)
                         Train:SetNW2Bool("Skif:PU1" .. i, train.EncoderF)
                         Train:SetNW2Bool("Skif:PU2" .. i, train.EncoderR)

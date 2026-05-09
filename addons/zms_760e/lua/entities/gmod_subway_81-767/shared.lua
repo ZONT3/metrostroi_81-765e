@@ -62,4 +62,5 @@ ENT.SharedFields = {
     "RightDoorPositions",
     "LeftDoorPositionsBAK",
     "RightDoorPositionsBAK",
+    "ZmsKpCheck",
 }

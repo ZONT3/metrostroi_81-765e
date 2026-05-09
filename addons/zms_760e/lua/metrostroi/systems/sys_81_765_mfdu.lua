@@ -1706,7 +1706,7 @@ local puAllFnc = function(self, w, idx) return w:GetNW2Bool("Skif:PU1" .. idx, f
 local bupuGetters = {
     [1] = function(self, w, idx) return w:GetNW2Bool("Skif:PuWork" .. idx, false) end,
     [2] = puAllFnc,
-    [4] = function(self, w, idx) return puAllFnc(self, w, idx) or not w:GetNW2Bool("Skif:Scheme" .. idx, false) or self.Throttle >= 0 end,
+    [4] = function(self, w, idx) return w:GetNW2Bool("Skif:PUGood" .. idx, false) and (puAllFnc(self, w, idx) or not w:GetNW2Bool("Skif:Scheme" .. idx, false) or self.Throttle >= 0) end,
     [13] = puFnc(1), [14] = puFnc(1),
     [15] = puFnc(2), [16] = puFnc(2),
 }

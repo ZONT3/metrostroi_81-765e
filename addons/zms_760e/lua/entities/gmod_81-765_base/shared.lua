@@ -40,6 +40,13 @@ end
 ENT.LeftDoorPositionsBAK = ENT.LeftDoorPositions
 ENT.RightDoorPositionsBAK = ENT.RightDoorPositions
 
+ENT.ZmsKpCheck = {
+    Vector( 41,  54, -18),
+    Vector( 41, -54, -18),
+    Vector(-41,  54, -18),
+    Vector(-41, -54, -18),
+}
+
 --------------------------------------------------------------------------------
 function ENT:PassengerCapacity()
     return 300
@@ -429,6 +436,7 @@ ENT.SharedFields = {
     "RightDoorPositions",
     "LeftDoorPositionsBAK",
     "RightDoorPositionsBAK",
+    "ZmsKpCheck",
 }
 function ENT:ExportFields(...)
     Metrostroi.BaseEnts = Metrostroi.BaseEnts or {}
