@@ -9,7 +9,7 @@ TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 local SettingSpeed = 80  -- Per second
 local SettingDelay = 0.2  -- Seconds
-local ZeroTimer = 1.6  -- Seconds
+local ZeroTimer = 1.0  -- Seconds
 
 function TRAIN_SYSTEM:Initialize()
     self.VisualPosition = 0
@@ -186,19 +186,23 @@ function TRAIN_SYSTEM:Think(dT)
                         if not self.DeltaDelay then
                             self.DeltaDelay = CurTime() + SettingDelay
                             self.DeltaDir = direction
-                            self.Accel40 = self.TractiveSetting == 100 and direction == -1
+                            self.Accel40 = self.TractiveSetting > 40 and direction == -1
+                            self.Accel20 = not self.Accel40 and self.TractiveSetting > 20 and direction == -1
                         end
                     else
                         if self.DeltaDelay then
                             direction = self.DeltaDir or direction
                             if self.Accel40 and self.TargetTractiveSetting >= 40 then
                                 new = 40
+                            elseif self.Accel20 and self.TargetTractiveSetting >= 20 then
+                                new = 20
                             else
                                 new = target + math.max(10, math.floor((self.DeltaDelay - CurTime()) * SettingSpeed / 10) * 10) * direction
                             end
                             self.DeltaDelay = nil
                             self.DeltaDir = nil
                             self.Accel40 = nil
+                            self.Accel20 = nil
                         end
                     end
 
