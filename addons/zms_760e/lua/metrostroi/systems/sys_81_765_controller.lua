@@ -7,7 +7,8 @@ Metrostroi.DefineSystem("81_765_Controller")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 
-local SettingSpeed = 80  -- Per second
+local SettingSpeed = 100  -- Per second
+local AccelSpeed = 180  -- Per second
 local SettingDelay = 0.2  -- Seconds
 local ZeroTimer = 1.0  -- Seconds
 
@@ -24,8 +25,6 @@ function TRAIN_SYSTEM:Initialize()
     self.TargetTractiveSetting = 0
     self.IsOverriden = 0
     self.DelayBypass = 0
-
-    self.Train.KvSettingSpeed = SettingSpeed
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -173,6 +172,11 @@ function TRAIN_SYSTEM:Think(dT)
                 if self.TargetTractiveSetting == 0 and (self.VisualPosition > 0.5 or self.VisualPosition < -0.5) then
                     self.TargetTractiveSetting = self.VisualPosition > 0 and 20 or -20
                     self.DelayBypass = CurTime() + SettingDelay + 0.05
+                    if self.VisualPosition > 0.5 then self.Accel = true end
+                end
+
+                if self.Accel and self.VisualPosition < 1.5 and (not self.DelayBypass or CurTime() >= self.DelayBypass) then
+                    self.Accel = false
                 end
 
                 if math.abs(self.TargetTractiveSetting) > 10 then
@@ -197,7 +201,7 @@ function TRAIN_SYSTEM:Think(dT)
                             elseif self.Accel20 and self.TargetTractiveSetting >= 20 then
                                 new = 20
                             else
-                                new = target + math.max(10, math.floor((self.DeltaDelay - CurTime()) * SettingSpeed / 10) * 10) * direction
+                                new = target + math.max(10, math.floor((self.DeltaDelay - CurTime()) * (self.Accel and AccelSpeed or SettingSpeed) / 10) * 10) * direction
                             end
                             self.DeltaDelay = nil
                             self.DeltaDir = nil
@@ -217,7 +221,7 @@ function TRAIN_SYSTEM:Think(dT)
                 local delta = self.TargetTractiveSetting - self.TractiveSetting
                 local sgn = delta > 0 and 1 or delta < 0 and -1 or 0
                 if sgn ~= 0 then
-                    local newDelta = dT * SettingSpeed * sgn
+                    local newDelta = dT * (self.Accel and AccelSpeed or SettingSpeed) * sgn
                     if math.abs(newDelta) > math.abs(delta) then
                         self.TractiveSetting = self.TargetTractiveSetting
                     else

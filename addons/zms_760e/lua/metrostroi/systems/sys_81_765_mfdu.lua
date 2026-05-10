@@ -790,13 +790,15 @@ function TRAIN_SYSTEM:DrawMainThrottle()
     local Wag = self.Train
     local thr = Wag:GetNW2Int("Skif:Throttle", 0)
     local override = Wag:GetNW2Bool("Skif:OverrideKv")
-    if override or override ~= self.LastOverride or not self.LastThrUpd or thr * (self.Throttle or 0) < 0 or thr == 0 and self.Throttle ~= 0 then
-        self.Throttle = override and thr or 0
+    local accel = Wag:GetNW2Bool("Skif:AccelKv", false) and thr > 0
+    local toZero = Wag:GetNW2Bool("Skif:ToZeroKv", false)
+    if override or override ~= self.LastOverride or not self.LastThrUpd or thr * (self.Throttle or 0) < 0 or thr == 0 and self.Throttle ~= 0 and toZero then
+        self.Throttle = (override or thr < 0) and thr or 0
     else
         local dT = CurTime() - self.LastThrUpd
         if self.Throttle ~= thr then
             local sgn = (thr > self.Throttle and 1 or -1)
-            self.Throttle = (self.Throttle or 0) + sgn * (Wag.KvSettingSpeed or 80) * dT
+            self.Throttle = (self.Throttle or 0) + sgn * (accel and 180 or 100) * dT
             if self.Throttle > thr and sgn > 0 or self.Throttle < thr and sgn < 0 then
                 self.Throttle = thr
             end

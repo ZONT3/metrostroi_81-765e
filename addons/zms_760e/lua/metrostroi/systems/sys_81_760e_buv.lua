@@ -420,7 +420,7 @@ function TRAIN_SYSTEM:Think(dT)
     if HasEngine then
         strongerBrake = self.TargetStrength < 0 and self:Get("StrongerBrake") and self:Get("StrongerBrake") > 0
     else
-        strongerBrake = self.TargetStrength < -2.5 or self.TargetStrength < 0 and self:Get("StrongerBrake") and self:Get("StrongerBrake") > 0
+        strongerBrake = self.TargetStrength < -3.1 or self.TargetStrength < 0 and self:Get("StrongerBrake") and self:Get("StrongerBrake") > 0
     end
     self.DriveStrength = strength
     if not self.Slope then

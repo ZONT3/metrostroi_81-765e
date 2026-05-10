@@ -121,7 +121,7 @@ function TRAIN_SYSTEM:Initialize()
     self.CurrentSpeed = 0
     self.ZeroSpeed = 0
     self.BudZeroSpeed = 0
-    self.ZeroSpeedDelay = math.random() * 0.5
+    self.ZeroSpeedDelay = math.random() * 0.25
     self.Speed = 0
     self.MotorWagc = 1
     self.TrailerWagc = 0
@@ -1406,8 +1406,16 @@ function TRAIN_SYSTEM:Think(dT)
         -- Вариант 2: просто нету сбора сх
         self.ControllerState = Train.PpzPrimaryControls.Value > 0 and kvSetting or 0
 
+        if Train.KV765.Position == 0 and not self.KvToZero then
+            self.KvToZero = CurTime() + 1.0
+        elseif Train.KV765.Position ~= 0 and self.KvToZero then
+            self.KvToZero = nil
+        end
+
         Train:SetNW2Int("Skif:Throttle", (overrideKv or Train.ProstKos.Command < 10) and kvSetting or Train.KV765.TargetTractiveSetting)
         Train:SetNW2Bool("Skif:OverrideKv", overrideKv)
+        Train:SetNW2Bool("Skif:AccelKv", Train.KV765.Accel)
+        Train:SetNW2Bool("Skif:ToZeroKv", not overrideKv and self.KvToZero and CurTime() >= self.KvToZero)
 
         self:CState("RV", RvWork, "BUKP")
         self:CState("Ring", Train.Ring.Value > 0, "BUKP")
@@ -1508,7 +1516,7 @@ function TRAIN_SYSTEM:Think(dT)
     if ZeroSpeed then
         ZeroSpeed = false
         if not self.ZeroSpeedTimer then
-            self.ZeroSpeedTimer = CurTime() + math.Rand(0.4 + self.ZeroSpeedDelay, 0.6 + self.ZeroSpeedDelay)
+            self.ZeroSpeedTimer = CurTime() + math.Rand(self.ZeroSpeedDelay, 0.25 + self.ZeroSpeedDelay)
         elseif CurTime() >= self.ZeroSpeedTimer then
             ZeroSpeed = true
         end
