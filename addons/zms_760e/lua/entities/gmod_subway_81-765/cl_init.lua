@@ -2869,6 +2869,21 @@ ENT.ClientProps["FrontTrain"] = {
     hide = 2,
 }
 
+ENT.ButtonMap["CoupleCenteringF"] = {
+    pos = Vector(520, -50, -50), ang = Angle(0, 90, 90),
+    width = 100, height = 30, scale = 1,
+    buttons = {
+        {
+            ID = "CoupleCenteringFToggle",
+            x = 0, y = 0, w = 100, h = 30,
+            tooltip = "Ручная центровка",
+            model = {
+                var = "CoupleCenteringF",
+            }
+        }
+    }
+}
+
 ENT.ButtonMap["PassengerDoor"] = {
     pos = Vector(400, -28.5, 40),
     ang = Angle(0, 90, 90),

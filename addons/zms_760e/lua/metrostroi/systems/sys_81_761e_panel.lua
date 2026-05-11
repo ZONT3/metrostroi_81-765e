@@ -32,6 +32,9 @@ function TRAIN_SYSTEM:Initialize()
     self.LV = 0
     if self.Train.AsyncInverter then self.WorkFan = 0 end
 
+    self.Train:LoadSystem("CoupleCenteringR", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("CoupleCenteringF", "Relay", "Switch", { bass = true })
+
     -- BUD
     for idx = 1, 8 do
         self.Train:LoadSystem("DoorManualBlock" .. idx, "Relay", "Switch", { bass = true })

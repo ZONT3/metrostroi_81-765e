@@ -158,6 +158,35 @@ ENT.ClientProps["RearTrain"] = {
 ENT.ClientSounds["RearBrakeLineIsolation"] = {{"RearBrake", function() return "disconnectvalve" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)}}
 ENT.ClientSounds["RearTrainLineIsolation"] = {{"RearTrain", function() return "disconnectvalve" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)}}
 
+ENT.ButtonMap["CoupleCenteringF"] = {
+    pos = Vector(460, -50, -50), ang = Angle(0, 90, 90),
+    width = 100, height = 30, scale = 1,
+    buttons = {
+        {
+            ID = "CoupleCenteringFToggle",
+            x = 0, y = 0, w = 100, h = 30,
+            tooltip = "Ручная центровка",
+            model = {
+                var = "CoupleCenteringF",
+            }
+        }
+    }
+}
+ENT.ButtonMap["CoupleCenteringR"] = {
+    pos = Vector(-460, 50, -50), ang = Angle(0, -90, 90),
+    width = 100, height = 30, scale = 1,
+    buttons = {
+        {
+            ID = "CoupleCenteringRToggle",
+            x = 0, y = 0, w = 100, h = 30,
+            tooltip = "Ручная центровка",
+            model = {
+                var = "CoupleCenteringR",
+            }
+        }
+    }
+}
+
 ENT.ButtonMap["ClosetCapL"] = {
     pos = Vector(445.5, 63, 26),
     ang = Angle(0, -90, 90),
@@ -1272,6 +1301,9 @@ function ENT:Think()
 
         self:AnimateCustom("DoorCabL", "position_window", self:GetPackedBool("CabinWindowLeft") and 1 or 0, 0, 1, 8, 0.5)
         self:AnimateCustom("DoorCabR", "position_window", self:GetPackedBool("CabinWindowRight") and 1 or 0, 0, 1, 8, 0.5)
+
+        self:HidePanel("CoupleCenteringF", self:GetNW2Bool("CoupleSprings", false) and self:GetNW2Bool("FrontCoupled", false))
+        self:HidePanel("CoupleCenteringR", self:GetNW2Bool("CoupleSprings", false) and self:GetNW2Bool("RearCoupled", false))
 
         local state = self:GetPackedBool("WorkCabVent", false)
         local ventTimer = self:GetPackedRatio("VentTimer", 0)

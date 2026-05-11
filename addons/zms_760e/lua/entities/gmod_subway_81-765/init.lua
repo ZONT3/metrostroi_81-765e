@@ -85,22 +85,7 @@ function ENT:Initialize()
     -- Create bogeys
     self.FrontCouple:SetModel("models/metrostroi_train/81-760/81_760_couple_wtht_ekk.mdl")
     self.FrontCouple:PhysicsInit(SOLID_VPHYSICS)
-    constraint.AdvBallsocket(self, self.FrontCouple, 0, --bone
-        0, --bone
-        Vector(431.2 + 20.8, 0, -68), Vector(0, 0, 0), 1, --forcelimit
-        1, --torquelimit
-        -2, --xmin
-        -2, --ymin
-        -15, --zmin
-        2, --xmax
-        2, --ymax
-        15, --zmax
-        0.1, --xfric
-        0.1, --yfric
-        1, --zfric
-        0, --rotonly
-        1) -- nocollide
-    self.FrontCouple.CouplingPointOffset = Vector(65, 0, 0)
+    constraint.AdvBallsocket(self, self.FrontCouple, 0, 0, self.FrontCouple.SpawnPos, Vector(0, 0, 0), 1, 1, -2, -2, -15, 2, 2, 15, 0.1, 0.1, 1, 0, 1)
     self.FrontCouple.SnakePos = Vector(65.1, 1, -4.9)
 
     -- Initialize key mapping

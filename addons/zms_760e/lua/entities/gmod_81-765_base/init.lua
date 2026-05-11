@@ -8,7 +8,7 @@ include("shared.lua")
 ENT.BogeyDistance = 650
 ENT.SyncTable = {
     "RearBrakeLineIsolation", "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "GV", "K31", "Battery", "PowerOn", "K23",
-    "EmergencyBrakeValve",
+    "EmergencyBrakeValve", "CoupleCenteringR", "CoupleCenteringF"
 }
 
 if not ENT.PvzToggles then print("ACHTUNG! PIZDEC!") end
@@ -47,8 +47,8 @@ function ENT:Initialize()
         self.RearBogey.DisableSound = 1
     end
 
-    self.FrontCouple = self:CreateCouple(self.IsIntermediate and Vector(437 - 24, 0, -68) or Vector(442.2 + 30, 0, -68), Angle(0, 0, 0), true, self.IsIntermediate and "763" or "722")
-    self.RearCouple = self:CreateCouple(self.IsIntermediate and Vector(-437 + 24, 0, -68) or Vector(-439 + 24, 0, -68), Angle(0, 180, 0), false, "763")
+    self.FrontCouple = self:CreateCouple(self.IsIntermediate and Vector(437 - 23.6, 0, -68) or Vector(442.2 + 30, 0, -68), Angle(0, 0, 0), true, self.IsIntermediate and "763" or "722")
+    self.RearCouple = self:CreateCouple(self.IsIntermediate and Vector(-437 + 23.6, 0, -68) or Vector(-439 + 23.6, 0, -68), Angle(0, 180, 0), false, "763")
     self:SetNW2Entity("FrontBogey", self.FrontBogey)
     self:SetNW2Entity("RearBogey", self.RearBogey)
     self:SetNW2Entity("FrontCouple", self.FrontCouple)
@@ -175,6 +175,30 @@ function ENT:CreateDoorTriggers()
     end
 end
 
+function ENT:RemoveSprings(isfront, coupling)
+    local couple = isfront and self.FrontCouple or self.RearCouple
+    if not IsValid(couple) then return end
+    if not couple.Centered then return end
+    -- print("remove", couple)
+    couple.Centered:Remove()
+    constraint.AdvBallsocket(self, couple, 0, 0, couple.SpawnPos, Vector(0, 0, 0), 1, 1, -2, -2, -15, 2, 2, 15, 0.1, 0.1, 1, 0, 1)
+    constraint.NoCollide(isfront and self.FrontBogey or self.RearBogey, couple, 0, 0)
+    couple.Centered = false
+end
+
+function ENT:SetSprings(isfront)
+    if not self:GetNW2Bool("CoupleSprings", false) then self:RemoveSprings(isfront) return end
+    if isfront and self.CoupleCenteringF.Value > 0 or not isfront and self.CoupleCenteringR.Value > 0 then return end
+    if isfront and self.FrontCoupledBogey or not isfront and self.RearCoupledBogey then return end
+    local couple = isfront and self.FrontCouple or self.RearCouple
+    if not IsValid(couple) or couple.Centered then return end
+    -- print("set", couple)
+    constraint.RemoveAll(couple)
+    couple:SetPos(self:LocalToWorld(couple.SpawnPos + Vector(isfront and 0.8 or -0.8, 0, 0)))
+    couple:SetAngles(self:GetAngles() + couple.SpawnAng)
+    couple.Centered = constraint.Weld(self, couple, 0, 0)
+end
+
 function ENT:TrainSpawnerUpdate()
     if self.InitializeSounds then
         self:InitializeSounds()
@@ -182,6 +206,11 @@ function ENT:TrainSpawnerUpdate()
     if self.ResetSettings then
         self:ResetSettings()
     end
+
+    -- if not self.IsIntermediate then
+    self:SetSprings(true)
+    self:SetSprings(false)
+    -- end
 
     self:SetNW2Int("BNT:ScreenFps", self:GetNW2Int("BntFps", 2) == 2 and 60 or 15)
     self:UpdateTextures()
@@ -278,6 +307,27 @@ function ENT:Think()
         self.PrevRearTrain = self.RearTrain
     end
 
+    self:SetNW2Bool("FrontCoupled", self:GetNW2Bool("CoupleSprings", false) and self.FrontCoupledBogey ~= nil)
+    self:SetNW2Bool("RearCoupled", self:GetNW2Bool("CoupleSprings", false) and self.RearCoupledBogey ~= nil)
+    if self.FrontCoupledBogey and self.CoupleCenteringF.Value > 0 then
+        self.CoupleCenteringF:TriggerInput("Set", 0)
+    end
+    if self.RearCoupledBogey and self.CoupleCenteringR.Value > 0 then
+        self.CoupleCenteringR:TriggerInput("Set", 0)
+    end
+    if self.CoupleCenteringF.Value > 0 and self.FrontCouple.Centered then
+        self:RemoveSprings(true)
+    end
+    if self.CoupleCenteringR.Value > 0 and self.RearCouple.Centered then
+        self:RemoveSprings(false)
+    end
+    if not self.FrontCoupledBogey and self.CoupleCenteringF.Value == 0 and not self.FrontCouple.Centered and self:GetNW2Bool("CoupleSprings", false) then
+        self:SetSprings(true)
+    end
+    if not self.RearCoupledBogey and self.CoupleCenteringR.Value == 0 and not self.RearCouple.Centered and self:GetNW2Bool("CoupleSprings", false) then
+        self:SetSprings(false)
+    end
+
     self:SetPackedRatio("Speed", self.Speed)
 
     if not self.IsTrailer then
@@ -340,6 +390,8 @@ function ENT:OnCouple(train, isfront)
 
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.OnCouple(self, train, isfront)
+
+    self:RemoveSprings(isfront, true)
 end
 
 function ENT:OnDecouple(isfront)
@@ -348,6 +400,8 @@ function ENT:OnDecouple(isfront)
     else
         self.RearCoupledBogey = nil
     end
+
+    self:SetSprings(isfront)
 
     self:OnConnectDisconnect()
     if self.OnDecoupled then self:OnDecoupled() end

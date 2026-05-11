@@ -220,3 +220,65 @@ function ZMS.ImportBaseEnt(name, entName)
         end
     end
 end
+
+if SERVER then
+    local enttbl = {}
+
+    local function find_differ_vals(tbl1, tbl2)
+        local result = {}
+        result["_EQUAL_VAL_COUNT"] = 0
+        for k, v in pairs(tbl1) do
+            local v2 = tbl2[k]
+            if istable(v) and istable(v2) then
+                result[k] = find_differ_vals(v, v2)
+                result["_TABLES_COUNT"] = (result["_TABLES_COUNT"] or 0) + 1
+            elseif v2 ~= v then
+                result[k] = {tostring(v), tostring(v2)}
+            else
+                result["_EQUAL_VAL_COUNT"] = result["_EQUAL_VAL_COUNT"] + 1
+            end
+        end
+        return result
+    end
+
+    local function build_tbl(ent)
+        local phys = ent:GetPhysicsObject()
+        local bs = constraint.FindConstraint(ent, "AdvBallsocket")
+        local wag = bs and bs.Ent1
+        return {
+            -- Constraints = constraint.GetTable(ent),
+            Physics = {
+                Solid = ent:GetSolid(),
+                SolidFlags = ent:GetSolidFlags(),
+                Mass = phys:GetMass(),
+                MassCenter = phys:GetMassCenter(),
+                Inertia = phys:GetInertia(),
+                AngVel = phys:GetAngleVelocity(),
+            },
+            Ballsock = bs and {
+                Wagon = wag,
+                LPos1 = bs.LPos1,
+                ActualLPos1 = wag and wag:WorldToLocal(ent:GetPos()),
+                OffsetLPos1 = wag and (bs.LPos1 - wag:WorldToLocal(ent:GetPos())),
+            },
+        }
+    end
+
+    concommand.Add("zms_prop_check", function(ply)
+        if not IsValid(ply) then return end
+        local ent = ply:GetEyeTrace().Entity
+        if not IsValid(ent) then print(ent) return end
+        if not enttbl[ply] then enttbl[ply] = ent print("First ent", ent) return end
+        print("Second ent", ent)
+        local first = enttbl[ply]
+        enttbl[ply] = nil
+
+        if first ~= ent then
+            PrintTable(find_differ_vals(build_tbl(first), build_tbl(ent)))
+        else
+            PrintTable(build_tbl(ent))
+            ent:GetPhysicsObject():OutputDebugInfo()
+        end
+    end)
+
+end
