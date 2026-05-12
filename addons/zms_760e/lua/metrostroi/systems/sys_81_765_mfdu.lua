@@ -1114,9 +1114,10 @@ function TRAIN_SYSTEM:DrawAsyncPage(Wag, x, y, w, h)
         end
     )
 
+    local wagNum = Wag:GetNW2Int("Skif:WagNum", 0)
     local barW = sizeThrottleBarW * 0.9
-    local xb, yb = x + sizeThrottleMargin, scrOffsetY + sizeTopBar + sizeMainMargin + sizeThrottleLabelsH
-    for idx = 1, Wag:GetNW2Int("Skif:WagNum", 0) do
+    local xb, yb = x + sizeThrottleMargin + (barW + sizeBorder) * (8 - wagNum), scrOffsetY + sizeTopBar + sizeMainMargin + sizeThrottleLabelsH
+    for idx = 1, wagNum do
         drawBox(xb, yb, barW, sizeThrottleBarH, colorMain, colorMainDarker, sizeBorder)
         local thr = - Wag:GetNW2Int("Skif:DriveStrength" .. idx, 0)
         if thr == 0 then
