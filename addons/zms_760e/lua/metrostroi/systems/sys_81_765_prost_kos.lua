@@ -34,7 +34,6 @@ function TRAIN_SYSTEM:Initialize()
     self.LastTagTime = 0
     self.Readings = 0
     self.Receiving = false
-    self.ShouldReceive = false
     self.LastThink = nil
     self.BlockDoorsL = false
     self.BlockDoorsR = false
@@ -57,7 +56,7 @@ end
 
 function TRAIN_SYSTEM:TriggerSensor(plate)
     local Wag = self.Train
-    if self.ShouldReceive and IsValid(plate) and plate.ProstDistance then
+    if IsValid(plate) and plate.ProstDistance then
         local prev = self.LastTag
         self.LastTag = {
             typ = plate.Mode,
@@ -166,7 +165,6 @@ function TRAIN_SYSTEM:Think()
     self.Receiving = rv and (prostWork or kosWork) and self.Distance and CurTime() - self.LastTagTime < 0.4
     self.ProstActive = prostWork and self.ProstActive > 0 and 1 or 0
     self.KosActive = kosWork and self.KosActive > 0 and 1 or 0
-    self.ShouldReceive = work
 
     if kosWork and self.KosActive < 1 then
         self.KosActive = self.Receiving and 1 or 0
@@ -184,7 +182,7 @@ function TRAIN_SYSTEM:Think()
         self.OPV = 0
         self.BlockDoorsL = true
         self.BlockDoorsR = true
-    elseif not self.LastTag or not work then
+    elseif not self.LastTag then
         self.BlockDoorsL = false
         self.BlockDoorsR = false
     elseif self.OPV < 1 and self.Distance and math.abs(self.Distance) < 3.2 then
