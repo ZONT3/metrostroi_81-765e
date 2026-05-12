@@ -925,6 +925,7 @@ ENT.SpawnerCustom = {
                         timer.Simple(2, function()
                             if not IsValid(ent) then return end
                             ent.BUKP.State = 5
+                            ent.BUKP.State2 = 0
                             ent.BUIK.State = 4
                             for idx = 1, 8 do
                                 ent:SetNW2String("BUIK:WagErr" .. idx, false)

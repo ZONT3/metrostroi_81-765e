@@ -85,7 +85,7 @@ function TRAIN_SYSTEM:Initialize()
     end
 
     self.State = 0
-    self.State2 = 0
+    self.State2 = 16
     self.Trains = {}
     self.Errors = {}
     self.WagErrors = {}
@@ -249,7 +249,7 @@ function TRAIN_SYSTEM:Trigger(name, value)
         if name == BTN_ENTER and value then
             if self.Password == self.SkifPass then
                 self.State = 3
-                self.State2 = 0
+                self.State2 = 16
                 self.DepotSel = 1
                 self.DepotWags = false
                 self.DepotMode = true
@@ -415,7 +415,7 @@ function TRAIN_SYSTEM:Trigger(name, value)
             self.CondLeto = self.Select == 1
         end
 
-        if page == 0 then
+        if page == 0 and self.State2 > 0 then
             if name == BTN_DOWN or name == BTN_UP then
                 self.PvuCursor = self.PvuCursor + (name == BTN_DOWN and 1 or -1)
                 if self.PvuCursor < 1 then self.PvuCursor = 7
@@ -644,7 +644,7 @@ function TRAIN_SYSTEM:Think(dT)
     local SkifWork = (Train.PpzAts2.Value + Train.PpzAts1.Value > 0) and Power
     if not SkifWork then
         self.State = 0
-        self.State2 = 0
+        self.State2 = 16
         self.HVBadMsg = CurTime()
         self.SkifTimer = nil
     end
@@ -674,7 +674,7 @@ function TRAIN_SYSTEM:Think(dT)
 
     if self.State == -1 and CurTime() - self.SkifTimer > 1 then
         self.State = 1
-        self.State2 = 0
+        self.State2 = 16
         self.SkifTimer = false
         self.Password = ""
         Train:SetNW2String("Skif:Pass", "")
@@ -798,7 +798,7 @@ function TRAIN_SYSTEM:Think(dT)
 
             if initialized then
                 self.State = 5
-                self.State2 = 0
+                self.State2 = 16
                 self.Select = false
                 self.Errors = {}
                 self.Prost = true
