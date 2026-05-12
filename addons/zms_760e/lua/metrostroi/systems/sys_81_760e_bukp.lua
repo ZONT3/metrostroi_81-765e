@@ -373,21 +373,22 @@ function TRAIN_SYSTEM:Trigger(name, value)
             self.AutoChPage = nil
 
             if self.State2 == 81 then self.MsgPage = 1 self:PrepareMessages() end
+            if self.State2 == 91 then self.State2 = 93 end
             return
         end
 
         local page = math.floor(self.State2 / 10)
-        if page >= 1 and name == BTN_DOWN or name == BTN_UP then
+        if page >= 1 and (name == BTN_DOWN or name == BTN_UP) then
             local down = name == BTN_DOWN
             if self.Select then
                 self.Select = self.Select + (down and 1 or -1)
                 local max = page == 8 and math.Clamp(#self.Messages - 26 * (self.MsgPage - 1), 1, 26) or 2
                 if self.Select < 1 then self.Select = max
                 elseif self.Select > max then self.Select = 1 end
-            elseif page == 1 then
+            elseif page == 1 or page == 9 then
                 self.State2 = self.State2 + (down and 1 or -1)
-                if self.State2 < 11 then self.State2 = 17
-                elseif self.State2 > 17 then self.State2 = 11 end
+                if self.State2 < (page == 1 and 11 or 91) then self.State2 = (page == 1 and 17 or 95)
+                elseif self.State2 > (page == 1 and 17 or 95) then self.State2 = (page == 1 and 11 or 91) end
             elseif page == 8 then
                 self.MsgPage = self.MsgPage + (down and -1 or 1)
                 local max = math.max(1, math.ceil(#self.Messages / 26))
@@ -1302,7 +1303,7 @@ function TRAIN_SYSTEM:Think(dT)
                         end
                         Train:SetNW2Bool("Skif:DPBT" .. i, green)
                     end
-                elseif self.State2 == 91 then
+                elseif self.State2 == 93 then
                     for i = 1, self.WagNum do
                         local train = self.Trains[self.Trains[i]]
                         Train:SetNW2Bool("Skif:PuWork" .. i, train.PuWork)

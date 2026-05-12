@@ -76,7 +76,7 @@ function BLIK_ANIM_FROM_FRAMES(frameCount, duration, cols, rows, size)
         local totalW, totalH = cols * size - 1, rows * size - 1
         return function(self, mat, w, h)
             local idx = math.min(frameCount - 1, math.floor(frameCount * (CurTime() % duration) / duration))
-            local i, j = idx % cols, math.floor(idx / cols)
+            local i, j = idx % cols, math.floor(idx / rows)
             local x, y = i * size, j * size
             local us, vs, ue, ve = x / totalW, y / totalH, (x + size - 1) / totalW, (y + size - 1) / totalH
             surface.SetDrawColor(255, 255, 255, 255)

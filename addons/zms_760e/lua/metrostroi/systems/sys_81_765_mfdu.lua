@@ -127,7 +127,15 @@ function TRAIN_SYSTEM:SkifMonitor()
                 self:DrawPage(self.DrawMessages, "Журнал")
             elseif page == 9 then
                 self.Page = 9
-                self:DrawPage(self.DrawBupu, "БУПЮ")
+                self.SubPage = self.State2 % 10
+                local title = "БУПЮ"
+                if self.SubPage > 5 then self.SubPage = 1 end
+                if self.SubPage == 1 then title = "Диагностика"
+                elseif self.SubPage == 2 then title = "Выбор Теста"
+                elseif self.SubPage == 4 then title = "БУД"
+                elseif self.SubPage == 5 then title = "???"
+                end
+                self:DrawPage(self.DrawService, title)
             elseif page == 0 then
                 self.Page = 10
                 self:DrawPage(self.DrawPvu, "Повагонное управление")
@@ -1694,6 +1702,37 @@ function TRAIN_SYSTEM:DrawPvu(Wag, x, y, w, h)
         x = x0
         y = y + ch + sizeMainMargin
     end
+end
+
+local serviceMaterials = {
+    [1] = Material("zxc765/service/s1.png", "smooth ignorez"),
+    [2] = Material("zxc765/service/s2.png", "smooth ignorez"),
+    [4] = Material("zxc765/service/s4.png", "smooth ignorez"),
+    [5] = Material("zxc765/bl/Lainie128x.png", "smooth ignorez"),
+}
+local function drawAnim(mat, x0, y0, w, h)
+    local frameCount, duration, cols, rows, size = 64, 10, 8, 8, 512
+    local totalW, totalH = cols * size - 1, rows * size - 1
+    local idx = math.min(frameCount - 1, math.floor(frameCount * (CurTime() % duration) / duration))
+    local i, j = idx % cols, math.floor(idx / rows)
+    local x, y = i * size, j * size
+    local us, vs, ue, ve = x / totalW, y / totalH, (x + size - 1) / totalW, (y + size - 1) / totalH
+    surface.SetDrawColor(255, 255, 255, 255)
+    surface.SetMaterial(mat)
+    surface.DrawTexturedRectUV(x0, y0, w, h, us, vs, ue, ve)
+end
+function TRAIN_SYSTEM:DrawService(Wag, x, y, w, h)
+    if self.SubPage == 3 then
+        self:DrawBupu(Wag, x, y, w, h)
+        return
+    end
+    if self.SubPage == 5 then
+        drawAnim(serviceMaterials[5], x, y, w, h)
+        return
+    end
+    surface.SetDrawColor(255, 255, 255)
+    surface.SetMaterial(serviceMaterials[self.SubPage])
+    surface.DrawTexturedRect(x, y, w, h)
 end
 
 local sizeBupuIndexW = 250
