@@ -29,7 +29,10 @@ end
 
 local vector_up = Vector(0, 0, 1)
 function ZMS.Hull765Check(wag)
-    wag.HullCheckResult = (1 - vector_up:Dot(wag:GetUp())) / (wag:GetNW2Bool("NerfKpDsHull", false) and 0.016 or 0.007)
+    local ang = wag:GetAngles()
+    ang.p = 0
+    ang:Normalize()
+    wag.HullCheckResult = (1 - vector_up:Dot(ang:Up())) / (wag:GetNW2Bool("NerfKpDsHull", false) and 0.012 or 0.006)
 end
 
 
