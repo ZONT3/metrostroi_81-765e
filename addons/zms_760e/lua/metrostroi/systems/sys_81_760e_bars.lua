@@ -224,7 +224,7 @@ function TRAIN_SYSTEM:Think(dT)
             if Ring and self.KVT --[[or ZeroSpeed]] then
                 Ring = false
             end
-            RVTB = RVTB and self:RvtbTimer("KvtTimer", not (Brake and KmCur or not forgiveful and AO))
+            RVTB = RVTB and self:RvtbTimer("KvtTimer", not (Ring or KmCur or not forgiveful and AO))
 
             if Speed > SpeedLimit - 1.3 and KmCur then
                 if not Drive then
@@ -299,7 +299,7 @@ function TRAIN_SYSTEM:Think(dT)
             self.PrevDvMeasure = CurTime()
             DvMeasured = true
 
-            local BrakeEff = Brake and self.dV > -3.0
+            local BrakeEff = Brake and self.dV > -3.0 and not ZeroSpeed
             if BrakeEff and not self.BrakeEff then
                 self.BrakeEff = CurTime() + 3
                 print("Start dV", self.dV)
