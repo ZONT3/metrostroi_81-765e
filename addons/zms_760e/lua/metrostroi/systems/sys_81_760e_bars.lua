@@ -255,7 +255,7 @@ function TRAIN_SYSTEM:Think(dT)
             end
             if KmCur and DisableDrive and not self.ControllerInDrive then
                 if not forgiveful then
-                    self.DisableDriveAttempt = CurTime()
+                    self:RvtbNow("DisableDriveAttempt")
                 else
                     Brake = true
                 end
@@ -290,7 +290,21 @@ function TRAIN_SYSTEM:Think(dT)
             if not self.NoFreq and KmCur and Speed < 0.8 and not self.NoSpeedTimer then
                 self.NoSpeedTimer = CurTime() + (Emer and 6.2 or 4.8)
             end
-            RVTB = RVTB and self:RvtbTimer("NoSpeedTimer", self.NoFreq or not KmCur or Speed >= 0.8)
+            RVTB = RVTB and self:RvtbTimer("NoSpeedTimer", self.NoFreq or not KmCur or Speed >= 1.4)
+
+            if not forgiveful then
+                if ZeroSpeed and self.SpeedGained then
+                    self.SpeedGained = false
+                end
+                if KmCur and not self.SpeedGained and Speed > 2.7 then
+                    self.SpeedGained = true
+                end
+                if not KmCur and not ZeroSpeed and not self.SpeedGained then
+                    Ring = true
+                    self:RvtbNow("NoSpeedGained")
+                end
+                RVTB = RVTB and self:RvtbTimer("NoSpeedGained", true)
+            end
 
             if self.PrevSpeed and self.PrevDvMeasure then
                 self.dV = (Speed - self.PrevSpeed) / (CurTime() - self.PrevDvMeasure)
@@ -351,7 +365,7 @@ function TRAIN_SYSTEM:Think(dT)
         if Emer then
             local EmerCondition = not UOS and Drive and not (Brake and SpeedLimit > 21) and self.Emer == 1 or UOS and self.KB
             if not EmerCondition and not self.EmerTimer then
-                self.EmerTimer = CurTime()
+                self:RvtbNow("EmerTimer")
             end
             RVTB = RVTB and self:RvtbTimer("EmerTimer", EmerCondition, not UOS and ZeroSpeed and AllowStart and KmCur or UOS and self.KB)
         end
@@ -491,4 +505,8 @@ function TRAIN_SYSTEM:RvtbTimer(name, restore, bypass)
         end
     end
     return true
+end
+
+function TRAIN_SYSTEM:RvtbNow(name)
+    self[name] = CurTime()
 end
