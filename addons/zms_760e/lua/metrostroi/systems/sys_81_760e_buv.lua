@@ -222,8 +222,18 @@ function TRAIN_SYSTEM:Think(dT)
         end
 
         self:CState("PuWork", self.PuWork)
-        self:CState("WheelsOkF", self:WheelsCheck(WheelsF))
-        self:CState("WheelsOkR", self:WheelsCheck(WheelsR))
+        if (not self:WheelsCheck(WheelsF) or not self:WheelsCheck(WheelsR)) then
+            if not self.HullTimer then
+                self.HullTimer = CurTime() + 1.7
+            end
+        elseif self.HullTimer then
+            self.HullTimer = nil
+        end
+        local hullOk = (Train.HullCheckResult or 0) < 1
+        if hullOk and self.HullTimer and CurTime() < self.HullTimer then
+            hullOk = false
+        end
+        self:CState("HullOk", hullOk)
 
         for _, sf in ipairs(SFTbl) do
             self:CState(sf, not Train[sf] or Train[sf].Value == 1)
@@ -559,7 +569,7 @@ function TRAIN_SYSTEM:Think(dT)
 end
 
 function TRAIN_SYSTEM:WheelsCheck(wheels)
-    if not IsValid(wheels) then return false end
+    if not IsValid(wheels) or wheels.KpConstrFail then return false end
     for idx = 1, 4 do
         if wheels.KpResult and wheels.KpResult[idx] and wheels.KpResult[idx] > 4 then
             return false
@@ -575,5 +585,5 @@ function TRAIN_SYSTEM:EncoderCheck(wheels, bogey)
             return wheels.KpResult[idx] > 4 and 0 or 1
         end
     end
-    return not wheels:GetNW2Bool("Disabled", false) and constraint.Find(bogey, wheels, "Weld", 0, 0) and 2 or 0
+    return not wheels:GetNW2Bool("Disabled", false) and not wheels.KpConstrFail and 2 or 0
 end

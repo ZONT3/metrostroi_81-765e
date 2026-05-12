@@ -252,7 +252,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         self.PowerReserve = PowerReserve
         Train:WriteTrainWire(20, P)
         Train:WriteTrainWire(36, Train.SF23F1.Value * Train.EmergencyControls.Value)
-        local Drive = Train.BARS.Drive * min(Train.BARS.UOS + (1 - Train.BARS.Brake) * (Train.BUKP.DoorClosed + Train.DoorBlock.Value), 1)
+        local Drive = Train.BARS.Drive * min(Train.BARS.UOS + (1 - Train.BARS.Brake) * (Train.BUKP.DoorClosed + Train.DoorBlock.Value) * (1 - Train.BUKP.BupDisableDrive), 1)
         local Orientation = C(Train.SF23F13.Value * Train.BUKP.Active + RV["KRR7-8"] > 0)
         Train:WriteTrainWire(19, PowerReserve * (1 - Train.SD3.Value) * RV["KRR7-8"] * Drive * Train.EmerX1.Value)
         Train:WriteTrainWire(45, PowerReserve * (1 - Train.SD3.Value) * RV["KRR7-8"] * Drive * Train.EmerX2.Value)
@@ -329,7 +329,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Panel.DoorCloseL = min(1, UPIPower * Train.SF23F2.Value + self.DoorsControl) * Train.SF80F5.Value * Train.SF80F1.Value * S["RV"] * Train.BUKP.Active * Train.DoorClose.Value
         Panel.DoorBlockL = UPIPower * Train.DoorBlock.Value
         Panel.EmerBrakeL = PowerReserve * C(Train.Pneumatic.EmerBrakeWork == 1 or Train.Pneumatic.EmerBrakeWork == true) * BTB
-        Panel.EmerXodL = PowerReserve * abs(RV.KRRPosition) * (1 - Train.SD3.Value) * Train.BARS.Drive
+        Panel.EmerXodL = PowerReserve * abs(RV.KRRPosition) * (1 - Train.SD3.Value) * Train.BARS.Drive * (1 - Train.BUKP.BupDisableDrive)
         Panel.KAHl = UPIPower * Train.KAH.Value
         Panel.ALSl = UPIPower * Train.ALS.Value
         Panel.PRl = UPIPower * Train.Pr.Value * Train.SF70F3.Value

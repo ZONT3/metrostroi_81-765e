@@ -742,6 +742,7 @@ ENT.SpawnerCustom = {
     { "ForgivefulBars", "БАРС прощает ошибки", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
     { "BtbuSd", "Автомат ППЗ БТБУ", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
     { "CoupleSprings", "Центровка автосцепок", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "NerfKpDsHull", "Нерф КП/ДС/Кузов", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
     {
         "NoTrailers", "Без прицепных 763Э", "Boolean", false, nil,
         function(self, stbl)
@@ -981,10 +982,10 @@ ENT.Spawner = {
     ENT.SpawnerLogos("MosMetro", "MosBrend", "MosBrend3D"),
     ENT.SpawnerCustom[5],  -- BLIK:Anim
     ENT.SpawnerCustom[9],  -- RingType765
-    ENT.SpawnerCustom[16],  -- NoTrailers
-    ENT.SpawnerCustom[21],  -- ArsMode
-    ENT.SpawnerCustom[22],  -- KdLongerDelay
-    ENT.SpawnerCustom[23],  -- BreakRedChance
+    ENT.SpawnerCustom[17],  -- NoTrailers
+    ENT.SpawnerCustom[22],  -- ArsMode
+    ENT.SpawnerCustom[23],  -- KdLongerDelay
+    ENT.SpawnerCustom[24],  -- BreakRedChance
     { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
     ENT.SpawnerCustom[#ENT.SpawnerCustom]
 }

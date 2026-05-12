@@ -20,11 +20,16 @@ function ZMS.Kp765Check(wag, wheels, idx)
         if tr.Hit then
             wheels.KpResult[idx] = 0
         else
-            wheels.KpResult[idx] = math.min(99, (wheels.KpResult[idx] or 0) + 1)
+            wheels.KpResult[idx] = math.min(99, (wheels.KpResult[idx] or 0) + (wag:GetNW2Bool("NerfKpDsHull", false) and 0.5 or 1))
         end
     else
         wheels.KpResult[idx] = 0
     end
+end
+
+local vector_up = Vector(0, 0, 1)
+function ZMS.Hull765Check(wag)
+    wag.HullCheckResult = (1 - vector_up:Dot(wag:GetUp())) / (wag:GetNW2Bool("NerfKpDsHull", false) and 0.016 or 0.007)
 end
 
 
@@ -57,4 +62,26 @@ hook.Add("Think", "765.KpCheck", function()
             ZMS.Kp765Check(wag, wheels, kp_idx)
         end
     end
+end)
+
+local constr_met = nil
+hook.Add("Think", "765.KpConstraintCheck", function()
+    for w in pairs(Metrostroi.SpawnedTrains) do
+        if IsValid(w) and w.ZmsKpCheck then
+            constr_met = constr_met or {}
+            if not constr_met[w] then
+                constr_met[w] = true
+                for _, bogeyK in ipairs(bogeys) do
+                    local bogey = IsValid(w[bogeyK]) and w[bogeyK]
+                    local wheels = bogey and IsValid(bogey.Wheels) and bogey.Wheels
+                    if bogey and wheels and not IsValid(constraint.Find(bogey, wheels, "Weld", 0, 0)) then
+                        wheels.KpConstrFail = true
+                    end
+                    ZMS.Hull765Check(w)
+                end
+                return
+            end
+        end
+    end
+    constr_met = nil
 end)
