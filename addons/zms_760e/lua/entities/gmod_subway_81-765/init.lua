@@ -113,6 +113,7 @@ function ENT:Initialize()
         [KEY_M] = "AttentionSet",
         [KEY_H] = "PrToggle",
         [KEY_LSHIFT] = {
+            [KEY_W] = "KV765Set3",
             [KEY_S] = "KV765Set7",
             [KEY_SPACE] = "AttentionBrakeSet",
             [KEY_V] = "EmergencyDoorsToggle",
