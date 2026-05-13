@@ -36,6 +36,7 @@ function TRAIN_SYSTEM:Initialize()
         self.RightDoorDir = {0, 0, 0, 0}
         self.LeftDoorSpeed = {0, 0, 0, 0}
         self.RightDoorSpeed = {0, 0, 0, 0}
+        self.ReverseDelay = {}
         self.ForeignObject = {}
         self.AutoReverse = {}
         self.StuckPass = {}
@@ -370,10 +371,12 @@ if SERVER then
                 if commandOpen and self.AutoReverse[idx] then self.AutoReverse[idx] = nil end
                 if not commandOpen and not self.AutoReverse[idx] and state[i] < 0.65 and state[i] >= 0.15 and dir[i] > -0.4 / speed then
                     self.AutoReverse[idx] = 1
+                    self.ReverseDelay[idx] = CurTime() + 0.4
                 end
                 if self.AutoReverse[idx] == 1 then
-                    if state[i] >= 1 then
+                    if state[i] >= 0.75 then
                         self.AutoReverse[idx] = 2
+                        self.ReverseDelay[idx] = CurTime() + 0.4
                         if self.StuckPass[idx] == 1 and math.random() < 0.9 then
                             self.StuckPass[idx] = 0
                         end
@@ -393,13 +396,18 @@ if SERVER then
                     stuck = self:GetForeignObject(idx)
                 end
 
-                if commandOpen or not self.DoorClosed[idx] and self.CloseDelay[idx] and CurTime() >= self.CloseDelay[idx] then
-                    dir[i] = math.Clamp(dir[i] + dT * (not stuck and 0.5 or -1.5) * (commandOpen and 1 or -1), -1 / speed, not stuck and (1 / speed) or 0)
-                elseif not commandOpen and not self.DoorClosed[idx] and not self.CloseDelay[idx] then
-                    self.CloseDelay[idx] = self.DoorOpen[idx] and (CurTime() + 2.1 + self.DoorsDelayMax * (i % 2 == 0 and BUV.WagIdx - 1 or BUV.TrainLen - BUV.WagIdx - 1) / BUV.TrainLen) or 0
-                    clState = 1
-                elseif self.DoorClosed[idx] and self.CloseDelay[idx] then
-                    self.CloseDelay[idx] = nil
+                if self.ReverseDelay[idx] and CurTime() > self.ReverseDelay[idx] then self.ReverseDelay[idx] = nil end
+                if not self.ReverseDelay[idx] then
+                    if commandOpen or not self.DoorClosed[idx] and self.CloseDelay[idx] and CurTime() >= self.CloseDelay[idx] then
+                        dir[i] = math.Clamp(dir[i] + dT * (not stuck and 0.5 or -1.5) * (commandOpen and 1 or -1), -1 / speed, not stuck and (1 / speed) or 0)
+                    elseif not commandOpen and not self.DoorClosed[idx] and not self.CloseDelay[idx] then
+                        self.CloseDelay[idx] = self.DoorOpen[idx] and (CurTime() + 2.1 + self.DoorsDelayMax * (i % 2 == 0 and BUV.WagIdx - 1 or BUV.TrainLen - BUV.WagIdx - 1) / BUV.TrainLen) or 0
+                        clState = 1
+                    elseif self.DoorClosed[idx] and self.CloseDelay[idx] then
+                        self.CloseDelay[idx] = nil
+                    end
+                else
+                    dir[i] = 0
                 end
 
                 if commandOpen and not self.AutoReverse[idx] and self.CloseDelay[idx] then
@@ -460,6 +468,7 @@ if SERVER then
                 announceState = anyOpening and "OpeningAddr" or "Open"
             end
             if announceState == "Closed" and anyClosing then announceState = "ClosingAwaiting" end
+            if announceState == "Closing" and self.AutoReverse[idx] == 1 then announceState = "ClosingAwaiting" end
             Wag:SetNW2String("DoorAnnounceState" .. idx, announceState)
         end
 
