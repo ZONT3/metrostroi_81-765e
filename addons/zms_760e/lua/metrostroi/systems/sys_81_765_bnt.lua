@@ -28,29 +28,34 @@ if SERVER then
 
     function TRAIN_SYSTEM:Think(dT)
         local Wag = self.Train
-        local Power = Wag.Electric.Battery80V > 62 and Wag.BUV.Power * (Wag.SF45F7.Value + Wag.SF45F8.Value) > 0
-        local PowerLeft = Power and Wag.SF45F7.Value > 0
-        local PowerRight = Power and Wag.SF45F8.Value > 0
+        local PowerLeft = self.Power and Wag.SF45F7.Value > 0
+        local PowerRight = self.Power and Wag.SF45F8.Value > 0
 
         Wag:SetNW2Bool("BNT:PowerLeft", PowerLeft)
         Wag:SetNW2Bool("BNT:PowerRight", PowerRight)
         Wag:SetNW2Bool("BNT:SelectLeft", Wag.BUV.SelectLeft)
         Wag:SetNW2Bool("BNT:SelectRight", Wag.BUV.SelectRight)
         Wag:SetNW2Bool("BNT:Working", self.ActiveRoute and (PowerLeft or PowerRight) and self.Working)
-        Wag:SetNW2Bool("BNT:FirstStation", self.Station == 1)
-        Wag:SetNW2Bool("BNT:SecondStation", self.Station == 2)
         Wag:SetNW2Bool("BNT:Terminus", self.Terminus)
+        if not self.Power and Wag:GetNW2String("BNT:RouteId", "") ~= "" then
+            self:Reset()
+        end
+    end
+
+    function TRAIN_SYSTEM:Reset()
+        self.Terminus = false
+        self.ActiveRoute = nil
+        self:SetStation(1)
     end
 
     function TRAIN_SYSTEM:SetStation(stIdx)
         self.Station = stIdx
         self:SetString("BNT:Stations", self.Stations)
-        self:SetInt("BNT:Station", stIdx)
+        self:SetInt("BNT:Station", stIdx, 1)
         self:SetInt("BNT:LastStation", self.LastStation)
         self:SetString("BNT:RouteId", self.ActiveRoute or "")
-        self:SetInt("BNT:Route", self.Route)
-        self:SetInt("BNT:Loop", self.Loop)
-        self:SetInt("BNT:CfgIdx", self.CfgIdx)
+        self:SetInt("BNT:Route", self.Route, -1)
+        self:SetInt("BNT:Loop", self.Loop and 1 or 0)
         self:SetInt("BNT:StationAnim", 0)
     end
 
@@ -72,17 +77,16 @@ if SERVER then
         self:SetInt("BNT:ArrivedAnim", CurTime() * 10)
     end
 
-    function TRAIN_SYSTEM:SetCl(fnc, str, val, arg, ...)
-        if arg then str = string.format(str, arg, ...) end
-        fnc(self.Train, str, val)
+    function TRAIN_SYSTEM:SetCl(fnc, str, val, default)
+        fnc(self.Train, str, self.Power and val or not self.Power and default)
     end
 
-    function TRAIN_SYSTEM:SetInt(str, val, arg, ...)
-        self:SetCl(self.Train.SetNW2Int, str, val, arg, ...)
+    function TRAIN_SYSTEM:SetInt(str, val, default)
+        self:SetCl(self.Train.SetNW2Int, str, val, default or 0)
     end
 
-    function TRAIN_SYSTEM:SetString(str, val, arg, ...)
-        self:SetCl(self.Train.SetNW2String, str, val, arg, ...)
+    function TRAIN_SYSTEM:SetString(str, val, default)
+        self:SetCl(self.Train.SetNW2String, str, val, default or "")
     end
 
 else
@@ -275,15 +279,58 @@ else
 
     function TRAIN_SYSTEM:DrawBnt(left)
         local Wag = self.Train
-        if left and not Wag:GetNW2Bool("BNT:PowerLeft", false) or not left and not Wag:GetNW2Bool("BNT:PowerRight", false) then
+        local power = left and Wag:GetNW2Bool("BNT:PowerLeft", false) or not left and Wag:GetNW2Bool("BNT:PowerRight", false)
+        local poweron = not (left and self.PowerLeft or not left and self.PowerRight) and power
+        if left then
+            self.PowerLeft = power
+        else
+            self.PowerRight = power
+        end
+        if not power then
             surface.SetDrawColor(2, 2, 2)
             surface.DrawRect(0, 0, scw, sch)
             return
-        elseif not self.Working then
-            surface.SetDrawColor(12, 12, 12)
+        end
+
+        if self.RouteId ~= (self.Working and Wag:GetNW2String("BNT:RouteId", "") or "Stub") then
+            self:InitializeRoute()
+        end
+
+        if poweron then
+            if left then
+                self.PowerOnLeftTimer = CurTime() + 6
+            else
+                self.PowerOnRightTimer = CurTime() + 6
+            end
+        end
+
+        local poweronTimer = left and self.PowerOnLeftTimer or not left and self.PowerOnRightTimer
+        if poweronTimer then
+            if CurTime() > poweronTimer then
+                if left then
+                    self.PowerOnLeftTimer = nil
+                else
+                    self.PowerOnRightTimer = nil
+                end
+            else
+                local anim = poweronTimer - CurTime()
+                if anim > 2 then
+                    surface.SetDrawColor(44, 44, 44)
+                else
+                    surface.SetDrawColor(colorBackground)
+                end
+                surface.DrawRect(0, 0, scw, sch)
+                return
+            end
+        end
+
+        if not self.Stations or #self.Stations < 2 then
+            surface.SetDrawColor(44, 44, 44)
             surface.DrawRect(0, 0, scw, sch)
             draw.SimpleText("БЛОК НЕАКТИВЕН", "BNT.SystemHeader", scw / 2, sch / 2, colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             draw.SimpleText(left and "левый" or "правый", "BNT.SystemSmall", scw / 2, 480, colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText("Ошибка загрузки конфигов", "BNT.SystemSmall", scw / 2, 20, colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText("Возможно, на карте их нет", "BNT.SystemSmall", scw / 2, 48, colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             return
         end
 
@@ -313,13 +360,6 @@ else
             end
             self.Fps = fps
         end
-
-        if self.RouteId ~= Wag:GetNW2String("BNT:RouteId", "") then
-            self:InitializeRoute()
-        end
-
-        surface.SetDrawColor(12, 12, 12)
-        surface.DrawRect(0, 0, scw, sch)
 
         local stationAnim = animate(Wag:GetNW2Int("BNT:StationAnim", 0), 7, StationAnimDuration)
         local gifSlideIn = 0
@@ -378,11 +418,11 @@ else
         end
 
         local x0, y0 = 100, 290 + y * 0.75
-        local firstStation = Wag:GetNW2Bool("BNT:FirstStation", false)
-        local secondStation = Wag:GetNW2Bool("BNT:SecondStation", false)
         local station = Wag:GetNW2Int("BNT:Station", 1)
-        local loop = Wag:GetNW2Bool("BNT:Loop", false)
-        local stcount = loop and 7 or math.min(#self.Stations, Wag:GetNW2Int("BNT:LastStation", 0)) - station + 1
+        local firstStation = station == 1
+        local secondStation = station == 2
+        local loop = Wag:GetNW2Int("BNT:Loop", 0) == 1
+        local stcount = loop and 7 or math.min(#self.Stations, Wag:GetNW2Int("BNT:LastStation", #self.Stations)) - station + 1
         local termx, termy = scw - sizeTrminusBanner * terminusAnim, y
         local linex, liney = (not loop and firstStation and x0 or 0), y0 + 40
         local lineEnd = scw
@@ -548,17 +588,18 @@ else
 
     function TRAIN_SYSTEM:InitializeRoute()
         local Wag = self.Train
-        self.RouteId = Wag:GetNW2String("BNT:RouteId", "")
+        self.RouteId = self.Working and Wag:GetNW2String("BNT:RouteId", "") or "Stub"
         self.Stations = {}
 
         local cfg = Metrostroi.CISConfig[Wag:GetNW2Int("CISConfig", 1)]
         cfg = cfg and cfg[Wag:GetNW2Int("BNT:Route", -1)] or cfg and cfg[1] or {}
         local fallbackCfg = Metrostroi.ASNPSetup[Wag:GetNW2Int("Announcer", 1)]
-        fallbackCfg = fallbackCfg and fallbackCfg[Wag:GetNW2Int("BNT:Route", -1)] or {}
+        fallbackCfg = fallbackCfg and fallbackCfg[Wag:GetNW2Int("BNT:Route", -1)] or fallbackCfg and fallbackCfg[1] or {}
 
         self.LineColor = cfg.Color or "#6e6e6e"
 
         local stations = Wag:GetNW2String("BNT:Stations", "")
+        if #stations == 0 then stations = self:GetFallbackStationIds(cfg, fallbackCfg) end
         stations = #stations > 0 and string.Explode(",", stations) or {}
         for idx, index in ipairs(stations) do
             index = tonumber(index)
@@ -626,6 +667,19 @@ else
                 return
             end
         end
+    end
+
+    function TRAIN_SYSTEM:GetFallbackStationIds(cisCfg, asnpCfg)
+        for _, cfg in ipairs({cisCfg, asnpCfg}) do
+            if #cfg > 0 then
+                local ids = {}
+                for idx, v in ipairs(cfg) do
+                    ids[idx] = v[1]
+                end
+                return table.concat(ids, ",")
+            end
+        end
+        return ""
     end
 
     if not isfunction(HexToColor) then

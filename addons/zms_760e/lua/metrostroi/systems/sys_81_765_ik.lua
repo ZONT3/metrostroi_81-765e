@@ -37,13 +37,17 @@ if SERVER then
 
     function TRAIN_SYSTEM:Think(dT)
         local Wag = self.Train
-        local Power = Wag.Electric.Battery80V > 62 and Wag.BUV.Power * (Wag.SF45F7.Value + Wag.SF45F8.Value) > 0
-        Wag:SetNW2Bool("DoorAlarmState", Power and self.DoorAlarm or false)
+        self.Power = Wag.Electric.Battery80V > 62 and Wag.BUV.Power * (Wag.SF45F7.Value + Wag.SF45F8.Value) > 0
+        local poweron = self.Power and not self.Train.BNT.Power
+        self.Train.BNT.Power = self.Power
+        Wag:SetNW2Bool("DoorAlarmState", self.Power and self.DoorAlarm or false)
+
+        if poweron then self.Reset = true end
 
         for _, name in ipairs(self.Executables) do
             if self[name] then
                 self[name] = false
-                if Power then
+                if self.Power then
                     self["Run" .. name](self)
                 end
             end
