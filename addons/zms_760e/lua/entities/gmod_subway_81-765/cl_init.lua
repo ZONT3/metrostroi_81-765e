@@ -3309,17 +3309,6 @@ ENT.ClientProps["GvWrench"] = {
     hide = 0.5,
 }
 
-for i = 0, 3 do
-    for k = 0, 1 do
-        ENT.ClientProps["door" .. i .. "x" .. k] = {
-            model = "models/metrostroi_train/81-760e/81_760e_door.mdl",
-            pos = Vector(229.92 * i * (k == 0 and 1 or -1), 0, 0),
-            ang = Angle(0, 180 + k * 180, 0),
-            hide = 2
-        }
-    end
-end
-
 ENT.ClientProps["DoorCabM"] = {
     model = "models/metrostroi_train/81-765/sdoor.mdl",
     pos = Vector(0, 0, 0),

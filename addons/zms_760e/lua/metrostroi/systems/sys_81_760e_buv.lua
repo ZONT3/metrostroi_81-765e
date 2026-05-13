@@ -180,8 +180,8 @@ function TRAIN_SYSTEM:Think(dT)
         if not self.States.BUVWork then self.Train:CANWrite("BUV", Train:GetWagonNumber(), "BUKP", nil, "Get", 1) end
         self:CState("Battery", Train.Battery.Value == 1)
         for i = 1, 4 do
-            self:CState("Door" .. i .. "Closed", self.ADUDWork and Train.Pneumatic.LeftDoorState[i] == 0 or not self.ADUDWork and Train.Battery.Value > 0 and self.States["Door" .. i .. "Closed"])
-            self:CState("Door" .. (i + 4) .. "Closed", self.ADUDWork and Train.Pneumatic.RightDoorState[i] == 0 or not self.ADUDWork and Train.Battery.Value > 0 and self.States["Door" .. (i + 4) .. "Closed"])
+            self:CState("Door" .. i .. "Closed", self.ADUDWork and Train.BUD.LeftDoorClosed[i] and CurTime() >= Train.BUD.LeftDoorClosed[i] or not self.ADUDWork and Train.Battery.Value > 0 and self.States["Door" .. i .. "Closed"])
+            self:CState("Door" .. (i + 4) .. "Closed", self.ADUDWork and Train.BUD.RightDoorClosed[i] and CurTime() >= Train.BUD.RightDoorClosed[i] or not self.ADUDWork and Train.Battery.Value > 0 and self.States["Door" .. (i + 4) .. "Closed"])
         end
 
         self:CState("LeftDoorsOpened", self.ADUDWork and Train.LeftDoorsOpened or not self.ADUDWork and Train.Battery.Value > 0 and self.States.LeftDoorsOpened)

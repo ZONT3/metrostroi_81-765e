@@ -580,20 +580,15 @@ ENT.ClientProps["K31cap"] = {
     hide = 0.5,
 }
 
-for i = 0, 3 do
-    for k = 0, 1 do
-        ENT.ClientProps["door" .. i .. "x" .. k] = {
-            model = "models/metrostroi_train/81-760e/81_760e_door.mdl",
-            pos = Vector(229.92 * i * (k == 0 and 1 or -1), 0, 0),
-            ang = Angle(0, 180 + k * 180, 0),
-            hide = 2,
-        }
-    end
-end
-
 for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}) do
     for i, pos in ipairs(tbl) do
         local idx = (k - 1) * 4 + i
+        ENT.ClientProps["Door" .. idx] = {
+            model = "models/metrostroi_train/81-760e/81_760e_door.mdl",
+            pos = k == 1 and pos - tbl[1] or tbl[1] - pos * Vector(-1, 1, 1),
+            ang = Angle(0, k == 1 and 0 or -180, 0),
+            hide = 2,
+        }
         ENT.ButtonMap["DoorAddressOpen" .. idx] = {
             pos = pos + Vector(k == 1 and -250 - 10 or 250 + 10, 0, 170) * 0.05,
             ang = Angle(0, k == 1 and 0 or -180, 90),
@@ -620,8 +615,8 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
         }
         ENT.ClientProps["DoorArrdessButton" .. idx] = {
             model = "models/metrostroi_train/81-765/door_button.mdl",
-            pos = Vector(229.92 * (i - 1) * (k == 1 and 1 or -1), k == 1 and 0.08 or -0.08, 0),
-            ang = Angle(0, 180 + (k - 1) * 180, 0),
+            pos = k == 1 and pos - tbl[1] or tbl[1] - pos * Vector(-1, 1, 1),
+            ang = Angle(0, k == 1 and 0 or -180, 0),
             hide = 2,
         }
         ENT.ButtonMap["DoorManualBlock" .. idx] = {
@@ -1076,74 +1071,6 @@ function ENT:Think()
     self:ShowHide("K31", K31cap > 0)
     self:HidePanel("K31", K31cap < 1)
     self:Animate("K31", self:GetPackedBool("K31") and 0 or 1, 0, 1, 16, 0.5)
-
-    -- LEGACY, to be removed
-    if not self.DoorStates then self.DoorStates = {} end
-    if not self.DoorLoopStates then self.DoorLoopStates = {} end
-    for i = 0, 3 do
-        for k = 0, 1 do
-            local st = k == 1 and "DoorL" or "DoorR"
-            local id, sid = st .. (i + 1), "door" .. i .. "x" .. k
-            local doorstate = self:GetPackedBool("Command" .. id)
-            local state = self:GetPackedRatio(id)
-
-            local randvalKey = "Door" .. (k == 1 and "L" or "R") .. "BR" .. (i + 1)
-            if not self[randvalKey] then self[randvalKey] = math.random(0, 1) end
-            local randval = self[randvalKey]
-            if (state ~= 1 and state ~= 0) ~= self.DoorStates[id] then
-                if doorstate and state < 1 or not doorstate and state > 0 then
-                    if doorstate then
-                        self:PlayOnce(sid .. "op" .. randval, "", 1, 1)
-                    end
-                else
-                    if state > 0 then
-                        self:PlayOnce(sid .. "o" .. randval, "", 1, 1)
-                    else
-                        self:PlayOnce(sid .. "c" .. randval, "", 1, 1)
-                    end
-                    self[randvalKey] = math.random(0, 1)
-                end
-
-                self.DoorStates[id] = state ~= 1 and state ~= 0
-            end
-
-            if state ~= 1 and state ~= 0 then
-                self.DoorLoopStates[id] = math.Clamp((self.DoorLoopStates[id] or 0) + 2 * self.DeltaTime, 0, 1)
-            else
-                self.DoorLoopStates[id] = math.Clamp((self.DoorLoopStates[id] or 0) - 6 * self.DeltaTime, 0, 1)
-            end
-
-            self:SetSoundState(sid .. "r" .. randval, self.DoorLoopStates[id], 1) --0.9+self.DoorLoopStates[id]*0.1)
-            self:SetSoundState(sid .. "r" .. math.abs(1 - randval), 0, 0)
-            local n_l = "door" .. i .. "x" .. k
-            self:Animate(n_l, 1 - state, 0, 1, 15, 1) --0.8 + (-0.2+0.4*math.random()),0)
-
-            local idx = k * 4 + i + 1
-            local btnKey = "DoorArrdessButton" .. idx
-            self:Animate(btnKey, 1 - state, 0, 1, 15, 1)
-        end
-    end
-
-    for idx = 1, 8 do
-        self:HidePanel("DoorManual" .. idx, not self:GetNW2Bool("DoorManualOpenLever" .. idx, false))
-        self:HidePanel("DoorManualOutside" .. idx, not self:GetNW2Bool("DoorManualOpenLever" .. idx, false))
-        local open = self:GetPackedRatio((idx < 5 and "DoorL" or "DoorR") .. (idx < 5 and idx or 9 - idx), 0) > 0
-        self:HidePanel("DoorManualBlock" .. idx, open)
-        self:HidePanel("DoorAddressOpen" .. idx, open or not self:GetNW2Bool("AddressDoors", false))
-        self:HidePanel("DoorAddressOpenOutside" .. idx, open or not self:GetNW2Bool("AddressDoors", false))
-        local btnKey = "DoorArrdessButton" .. idx
-        self:ShowHide(btnKey, self:GetNW2Bool("AddressDoors", false))
-        local btn = self.ClientEnts[btnKey]
-        if IsValid(btn) then
-            local idx2 = (idx < 5 and 9 - idx or idx - 4)
-            local led = self:GetNW2Bool("DoorButtonLed" .. idx2, false)
-            if led then
-                local state = self:GetNW2String("DoorAnnounceState" .. idx2)
-                led = state ~= "Closed" or CurTime() % 1.2 < 0.6
-            end
-            btn:SetSubMaterial(1, led and "models/metrostroi_train/81-765/led_green" or "models/metrostroi_train/81-765/led_off")
-        end
-    end
 
     local dT = self.DeltaTime
 

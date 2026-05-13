@@ -193,16 +193,6 @@ function TRAIN_SYSTEM:Initialize()
     self.Train:LoadSystem("CoupleCenteringR", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("CoupleCenteringF", "Relay", "Switch", { bass = true })
 
-    -- BUD
-    for idx = 1, 8 do
-        self.Train:LoadSystem("DoorManualBlock" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenLever" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenLeverPl" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenPush" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenPull" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorAddressButton" .. idx, "Relay", "Switch", { bass = true })
-    end
-
     self.Controller = 0
 
     self.AnnouncerPlaying = 0
