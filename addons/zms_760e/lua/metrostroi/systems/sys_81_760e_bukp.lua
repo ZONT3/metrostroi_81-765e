@@ -497,10 +497,10 @@ function TRAIN_SYSTEM:CheckWagError(idx, name, cond)
     self.WagErrors[name][idx] = true
 end
 
-function TRAIN_SYSTEM:CheckError(name, cond, param)
+function TRAIN_SYSTEM:CheckError(name, cond, param, bypassInitDelay)
     local id = Error2id[name] or 0
     if id < 1 then print("WARN! No BUKP error named " .. (name or "nil")) return end
-    if id > #ErrorsA and self.BErrorsTimer and CurTime() - self.BErrorsTimer < 0 then return end
+    if not bypassInitDelay and id > #ErrorsA and self.BErrorsTimer and CurTime() - self.BErrorsTimer < 0 then return end
     local ident = name .. (isnumber(param) and param or "")
 
     local log = not NoLogErr[name] and not (self.BErrorsTimer and self.BErrorsTimer >= CurTime() or self.InitTimer and self.InitTimer >= CurTime())
@@ -813,6 +813,7 @@ function TRAIN_SYSTEM:Think(dT)
                 self.Kos = true
                 self.BErrorsTimer = CurTime() + 3
                 self.InitTimer = CurTime() + 1
+                self:CheckError("SF", true, nil, true)
             end
         end
 

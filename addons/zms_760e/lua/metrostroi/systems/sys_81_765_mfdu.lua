@@ -1104,10 +1104,13 @@ function TRAIN_SYSTEM:DrawAsyncPage(Wag, x, y, w, h)
         sizeMainMargin, sizeMainMargin / 2,
         function(wagIdx, idx)
             local buvDisabled = not Wag:GetNW2Bool("Skif:BUVState" .. wagIdx, false)
-            if not Wag:GetNW2Bool("Skif:AsyncInverter" .. wagIdx, false) then return end
+            if not Wag:GetNW2Bool("Skif:AsyncInverter" .. wagIdx, false) then return colorMainDisabled end
             local k = asyncStates[idx]
             local color = (not k or Wag:GetNW2Bool(k .. wagIdx, false)) and colorGreen or colorRed
             local text = nil
+            if idx == 1 and Wag:GetNW2Bool("Skif:PVU5" .. wagIdx, false) then
+                text = "Р"
+            end
             if idx == 2 then
                 if not Wag:GetNW2Bool("Skif:Battery" .. wagIdx, false) or not Wag:GetNW2Bool("Skif:InvSf" .. wagIdx, false) then
                     color = colorBrightText
@@ -1499,7 +1502,7 @@ function TRAIN_SYSTEM:DrawMainStatus(Wag, x, y, w, h)
         false, "Mfdu765.MainGridLabels",
         sizeMainMargin, sizeMainMargin / 2,
         function(idx, field)
-            return not (not Wag:GetNW2Bool("Skif:AsyncInverter" .. idx, false) and noAsync[mainGridData[field][1]]) and (Wag:GetNW2Bool(mainGridData[field][1] .. idx, false) and colorGreen or colorRed) or nil
+            return not (not Wag:GetNW2Bool("Skif:AsyncInverter" .. idx, false) and noAsync[mainGridData[field][1]]) and (Wag:GetNW2Bool(mainGridData[field][1] .. idx, false) and colorGreen or colorRed) or colorMainDisabled
         end,
         function(field)
             return mainGridDraw[field]

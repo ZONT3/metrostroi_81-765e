@@ -177,7 +177,7 @@ function TRAIN_SYSTEM:Think(dT)
 
     local Backward = Emer and Wag.RV["KRR13-14"] > 0 or Wag.RV["KRO15-16"] > 0
     local Speed = self.Speed * Wag.SpeedSign * (Backward and -1 or 1)
-    local SelfZs = Emer or Wag.BUKP.State ~= 5
+    local SelfZs = Emer or Wag.BUKP.State ~= 5 or Wag.BUKP.InitTimer and CurTime() < Wag.BUKP.InitTimer
     local ZeroSpeed = not SelfZs and Wag.BUKP.ZeroSpeed > 0 or SelfZs and Speed < 0.75
 
     local RVTB = true
