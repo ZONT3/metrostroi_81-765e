@@ -24,7 +24,7 @@ local MAINMSG_RVFAIL = 4
 local ErrorsA = {
     {"RvErr", "Сбой РВ."},
     {"KmErr", "Сбой КМ."},
-    {"ArsFail",  "Неисправность АРС.", "Неисправность АРС. Переведи\nблокиратор в положение АТС%d"},
+    {"ArsFail",  "Неисправность АРС. Перейди на УОС.", "Неисправность АРС. Переведи\nблокиратор в положение АТС%d"},
     {"BuvDiscon", "Нет связи с БУВ-С.", "Нет связи с БУВ-С на %d вагоне."},
     {"NoOrient", "Вагон не ориентирован.", "Вагон %d не ориентирован."},
     {"HullFail", "Кузов не в норме.", "Кузов не в норме на %d вагоне."},
@@ -35,9 +35,10 @@ local ErrorsA = {
     {"ParkingBrake", "Стояночный тормоз прижат.", "Стояночный тормоз прижат\nна %d вагоне."},
     {"PneumoBrake", "Пневмотормоз включен.", "Пневмотормоз включен\nна %d вагоне."},
     {"Doors", "Двери не закрыты.", "Двери не закрыты на %d вагоне."},
-    {"Short", "КЗ нескольких вагонов.", "КЗ %d вагона."},
+    {"Short", "КЗ.", "КЗ %d вагона."},
 }
 local ErrorsB = {
+    {"KosCommand", "Торможение КОС."},
     {"BvDisabled", "БВ отключен.", "БВ отключен на %d вагоне."},
     {"RightBlock", "Правые двери заблокированы.",},
     {"LeftBlock", "Левые двери заблокированы.",},
@@ -46,6 +47,7 @@ local ErrorsB = {
     {"RearCabin", "Открыта кабина ХВ.",},
 }
 local ErrorsC = {
+    {"ProstDisableDrive", "Запрет ТР ПРОСТ."},
     {"SF", "Включи автомат.", "Включи автомат на %d вагоне."},
     {"PassLights", "Освещение не включено.", "Освещение не включено\nна %d вагоне.",},
 }
@@ -64,6 +66,7 @@ local ErrRingContinuous = {
     RightBlock = true,
     LeftBlock = true,
     DisableDrive = true,
+    ProstDisableDrive = true,
 }
 local NoLogErr = {
     Doors = true
@@ -121,6 +124,7 @@ function TRAIN_SYSTEM:Initialize()
     self.CurrentSpeed = 0
     self.ZeroSpeed = 0
     self.BudZeroSpeed = 0
+    self.BupActive = 0
     self.ZeroSpeedDelay = math.random() * 0.25
     self.Speed = 0
     self.MotorWagc = 1
@@ -177,7 +181,10 @@ function TRAIN_SYSTEM:InitShared()
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {"State", "ControllerState", "EmergencyBrake", "BTB", "WagNum", "Prost", "Kos", "CurrentSpeed", "InitTimer", "ZeroSpeed", "BudZeroSpeed", "Active", "DoorClosed", "ESD", "BtbuSd", "BupDisableDrive"}
+    return {
+        "State", "ControllerState", "EmergencyBrake", "BTB", "WagNum", "Prost", "Kos", "CurrentSpeed", "InitTimer", "ZeroSpeed", "BudZeroSpeed",
+        "Active", "DoorClosed", "ESD", "BtbuSd", "BupDisableDrive", "BupActive"
+    }
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -551,7 +558,7 @@ function TRAIN_SYSTEM:CommitError()
         if ((ring or ErrRingContinuous[str[1]]) and (str[1] ~= "Doors" or self.Train.Speed >= 1.8) and str[1] ~= "RvErr") then
             self.ErrorRing = CurTime()
         end
-        if str[1] == "DisableDrive" and (self.Train:GetNW2Bool("SingleRing", false) or self.Train.KV765.Position <= 0) then
+        if (str[1] == "DisableDrive" or str[1] == "ProstDisableDrive") and (self.Train:GetNW2Bool("SingleRing", false) or self.Train.KV765.Position <= 0) then
             self.ErrorRing = nil
         end
 
@@ -694,7 +701,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.Active = RV and 1 or 0
 
     self.ESD = 0
-    self.CanZeroSpeed = false
+    self.ZeroSpeedWire = false
     self.DoorClosed = 0
 
     local BARS = Train.BARS
@@ -809,7 +816,7 @@ function TRAIN_SYSTEM:Think(dT)
             end
         end
 
-        self.CanZeroSpeed = self.CurrentSpeed < 2.8
+        self.ZeroSpeedWire = self.CurrentSpeed < 2.8
 
         local kvSetting = 0
         local overrideKv = true
@@ -1061,8 +1068,8 @@ function TRAIN_SYSTEM:Think(dT)
                 if selectRight and Train.Electric.DoorsControl > 0 and Train.DoorRight.Value > 0 and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1) then doorRight = true end
 
                 Train:SetNW2Bool("Skif:Cond", self.CondLeto)
-                Train:SetNW2Bool("Skif:DoorBlockL", self.CanZeroSpeed and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1))
-                Train:SetNW2Bool("Skif:DoorBlockR", self.CanZeroSpeed and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1))
+                Train:SetNW2Bool("Skif:DoorBlockL", self.ZeroSpeedWire and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1))
+                Train:SetNW2Bool("Skif:DoorBlockR", self.ZeroSpeedWire and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1))
                 if Train:ReadTrainWire(33) + (1 - Train.Electric.V2) > 0 and self.EmergencyBrake == 1 then self.EmergencyBrake = 0 end
 
                 if self.BLTimer and CurTime() - self.BLTimer > 0 and Train.RV.KRRPosition == 0 and Train.Electric.SD == 0 and Train.Electric.V2 > 0 and self.EmergencyBrake == 0 then
@@ -1140,6 +1147,9 @@ function TRAIN_SYSTEM:Think(dT)
                         Train.KV765:TriggerInput("ResetTractiveSetting", 1)
                     end
                 end
+
+                self:CheckError("KosCommand", Train.ProstKos.CommandKos > 0)
+                self:CheckError("ProstDisableDrive", Train.KV765.Position > 0 and Train.ProstKos.Command <= 0)
 
                 Train:SetNW2Bool("Skif:ProstActive", Train.ProstKos.ProstActive > 0)
                 Train:SetNW2Bool("Skif:KosActive", Train.ProstKos.KosActive > 0)
@@ -1377,12 +1387,8 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("SelectRight", selectRight)
         self:CState("CloseDoors", doorClose)
 
-        local bupActive = self.State == 5 and self.MainMsg == 0
-        self:CState("BupActive", bupActive)
-        if bupActive then
-            self:CState("ZeroSpeed", self.CanZeroSpeed and Train.SF80F5.Value > 0)
-            self.BudZeroSpeed = self.CanZeroSpeed and 1 or 0
-        end
+        self.BupActive = self.State == 5 and self.MainMsg == 0 and 1 or 0
+        self.BudZeroSpeed = (self.ZeroSpeedWire and 1 or 0) * self.BupActive
 
         self:CState("AddressDoors", addrDoors)
         self:CState("Slope", Train.RV.KRRPosition == 0 and self.Slope)

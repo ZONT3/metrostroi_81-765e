@@ -302,17 +302,22 @@ function TRAIN_SYSTEM:Think(dT, iter)
             self.BTB = 1
         end
 
-        self.ZeroSpeed = S["RV"] * min(1, Train.BUKP.BudZeroSpeed * Train.BUKP.Active + C(Train.PmvAtsBlock.Value == 3) * Train.PmvParkingBrake.Value)
+        local ManualZeroSpeed = C(Train.PmvAtsBlock.Value == 3) * Train.PmvParkingBrake.Value
+        self.ZeroSpeed = S["RV"] * min(1, Train.BUKP.BudZeroSpeed * Train.BUKP.Active * Train.SF80F5.Value + ManualZeroSpeed)
         self.DoorsControl = self.ZeroSpeed * min(1, S["RV"] * Train.SF80F5.Value * C(Train.BUKP.State == 5) * Train.SF23F2.Value + Train.EmergencyDoors.Value)
 
         Train:WriteTrainWire(10, P * Train.Battery.Value * min(1, Train.EmergencyCompressor.Value + Train.EmergencyCompressor2.Value))
-        local EmergencyDoors = self.DoorsControl * Train.EmergencyDoors.Value
-        Train:WriteTrainWire(40, EmergencyDoors)
-        Train:WriteTrainWire(39, EmergencyDoors * Train.EmerCloseDoors.Value)
-        Train:WriteTrainWire(38, EmergencyDoors * self.ZeroSpeed * Train.DoorLeft.Value)
-        Train:WriteTrainWire(37, EmergencyDoors * self.ZeroSpeed * Train.DoorRight.Value)
+        local EmergencyDoorsAllowOpen = self.DoorsControl * Train.EmergencyDoors.Value
+        local DoorClose = min(1, UPIPower * Train.SF23F2.Value + self.DoorsControl) * Train.SF80F5.Value * Train.SF80F1.Value * S["RV"] * Train.BUKP.Active * Train.DoorClose.Value
+        Train:WriteTrainWire(40, Train.EmergencyDoors.Value)
+        Train:WriteTrainWire(39, DoorClose)
+        Train:WriteTrainWire(38, EmergencyDoorsAllowOpen * self.ZeroSpeed * Train.DoorLeft.Value)
+        Train:WriteTrainWire(37, EmergencyDoorsAllowOpen * self.ZeroSpeed * Train.DoorRight.Value)
 
         Train:WriteTrainWire(42, P * Train.BatteryCharge.Value)
+
+        Train:WriteTrainWire(82, min(1, Train.BUKP.BupActive + S["RV"] * ManualZeroSpeed))
+        Train:WriteTrainWire(83, min(1, Train.BUKP.BupActive * self.ZeroSpeed + S["RV"] * ManualZeroSpeed))
 
         local EmerBattPower = Train.PmvEmerPower.Value * PBatt
         local ASNP_VV = Train.ASNP_VV
@@ -326,7 +331,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Panel.CabVent = P * Train.SF62F3.Value
         Panel.DoorLeftL = self.DoorsControl * Train.DoorSelectL.Value * (1 - Train.DoorSelectR.Value)
         Panel.DoorRightL = self.DoorsControl * Train.DoorSelectR.Value * (1 - Train.DoorSelectL.Value)
-        Panel.DoorCloseL = min(1, UPIPower * Train.SF23F2.Value + self.DoorsControl) * Train.SF80F5.Value * Train.SF80F1.Value * S["RV"] * Train.BUKP.Active * Train.DoorClose.Value
+        Panel.DoorCloseL = DoorClose
         Panel.DoorBlockL = UPIPower * Train.DoorBlock.Value
         Panel.EmerBrakeL = PowerReserve * C(Train.Pneumatic.EmerBrakeWork == 1 or Train.Pneumatic.EmerBrakeWork == true) * BTB
         Panel.EmerXodL = PowerReserve * abs(RV.KRRPosition) * (1 - Train.SD3.Value) * Train.BARS.Drive * (1 - Train.BUKP.BupDisableDrive)

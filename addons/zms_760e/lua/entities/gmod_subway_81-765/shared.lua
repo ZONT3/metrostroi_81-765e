@@ -921,9 +921,10 @@ ENT.SpawnerCustom = {
                 ent.GV:TriggerInput("Set", val < 4 and 1 or 0)
 
                 if val <= 2 then
-                    if ent.SA1 then
-                        timer.Simple(2, function()
-                            if not IsValid(ent) then return end
+                    timer.Simple(2, function()
+                        if not IsValid(ent) then return end
+                        ent.BUV.ZeroSpeed = 1
+                        if ent.SA1 then
                             ent.BUKP.State = 5
                             ent.BUKP.State2 = 0
                             ent.BUIK.State = 4
@@ -933,9 +934,8 @@ ENT.SpawnerCustom = {
                                     ent:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), true)
                                 end
                             end
-                            ent.BUKP:CState("ZeroSpeed", true)
-                        end)
-                    end
+                        end
+                    end)
 
                     timer.Simple(7, function()
                         if not IsValid(ent) then return end

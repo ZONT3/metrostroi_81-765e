@@ -84,14 +84,14 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     local stuckEmpty = true
-    local zeroSpeed = (BUV.BupZeroSpeed or Wag:ReadTrainWire(40) > 0) and BUV.ZeroSpeed
+    local zeroSpeed = BUV.ZeroSpeed > 0
     local bupActive = BUV.BupActive and zeroSpeed
     local addrMode = BUV.AddressDoors
     local addrForceOpen = false
 
     if self.BupActive ~= bupActive then
         if not self.BupChanging then
-            self.BupChanging = CurTime() + math.Rand(0.08, 0.2) + (bupActive and 0.7 or 0)
+            self.BupChanging = CurTime() + math.Rand(0.08, 0.2) + (bupActive and 0.5 or 0)
         elseif CurTime() >= self.BupChanging then
             self.BupChanging = nil
             self.BupActive = bupActive

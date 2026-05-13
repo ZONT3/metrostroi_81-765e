@@ -56,6 +56,7 @@ function TRAIN_SYSTEM:Initialize()
     self.SchemeSlope = false
     self.Recurperation = 1
     self.MainLights = 0
+    self.ZeroSpeed = 0
     self.BC2Dev = math.random() * 0.24 - 0.12
     self.BTOKTO1 = 0
     self.BTOKTO2 = 0
@@ -75,7 +76,9 @@ function TRAIN_SYSTEM:Initialize()
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {"Brake", "Drive", "DriveStrength", "Disassembly", "PSN", "MK", "Vent1", "Vent2", "Cond1", "Cond2", "Strength", "Recurperation", "Slope", "Slope1", "AKBVoltage", "SchemeSlope", "PowerOff", "MainLights", "Power"}
+    return {
+        "Brake", "Drive", "DriveStrength", "Disassembly", "PSN", "MK", "Vent1", "Vent2", "Cond1", "Cond2", "Strength", "Recurperation",
+        "Slope", "Slope1", "AKBVoltage", "SchemeSlope", "PowerOff", "MainLights", "Power", "ZeroSpeed"}
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -239,8 +242,8 @@ function TRAIN_SYSTEM:Think(dT)
             self:CState(sf, not Train[sf] or Train[sf].Value == 1)
         end
 
-        self:CState("EmergencyBrakeGood", Train.Pneumatic.BrakeCylinderPressure > ((HasEngine and 2.3 or 1.75) + Train.Pneumatic.BrakeCylinderRegulationError + Train.Pneumatic.WeightLoadRatio * 1.3) - 0.05)
-        self:CState("EmergencyBrake", self.States.EmergencyBrakeGood and Train.Pneumatic.EmergencyBrakeActive)
+        self:CState("EmergencyBrakeGood", Train.Pneumatic.BrakeCylinderPressure > ((HasEngine and 2.3 or 1.65) + Train.Pneumatic.BrakeCylinderRegulationError + Train.Pneumatic.WeightLoadRatio * 1.3) - 0.05)
+        self:CState("EmergencyBrake", self.States.EmergencyBrakeGood and Train.Pneumatic.EmerBrake < 3 and not self.PN3)
         self:CState("ReserveChannelBraking", HasEngine and self.Recurperation == 1 or not HasEngine and nil)
         self:CState("PTBad", Train.K31.Value == 0)
         self:CState("PTReady", Train.Pneumatic.AirDistributorPressure >= (2.4 + Train.Pneumatic.WeightLoadRatio * 0.9) - 0.1)
@@ -314,7 +317,6 @@ function TRAIN_SYSTEM:Think(dT)
     else
         self:CState("BUVWork", false)
         self.CurrentBUP = nil
-        self.BupZeroSpeed = false
         for k, v in pairs(self.Commands) do
             self.Commands[k] = false
         end
@@ -482,17 +484,29 @@ function TRAIN_SYSTEM:Think(dT)
         self.PSNSignal = self:Get("PSN")
         self.PowerOff = (self:Get("PowerOff") or Train.SF30F2 and Train.SF30F2.Value == 0) and 1 or 0
         self.PassLight = self:Get("PassLight")
-        self.BupActive = self:Get("BupActive")
-        self.BupZeroSpeed = self:Get("ZeroSpeed") ~= nil and self:Get("ZeroSpeed") or self:Get("ZeroSpeed") == nil and self.BupZeroSpeed
     else
         self.PassLight = false
         self.PSNSignal = false
         self.MKSignal = false
         self.PowerOff = 0
-        self.BupActive = false
     end
-    self.ZeroSpeed = Train.SF80F9.Value > 0 and Train.Speed < 2.6
-    self.BupZeroSpeed = self.ZeroSpeed and self.BupZeroSpeed
+
+    if self.State then
+        self.BupActive = Train:ReadTrainWire(82) == 1
+        self.ZeroSpeed = Train.SF80F9.Value * (self.BupActive and Train:ReadTrainWire(83) or self.ZeroSpeed)
+        if self.ZeroSpeed > 0 then
+            self.ZeroSpeedTimer = CurTime() + 0.6
+        elseif self.ZeroSpeed == 0 and self.ZeroSpeedTimer then
+            if CurTime() >= self.ZeroSpeedTimer then
+                self.ZeroSpeedTimer = nil
+            else
+                self.ZeroSpeed = 1
+            end
+        end
+    else
+        self.BupActive = false
+        self.ZeroSpeed = 0
+    end
 
     local PN = self.PTReplace
     if HasEngine then
