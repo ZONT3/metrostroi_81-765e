@@ -496,11 +496,11 @@ function TRAIN_SYSTEM:Think(dT)
         self.ZeroSpeed = Train.SF80F9.Value * (self.BupActive and Train:ReadTrainWire(83) or self.ZeroSpeed)
         if self.ZeroSpeed > 0 then
             self.ZeroSpeedTimer = CurTime() + 0.6
-        elseif self.ZeroSpeed == 0 and self.ZeroSpeedTimer then
+        elseif self.ZeroSpeedTimer then
             if CurTime() >= self.ZeroSpeedTimer then
                 self.ZeroSpeedTimer = nil
             else
-                self.ZeroSpeed = 1
+                self.ZeroSpeed = Train.Speed < 0.4 and 1 or 0
             end
         end
     else

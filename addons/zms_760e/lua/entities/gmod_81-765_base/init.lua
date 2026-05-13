@@ -157,10 +157,10 @@ function ENT:CreateDoorTriggers()
             trigger.count = 0
             trigger.entMap = {}
             trigger.StartTouch = function(this, ent)
-                if IsValid(self) and IsValid(ent) and ent:IsPlayer() then
+                if IsValid(self) and IsValid(ent) and (ent:IsPlayer() or ent:IsNPC() or ent:IsNextBot()) then
                     this.count = this.count + 1
                     this.entMap[ent] = true
-                    self.BUD.ForeignObject[idx] = this.count > 0
+                    self.BUD.ForeignObject[idx] = true
                 end
             end
             trigger.EndTouch = function(this, ent)
@@ -244,10 +244,6 @@ function ENT:Think()
     local power = self.Electric.BSPowered > 0
     self:SetPackedBool("WorkBeep", power)
     self:SetPackedBool("WorkFan", (Panel.WorkFan or 0) > 0)
-
-    for idx = 1, 8 do
-        self:SetNW2Bool("DoorButtonLed" .. idx, self.Electric.BSPowered > 0 and self.BUD.OpenButton[idx] and true)
-    end
 
     if not self.IsTrailer then
         local state = math.abs(self.AsyncInverter.InverterFrequency / (11 + self.AsyncInverter.State * 5))

@@ -22,13 +22,14 @@ function TRAIN_SYSTEM:Initialize()
     self.DoorCommand = {}
     self.DoorCommandPrev = {}
     self.DoorCommandDelay = {}
+    self.DoorReverseMalfunc = {}
     self.CloseDelay = {}
     self.DoorsDelayMax = 0.5
     for idx = 1, 8 do self.DoorCommand[idx] = false end
 
     if not TURBOSTROI then
-        self.LeftDoorClosed = {false, false, false, false}
-        self.RightDoorClosed = {false, false, false, false}
+        self.LeftDoorClosed = {0, 0, 0, 0}
+        self.RightDoorClosed = {0, 0, 0, 0}
         self.LeftDoorState = {0, 0, 0, 0}
         self.RightDoorState = {0, 0, 0, 0}
         self.LeftDoorDir = {0, 0, 0, 0}
@@ -67,7 +68,13 @@ function TRAIN_SYSTEM:Inputs()
 end
 
 function TRAIN_SYSTEM:TriggerInput(name, value)
-    if name == "Depart" then self.Depart = value end
+    if name ~= "Depart" then return end
+    self.Depart = value
+    if not value then
+        for idx = 1, 8 do
+            self.OpenButton[idx] = (math.random() < math.min(0.7, self.Train:GetNW2Float("PassengerCount") / 100)) and CurTime() or self.OpenButton[idx]
+        end
+    end
 end
 
 
@@ -88,6 +95,8 @@ if SERVER then
         Wag.DoorsOpened = false
 
         self.ReverseWork = false
+
+        self.AnnounceStates = self.AnnounceStates or {}
 
         local masterPower = Wag.Electric.Battery80V > 62
         local masterWorking = masterPower and BUV.ADUDWork
@@ -149,6 +158,7 @@ if SERVER then
         if commandClose then
             self.DoorLeft = false
             self.DoorRight = false
+            self.OpenTimer = nil
             for idx = 1, 8 do self.DoorCommand[idx] = false end
         elseif commandLeft and commandRight then
             self.DoorLeft = true
@@ -168,6 +178,9 @@ if SERVER then
 
         self.AddressReadyL = false
         self.AddressReadyR = false
+
+        local anyOpeningLeft, anyOpeningRight = false, false
+        local anyClosingLeft, anyClosingRight = false, false
 
         for idx = 1, 8 do
             local sf = Wag[DoorSFs[idx]]
@@ -211,20 +224,29 @@ if SERVER then
             end
 
             local closedState = left and self.LeftDoorClosed or self.RightDoorClosed
-            closedState[i] = self.DoorClosed[idx] and (state[i] or CurTime() + 0.25)
+            if (
+                self.DoorClosed[idx] and not self.AutoReverse[idx] and not closedState[i] and
+                math.random() < 0.004 + (self.DoorReverseMalfunc[idx] or 0)
+            ) then self.AutoReverse[idx] = 1 end
+            closedState[i] = self.DoorClosed[idx] and (closedState[i] or CurTime() + 0.25)
             local isclosed = closedState[i] and CurTime() >= closedState[i]
+
+            if wagCommandOpen and not self.OpenTimer then
+                self.OpenTimer = CurTime() + 2.7
+            end
 
             if manual or block then
                 self.DoorCommand[idx] = false
                 readyToOpen = false
             end
 
-            if self.OpenButton[idx] and not bupActive and CurTime() >= self.OpenButton[idx] then
+            local addressActive = addrMode and working
+            if self.OpenButton[idx] and (not addressActive or not bupActive and CurTime() >= self.OpenButton[idx] + 60) then
                 self.OpenButton[idx] = false
-            elseif addrMode and working and selected then
+            elseif addressActive and not self.OpenButton[idx] then
                 local btn = Wag["DoorAddressButton" .. idx]
                 if state[i] == 0 and self.ForeignObject[idx] or btn and btn.Value > 0.5 then
-                    self.OpenButton[idx] = CurTime() + 8
+                    self.OpenButton[idx] = CurTime()
                 end
             end
 
@@ -253,7 +275,7 @@ if SERVER then
                         local open = math.random() < passLoad
                         if open then
                             self.MobsOpening[idx] = CurTime() + math.Rand(0.2, math.Rand(1.5, math.Rand(2, math.min(10, 10 / (passLoad - 0.3)))))
-                        else
+                        elseif math.random() < 0.9 then
                             self.MobsOpening[idx] = CurTime() + math.Rand(16, 600)
                         end
                     end
@@ -263,6 +285,7 @@ if SERVER then
             end
 
             if readyToOpen and not self.DoorCommand[idx] and (curForceOpen or self.OpenButton[idx] or self.MobsOpening[idx] and CurTime() >= self.MobsOpening[idx]) then
+                self.OpenButton[idx] = CurTime()
                 self.DoorCommand[idx] = true
             end
 
@@ -272,7 +295,7 @@ if SERVER then
                 if not self.WasManual[idx] then
                     dir[i] = dir[i] + 0.1
                     self.WasManual[idx] = true
-                    self.AutoReverse[idx] = 2
+                    self.AutoReverse[idx] = 4
                 end
 
                 local factor = poweron and not zeroSpeed and -0.5 or 0
@@ -292,6 +315,8 @@ if SERVER then
                 if sgn ~= sgn2 then
                     dir[i] = 0
                 end
+
+                self.OpenButton[idx] = false
 
             elseif poweron then
                 local commandOpen = self.DoorCommand[idx]
@@ -318,27 +343,40 @@ if SERVER then
                     not commandOpen and not isclosed and "Closing" or
                     not commandOpen and isclosed and (
                         not visualZeroSpeed and "Moving" or
-                        bupActive and readyToOpen and not self.Depart and "Open" or
+                        bupActive and readyToOpen and (self.Depart and "DepartAddr" or "ReadyToOpen") or
                         "Closed"
                     ) or
-                    commandOpen and not self.Depart and not self.DoorOpen[idx] and (block and "Closed" or addrMode and "Open" or "Opening") or
-                    self.Depart and "Depart" or
+                    commandOpen and not self.Depart and not self.DoorOpen[idx] and (
+                        block and "Closed" or
+                        addrMode and "OpeningAddr" or
+                        "Opening"
+                    ) or
+                    self.Depart and (addrMode and "DepartAddr" or "Depart") or
                     not bupActive and "Unpowered" or
                     commandOpen and "Open" or
                     -- fallback, should not reach!
                     isclosed and "Opening" or "Closing"
                 )
 
+                if self.OpenTimer and CurTime() < self.OpenTimer and (announceState == "Opening" or announceState == "OpeningAddr") and working and bupActive then
+                    if left then anyOpeningLeft = true
+                    else anyOpeningRight = true end
+                end
+                if announceState == "Closing" and working and bupActive then
+                    if left then anyClosingLeft = true
+                    else anyClosingRight = true end
+                end
+
                 if commandOpen and self.AutoReverse[idx] then self.AutoReverse[idx] = nil end
                 if not commandOpen and not self.AutoReverse[idx] and state[i] < 0.65 and state[i] >= 0.15 and dir[i] > -0.4 / speed then
                     self.AutoReverse[idx] = 1
-                    if self.StuckPass[idx] == 1 and math.random() < 0.9 then
-                        self.StuckPass[idx] = 0
-                    end
                 end
                 if self.AutoReverse[idx] == 1 then
                     if state[i] >= 1 then
                         self.AutoReverse[idx] = 2
+                        if self.StuckPass[idx] == 1 and math.random() < 0.9 then
+                            self.StuckPass[idx] = 0
+                        end
                     else
                         commandOpen = true
                     end
@@ -346,7 +384,7 @@ if SERVER then
                 if self.AutoReverse[idx] and self.AutoReverse[idx] >= 2 then
                     if not commandClose then self.AutoReverse[idx] = 3 end
                     if commandClose and self.AutoReverse[idx] == 3 then
-                        self.AutoReverse[idx] = nil
+                        self.AutoReverse[idx] = 1
                     end
                 end
 
@@ -358,10 +396,18 @@ if SERVER then
                 if commandOpen or not self.DoorClosed[idx] and self.CloseDelay[idx] and CurTime() >= self.CloseDelay[idx] then
                     dir[i] = math.Clamp(dir[i] + dT * (not stuck and 0.5 or -1.5) * (commandOpen and 1 or -1), -1 / speed, not stuck and (1 / speed) or 0)
                 elseif not commandOpen and not self.DoorClosed[idx] and not self.CloseDelay[idx] then
-                    self.CloseDelay[idx] = self.DoorOpen[idx] and (CurTime() + 1.8 + self.DoorsDelayMax * (i % 2 == 0 and BUV.WagIdx - 1 or BUV.TrainLen - BUV.WagIdx - 1) / BUV.TrainLen) or 0
+                    self.CloseDelay[idx] = self.DoorOpen[idx] and (CurTime() + 2.1 + self.DoorsDelayMax * (i % 2 == 0 and BUV.WagIdx - 1 or BUV.TrainLen - BUV.WagIdx - 1) / BUV.TrainLen) or 0
                     clState = 1
-                elseif (self.DoorClosed[idx] or commandOpen) and self.CloseDelay[idx] then
+                elseif self.DoorClosed[idx] and self.CloseDelay[idx] then
                     self.CloseDelay[idx] = nil
+                end
+
+                if commandOpen and not self.AutoReverse[idx] and self.CloseDelay[idx] then
+                    self.CloseDelay[idx] = nil
+                end
+
+                if self.OpenButton[idx] and self.Depart and (not zeroSpeed or commandClose and not selected and zeroSpeed) then
+                    self.OpenButton[idx] = false
                 end
 
             elseif dir[i] ~= 0 then
@@ -371,6 +417,7 @@ if SERVER then
                 if sgn ~= sgn2 then
                     dir[i] = 0
                 end
+                self.OpenButton[idx] = false
             end
 
             if not manual and self.WasManual[idx] then self.WasManual[idx] = false end
@@ -378,7 +425,7 @@ if SERVER then
             state[i] = math.Clamp(state[i] + dir[i] * dT, 0, not manual and 1 or 0.98)
             if state[i] <= 0 or state[i] >= 1 then dir[i] = 0 end
 
-            if state[i] <= 0 and self.AutoReverse[idx] then
+            if closedState[i] and CurTime() >= closedState[i] and self.AutoReverse[idx] and self.AutoReverse[idx] > 1 then
                 self.AutoReverse[idx] = nil
             end
 
@@ -386,12 +433,17 @@ if SERVER then
                 self.ReverseWork = true
             end
 
+            if self.StuckPass[idx] then stuckEmpty = false end
+
             BUV:CState("DoorAod" .. idx, manual)
-            BUV:CState("DoorReverse" .. idx, not manual and not not self.AutoReverse[idx])
+            BUV:CState("DoorReverse" .. idx, not manual and self.AutoReverse[idx] and self.AutoReverse[idx] < 4)
             Wag:SetPackedRatio("Door" .. idx, math.Clamp(state[i], 0, 1))
             Wag:SetPackedRatio("DoorDir" .. idx, dir[i])
-            Wag:SetNW2String("DoorAnnounceState" .. idx, announceState)
-            if self.StuckPass[idx] then stuckEmpty = false end
+            Wag:SetNW2Int("DoorButtonLed" .. idx, addrMode and
+                (self.OpenButton[idx] or readyToOpen) and poweron and working and not manual and (
+                    (not self.DoorCommand[idx] and not isclosed or self.OpenButton[idx] and isclosed and selected and self.Depart) and 2 or 1) or 0)
+
+            self.AnnounceStates[idx] = announceState
         end
 
         Wag:SetPackedBool("DoorL", self.DoorLeft)
@@ -399,18 +451,40 @@ if SERVER then
         Wag.LeftDoorsOpening = self.DoorLeft
         Wag.RightDoorsOpening = self.DoorRight
 
+        for idx = 1, 8 do
+            -- local selected = idx < 5 and selectLeft or idx >= 5 and selectRight
+            local anyOpening = idx < 5 and anyOpeningLeft or idx >= 5 and anyOpeningRight
+            local anyClosing = idx < 5 and anyClosingLeft or idx >= 5 and anyClosingRight
+            local announceState = self.AnnounceStates[idx]
+            if announceState == "ReadyToOpen" or announceState == "OpeningAddr" then
+                announceState = anyOpening and "OpeningAddr" or "Open"
+            end
+            if announceState == "Closed" and anyClosing then announceState = "ClosingAwaiting" end
+            Wag:SetNW2String("DoorAnnounceState" .. idx, announceState)
+        end
+
+        if not self.Depart and commandClose and Wag.DoorsOpened then
+            self.Depart = true
+        end
+
         if not Wag.DoorsOpened and not stuckEmpty then
             self.StuckPass = {}
         end
-        if self.Depart and not Wag.DoorsOpened then self.Depart = false end
+        if self.Depart and (not zeroSpeed or commandLeft or commandRight) then self.Depart = false end
     end
 
     function TRAIN_SYSTEM:GetForeignObject(idx)
         if not self.ForeignObject[idx] and not self.StuckPass[idx] then
-            local canStuck = idx < 5 and self.Train.CanStuckPassengerLeft or idx >= 5 and self.Train.CanStuckPassengerRight
-            if canStuck then
-                self.StuckPass[idx] = math.random() < (isnumber(canStuck) and math.max(0.002, canStuck) or 0.1) and 1 or 0
+            local canStuck = self.Train:GetNW2Float("PassengerCount")
+            if canStuck > 210 then
+                canStuck = canStuck / (Metrostroi.Version < 1765347930 and 700 or 2000)
+            else
+                canStuck = canStuck / (Metrostroi.Version < 1765347930 and 2000 or 4000)
             end
+            if Metrostroi.Version >= 1765347930 then
+                canStuck = canStuck + (idx < 5 and self.Train.CanStuckPassengerLeft or idx >= 5 and self.Train.CanStuckPassengerRight or 0)
+            end
+            self.StuckPass[idx] = math.random() < math.Clamp(canStuck, 0, 0.35) and 1 or 0
         end
         return self.ForeignObject[idx] or self.StuckPass[idx] == 1
     end
@@ -490,18 +564,18 @@ else
             elseif announceState == "Closed" then
                 outer = mat_red
                 inter = mat_red
-            elseif announceState == "Closing" then
-                outer = blink and mat_off or mat_red
+            elseif announceState == "Closing" or announceState == "ClosingAwaiting" then
+                outer = (announceState == "ClosingAwaiting" or blink) and mat_off or mat_red
                 inter = blink and mat_off or mat_red
-            elseif announceState == "Depart" then
-                outer = mat_red
+            elseif announceState == "Depart" or announceState == "DepartAddr" then
+                outer = announceState == "DepartAddr" and mat_green or mat_red
                 inter = not delay and mat_red or mat_off
             elseif announceState == "Open" then
                 self.WasOpen[idx] = true
                 outer = mat_green
                 inter = mat_green
-            elseif announceState == "Opening" then
-                outer = blink and mat_off or mat_red
+            elseif announceState == "Opening" or announceState == "OpeningAddr" then
+                outer = announceState == "OpeningAddr" and mat_green or blink and mat_off or mat_red
                 inter = blink and mat_off or mat_red
             else  -- Unpowered
                 outer = mat_off
@@ -550,15 +624,30 @@ else
                 door.AnimState = animState
             end
 
+            self.LedBlink = self.LedBlink or {}
+            self.LedPrev = self.LedPrev or {}
             local btn = Wag.ClientEnts[btnKey]
             if IsValid(btn) then
                 btn:SetPoseParameter("position", animState)
 
-                local led = Wag:GetNW2Bool("DoorButtonLed" .. idx, false)
-                if led then
-                    led = announceState ~= "Closed" or CurTime() % 1.2 < 0.6
+                local led = Wag:GetNW2Int("DoorButtonLed" .. idx, 0)
+                local ledBlink = CurTime() % .9 < .45
+                if not ledBlink and self.LedBlink[idx] and CurTime() >= self.LedBlink[idx] then self.LedBlink[idx] = nil end
+                self.LedBlink[idx] = led > 0 and (
+                    announceState == "Closed" or announceState == "Moving" or announceState == "Closing" or
+                    animState < 1 and announceState == "OpeningAddr" or
+                    animState < 1 and animState > 0.01 and announceState == "Open"
+                ) or self.LedBlink[idx]
+                self.LedBlink[idx] = self.LedBlink[idx] == true and CurTime() + 1 or self.LedBlink[idx]
+                if self.LedBlink[idx] then
+                    if led > 0 then self.LedPrev[idx] = led end
+                    led = ledBlink and self.LedPrev[idx] or 0
                 end
-                btn:SetSubMaterial(1, led and "models/metrostroi_train/81-765/led_green" or "models/metrostroi_train/81-765/led_off")
+                btn:SetSubMaterial(1, led > 0 and announceState ~= "Unpowered" and (
+                    led == 2 and
+                    "models/metrostroi_train/81-765/led_red" or
+                    "models/metrostroi_train/81-765/led_green"
+                ) or "models/metrostroi_train/81-765/led_off")
             end
 
             self.RandSet = self.RandSet or {}

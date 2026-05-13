@@ -116,7 +116,7 @@ function ENT:Initialize()
             [KEY_W] = "KV765Set3",
             [KEY_S] = "KV765Set7",
             [KEY_SPACE] = "AttentionBrakeSet",
-            [KEY_V] = "EmergencyDoorsToggle",
+            [KEY_V] = "DoorBlockToggle",
             [KEY_9] = "KRR-",
             [KEY_0] = "KRR+",
             [KEY_G] = "DisableBVSet",
