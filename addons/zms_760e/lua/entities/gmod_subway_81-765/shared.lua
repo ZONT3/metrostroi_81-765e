@@ -805,6 +805,30 @@ ENT.SpawnerCustom = {
         Section = "Wear"
     },
     {
+        "DoorReverseMalfunc", "Кол-во проблемных дверей", "Slider", 0, 0, 8, 0,
+        function(ent, val, rot, wagi, wagnum, rclk)
+            if rclk then return end
+            if not _MalfDoors or _MalfDoorsLast ~= CurTime() then
+                _MalfDoors = {}
+                for idx = 1, math.floor(val) do
+                    local w = math.random(wagnum)
+                    if not _MalfDoors[w] then _MalfDoors[w] = {} end
+                    table.insert(_MalfDoors[w], math.random(8))
+                end
+                _MalfDoorsLast = CurTime()
+            end
+            if not ent.BUD or not _MalfDoors[wagi] then return end
+            ent.BUD.DoorReverseMalfunc = {}
+            for _, idx in ipairs(_MalfDoors[wagi]) do
+                ent.BUD.DoorReverseMalfunc[idx] = math.Rand(0.1, 0.45)
+            end
+            for idx, v in pairs(ent.BUD.DoorReverseMalfunc) do
+                print(string.format("81-765: Generated malfunctioning door for %s at %d (%s%%)", ent:GetWagonNumber(), idx, math.Round(v * 100, 1)))
+            end
+        end,
+        Section = "Wear"
+    },
+    {
         "VVVFSound",
         "Звук инвертора",
         "List",
@@ -987,6 +1011,7 @@ ENT.Spawner = {
     ENT.SpawnerCustom[22],  -- ArsMode
     ENT.SpawnerCustom[23],  -- KdLongerDelay
     ENT.SpawnerCustom[24],  -- BreakRedChance
+    ENT.SpawnerCustom[25],  -- DoorReverseMalfunc
     { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
     ENT.SpawnerCustom[#ENT.SpawnerCustom]
 }

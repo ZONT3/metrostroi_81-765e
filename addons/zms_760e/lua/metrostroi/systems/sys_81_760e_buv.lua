@@ -242,8 +242,20 @@ function TRAIN_SYSTEM:Think(dT)
             self:CState(sf, not Train[sf] or Train[sf].Value == 1)
         end
 
-        self:CState("EmergencyBrakeGood", Train.Pneumatic.BrakeCylinderPressure > ((HasEngine and 2.3 or 1.65) + Train.Pneumatic.BrakeCylinderRegulationError + Train.Pneumatic.WeightLoadRatio * 1.3) - 0.05)
-        self:CState("EmergencyBrake", self.States.EmergencyBrakeGood and Train.Pneumatic.EmerBrake < 3 and not self.PN3)
+        local ebGood = Train.Pneumatic.BrakeCylinderPressure > ((HasEngine and 2.3 or 1.65) + Train.Pneumatic.BrakeCylinderRegulationError + Train.Pneumatic.WeightLoadRatio * 1.3) - 0.05
+        local emerBrake = ebGood and Train.Pneumatic.EmerBrake < 3 and not self.PN3
+        if emerBrake and not self.EbrakeTimer then
+            self.EbrakeTimer = CurTime() + 0.8
+        end
+        if not emerBrake and self.EbrakeTimer then
+            self.EbrakeTimer = nil
+        end
+        if emerBrake and self.EbrakeTimer then
+            emerBrake = CurTime() >= self.EbrakeTimer
+        end
+
+        self:CState("EmergencyBrakeGood", ebGood)
+        self:CState("EmergencyBrake", emerBrake)
         self:CState("ReserveChannelBraking", HasEngine and self.Recurperation == 1 or not HasEngine and nil)
         self:CState("PTBad", Train.K31.Value == 0)
         self:CState("PTReady", Train.Pneumatic.AirDistributorPressure >= (2.4 + Train.Pneumatic.WeightLoadRatio * 0.9) - 0.1)

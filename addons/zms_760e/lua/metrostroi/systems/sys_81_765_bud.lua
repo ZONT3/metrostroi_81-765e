@@ -36,6 +36,7 @@ function TRAIN_SYSTEM:Initialize()
         self.RightDoorDir = {0, 0, 0, 0}
         self.LeftDoorSpeed = {0, 0, 0, 0}
         self.RightDoorSpeed = {0, 0, 0, 0}
+        self.OpenedTimer = {}
         self.ReverseDelay = {}
         self.ForeignObject = {}
         self.AutoReverse = {}
@@ -73,7 +74,7 @@ function TRAIN_SYSTEM:TriggerInput(name, value)
     self.Depart = value
     if not value then
         for idx = 1, 8 do
-            self.OpenButton[idx] = (math.random() < math.min(0.7, self.Train:GetNW2Float("PassengerCount") / 100)) and CurTime() or self.OpenButton[idx]
+            self.OpenButton[idx] = (math.random() < math.min(0.6, self.Train:GetNW2Float("PassengerCount") / 200)) and CurTime() or self.OpenButton[idx]
         end
     end
 end
@@ -228,8 +229,8 @@ if SERVER then
             if (
                 self.DoorClosed[idx] and not self.AutoReverse[idx] and not closedState[i] and
                 math.random() < 0.004 + (self.DoorReverseMalfunc[idx] or 0)
-            ) then self.AutoReverse[idx] = 1 end
-            closedState[i] = self.DoorClosed[idx] and (closedState[i] or CurTime() + 0.25)
+            ) then self.AutoReverse[idx] = 1 print(self.Train:GetWagonNumber(), idx, "protivoza4atie") end
+            closedState[i] = self.DoorClosed[idx] and (closedState[i] or CurTime() + 0.05)
             local isclosed = closedState[i] and CurTime() >= closedState[i]
 
             if wagCommandOpen and not self.OpenTimer then
@@ -283,6 +284,12 @@ if SERVER then
                 end
             elseif self.MobsOpening[idx] then
                 self.MobsOpening[idx] = false
+            end
+
+            if not self.DoorClosed[idx] and not self.OpenedTimer[idx] then
+                self.OpenedTimer[idx] = CurTime() + 28
+            elseif self.DoorClosed[idx] and self.OpenedTimer[idx] then
+                self.OpenedTimer[idx] = nil
             end
 
             if readyToOpen and not self.DoorCommand[idx] and (curForceOpen or self.OpenButton[idx] or self.MobsOpening[idx] and CurTime() >= self.MobsOpening[idx]) then
@@ -379,6 +386,9 @@ if SERVER then
                         self.ReverseDelay[idx] = CurTime() + 0.4
                         if self.StuckPass[idx] == 1 and math.random() < 0.9 then
                             self.StuckPass[idx] = 0
+                            print(self.Train:GetWagonNumber(), idx, "otjali")
+                        elseif self.StuckPass[idx] == 1 then
+                            print(self.Train:GetWagonNumber(), idx, "zastryal")
                         end
                     else
                         commandOpen = true
@@ -484,16 +494,27 @@ if SERVER then
 
     function TRAIN_SYSTEM:GetForeignObject(idx)
         if not self.ForeignObject[idx] and not self.StuckPass[idx] then
-            local canStuck = self.Train:GetNW2Float("PassengerCount")
-            if canStuck > 210 then
-                canStuck = canStuck / (Metrostroi.Version < 1765347930 and 700 or 2000)
-            else
-                canStuck = canStuck / (Metrostroi.Version < 1765347930 and 2000 or 4000)
+            local passCount = math.max(0, self.Train:GetNW2Float("PassengerCount"))
+            local canStuck = 0
+            if self.OpenedTimer[idx] and self.OpenedTimer[idx] >= CurTime() then
+                canStuck = math.pow((self.OpenedTimer[idx] - CurTime()) / 28, 2) * passCount / 1700
             end
-            if Metrostroi.Version >= 1765347930 then
-                canStuck = canStuck + (idx < 5 and self.Train.CanStuckPassengerLeft or idx >= 5 and self.Train.CanStuckPassengerRight or 0)
-            end
-            self.StuckPass[idx] = math.random() < math.Clamp(canStuck, 0, 0.35) and 1 or 0
+
+            local base = canStuck
+            canStuck = math.Clamp(canStuck, 0, 0.08)
+
+            local dynamic = math.min(0.65, canStuck + (idx < 5 and self.Train.CanStuckPassengerLeft or idx >= 5 and self.Train.CanStuckPassengerRight or 0) * 0.5)
+            local static = math.max(passCount > 120 and (canStuck + math.pow(math.min(240, passCount) / 240, 3) * 0.15) or 0, base)
+            canStuck = math.max(dynamic, static)
+
+            self.StuckPass[idx] = math.random() < canStuck and 1 or 0
+
+            if self.StuckPass[idx] == 1 then print(
+                self.Train:GetWagonNumber(), idx, "zajali",
+                math.Round(base, 3),
+                math.Round(self.OpenedTimer[idx] and self.OpenedTimer[idx] >= CurTime() and ((self.OpenedTimer[idx] - CurTime()) / 14) or 0, 3),
+                math.Round(dynamic, 3), math.Round(static, 3), math.Round(canStuck, 3)
+            ) end
         end
         return self.ForeignObject[idx] or self.StuckPass[idx] == 1
     end

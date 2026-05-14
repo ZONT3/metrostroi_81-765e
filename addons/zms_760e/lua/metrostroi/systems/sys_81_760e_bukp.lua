@@ -1520,11 +1520,11 @@ function TRAIN_SYSTEM:Think(dT)
         Train:SetNW2String("Skif:LineName", line)
     end
 
-    local ZeroSpeed = self.State == 5 and self.CurrentSpeed < 0.6
+    local ZeroSpeed = self.State == 5 and self.CurrentSpeed < 0.4
     if ZeroSpeed then
         ZeroSpeed = false
         if not self.ZeroSpeedTimer then
-            self.ZeroSpeedTimer = CurTime() + math.Rand(self.ZeroSpeedDelay, 0.25 + self.ZeroSpeedDelay)
+            self.ZeroSpeedTimer = CurTime() + math.Rand(0, self.ZeroSpeedDelay)
         elseif CurTime() >= self.ZeroSpeedTimer then
             ZeroSpeed = true
         end

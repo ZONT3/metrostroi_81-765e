@@ -20,7 +20,7 @@ function TRAIN_SYSTEM:Initialize()
     self.LN = false
     self.StillBrake = 0
     self.SbTimer = 0
-    self.ZsErrorMargin = math.random() * 0.15 + 0.35
+    self.ZsErrorMargin = math.random() * 0.2 + 0.15
     self.PN1 = 0
     self.PN2 = 0
     self.PN3 = 0
@@ -326,8 +326,8 @@ function TRAIN_SYSTEM:Think(dT)
             if ZsError then
                 ZsError = false
                 if not self.ZsErrorTimer then
-                    self.ZsErrorTimer = CurTime() + self.ZsErrorMargin + math.Rand(0, 0.15)
-                elseif CurTime() >= self.ZsErrorTimer or Speed <= 0.3 then
+                    self.ZsErrorTimer = CurTime() + math.Rand(self.ZsErrorMargin - 0.1, self.ZsErrorMargin + 0.1)
+                elseif CurTime() >= self.ZsErrorTimer or Speed <= 0.15 then
                     ZsError = true
                 end
             else
