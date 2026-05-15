@@ -324,13 +324,14 @@ function TRAIN_SYSTEM:Think(dT)
             local EmerGood = Emer and not Wag.BUKP.Errors.RvErr
             local ZsError = not EmerGood and self.BUKPErr and Wag.BUKP.ZeroSpeed < 1 and Speed < 7
             if ZsError then
-                ZsError = false
                 if not self.ZsErrorTimer then
                     self.ZsErrorTimer = CurTime() + math.Rand(self.ZsErrorMargin - 0.1, self.ZsErrorMargin + 0.1)
-                elseif CurTime() >= self.ZsErrorTimer or Speed <= 0.15 then
-                    ZsError = true
                 end
-            else
+                if self.ZsErrorTimer > CurTime() then
+                    ZsError = false
+                end
+            elseif self.ZsErrorTimer and (CurTime() >= self.ZsErrorTimer or Speed <= 0.15) then
+                ZsError = true
                 self.ZsErrorTimer = nil
             end
 
