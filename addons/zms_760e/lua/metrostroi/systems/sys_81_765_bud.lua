@@ -167,13 +167,25 @@ if SERVER then
         elseif commandLeft and commandRight then
             self.DoorLeft = true
             self.DoorRight = true
-            for idx = 1, 8 do if not addrMode or addrForceOpen or (idx == 1 or idx == 5) and BUV.WagIdx == 1 then self.DoorCommand[idx] = true end end
+            for idx = 1, 8 do
+                if not addrMode then self.DoorCommand[idx] = true
+                elseif addrForceOpen or BUV.WagIdx == 1 and (idx == 1 or idx == 5)
+                then self.OpenButton[idx] = CurTime() end
+            end
         elseif commandLeft then
             self.DoorLeft = true
-            for idx = 1, 4 do if not addrMode or addrForceOpen or idx == 1 and BUV.WagIdx == 1 then self.DoorCommand[idx] = true end end
+            for idx = 1, 4 do
+                if not addrMode then self.DoorCommand[idx] = true
+                elseif addrForceOpen or BUV.WagIdx == 1 and idx == 1
+                then self.OpenButton[idx] = CurTime() end
+            end
         elseif commandRight then
             self.DoorRight = true
-            for idx = 5, 8 do if not addrMode or addrForceOpen or idx == 5 and BUV.WagIdx == 1 then self.DoorCommand[idx] = true end end
+            for idx = 5, 8 do
+                if not addrMode then self.DoorCommand[idx] = true
+                elseif addrForceOpen or BUV.WagIdx == 1 and idx == 5
+                then self.OpenButton[idx] = CurTime() end
+            end
         end
 
         if not zeroSpeed then
@@ -183,7 +195,6 @@ if SERVER then
         self.AddressReadyL = false
         self.AddressReadyR = false
 
-        local anyOpeningLeft, anyOpeningRight = false, false
         local anyClosingLeft, anyClosingRight = false, false
 
         for idx = 1, 8 do
@@ -353,25 +364,22 @@ if SERVER then
                     not commandOpen and not isclosed and "Closing" or
                     not commandOpen and isclosed and (
                         not visualZeroSpeed and "Moving" or
-                        bupActive and readyToOpen and (self.Depart and "DepartAddr" or "ReadyToOpen") or
+                        not selected and addrMode and "Moving" or
+                        bupActive and readyToOpen and (self.Depart and "Depart" or "ReadyToOpen") or
                         "Closed"
                     ) or
-                    commandOpen and not self.Depart and not self.DoorOpen[idx] and (
+                    self.Depart and "Depart" or
+                    commandOpen and not self.DoorOpen[idx] and (
                         block and "Closed" or
                         addrMode and "OpeningAddr" or
                         "Opening"
                     ) or
-                    self.Depart and (addrMode and "DepartAddr" or "Depart") or
                     not bupActive and "Unpowered" or
                     commandOpen and "Open" or
                     -- fallback, should not reach!
                     isclosed and "Opening" or "Closing"
                 )
 
-                if self.OpenTimer and CurTime() < self.OpenTimer and (announceState == "Opening" or announceState == "OpeningAddr") and working and bupActive then
-                    if left then anyOpeningLeft = true
-                    else anyOpeningRight = true end
-                end
                 if announceState == "Closing" and working and bupActive then
                     if left then anyClosingLeft = true
                     else anyClosingRight = true end
@@ -384,7 +392,7 @@ if SERVER then
                 end
                 local shouldReverse = not self.AutoReverse[idx] or reverseMode == 3 and self.AutoReverse[idx] == 2 and CurTime() - (self.ReverseDelay[idx] or 0) > 1
                 if shouldReverse and not commandOpen and state[i] < 0.65 and state[i] >= 0.15 and dir[i] > -0.4 / speed then
-                    self.AutoReverse[idx] = 1 + state[i] + 0.2
+                    self.AutoReverse[idx] = 1 + math.min(0.85, state[i] + 0.4)
                     self.ReverseDelay[idx] = CurTime() + 0.4
                 end
                 if self:IsReverseOpening(idx) then
@@ -492,12 +500,15 @@ if SERVER then
         Wag.RightDoorsOpening = self.DoorRight
 
         for idx = 1, 8 do
-            -- local selected = idx < 5 and selectLeft or idx >= 5 and selectRight
-            local anyOpening = idx < 5 and anyOpeningLeft or idx >= 5 and anyOpeningRight
+            local selected = idx < 5 and selectLeft or idx >= 5 and selectRight
+            local openTimer = selected and self.OpenTimer and CurTime() < self.OpenTimer
             local anyClosing = idx < 5 and anyClosingLeft or idx >= 5 and anyClosingRight
             local announceState = self.AnnounceStates[idx]
-            if announceState == "ReadyToOpen" or announceState == "OpeningAddr" then
-                announceState = anyOpening and "OpeningAddr" or "Open"
+            if openTimer and announceState == "OpeningAddr" then
+                announceState = "Opening"
+            end
+            if announceState == "ReadyToOpen" then
+                announceState = openTimer and "OpeningAddr" or "Open"
             end
             if announceState == "Closed" and anyClosing then announceState = "ClosingAwaiting" end
             if announceState == "Closing" and self:IsReverseOpening(idx) or self.AutoReverse[idx] == 3 and reverseMode == 3 then announceState = "ClosingAwaiting" end
@@ -604,7 +615,8 @@ else
             Wag:SetSoundState("door_alarm_" .. idx, buzzer and 1 or 0, buzzer and 1 or 0)
 
             local outer, inter
-            local blink = CurTime() % 0.4 >= 0.25
+            local blink1 = CurTime() % 0.4 >= 0.25
+            local blink2 = (CurTime() + 0.2) % 0.4 >= 0.25
 
             local delay = self.DelayTimer[idx] and CurTime() < self.DelayTimer[idx] or announceState ~= "Open" and self.WasOpen[idx]
             if delay and not self.DelayTimer[idx] then
@@ -621,18 +633,18 @@ else
                 outer = mat_red
                 inter = mat_red
             elseif announceState == "Closing" or announceState == "ClosingAwaiting" then
-                outer = (announceState == "ClosingAwaiting" or blink) and mat_off or mat_red
-                inter = blink and mat_off or mat_red
-            elseif announceState == "Depart" or announceState == "DepartAddr" then
-                outer = announceState == "DepartAddr" and mat_green or mat_red
+                outer = (announceState == "ClosingAwaiting" or blink1) and mat_off or mat_red
+                inter = blink2 and mat_off or mat_red
+            elseif announceState == "Depart" then
+                outer = mat_red
                 inter = not delay and mat_red or mat_off
             elseif announceState == "Open" then
                 self.WasOpen[idx] = true
                 outer = mat_green
                 inter = mat_green
             elseif announceState == "Opening" or announceState == "OpeningAddr" then
-                outer = announceState == "OpeningAddr" and mat_green or blink and mat_off or mat_red
-                inter = blink and mat_off or mat_red
+                outer = announceState == "OpeningAddr" and mat_green or blink1 and mat_off or mat_red
+                inter = blink2 and mat_off or mat_red
             else  -- Unpowered
                 outer = mat_off
                 inter = mat_off
