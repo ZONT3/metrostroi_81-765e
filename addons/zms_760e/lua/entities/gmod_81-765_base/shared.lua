@@ -325,9 +325,6 @@ function ENT:InitializeSounds()
         }
 
         self.SoundPositions["announcer_noiseW" .. k] = {v[2] or 300, 1e9, v[1], v[3] * 0.2}
-
-        self.SoundNames["announcer_sarmat_start" .. k] = {"subway_trains/722/sarmat_start.mp3"}
-        self.SoundPositions["announcer_sarmat_start" .. k] = {v[2] or 300, 1e9, v[1], v[3] * 0.2}
     end
 
     self.SoundNames["bv_off"] = {"subway_trains/760/new/bv_off.wav"}

@@ -1093,7 +1093,7 @@ if SERVER then
 else
 
     local announcerCommandSounds = {
-        ["#SarmatInit"] = "subway_trains/722/sarmat_start.mp3"
+        ["#SarmatInit"] = "subway_trains/765/sarmat_start.mp3"
     }
     net.Receive("BUIK765.AnnouncerCmd", function()
         local wagon = net.ReadEntity()
