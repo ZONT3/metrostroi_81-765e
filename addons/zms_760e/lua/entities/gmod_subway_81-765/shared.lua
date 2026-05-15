@@ -743,6 +743,7 @@ ENT.SpawnerCustom = {
     { "BtbuSd", "Автомат ППЗ БТБУ", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
     { "CoupleSprings", "Центровка автосцепок", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
     { "NerfKpDsHull", "Нерф КП/ДС/Кузов", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "DoorReverseMode", "Противозажатие", "List", { "1 авто, ∞ ручн.", "1 авто, 1 ручн.", "3 авто, ∞ ручн." }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
     {
         "NoTrailers", "Без прицепных 763Э", "Boolean", false, nil,
         function(self, stbl)

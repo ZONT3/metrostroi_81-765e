@@ -40,6 +40,7 @@ function TRAIN_SYSTEM:Initialize()
         self.ReverseDelay = {}
         self.ForeignObject = {}
         self.AutoReverse = {}
+        self.ReverseFailed = {0, 0, 0, 0, 0, 0, 0, 0}
         self.StuckPass = {}
         self.WasManual = {}
         self.OpenButton = {}
@@ -114,6 +115,7 @@ if SERVER then
         local bupActive = BUV.BupActive and zeroSpeed
         local addrMode = BUV.AddressDoors
         local addrForceOpen = false
+        local reverseMode = Wag:GetNW2Int("DoorReverseMode", 1)
 
         if self.BupActive ~= bupActive then
             if not self.BupChanging then
@@ -375,14 +377,20 @@ if SERVER then
                     else anyClosingRight = true end
                 end
 
-                if commandOpen and self.AutoReverse[idx] then self.AutoReverse[idx] = nil end
-                if not commandOpen and not self.AutoReverse[idx] and state[i] < 0.65 and state[i] >= 0.15 and dir[i] > -0.4 / speed then
-                    self.AutoReverse[idx] = 1
+                if commandOpen and self.AutoReverse[idx] then
+                    self.AutoReverse[idx] = nil
+                    self.ReverseDelay[idx] = nil
+                    self.ReverseFailed[idx] = 0
+                end
+                local shouldReverse = not self.AutoReverse[idx] or reverseMode == 3 and self.AutoReverse[idx] == 2 and CurTime() - (self.ReverseDelay[idx] or 0) > 1
+                if shouldReverse and not commandOpen and state[i] < 0.65 and state[i] >= 0.15 and dir[i] > -0.4 / speed then
+                    self.AutoReverse[idx] = 1 + state[i] + 0.2
                     self.ReverseDelay[idx] = CurTime() + 0.4
                 end
-                if self.AutoReverse[idx] == 1 then
-                    if state[i] >= 0.75 then
+                if self:IsReverseOpening(idx) then
+                    if state[i] >= math.max(self.AutoReverse[idx] - 1, 0.35) then
                         self.AutoReverse[idx] = 2
+                        self.ReverseFailed[idx] = self.ReverseFailed[idx] + 1
                         self.ReverseDelay[idx] = CurTime() + 0.4
                         if self.StuckPass[idx] == 1 and math.random() < 0.9 then
                             self.StuckPass[idx] = 0
@@ -394,10 +402,23 @@ if SERVER then
                         commandOpen = true
                     end
                 end
-                if self.AutoReverse[idx] and self.AutoReverse[idx] >= 2 then
+                if self.AutoReverse[idx] and self.AutoReverse[idx] >= 2 and (reverseMode ~= 2 or self.ReverseFailed[idx] < 2) then
                     if not commandClose then self.AutoReverse[idx] = 3 end
                     if commandClose and self.AutoReverse[idx] == 3 then
+                        if reverseMode == 3 then
+                            self.AutoReverse[idx] = 2
+                            self.ReverseFailed[idx] = 0
+                            self.ReverseDelay[idx] = CurTime()
+                        else
+                            self.AutoReverse[idx] = 1 + math.Clamp(state[i] + 0.2, 0.35, 0.85)
+                        end
+                    end
+                end
+                if reverseMode == 3 and self.AutoReverse[idx] and self.AutoReverse[idx] >= 2 and self.ReverseFailed[idx] >= 3 then
+                    if self.AutoReverse[idx] == 2 then
                         self.AutoReverse[idx] = 1
+                    else
+                        self.ReverseDelay[idx] = CurTime() + 1
                     end
                 end
 
@@ -406,21 +427,20 @@ if SERVER then
                     stuck = self:GetForeignObject(idx)
                 end
 
-                if self.ReverseDelay[idx] and CurTime() > self.ReverseDelay[idx] then self.ReverseDelay[idx] = nil end
-                if not self.ReverseDelay[idx] then
+                if self.AutoReverse[idx] then self.CloseDelay[idx] = 0 end
+
+                if not self.ReverseDelay[idx] or CurTime() >= self.ReverseDelay[idx] then
                     if commandOpen or not self.DoorClosed[idx] and self.CloseDelay[idx] and CurTime() >= self.CloseDelay[idx] then
                         dir[i] = math.Clamp(dir[i] + dT * (not stuck and 0.5 or -1.5) * (commandOpen and 1 or -1), -1 / speed, not stuck and (1 / speed) or 0)
                     elseif not commandOpen and not self.DoorClosed[idx] and not self.CloseDelay[idx] then
                         self.CloseDelay[idx] = self.DoorOpen[idx] and (CurTime() + 2.1 + self.DoorsDelayMax * (i % 2 == 0 and BUV.WagIdx - 1 or BUV.TrainLen - BUV.WagIdx - 1) / BUV.TrainLen) or 0
                         clState = 1
-                    elseif self.DoorClosed[idx] and self.CloseDelay[idx] then
-                        self.CloseDelay[idx] = nil
                     end
                 else
                     dir[i] = 0
                 end
 
-                if commandOpen and not self.AutoReverse[idx] and self.CloseDelay[idx] then
+                if (commandOpen or self.DoorClosed[idx]) and self.CloseDelay[idx] then
                     self.CloseDelay[idx] = nil
                 end
 
@@ -443,11 +463,13 @@ if SERVER then
             state[i] = math.Clamp(state[i] + dir[i] * dT, 0, not manual and 1 or 0.98)
             if state[i] <= 0 or state[i] >= 1 then dir[i] = 0 end
 
-            if closedState[i] and CurTime() >= closedState[i] and self.AutoReverse[idx] and self.AutoReverse[idx] > 1 then
+            if closedState[i] and CurTime() >= closedState[i] and (self.AutoReverse[idx] and self.AutoReverse[idx] >= 2 or self.ReverseFailed[idx] > 0) then
                 self.AutoReverse[idx] = nil
+                self.ReverseDelay[idx] = nil
+                self.ReverseFailed[idx] = 0
             end
 
-            if self.AutoReverse[idx] then
+            if self.AutoReverse[idx] and self.AutoReverse[idx] < 4 then
                 self.ReverseWork = true
             end
 
@@ -478,7 +500,7 @@ if SERVER then
                 announceState = anyOpening and "OpeningAddr" or "Open"
             end
             if announceState == "Closed" and anyClosing then announceState = "ClosingAwaiting" end
-            if announceState == "Closing" and self.AutoReverse[idx] == 1 then announceState = "ClosingAwaiting" end
+            if announceState == "Closing" and self:IsReverseOpening(idx) or self.AutoReverse[idx] == 3 and reverseMode == 3 then announceState = "ClosingAwaiting" end
             Wag:SetNW2String("DoorAnnounceState" .. idx, announceState)
         end
 
@@ -490,6 +512,10 @@ if SERVER then
             self.StuckPass = {}
         end
         if self.Depart and (not zeroSpeed or commandLeft or commandRight) then self.Depart = false end
+    end
+
+    function TRAIN_SYSTEM:IsReverseOpening(idx)
+        return self.AutoReverse[idx] and self.AutoReverse[idx] >= 1 and self.AutoReverse[idx] < 2
     end
 
     function TRAIN_SYSTEM:GetForeignObject(idx)
@@ -504,7 +530,7 @@ if SERVER then
             canStuck = math.Clamp(canStuck, 0, 0.08)
 
             local dynamic = math.min(0.65, canStuck + (idx < 5 and self.Train.CanStuckPassengerLeft or idx >= 5 and self.Train.CanStuckPassengerRight or 0) * 0.5)
-            local static = math.max(passCount > 120 and (canStuck + math.pow(math.min(240, passCount) / 240, 3) * 0.15) or 0, base)
+            local static = math.max(passCount > 120 and (canStuck + math.pow(math.min(120, passCount - 120) / 240, 3) * 0.08) or 0, base)
             canStuck = math.max(dynamic, static)
 
             self.StuckPass[idx] = math.random() < canStuck and 1 or 0
