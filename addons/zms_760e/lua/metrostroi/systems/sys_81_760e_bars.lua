@@ -296,14 +296,15 @@ function TRAIN_SYSTEM:Think(dT)
                 if ZeroSpeed and self.SpeedGained then
                     self.SpeedGained = false
                 end
-                if KmCur and not self.SpeedGained and Speed > 2.7 then
+                if self.NoFreq or KmCur and not self.SpeedGained and Speed > 2.3 then
                     self.SpeedGained = true
                 end
-                if not KmCur and not ZeroSpeed and not self.SpeedGained then
-                    Ring = true
-                    self:RvtbNow("NoSpeedGained")
+                local condition = not self.NoFreq and not KmCur and not ZeroSpeed and not self.SpeedGained
+                if condition and not self.NoSpeedGained then
+                    self.NoSpeedGained = CurTime() + 0.1
                 end
-                RVTB = RVTB and self:RvtbTimer("NoSpeedGained", true)
+                if condition and self.NoSpeedGained and CurTime() >= self.NoSpeedGained then Ring = true end
+                RVTB = RVTB and self:RvtbTimer("NoSpeedGained", not condition)
             end
 
             if self.PrevSpeed and self.PrevDvMeasure then
