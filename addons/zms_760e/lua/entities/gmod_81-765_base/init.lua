@@ -175,28 +175,83 @@ function ENT:CreateDoorTriggers()
     end
 end
 
+
+-- Центровка автоцепок. Я ебал его рот. Блять. Каждый раз, когда я меняю constraint-ы, все идет по пизде.
+-- А центровка нужна, т.к. на 81-765 сцепки центрируются, чтоб их не мотало из стороны в сторону.
+-- И без этой фичи вагон выглядит упорото.
+
+-- Закомменченный код здесь и в следующих трех методах - это все мои попытки победить ебанутую физику.
+-- То сцепка будет прыгать по приколу сама, то из-за нее игрок в кабине постоянно едет куда-то,
+-- То сцепленный вагон дрожит и толкается. И во всех этих случаях - сама сцепка дрожит и хаотично дергается.
+-- Ни один вариант из разных комбинаций закомменченого кода не помог.
+
+-- В итоге нащупал, что лишний раз вкл/выкл NoCollide все может исправить, и то - приходится полагаться на таймеры =)
+-- Ибо за один фрейм ничего не фиксится, и даже за несколько. Приходится ждать какое-то время, которое хуй знает от чего зависит...
+
+-- function ENT:RemoveBallsockets(couple)
+--     print(constraint.RemoveConstraints(couple, "AdvBallsocket"))
+--     -- local tbl = constraint.FindConstraints(couple, "AdvBallsocket")
+--     -- for _, v in ipairs(tbl) do
+--     --     if v.Ent1 == self and v.Ent2 == couple then
+--     --         v.Constraint:Remove()
+--     --     end
+--     -- end
+-- end
+
+-- Убрать центровку
+-- Да, изначально это были пружины. Но физике с ними совсем пизда.
 function ENT:RemoveSprings(isfront, coupling)
     local couple = isfront and self.FrontCouple or self.RearCouple
-    if not IsValid(couple) then return end
-    if not couple.Centered then return end
+    if not IsValid(couple) or not couple.Centered then return end
     -- print("remove", couple)
+    -- constraint.RemoveAll(couple)
+    -- self:RemoveBallsockets(couple)
     couple.Centered:Remove()
-    constraint.AdvBallsocket(self, couple, 0, 0, couple.SpawnPos, Vector(0, 0, 0), 1, 1, -2, -2, -15, 2, 2, 15, 0.1, 0.1, 1, 0, 1)
+    constraint.RemoveConstraints(couple, "NoCollide")
+    if not coupling then
+        couple:SetPos(self:LocalToWorld(couple.SpawnPos))
+        couple:SetAngles(self:GetAngles() + couple.SpawnAng)
+    end
+    constraint.AdvBallsocket(self, couple, 0, 0, couple.SpawnPos, Vector(0, 0, 0), 1, 1, -2, -2, -15, 2, 2, 15, 0.1, 0.1, 1)  -- Вырубить NoCollide флаг здесь - ОБЯЗАТЕЛЬНО.
     constraint.NoCollide(isfront and self.FrontBogey or self.RearBogey, couple, 0, 0)
+    constraint.NoCollide(self, couple, 0, 0)  -- Но потом обратно его присрать отдельным constraint-ом
+    -- if IsValid(coupling) then
+    --     constraint.Weld(self, coupling, 0, 0, 0)
+    -- end
     couple.Centered = false
+    -- local phy = couple:GetPhysicsObject()
+    -- if not IsValid(phy) then return end
+    -- phy:SetMass(couple.OriginalMass or 5000)
 end
 
-function ENT:SetSprings(isfront)
+-- Поставить центровку
+function ENT:SetSprings(isfront, force)
     if not self:GetNW2Bool("CoupleSprings", false) then self:RemoveSprings(isfront) return end
     if isfront and self.CoupleCenteringF.Value > 0 or not isfront and self.CoupleCenteringR.Value > 0 then return end
     if isfront and self.FrontCoupledBogey or not isfront and self.RearCoupledBogey then return end
     local couple = isfront and self.FrontCouple or self.RearCouple
-    if not IsValid(couple) or couple.Centered then return end
+    if not IsValid(couple) or not force and couple.Centered then return end
     -- print("set", couple)
+    -- local phy = couple:GetPhysicsObject()
+    -- if not IsValid(phy) then return end
+    -- phy:EnableMotion(false)
+    -- local bs = constraint.Find(self, couple, "AdvBallsocket", 0, 0)
+    -- if IsValid(bs) then bs:Remove() print("rm bs") end
+    -- self:RemoveBallsockets(couple)
     constraint.RemoveAll(couple)
-    couple:SetPos(self:LocalToWorld(couple.SpawnPos + Vector(isfront and 0.8 or -0.8, 0, 0)))
+    couple:SetPos(self:LocalToWorld(couple.SpawnPos))
     couple:SetAngles(self:GetAngles() + couple.SpawnAng)
-    couple.Centered = constraint.Weld(self, couple, 0, 0)
+    -- couple.Centered = constraint.AdvBallsocket(self, couple, 0, 0, couple.SpawnPos, Vector(0, 0, 0), 1, 1, -2, -2, -0.6, 2, 2, 0.6, 0.1, 0.1, 1)
+    couple.Centered = constraint.Weld(self, couple, 0, 0)  -- Вырубить NoCollide флаг здесь тоже - ОБЯЗАТЕЛЬНО.
+    constraint.NoCollide(isfront and self.FrontBogey or self.RearBogey, couple, 0, 0)
+    constraint.NoCollide(self, couple, 0, 0)
+    -- couple.OriginalMass = phy:GetMass()
+    -- phy:SetMass(0)  -- Вот это было неплохим вариантом, все становилось заебись, кроме... Блять естественно, веса сцепки =) Из-за чего она себя по-веселому ведет при ЛЮБЫХ коллизиях.
+    -- timer.Create("765.CouplePhysRestore." .. couple:EntIndex(), 0.2, 1, function()
+    --     if not IsValid(phy) then return end
+    --     phy:EnableMotion(true)
+    --     print("restored")
+    -- end)
 end
 
 function ENT:TrainSpawnerUpdate()
@@ -207,10 +262,31 @@ function ENT:TrainSpawnerUpdate()
         self:ResetSettings()
     end
 
-    -- if not self.IsIntermediate then
-    self:SetSprings(true)
-    self:SetSprings(false)
-    -- end
+    if not self.IsIntermediate and self:GetNW2Bool("CoupleSprings", false) then
+
+        -- Да, блять...
+        -- Физика перестает быть джокером только после этого.
+        -- У кого есть другое решение - я молю блять, расскажите.
+
+        -- Вот для первого раза достаточно одного фрейма. Но не меньше. Т.е. если мы это сделаем на том же фрейме, на котором заспавнился вагон - хуй.
+        timer.Simple(0, function()
+            if not IsValid(self) then return end
+            self:SetSprings(true, true)
+
+            -- А вот второй раз.
+            -- Почему именно три секунды? Я не ебу. Один фрейм - не помогает, два - тоже. А хуй знает сколько - ДА.
+            timer.Simple(3, function()
+                if not IsValid(self) then return end
+                self:RemoveSprings(true)
+                self:SetSprings(true, true)
+            end)
+        end)
+
+        -- Трахаться с физикой еще и задней сцепки я не собираюсь.
+        -- Центрируем только переднюю головного вагона.
+        -- В любом случае, на 765 остальные сцепки - это БЗС.
+        -- self:SetSprings(false)
+    end
 
     self:SetNW2Int("BNT:ScreenFps", self:GetNW2Int("BntFps", 2) == 2 and 60 or 15)
     self:UpdateTextures()
@@ -304,24 +380,26 @@ function ENT:Think()
     end
 
     self:SetNW2Bool("FrontCoupled", self:GetNW2Bool("CoupleSprings", false) and self.FrontCoupledBogey ~= nil)
-    self:SetNW2Bool("RearCoupled", self:GetNW2Bool("CoupleSprings", false) and self.RearCoupledBogey ~= nil)
-    if self.FrontCoupledBogey and self.CoupleCenteringF.Value > 0 then
-        self.CoupleCenteringF:TriggerInput("Set", 0)
-    end
-    if self.RearCoupledBogey and self.CoupleCenteringR.Value > 0 then
-        self.CoupleCenteringR:TriggerInput("Set", 0)
-    end
-    if self.CoupleCenteringF.Value > 0 and self.FrontCouple.Centered then
-        self:RemoveSprings(true)
-    end
-    if self.CoupleCenteringR.Value > 0 and self.RearCouple.Centered then
-        self:RemoveSprings(false)
-    end
-    if not self.FrontCoupledBogey and self.CoupleCenteringF.Value == 0 and not self.FrontCouple.Centered and self:GetNW2Bool("CoupleSprings", false) then
-        self:SetSprings(true)
-    end
-    if not self.RearCoupledBogey and self.CoupleCenteringR.Value == 0 and not self.RearCouple.Centered and self:GetNW2Bool("CoupleSprings", false) then
-        self:SetSprings(false)
+    self:SetNW2Bool("RearCoupled", true--[[self:GetNW2Bool("CoupleSprings", false) and self.RearCoupledBogey ~= nil]])
+    if not self.IsIntermediate then
+        if self.FrontCoupledBogey and self.CoupleCenteringF.Value > 0 then
+            self.CoupleCenteringF:TriggerInput("Set", 0)
+        end
+        if self.CoupleCenteringF.Value > 0 and self.FrontCouple.Centered then
+            self:RemoveSprings(true)
+        end
+        if not self.FrontCoupledBogey and self.CoupleCenteringF.Value == 0 and not self.FrontCouple.Centered and self:GetNW2Bool("CoupleSprings", false) then
+            self:SetSprings(true)
+        end
+        -- if self.RearCoupledBogey and self.CoupleCenteringR.Value > 0 then
+        --     self.CoupleCenteringR:TriggerInput("Set", 0)
+        -- end
+        -- if self.CoupleCenteringR.Value > 0 and self.RearCouple.Centered then
+        --     self:RemoveSprings(false)
+        -- end
+        -- if not self.RearCoupledBogey and self.CoupleCenteringR.Value == 0 and not self.RearCouple.Centered and self:GetNW2Bool("CoupleSprings", false) then
+        --     self:SetSprings(false)
+        -- end
     end
 
     self:SetPackedRatio("Speed", self.Speed)
@@ -373,7 +451,7 @@ function ENT:Think()
     return retVal
 end
 
-function ENT:OnCouple(train, isfront)
+function ENT:OnCouple(couple, isfront)
     if isfront and self.FrontAutoCouple then
         self.FrontBrakeLineIsolation:TriggerInput("Open", 1.0)
         self.FrontTrainLineIsolation:TriggerInput("Open", 1.0)
@@ -385,9 +463,9 @@ function ENT:OnCouple(train, isfront)
     end
 
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
-    BaseClass.OnCouple(self, train, isfront)
+    BaseClass.OnCouple(self, couple, isfront)
 
-    self:RemoveSprings(isfront, true)
+    self:RemoveSprings(isfront, couple)
 end
 
 function ENT:OnDecouple(isfront)

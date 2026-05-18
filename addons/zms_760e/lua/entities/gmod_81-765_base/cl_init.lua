@@ -1229,8 +1229,8 @@ function ENT:Think()
         self:AnimateCustom("DoorCabL", "position_window", self:GetPackedBool("CabinWindowLeft") and 1 or 0, 0, 1, 8, 0.5)
         self:AnimateCustom("DoorCabR", "position_window", self:GetPackedBool("CabinWindowRight") and 1 or 0, 0, 1, 8, 0.5)
 
-        self:HidePanel("CoupleCenteringF", self:GetNW2Bool("CoupleSprings", false) and self:GetNW2Bool("FrontCoupled", false))
-        self:HidePanel("CoupleCenteringR", self:GetNW2Bool("CoupleSprings", false) and self:GetNW2Bool("RearCoupled", false))
+        self:HidePanel("CoupleCenteringF", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("FrontCoupled", false))
+        self:HidePanel("CoupleCenteringR", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("RearCoupled", false))
 
         local state = self:GetPackedBool("WorkCabVent", false)
         local ventTimer = self:GetPackedRatio("VentTimer", 0)
