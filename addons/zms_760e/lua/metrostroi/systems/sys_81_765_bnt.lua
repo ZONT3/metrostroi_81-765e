@@ -625,7 +625,7 @@ else
                                     {
                                         typ = 1,
                                         symbol = tostring(cisCfg[ccIdx + 2] or "?"),
-                                        color = cisCfg[ccIdx + 4]
+                                        color = cisCfg[ccIdx + 4] or "#ffffff"
                                     }
                                 },
                                 name = cisCfg[ccIdx + 1],
