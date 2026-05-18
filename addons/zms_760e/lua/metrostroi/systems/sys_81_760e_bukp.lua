@@ -1131,7 +1131,7 @@ function TRAIN_SYSTEM:Think(dT)
                         Train.ProstKos.ProstActive == 1 and
                         Train.KV765.Position >= 0 and
                         not (Train.KV765.Position > 0 and Train.ProstKos.Command > 0)
-                    ) then kvSetting = Train.ProstKos.Command end
+                    ) then kvSetting = Train.ProstKos.Command == 1 and 0 or Train.ProstKos.Command end
                     if Train.ProstKos.CommandKos > 0 then kvSetting = -100 overrideKv = true end
                     if BARS.Brake > 0 then kvSetting = -80 overrideKv = true end
                     if self.Errors.EmergencyBrake and self.ZeroSpeed < 1 then kvSetting = -100 overrideKv = true end
@@ -1140,13 +1140,9 @@ function TRAIN_SYSTEM:Think(dT)
                         overrideKv = true
                     end
 
-                    local sb = not overrideKv and BARS.StillBrake == 1
-                    if sb then kvSetting = -50 overrideKv = true end
+                    if not overrideKv and BARS.StillBrake == 1 and Train.KV765.Position <= 0 then kvSetting = -50 overrideKv = true end
 
-                    -- if kvSetting < -10 and not sb and Train.KV765.Position > 0 then kvSetting = -100 overrideKv = true end
-                    if not sb and (Train.KV765.TractiveSetting > 0 or Train.KV765.TargetTractiveSetting > 0) and kvSetting <= 0 then
-                        Train.KV765:TriggerInput("ResetTractiveSetting", 1)
-                    end
+                    Train.KV765:TriggerInput("ResetTractiveSetting", (Train.KV765.TractiveSetting > 0 or Train.KV765.TargetTractiveSetting > 0) and kvSetting <= 0 and 1 or 0)
                 end
 
                 self:CheckError("KosCommand", Train.ProstKos.CommandKos > 0)

@@ -100,6 +100,8 @@ function TRAIN_SYSTEM:TriggerInput(name, value)
             self.MotionBlocked = true
             self.TractiveSetting = self.TargetTractiveSetting <= 0 and self.TargetTractiveSetting or 0
             self.TargetTractiveSetting = self.TargetTractiveSetting <= 0 and self.TargetTractiveSetting or 0
+        else
+            self.MotionBlocked = false
         end
 
     elseif name == "SetTractiveSetting" then
