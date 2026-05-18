@@ -307,7 +307,7 @@ if SERVER then
 
             if readyToOpen and not self.DoorCommand[idx] and (curForceOpen or self.OpenButton[idx] or self.MobsOpening[idx] and CurTime() >= self.MobsOpening[idx]) then
                 self.OpenButton[idx] = CurTime()
-                self.DoorCommand[idx] = true
+                self.DoorCommand[idx] = zeroSpeed
             end
 
             local announceState = "Unpowered"
