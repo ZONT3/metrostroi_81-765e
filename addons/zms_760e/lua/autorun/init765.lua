@@ -264,6 +264,7 @@ if SERVER then
         }
     end
 
+    -- Debug function
     concommand.Add("zms_prop_check", function(ply)
         if not IsValid(ply) then return end
         local ent = ply:GetEyeTrace().Entity
@@ -279,6 +280,67 @@ if SERVER then
             PrintTable(build_tbl(ent))
             ent:GetPhysicsObject():OutputDebugInfo()
         end
+    end)
+
+    -- Клин колесной пары (пары колесных пар на данный момент).
+    -- set == true: заклинили, == false: отклинили, иначе - переключили.
+    -- idx == 2: задняя телега, иначе - передняя.
+    function ZMS.LockKp(set, wagon, idx)
+        if not IsValid(wagon) then return end
+        local bogey = idx == 2 and wagon.RearBogey or wagon.FrontBogey
+        local wheels = IsValid(bogey) and bogey.Wheels
+        if not IsValid(wheels) then return end
+        local prev = wheels:GetNW2Bool("Disabled", false)
+        set = isbool(set) and set == true or not isbool(set) and not prev
+        wheels:SetNW2Bool("Disabled", set)
+        return set
+    end
+
+    -- [1] wag_idx: wagon sequential number
+    -- [2] kp_idx: same as idx in function above
+    concommand.Add("765_kp_lock", function(ply, _, args)
+        if not isfunction(ZMS.LockKp) then return end
+        if not IsValid(ply) then return end
+        local wag_idx = tonumber(args[1]) or nil
+        local kp_idx = tonumber(args[2]) or nil
+
+        local train = ply:GetTrain()
+        if not IsValid(train) then
+            ply:PrintMessage(HUD_PRINTCONSOLE, "You must be inside a train")
+            return
+        end
+        train:UpdateWagonList()
+        local wag = train.WagonList and (wag_idx and train.WagonList[wag_idx] or train.WagonList[#train.WagonList > 0 and math.random(#train.WagonList) or 1])
+        if not IsValid(wag) then
+            ply:PrintMessage(HUD_PRINTCONSOLE, "Wagon not found for index " .. (wag_idx or 1))
+            return
+        end
+
+        if not ply:IsAdmin() and wag.Owner ~= ply then
+            ply:PrintMessage(HUD_PRINTCONSOLE, "You should be an owner of this train")
+            return
+        end
+
+        local res = ZMS.LockKp(not wag_idx and true or nil, wag, kp_idx)
+        local msg = string.format("%s wheels on %s %s bogey.", res and "Locked" or "Unlocked", tostring(wag), idx == 2 and "rear" or "front")
+        ply:PrintMessage(HUD_PRINTCONSOLE, msg)
+        print(tostring(ply) .. " " .. msg)
+    end)
+
+    concommand.Add("765_kp_lock_reset", function(ply)
+        if not isfunction(ZMS.LockKp) then return end
+        if not IsValid(ply) then return end
+        local train = ply:GetTrain()
+        if not IsValid(train) then return end
+        train:UpdateWagonList()
+        for _, wag in pairs(train.WagonList or {}) do
+            if IsValid(wag) then
+                ZMS.LockKp(false, wag, 1)
+                ZMS.LockKp(false, wag, 2)
+            end
+        end
+        ply:PrintMessage(HUD_PRINTCONSOLE, "Cleared all wheel lock on the train")
+        print(tostring(ply) .. " cleared all whell lock on his train")
     end)
 
 end

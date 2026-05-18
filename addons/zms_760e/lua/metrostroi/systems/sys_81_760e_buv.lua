@@ -349,6 +349,9 @@ function TRAIN_SYSTEM:Think(dT)
         self.EncoderFWork = 1
         self.EncoderRWork = 1
         self.EncoderWork = 1
+
+        self:CState("EncoderF", true)
+        self:CState("EncoderR", true)
     end
 
     if self.Reset and self.Reset ~= CurTime() then self.Reset = nil end
