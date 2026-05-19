@@ -387,13 +387,13 @@ if SERVER then
         self.DoorAlarm = false
     end
 
-    function TRAIN_SYSTEM:SetupInformer(Wag)
+    function TRAIN_SYSTEM:SetupInformer(Wag, noPage, keepLastSt)
         local reset = self.InformerCfgIdx ~= Wag:GetNW2Int("Announcer", 1) or self.CisCfgIdx ~= Wag:GetNW2Int("CISConfig", 0) or self.RouteNumber < 0
         local idx = Wag:GetNW2Int("Announcer", 1)
         local cfg = Metrostroi.ASNPSetup[idx]
         local cisIdx = Wag:GetNW2Int("CISConfig", 0)
         local cisCfg = (Metrostroi.CISConfig or {})[cisIdx]
-        if not cfg[1] then
+        if not cfg or not cfg[1] then
             self.InformerState = STATE_SETUP
             self.InformerCfg = nil
             self.InformerCfgIdx = -1
@@ -406,14 +406,16 @@ if SERVER then
         self.CisCfgIdx = not reset and self.CisCfgIdx or cisIdx
         self.RouteNumber = self.RouteNumber >= 0 and self.RouteNumber or 0
         self.InformerState = not reset and STATE_NORMAL or STATE_SETUP
-        self.Page = not reset and PAGE_LAST_ST or PAGE_ROUTES
+        self.Page = not reset and PAGE_MAIN or PAGE_ROUTES
         self.Route = not reset and self.Route > 0 and self.Route or 1
         self.Path = Wag.Buik_Path.Value > 0
         self.PageSelTimer = nil
         self:InitRoutes()
         self:InitRoute()
-        self:ReturnInformer(true)
-        self:UpdatePage(true)
+        self:ReturnInformer(not keepLastSt, noPage)
+        if not noPage then
+            self:UpdatePage(true)
+        end
     end
 
     function TRAIN_SYSTEM:WriteToIk(str, data, arg, ...)
@@ -442,6 +444,7 @@ if SERVER then
         if path ~= self.Path then
             self.Path = path
             self.RouteChanged = true
+            self.LineChanged = true
             self:Highlight("LastStation")
             self:ReturnInformer(true)
             self:UpdatePage(true)
@@ -453,10 +456,15 @@ if SERVER then
         if self.DoorAlarm and Wag.BUKP.DoorClosed > 0 then self.DoorAlarm = false end
         Wag.IK.DoorAlarm = self.DoorAlarm
 
+        if self.Page == PAGE_MAIN then
+            self.StationWas = self.Station
+        end
+
         if self.InformerState == STATE_SETUP then
             self.RouteNumber = Wag.BUKP.RouteNumber or 99
             self.InformerState = STATE_NORMAL
             self.RouteChanged = true
+            self.LineChanged = true
             self:Highlight("List")
 
         elseif self.InformerState == STATE_NORMAL then
@@ -548,6 +556,7 @@ if SERVER then
             end
             if not displayOnly then
                 self.RouteChanged = true
+                self.LineChanged = true
                 self:Highlight("LastStation")
                 self:UpdateRoute()
             end
@@ -613,13 +622,7 @@ if SERVER then
     end
 
     function TRAIN_SYSTEM:Trigger(name, val)
-        if self.InformerState == STATE_NORMAL then
-            if val and name == "Buik_MicBtn" and self:IsCurrentlyPlaying() and self.Train.Buik_MicLine.Value > 0 then
-                self:StopMessage()
-                self.DoorAlarm = false
-                return
-            end
-
+        if self.InformerState == STATE_NORMAL and self.State == STATE_NORMAL then
             if val and name == "Buik_Mode" then
                 local x = self.Page + 1
                 if x > 4 then x = 1 end
@@ -689,6 +692,12 @@ if SERVER then
 
                 end
             end
+        end
+
+        if self.InformerState == STATE_NORMAL and val and name == "Buik_MicBtn" and self:IsCurrentlyPlaying() and self.Train.Buik_MicLine.Value > 0 then
+            self:StopMessage()
+            self.DoorAlarm = false
+            return
         end
 
         if self.State == STATE_INACTIVE_CABIN and name == "Buik_Return" and val then
@@ -769,7 +778,7 @@ if SERVER then
         self:ReturnInformer(true)
     end
 
-    function TRAIN_SYSTEM:ReturnInformer(resetLastSt)
+    function TRAIN_SYSTEM:ReturnInformer(resetLastSt, noBack)
         if resetLastSt then
             self.LastStationIdx = 0
         end
@@ -836,12 +845,14 @@ if SERVER then
         self:Highlight("List")
 
         lastStation = lastStation or routeStations[1]
-        if self.LastStationDraft ~= lastStation.name then
+        if noBack or self.LastStationDraft ~= lastStation.name then
             self:Highlight("LastStation")
             self.RouteChanged = true
         end
         self.LastStationDraft = lastStation.name
-        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "RouteChanged", true)
+        if not noBack then
+            self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "RouteChanged", true)
+        end
     end
 
     function TRAIN_SYSTEM:InsertStation(routeStations, station, idx, lastStation, routeStationsCfg)
@@ -863,10 +874,9 @@ if SERVER then
     function TRAIN_SYSTEM:UpdateLastStation()
         local lastStation = self.LastStations[self.LastStationIdx]
         if self.LastStationDraft ~= lastStation.name then
-            local stationWas = self.Station
             self:ReturnInformer()
-            if not self.LoopRoute and stationWas < #self.Stations then
-                self.Station = stationWas
+            if not self.LoopRoute and (self.StationWas or 1) < #self.Stations then
+                self.Station = (self.StationWas or 1)
             end
         end
     end
@@ -888,8 +898,6 @@ if SERVER then
 
     function TRAIN_SYSTEM:UpdatePlates()
         self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "RouteNumber", self.RouteNumber)
-        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "Route", self.Route)
-        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "InformerCfg", self.InformerCfgIdx)
 
         local lastStationShort = (self.IsServiceRoute or self.Loop) and self.LastStation or self.Stations[1][2] or self.Stations[1][1]
         local lastStation = self.LastStations[self.LastStationIdx]
@@ -898,7 +906,14 @@ if SERVER then
         self.Train.FrontIK:TriggerInput("SetRoute", self.LastStation, self.RouteNumber, lastStation and lastStation.index or nil)
         self.Train:SetNW2String("RouteNumber", self.RouteNumber)
 
-        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "UpdateBmt", not self.CloneBmt and self.Stations[1].index or lastStation and lastStation.index or nil)
+        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "InformerCfg", self.InformerCfgIdx)
+        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "CisCfg", self.CisCfgIdx)
+        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "Route", self.Route)
+
+        if self.LineChanged then
+            self.LineChanged = false
+            self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "UpdateBmt", not self.CloneBmt and self.Stations[1].index or lastStation and lastStation.index or nil)
+        end
     end
 
     function TRAIN_SYSTEM:InitIk(lastSt)
@@ -944,8 +959,13 @@ if SERVER then
         if textdata == "Deactivate" then self.Active = false self.State = STATE_INACTIVE_CABIN end
         if textdata == "RouteChanged" then self.RouteChanged = numdata end
         if textdata == "RouteNumber" then self.RouteNumber = numdata end
-        if textdata == "Route" then self.Route = numdata end
         if textdata == "InformerCfg" then self.InformerCfgIdx = numdata self.InformerCfg = nil end
+        if textdata == "CisCfg" then self.CisCfgIdx = numdata end
+        if textdata == "Route" then
+            local routeChanged = self.Route ~= numdata
+            self.Route = numdata
+            self:SetupInformer(self.Train, true, not routeChanged)
+        end
         if textdata == "LastStation" then
             self.LastStation = numdata
             self.LastStationDraft = numdata
@@ -979,10 +999,10 @@ if SERVER then
         self.Arrived = not station.is_dep
         if self.Station < #self.Stations or self.Loop then
             self.Station = (self.Station % #self.Stations) + 1
-            self:Highlight("List")
             self:UpdatePage(false)
             self.UpdateIkTimer = nil
         end
+        self:Highlight("List")
 
         local lastSt = self.LastStations[self.LastStationIdx]
         local is_extra = not self.Loop and station.idx == 1 and not station.is_dep
@@ -1076,29 +1096,14 @@ if SERVER then
         end
     end
 
-    function TRAIN_SYSTEM:RouteNumberScroll(down)
-        if not self.RouteNumber or self.RouteNumber < 0 then
-            self.RouteNumber = 0
-            return
-        end
-        local delta = down and -1 or 1
-        local val = self.RouteNumber + delta
-        if val < 0 then val = 100
-        elseif val > 777 then val = 0
-        end
-        self.RouteNumber = val
-    end
-
 
 else
 
-    local announcerCommandSounds = {
-        ["#SarmatInit"] = "subway_trains/765/sarmat_start.mp3"
-    }
+    local announcerCommandSounds = { ["#SarmatInit"] = "subway_trains/765/sarmat_start.mp3" }
     net.Receive("BUIK765.AnnouncerCmd", function()
         local wagon = net.ReadEntity()
         local recording = net.ReadString()
-        if not IsValid(wagon) then return end
+        if not IsValid(wagon) or not wagon.PlayOnceFromPos then return end
 
         if announcerCommandSounds[recording] then
             recording = announcerCommandSounds[recording]

@@ -226,8 +226,8 @@ else
     })
 
     local colorBackground = Color(255, 255, 255)
-    local colorBlack = Color(12, 12, 12)
-    local colorEng = Color(12, 12, 12, 175)
+    local colorBlack = Color(20, 20, 20)
+    local colorEng = Color(20, 20, 20, 175)
 
     local sizeGifH = 180
     local sizeMinBoxW = 400
@@ -315,7 +315,7 @@ else
             else
                 local anim = poweronTimer - CurTime()
                 if anim > 2 then
-                    surface.SetDrawColor(44, 44, 44)
+                    surface.SetDrawColor(colorBlack)
                 else
                     surface.SetDrawColor(colorBackground)
                 end
@@ -325,7 +325,7 @@ else
         end
 
         if not self.Stations or #self.Stations < 2 then
-            surface.SetDrawColor(44, 44, 44)
+            surface.SetDrawColor(colorBlack)
             surface.DrawRect(0, 0, scw, sch)
             draw.SimpleText("БЛОК НЕАКТИВЕН", "BNT.SystemHeader", scw / 2, sch / 2, colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             draw.SimpleText(left and "левый" or "правый", "BNT.SystemSmall", scw / 2, 480, colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
@@ -422,7 +422,7 @@ else
         local firstStation = station == 1
         local secondStation = station == 2
         local loop = Wag:GetNW2Int("BNT:Loop", 0) == 1
-        local stcount = loop and 7 or math.min(#self.Stations, Wag:GetNW2Int("BNT:LastStation", #self.Stations)) - station + 1
+        local stcount = not self.Working and #self.Stations or loop and 7 or math.min(#self.Stations, Wag:GetNW2Int("BNT:LastStation", #self.Stations)) - station + 1
         local termx, termy = scw - sizeTrminusBanner * terminusAnim, y
         local linex, liney = (not loop and firstStation and x0 or 0), y0 + 40
         local lineEnd = scw
