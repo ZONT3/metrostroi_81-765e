@@ -11,7 +11,7 @@ local dbg = false
 function TRAIN_SYSTEM:Initialize()
     self:InitTrigger("Buik_EMsg1")  -- Экстр. Сообщение 1
     self:InitTrigger("Buik_EMsg2")  -- Экстр. Сообщение 2
-    self:InitTrigger("Buik_EMsg3")  -- Экстр. Сообщение 2
+    -- self:InitTrigger("Buik_EMsg3")  -- Экстр. Сообщение 2
     self:InitTrigger("Buik_Unused1")  -- Не используется (резвервная линия)
     self:InitTrigger("Buik_Mode")  -- Безымянная (выбор режима/страницы)
     self:InitTrigger("Buik_Path")  -- Выбор маршрута
@@ -255,6 +255,7 @@ if SERVER then
                 self.CisCfgIdx = nil
                 self.Station = nil
                 self.Route = 0
+                self.Message = 1
                 self.LastStationDraft = "Посадки нет"
                 self.LastStation = "Посадки нет"
                 self.DoorAlarm = false
@@ -382,9 +383,15 @@ if SERVER then
             "Посадки нет",
         }
 
+        self.BaseMessages = {
+            { name = "Тест", rec = {"#SarmatInit"} }
+        }
+
         self.LastStationDraft = "Посадки нет"
         self.LastStation = "Посадки нет"
         self.DoorAlarm = false
+
+        self.OwnerSteamid = IsValid(self.Train.Owner) and self.Train.Owner:SteamID64() or "0000"
     end
 
     function TRAIN_SYSTEM:SetupInformer(Wag, noPage, keepLastSt)
@@ -410,6 +417,7 @@ if SERVER then
         self.Route = not reset and self.Route > 0 and self.Route or 1
         self.Path = Wag.Buik_Path.Value > 0
         self.PageSelTimer = nil
+        self:InitMessages()
         self:InitRoutes()
         self:InitRoute()
         self:ReturnInformer(not keepLastSt, noPage)
@@ -469,8 +477,8 @@ if SERVER then
 
         elseif self.InformerState == STATE_NORMAL then
             if self.Page ~= PAGE_MAIN then
-                if not self.PageSelTimer then self.PageSelTimer = CurTime() + PAGE_TIMEOUT end
-                if CurTime() >= self.PageSelTimer then
+                if not self.PageSelTimer and self.Page ~= PAGE_MSG then self.PageSelTimer = CurTime() + PAGE_TIMEOUT end
+                if self.PageSelTimer and CurTime() >= self.PageSelTimer then
                     self.PageSelTimer = nil
                     self.Page = PAGE_MAIN
                     self:Highlight("List")
@@ -482,6 +490,18 @@ if SERVER then
                     self.RouteChanged = false
                     self:ActivateRoute()
                 end
+            end
+        end
+
+        if self.Page == PAGE_MSG and not self.Sarmat then
+            local ply = player.GetBySteamID64(self.OwnerSteamid)
+            for idx = -1, 1 do
+                local msg = self.Messages[(self.Message or 1) + idx]
+                local val = false
+                if msg and (msg == self.RecMsg1 or msg == self.RecMsg2) and IsValid(ply) and ZMS and ZMS.Rec765 and ZMS.Rec765.AllReady then
+                    val = not ZMS.Rec765.AllReady(ply, msg == self.RecMsg1 and 1 or 2)
+                end
+                Wag:SetNW2Bool("BUIK:Recording" .. (idx + 2), val)
             end
         end
 
@@ -519,6 +539,21 @@ if SERVER then
             else
                 self.UpdateIkTimer = nil
                 self:UpdateIk()
+            end
+        elseif self.Page == PAGE_MSG then
+            if self.Sarmat then
+                self:SetSarmatList(self.Messages, self.Message, false, true)
+            else
+                if #self.Messages > 0 then
+                    self:SetListLine(1, self.Message > 1 and self.Messages[self.Message - 1].name or "")
+                    self:SetListLine(2, self.Messages[self.Message].name)
+                    self:SetListLine(3, #self.Messages > self.Message and self.Messages[self.Message + 1].name or "")
+                else
+                    self:SetErrMsg("Не заведено")
+                end
+            end
+            if not displayOnly then
+                self:UpdateLastStation()
             end
         elseif self.Page == PAGE_LAST_ST then
             if self.Sarmat then
@@ -622,8 +657,8 @@ if SERVER then
     end
 
     function TRAIN_SYSTEM:Trigger(name, val)
-        if self.InformerState == STATE_NORMAL and self.State == STATE_NORMAL then
-            if val and name == "Buik_Mode" then
+        if self.InformerState == STATE_NORMAL and self.State == STATE_NORMAL and val then
+            if name == "Buik_Mode" then
                 local x = self.Page + 1
                 if x > 4 then x = 1 end
                 self.Page = x
@@ -632,14 +667,14 @@ if SERVER then
                 self.PageSelTimer = nil
                 return
             end
-            if val and self.Page ~= PAGE_MAIN and name == "Buik_Return" then
+            if self.Page ~= PAGE_MAIN and name == "Buik_Return" then
                 self.Page = PAGE_MAIN
                 self:Highlight("List")
                 self:UpdatePage(true)
                 return
             end
 
-            if val and not (self.RouteChanged and self.Page == PAGE_MAIN) and (name == "Buik_Down" or name == "Buik_Up") then
+            if not (self.RouteChanged and self.Page == PAGE_MAIN) and (name == "Buik_Down" or name == "Buik_Up") then
                 local delta = name == "Buik_Down" and 1 or -1
                 local listCfg = (
                     self.Page == PAGE_MAIN and "Station" or
@@ -653,44 +688,60 @@ if SERVER then
                 local allowZero = istable(listCfg) and listCfg[3]
                 local listTbl = self[listName]
                 if not listTbl then return end
+                self.PageSelTimer = nil
+                self:Highlight("List")
                 local listLen = #listTbl
                 if listLen < 1 then return end
 
                 local loop = (self.Page == PAGE_MAIN and self.Loop)
-                local x = self[cursorName] + delta
+                local x = (self[cursorName] or 1) + delta
                 if loop and x > listLen then x = 1 end
                 if loop and x < 1 then x = listLen end
                 if listLen >= x and (x > 0 or allowZero and x >= 0) then
                     self[cursorName] = x
                 end
-                self:Highlight("List")
                 self:UpdatePage()
-                self.PageSelTimer = nil
                 return
             end
 
-            if self.Page == PAGE_MAIN then
-                if val and self.RouteChanged and (name == "Buik_Return" or name == "R_Program1" or name == "Buik_Down" or name == "Buik_Up") then
+            if self.Page == PAGE_MAIN or self.Page == PAGE_MSG then
+                if self.RouteChanged and (name == "Buik_Return" or name == "R_Program1" or name == "Buik_Down" or name == "Buik_Up") then
                     self.RouteChanged = false
                     local exec = self.Station > 1 and name ~= "R_Program1"
                     self:ActivateRoute()
                     if exec then
                         self:Trigger(name, val)
                     end
+                    return
 
-                elseif val and name == "R_Program1" then
+                elseif name == "R_Program1" then
                     if self:IsCurrentlyPlaying() then
                         self:StopMessage()
-                        self.DoorAlarm = false
+                        if self.Page == PAGE_MAIN then
+                            self.DoorAlarm = false
+                        end
                     end
                     self:Play()
+                    return
 
-                elseif val and name == "Buik_Return" then
+                elseif name == "Buik_Return" then
                     self:ReturnInformer()
                     if not self.ServiceRoute then self.Station = 1 end
                     self:UpdatePage(true, true)
+                    return
 
                 end
+            end
+
+            if name == "Buik_EMsg1" or name == "Buik_EMsg2" then
+                local msg = name == "Buik_EMsg1" and self.RecMsg1 or self.RecMsg2
+                if msg then
+                    if self:IsCurrentlyPlaying() then
+                        self:StopMessage()
+                    end
+                    self:Play(msg)
+                end
+                return
             end
         end
 
@@ -703,6 +754,47 @@ if SERVER then
         if self.State == STATE_INACTIVE_CABIN and name == "Buik_Return" and val then
             self.Activate = true
         end
+    end
+
+    function TRAIN_SYSTEM:InitMessages()
+        self.Messages = {}
+        local cfg = self.InformerCfg[self.Route]
+        if cfg then
+            if cfg.spec_cik then
+                table.Add(self.Messages, cfg.spec_cik)
+            else
+                if cfg.spec_wait then
+                    if cfg.spec_wait[1] then
+                        table.insert(self.Messages, {
+                            name = "Поезд скоро отправится",
+                            rec = cfg.spec_wait[1]
+                        })
+                    end
+                    if cfg.spec_wait[2] then
+                        table.insert(self.Messages, {
+                            name = "Поезд отправляется",
+                            rec = cfg.spec_wait[2]
+                        })
+                    end
+                end
+                if cfg.spec_last then
+                    table.insert(self.Messages, {
+                        name = "Побыстрее выходите",
+                        rec = cfg.spec_last,
+                        expell = true
+                    })
+                end
+            end
+        end
+        for idx = 1, 2 do
+            local msg = {
+                name = "Запись с микрофона " .. idx,
+                rec = {string.format("#UserRec.%s.%d", self.OwnerSteamid, idx)}
+            }
+            self["RecMsg" .. idx] = msg
+            table.insert(self.Messages, msg)
+        end
+        table.Add(self.Messages, self.BaseMessages)
     end
 
     function TRAIN_SYSTEM:InitRoutes()
@@ -989,7 +1081,40 @@ if SERVER then
         return self.AnnSchedule and #self.AnnSchedule > 0 or self.AnnNextAt and CurTime() < self.AnnNextAt
     end
 
-    function TRAIN_SYSTEM:Play()
+    function TRAIN_SYSTEM:Play(aux_msg)
+        local clicks = self.Train:GetNW2Bool("AnnouncerClicks", false)
+
+        if not aux_msg then self:Highlight("List") end
+
+        if aux_msg or self.Page == PAGE_MSG then
+            if not aux_msg then self.PageSelTimer = nil end
+            local msg = aux_msg or self.Messages[self.Message]
+            if not msg or not msg.rec then return end
+
+            if (msg == self.RecMsg1 or msg == self.RecMsg2) then
+                local ply = player.GetBySteamID64(self.OwnerSteamid)
+                if not (IsValid(ply) and ZMS and ZMS.Rec765 and ZMS.Rec765.AllReady and ZMS.Rec765.AllReady(ply, msg == self.RecMsg1 and 1 or 2)) then
+                    return
+                end
+            end
+
+            if clicks then
+                self:QueueAnnounce("click2")
+            elseif msg.rec[1] and msg.rec[1] ~= "#SarmatInit" then
+                self:QueueAnnounce({0.4})
+            end
+            self:QueueAnnounce(msg.rec)
+            if clicks then
+                self:QueueAnnounce("click2")
+            end
+            if msg.expell then
+                for _, wag in pairs(self.Train.WagonList) do
+                    wag.AnnouncementToLeaveWagon = true
+                end
+            end
+            return
+        end
+
         if self.IsServiceRoute then return end
 
         self:UpdateIk(true)
@@ -1002,7 +1127,6 @@ if SERVER then
             self:UpdatePage(false)
             self.UpdateIkTimer = nil
         end
-        self:Highlight("List")
 
         local lastSt = self.LastStations[self.LastStationIdx]
         local is_extra = not self.Loop and station.idx == 1 and not station.is_dep
@@ -1017,7 +1141,6 @@ if SERVER then
 
         if station.is_dep and self.Train.BUKP.DoorClosed < 1 then self.DoorAlarm = CurTime() end
 
-        local clicks = self.Train:GetNW2Bool("AnnouncerClicks", false)
         if clicks then
             self:QueueAnnounce("click1")
         elseif not is_extra then
@@ -1079,6 +1202,13 @@ if SERVER then
             rec = snd[1]
             dur = snd[2]
         end
+        if isstring(rec) and string.StartsWith(rec, "#UserRec.") and ZMS and ZMS.Rec765 and ZMS.Rec765.GetDuration then
+            local ply = player.GetBySteamID64(self.OwnerSteamid)
+            local idx = tonumber(rec[#rec])
+            if idx and IsValid(ply) then
+                dur = ZMS.Rec765.GetDuration(ply, idx)
+            end
+        end
         if rec then
             self:SendAnnouncerCmd(rec)
         end
@@ -1099,11 +1229,34 @@ if SERVER then
 
 else
 
+    local function playOnceFromPos(wag, id, sndname, volume, pitch, min, max, location)
+        if not string.StartsWith(sndname, "#UserRec.") then
+            if wag.PlayOnceFromPos then
+                wag:PlayOnceFromPos(id, sndname, volume, pitch, min, max, location)
+            end
+            return
+        end
+
+        if not ZMS or not ZMS.Rec765 or not ZMS.Rec765.GetSound then return end
+
+        if wag.StopSounds or not wag.ClientPropsInitialized or wag.CreatingCSEnts then return end
+        wag:DestroySound(wag.Sounds[id], true)
+        wag.Sounds[id] = nil
+        wag.SoundPositions[id] = {min, max, location}
+
+        ZMS.Rec765.GetSound(string.sub(sndname, 10), function(snd)
+            if not snd then return end
+            wag.Sounds[id] = snd
+            wag:SetBassParameters(wag.Sounds[id], pitch, volume, wag.SoundPositions[id], false)
+            snd:Play()
+        end)
+    end
+
     local announcerCommandSounds = { ["#SarmatInit"] = "subway_trains/765/sarmat_start.mp3" }
     net.Receive("BUIK765.AnnouncerCmd", function()
         local wagon = net.ReadEntity()
         local recording = net.ReadString()
-        if not IsValid(wagon) or not wagon.PlayOnceFromPos then return end
+        if not IsValid(wagon) then return end
 
         if announcerCommandSounds[recording] then
             recording = announcerCommandSounds[recording]
@@ -1111,10 +1264,10 @@ else
 
         if wagon.AnnouncerPositions then
             for k, v in ipairs(wagon.AnnouncerPositions) do
-                wagon:PlayOnceFromPos("announcer" .. k, recording, wagon.OnAnnouncer and wagon:OnAnnouncer(v[3], k) or v[3] or 1, 1, v[2] or 400, 1e9, v[1])
+                playOnceFromPos(wagon, "announcer" .. k, recording, wagon.OnAnnouncer and wagon:OnAnnouncer(v[3], k) or v[3] or 1, 1, v[2] or 400, 1e9, v[1])
             end
         else
-            wagon:PlayOnceFromPos("announcer", recording, wagon.OnAnnouncer and wagon:OnAnnouncer(1) or 1, 1, 600, 1e9, Vector(0, 0, 0))
+            playOnceFromPos(wagon, "announcer", recording, wagon.OnAnnouncer and wagon:OnAnnouncer(1) or 1, 1, 600, 1e9, Vector(0, 0, 0))
         end
     end)
 
@@ -1504,6 +1657,9 @@ else
         for idx = 1, 3 do
             if idx == 2 then
                 draw.RoundedBox(10, x, y, sizeListLineW, sizeListLineH, active and self.colorSelectedLineActive or self.colorSelectedLineInactive)
+            end
+            if Wag:GetNW2Int("BUIK:Page", 0) == PAGE_MSG and Wag:GetNW2Bool("BUIK:Recording" .. idx, false) then
+                draw.SimpleText("запись", "BUIKSystemSmall", x + sizeListLineW - 2, y + sizeListLineH / 2, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
             end
             local color = active and self.colorLineTextActive or idx == 2 and self.colorLineTextInactive or self.colorInactive
             draw.SimpleText(Wag:GetNW2String("BUIK:Line" .. idx, ""), "BUIK64", x + sizeListMargin, y + sizeListLineH / 2, color, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
