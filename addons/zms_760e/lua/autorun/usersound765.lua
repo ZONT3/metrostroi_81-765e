@@ -3,7 +3,7 @@ ZMS.Rec765 = ZMS.Rec765 or {}
 
 CreateClientConVar("765_rec_dur1", "0", true, true)
 CreateClientConVar("765_rec_dur2", "0", true, true)
-CreateClientConVar("765_rec1", "https://steamusercontent-a.akamaihd.net/ugc/14058027154999490176/9FE7E230E52B92D093403B952BEF25EA5B4519C5/", true, true)
+CreateClientConVar("765_rec1", "https://steamusercontent-a.akamaihd.net/ugc/9499205620757309889/D44F090374929A59ED4BF5C7FA3A2A642547BE30/", true, true)
 CreateClientConVar("765_rec2", "", true, true)
 
 local TRACK_KEYS = {
@@ -26,9 +26,7 @@ if SERVER then
 
     net.Receive("765.RecReady", function(_, ply)
         local str = net.ReadString()
-        local tbl = string.Explode(",", str)
-        PrintTable({ply = ply, tbl = tbl})
-        ZMS.Rec765.Ready[ply] = table.Flip(tbl)
+        ZMS.Rec765.Ready[ply] = table.Flip(string.Explode(",", str))
     end)
 
     function ZMS.Rec765.AllReady(targetPly, idx)

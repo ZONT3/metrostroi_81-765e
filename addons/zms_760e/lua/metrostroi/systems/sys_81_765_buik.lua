@@ -1202,7 +1202,7 @@ if SERVER then
             rec = snd[1]
             dur = snd[2]
         end
-        if isstring(rec) and string.StartsWith(rec, "#UserRec.") and ZMS and ZMS.Rec765 and ZMS.Rec765.GetDuration then
+        if isstring(rec) and ZMS and ZMS.Rec765 and ZMS.Rec765.GetDuration and string.StartsWith(rec, "#UserRec.") then
             local ply = player.GetBySteamID64(self.OwnerSteamid)
             local idx = tonumber(rec[#rec])
             if idx and IsValid(ply) then
