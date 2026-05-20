@@ -275,7 +275,9 @@ function TRAIN_SYSTEM:Think(dT)
     self.EmerBraking = emerBraking
     self.EmerRelease = emerRelease
     if Power then
-        if self.EmerBrakeWork then
+        if Train.BUV.UosPn3 then
+            EPMPressure = 2.2 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 0.6 --3 уставка от УОС
+        elseif self.EmerBrakeWork then
             if not self.EmergencyBrakeActive then
                 if self.EmerBrake > 1 and self.EmerBrake <= 2 then
                     EPMPressure = 0.93 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 0.5 --2 уставка

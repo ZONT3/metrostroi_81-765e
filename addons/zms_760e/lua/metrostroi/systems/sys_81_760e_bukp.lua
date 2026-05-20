@@ -1135,7 +1135,7 @@ function TRAIN_SYSTEM:Think(dT)
                     if Train.ProstKos.CommandKos > 0 then kvSetting = -100 overrideKv = true end
                     if BARS.Brake > 0 then kvSetting = -80 overrideKv = true end
                     if self.Errors.EmergencyBrake and self.ZeroSpeed < 1 then kvSetting = -100 overrideKv = true end
-                    if Train.KV765.Position > 0 and (BARS.PN3 > 0 or BARS.BTB < 1) then
+                    if Train.KV765.Position > 0 and (BARS.PN3 > 0 or BARS.UosPn3 > 0 or BARS.BTB < 1) then
                         kvSetting = BARS.BUKPErr and -100 or -80
                         overrideKv = true
                     end
@@ -1429,6 +1429,7 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("PN1", Train.BARS.PN1)
         self:CState("PN2", Train.BARS.PN2 + (self.Slope and Train.RV.KROPosition ~= 0 and self.SlopeSpeed and 1 or 0))
         self:CState("PN3", Train.BARS.PN3)
+        self:CState("UosPn3", Train.BARS.UosPn3)
         for t = 1, self.WagNum do
             local train = self.Trains[t]
             if train then

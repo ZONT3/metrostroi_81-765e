@@ -243,7 +243,7 @@ function TRAIN_SYSTEM:Think(dT)
         end
 
         local ebGood = Train.Pneumatic.BrakeCylinderPressure > ((HasEngine and 2.3 or 1.65) + Train.Pneumatic.BrakeCylinderRegulationError + Train.Pneumatic.WeightLoadRatio * 1.3) - 0.05
-        local emerBrake = ebGood and Train.Pneumatic.EmerBrake < 3 and not self.PN3
+        local emerBrake = ebGood and Train.Pneumatic.EmerBrake < 3 and not self.PN3 and not self.UosPn3
         if emerBrake and not self.EbrakeTimer then
             self.EbrakeTimer = CurTime() + 0.8
         end
@@ -533,6 +533,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.PN2 = self.Slope and self:Get("SlopeSpeed") or PN and strongerBrake
     end
     self.PN3 = self:Get("PN3") and self:Get("PN3") > 0 or false
+    self.UosPn3 = self:Get("UosPn3") and self:Get("UosPn3") > 0 or false
 
     self.PSN = not self:Get("PVU6") and Train.Electric.Battery80V > 67 and self.PSNSignal and Train.Battery.Value * Train.SF30F4.Value > 0 and 1 or Train:ReadTrainWire(42)
     if Train.Electric.Main750V < 550 or Train.Electric.Main750V > 975 then self.PSN = 0 end

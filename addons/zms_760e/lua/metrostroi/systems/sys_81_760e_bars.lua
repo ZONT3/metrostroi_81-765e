@@ -24,6 +24,7 @@ function TRAIN_SYSTEM:Initialize()
     self.PN1 = 0
     self.PN2 = 0
     self.PN3 = 0
+    self.UosPn3 = 0
     self.BTB = 0
     self.UOS = 0
     self.RVTB = 0
@@ -34,7 +35,7 @@ function TRAIN_SYSTEM:Initialize()
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {"Active", "ALSMode", "Ring", "Brake", "Drive", "Drive1", "Drive2", "AllowStart", "PN1", "PN2", "PN3", "StillBrake", "SpeedLimit", "BTB", "UOS", "NextNoFq", "BadFq", "AO"}
+    return {"Active", "ALSMode", "Ring", "Brake", "Drive", "Drive1", "Drive2", "AllowStart", "PN1", "PN2", "PN3", "UosPn3", "StillBrake", "SpeedLimit", "BTB", "UOS", "NextNoFq", "BadFq", "AO"}
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -352,15 +353,18 @@ function TRAIN_SYSTEM:Think(dT)
         Drive = travel or AllowStart and (KmCur or UOS and Speed >= 7)
 
         if UOS then
-            if not Emer and Wag.PpzUpi.Value * Wag.KAH.Value < 1 or Speed > SpeedLimit then
+            Drive = Drive and self.KB and (Emer or Wag.PpzUpi.Value * Wag.KAH.Value >= 1)
+            BTB = BTB and (Emer or self.KB)
+            if Speed > SpeedLimit and not (self.KB and Speed < 7) then
                 Drive = false
+                if not Emer then BTB = false end
             end
             if Emer and Speed > SpeedLimit then
                 self.UosLimitTimer = CurTime() - 1
                 RVTB = false
             end
-            BTB = BTB and self.KB and (Speed < 7 or Drive)
-            PN3 = PN3 or not BTB
+            self.UosPn3 = not Emer and (PN3 or not BTB) and 1 or 0
+            PN3 = false
         end
         RVTB = RVTB and self:RvtbTimer("UosLimitTimer", true, ZeroSpeed)
 
@@ -371,6 +375,8 @@ function TRAIN_SYSTEM:Think(dT)
             end
             RVTB = RVTB and self:RvtbTimer("EmerTimer", EmerCondition, not UOS and ZeroSpeed and AllowStart and KmCur or UOS and self.KB)
         end
+
+        if UOS then BTB = RVTB end
 
         self.RVTB = RVTB and 1 or 0
         self.BTB = BTB and 1 or 0
