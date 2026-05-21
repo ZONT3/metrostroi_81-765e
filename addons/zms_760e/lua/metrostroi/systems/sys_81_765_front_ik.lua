@@ -46,7 +46,7 @@ if SERVER then
     end
 
     function TRAIN_SYSTEM:Think()
-        local power = self.Train.Electric.Battery80V > 62 and self.Train.SF45F11.Value > 0.5
+        local power = self.Train.Electric.KM > 0 and self.Train.SF45F11.Value > 0.5
         self.Train:SetNW2Bool("BMIK:Power", power)
         if not power then
             self.Train:SetNW2String("BMIK:Station", "")

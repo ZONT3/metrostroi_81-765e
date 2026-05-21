@@ -279,7 +279,7 @@ function TRAIN_SYSTEM:Think(dT)
 
     -- Apply specific rate to equalize pressure
     local V4 = Train.BUKP and (Train.K29.Value == 1 or self.V4 and Train.Electric.V2 > 0)
-    self.V6 = Train.BUKP and (Train.K29.Value == 1 and (Train.Electric.Battery80V > 62 and 1 or 0) * (Train.RV["KRO1-2"] + Train.RV["KRR1-2"] == 0 and 0 or 1) == 0)
+    self.V6 = Train.BUKP and (Train.K29.Value == 1 and Train.Electric.EmerSupply * (Train.RV["KRO1-2"] + Train.RV["KRR1-2"] == 0 and 0 or 1) == 0)
     ----------------------------------------------------------------------------
     -- Accumulate derivatives
     self.TrainLinePressure_dPdT = 0.0
@@ -294,7 +294,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.DoorLinePressure = self.TrainToBrakeReducedPressure * 0.90
     local trainLineConsumption_dPdT = 0.0
     if Train.BUKP then
-        self.V4 = Train.Electric.Battery80V > 62 and (Train.Electric.V2 * Train.BUKP.Active > 0)
+        self.V4 = Train.Electric.EmerSupply * Train.Electric.V2 * Train.BUKP.Active > 0
     end
 
     local wagc = Train:GetWagonCount()

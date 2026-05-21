@@ -50,13 +50,13 @@ function TRAIN_SYSTEM:Think(dT)
     local ALS = Wag.ALSCoil
     local ALSVal = Wag.ALS.Value * (Wag.ALSVal == 2 and 1 or 0) * Wag.PpzUpi.Value
     local UOS = (Wag.PmvAtsBlock.Value == 3) and (Wag.RV["KRO5-6"] == 0 or Wag.RV["KRR15-16"] > 0)
-    local EnableALS = Wag.Electric.Battery80V > 62 and (1 - Wag.RV["KRO5-6"]) + Wag.RV["KRR15-16"] > 0
+    local EnableALS = Wag.Electric.EmerSupply > 0 and (1 - Wag.RV["KRO5-6"]) + Wag.RV["KRR15-16"] > 0
     local DAU = Wag.PmvFreq.Value == 0
     local TwoToSix = Wag.PmvFreq.Value > 0
     if EnableALS ~= (ALS.Enabled == 1) then ALS:TriggerInput("Enable", EnableALS and 1 or 0) end
 
     -- Kolhoz tipa 81-765 (skoree vsego huinya)
-    self.BarsPower = Wag.Electric.Battery80V > 62 and (Wag.RV["KRO5-6"] == 0 or Wag.RV["KRR15-16"] > 0)
+    self.BarsPower = Wag.Electric.EmerSupply > 0 and (Wag.RV["KRO5-6"] == 0 or Wag.RV["KRR15-16"] > 0)
     self.ATS1Bypass = not self.BarsPower or UOS or Wag.PmvAtsBlock.Value == 2
     self.ATS2Bypass = not self.BarsPower or UOS or Wag.PmvAtsBlock.Value == 1
     self.ATS1 = self.BarsPower and (self.ATS1Bypass or Wag.PpzAts1.Value > 0.5)

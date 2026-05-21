@@ -15,8 +15,6 @@ local PvzToggles = {
 function TRAIN_SYSTEM:Initialize()
     self.Train:LoadSystem("Battery", "Relay", "Switch", {bass = true, normally_closed = true})
 
-    self.Train:LoadSystem("PowerOn", "Relay", "Switch", {bass = true})
-
     for _, name in ipairs(PvzToggles or {}) do
         self.Train:LoadSystem(name, "Relay", "Switch", {
             bass = true, normally_closed = true,

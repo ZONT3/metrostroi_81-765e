@@ -25,7 +25,7 @@ table.Add(ENT.ButtonMap["PVZ"].buttons, ENT.PvzToggles)
 ENT.ButtonMap["Power"] = {
     pos = Vector(448.7, 43.2, -6.3),
     ang = Angle(0, -90, 90),
-    width = 50,
+    width = 100,
     height = 50,
     scale = 0.0625,
     hideseat = 0.2,
@@ -37,9 +37,29 @@ ENT.ButtonMap["Power"] = {
             radius = 20,
             tooltip = "Бортсеть вкл",
             model = {
-                model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
+                model = "models/metrostroi_train/81-760/81_760_button_green.mdl",
                 z = -0.5,
                 var = "PowerOn",
+                speed = 12,
+                vmin = 0,
+                vmax = 0.5,
+                sndvol = 0.3,
+                snd = function(val) return val and "button_square_on" or "button_square_off" end,
+                sndmin = 80,
+                sndmax = 1e3 / 3,
+                sndang = Angle(-90, 0, 0),
+            }
+        },
+        {
+            ID = "PowerOffSet",
+            x = 51,
+            y = 25,
+            radius = 20,
+            tooltip = "Бортсеть выкл",
+            model = {
+                model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
+                z = -0.5,
+                var = "PowerOff",
                 speed = 12,
                 vmin = 0,
                 vmax = 0.5,
@@ -1535,6 +1555,19 @@ function ENT:DrawPost(special)
             surface.DrawTexturedRectRotated(1920, 256, 3840, 512, 0)
         end)
     end
+end
+
+function ENT:OnPlay(soundid, location, range, pitch)
+    if location == "bass" and soundid == "W30KM" then
+        if range == 0 then
+            timer.Simple(math.Rand(1, 1.15), function()
+                if not IsValid(self) then return end
+                self:PlayOnce("battery_off_2", location, 1, 1)
+            end)
+        end
+        return range > 0 and "battery_on_1" or "battery_off_1", location, 1, 1
+    end
+    return soundid, location, range, pitch
 end
 
 local dist = {}

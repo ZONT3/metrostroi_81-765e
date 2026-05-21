@@ -644,7 +644,7 @@ local statusGetters = {
     -- Тяг.привод
     function(self, Wag) return Wag:GetNW2Bool("Skif:TpGood", false) and colorMain or colorRed end,
     -- Напряжение
-    function(self, Wag) return Wag:GetNW2Int("Skif:HvAll", 0) == 1 and colorGreen or Wag:GetNW2Int("Skif:HvAll", 0) == 2 and colorYellow or colorRed end,
+    function(self, Wag) return Wag:GetNW2Int("Skif:ElecAll", 0) == 1 and colorGreen or Wag:GetNW2Int("Skif:ElecAll", 0) == 2 and colorYellow or colorRed end,
     -- Пневматика
     function(self, Wag) return Wag:GetNW2Bool("Skif:PnGood", false) and colorMain or colorRed end,
     -- Кондиционер
@@ -1054,6 +1054,7 @@ function TRAIN_SYSTEM:DrawDoorsPage(Wag, x, y, w, h)
             local color
             local isHead = Wag:GetNW2Bool("Skif:HasCabin" .. wagIdx, false)
             local buvDisabled = not Wag:GetNW2Bool("Skif:BUVState" .. wagIdx, false)
+            local budDisabled = not Wag:GetNW2Bool("Skif:BUDWork" .. wagIdx, false)
             local pvu = not buvDisabled and Wag:GetNW2Bool("Skif:PVU1" .. wagIdx, false)
             local addr, aod = false, false
             if doorIdx == 1 then
@@ -1070,7 +1071,7 @@ function TRAIN_SYSTEM:DrawDoorsPage(Wag, x, y, w, h)
                 local door = string.format("%d%s%d", left and doorIdx - 1 or 11 - doorIdx, left and "L" or "R", wagIdx)
                 addr = Wag:GetNW2Bool("Skif:AddressDoors" .. (left and "L" or "R") .. wagIdx, false)
                 aod = Wag:GetNW2Bool("Skif:DoorAod" .. door, false)
-                color = buvDisabled and colorBrightText or Wag:GetNW2Bool("Skif:Door" .. door, false) and colorGreen or Wag:GetNW2Bool("Skif:DoorReverse" .. door, false) and colorYellow or colorRed
+                color = (buvDisabled or budDisabled) and colorBrightText or Wag:GetNW2Bool("Skif:Door" .. door, false) and colorGreen or Wag:GetNW2Bool("Skif:DoorReverse" .. door, false) and colorYellow or colorRed
             end
             return color, color and (buvDisabled and "" or aod and "А" or pvu and "Р" or addr and "И" or nil)
         end
@@ -1220,7 +1221,7 @@ function TRAIN_SYSTEM:DrawElectric(Wag, x, y, w, h)
             end
             -- pizdec
             if row == 2 then
-                local val = Wag:GetNW2Int("Skif:U" .. idx, 0) / 10
+                local val = math.Round(Wag:GetNW2Int("Skif:U" .. idx, 0) / 10)
                 if not async then
                     return nil, nil, val >= 550 and colorGreen or colorRed
                 else
@@ -1228,7 +1229,7 @@ function TRAIN_SYSTEM:DrawElectric(Wag, x, y, w, h)
                 end
             elseif row == 3 then
                 local val = Wag:GetNW2Int("Skif:UBS" .. idx, 0) / 10
-                return val, val >= 62 and colorGreen or colorRed
+                return math.Round(val), Wag:GetNW2Bool("Skif:LVGood" .. idx) and colorGreen or colorRed
             elseif row == 4 then
                 local hv = Wag:GetNW2Int("Skif:U" .. idx, 0) / 10
                 local val = Lerp(math.Clamp((hv - 550) / (720 - 550), 0, 1), 0, Wag:GetNW2Int("Skif:UBS" .. idx, 0) / 10) or 0

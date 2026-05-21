@@ -7,8 +7,8 @@ include("shared.lua")
 
 ENT.BogeyDistance = 650
 ENT.SyncTable = {
-    "RearBrakeLineIsolation", "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "GV", "K31", "Battery", "PowerOn", "K23",
-    "EmergencyBrakeValve", "CoupleCenteringR", "CoupleCenteringF"
+    "RearBrakeLineIsolation", "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "GV", "K31", "Battery", "K23",
+    "EmergencyBrakeValve", "CoupleCenteringR", "CoupleCenteringF", "PowerOn", "PowerOff"
 }
 
 if not ENT.PvzToggles then print("ACHTUNG! PIZDEC!") end
@@ -317,7 +317,7 @@ function ENT:Think()
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     local retVal = BaseClass.Think(self)
     local Panel = self.Panel
-    local power = self.Electric.BSPowered > 0
+    local power = self.Electric.KM > 0
     self:SetPackedBool("WorkBeep", power)
     self:SetPackedBool("WorkFan", (Panel.WorkFan or 0) > 0)
 
@@ -339,7 +339,7 @@ function ENT:Think()
     if self.IsIntermediate then
         self:SetPackedRatio("HV", self.Electric.Main750V / 1000)
     else
-        self:SetPackedRatio("HV", (self.SF42F2.Value * self.Electric.BSPowered > 0.5 and self.Electric.Main750V or 0) / 1000)
+        self:SetPackedRatio("HV", (self.SF42F2.Value * self.Electric.KM > 0.5 and self.Electric.Main750V or 0) / 1000)
     end
 
     local passlight = Panel.SalonLighting1 * 0.25 + Panel.SalonLighting2 * 0.75

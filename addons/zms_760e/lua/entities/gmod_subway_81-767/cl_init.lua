@@ -11,37 +11,6 @@ if not ENT.ButtonMap.RearPneumatic then ErrorNoHaltWithStack("BaseClass not init
 ENT.AutoAnims = {}
 ENT.ClientPropsInitialized = false
 
-ENT.ButtonMap["Power"] = {
-    pos = Vector(448.7, 50.4, -12.1),
-    ang = Angle(0, -90, 90),
-    width = 50,
-    height = 50,
-    scale = 0.0625,
-    hideseat = 0.2,
-    buttons = {
-        {
-            ID = "PowerOnSet",
-            x = 25,
-            y = 25,
-            radius = 20,
-            tooltip = "Бортсеть вкл",
-            model = {
-                model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
-                z = -0.5,
-                var = "PowerOn",
-                speed = 12,
-                vmin = 0,
-                vmax = 0.5,
-                sndvol = 0.3,
-                snd = function(val) return val and "button_square_on" or "button_square_off" end,
-                sndmin = 80,
-                sndmax = 1e3 / 3,
-                sndang = Angle(-90, 0, 0),
-            }
-        },
-    }
-}
-
 table.insert(ENT.ClientProps, {
     model = "models/metrostroi_train/81-760/81_763a_underwagon.mdl",
     pos = Vector(0, 0, 0),

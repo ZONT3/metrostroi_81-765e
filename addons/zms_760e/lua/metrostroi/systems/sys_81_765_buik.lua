@@ -189,7 +189,7 @@ if SERVER then
             self.IkTypeChanged = true
         end
 
-        local battery = Wag.Electric.Battery80V > 62
+        local battery = Wag.Electric.EmerSupply > 0
         local power = battery and Wag.SF45F11.Value > 0.5
         if not power then
             self.State = STATE_POWEROFF

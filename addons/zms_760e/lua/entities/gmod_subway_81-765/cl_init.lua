@@ -1906,10 +1906,10 @@ ENT.ButtonMap["BackPPZ"] = {
     hideseat = 0.2,
     buttons = {
         {
-            ID = "PowerOnSet", tooltip = "Включение бортсети",
+            ID = "MasterPowerOnSet", tooltip = "Включение бортсети",
             x = 34, y = 47, radius = 20,
             model = {
-                var = "PowerOn",
+                var = "MasterPowerOn",
                 model = "models/metrostroi_train/81-760/81_760_button_green.mdl",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_green.mdl",
@@ -1921,10 +1921,10 @@ ENT.ButtonMap["BackPPZ"] = {
                 sndmin = 90, sndmax = 1e3,
             }
         }, {
-            ID = "PowerOffSet", tooltip = "Выключение бортсети",
+            ID = "MasterPowerOffSet", tooltip = "Выключение бортсети",
             x = 87, y = 47, radius = 20,
             model = {
-                var = "PowerOff",
+                var = "MasterPowerOff",
                 model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_red.mdl",
@@ -1965,6 +1965,9 @@ ENT.ButtonMap["PpzCover"] = {
     hideseat = 0.2,
     buttons = {}
 }
+
+ENT.ButtonMap["Power"].pos = Vector(402, 10.8, 20)
+ENT.ButtonMap["Power"].ang = Angle(0, 90, 90)
 
 ENT.ButtonMap["PVZ"] = {
     pos = Vector(402, 10.8, 12.6),
@@ -3428,7 +3431,6 @@ ENT.ClientProps["FenceF"] = nil
 ENT.ClientProps["FencePlF"] = nil
 ENT.ClientProps["BoxDoorL"] = nil
 ENT.ClientProps["BoxDoorR"] = nil
-ENT.ButtonMap["Power"] = nil
 ENT.ButtonMap["ClosetCapL"] = nil
 ENT.ButtonMap["ClosetCapLop"] = nil
 ENT.ButtonMap["ClosetCapR"] = nil

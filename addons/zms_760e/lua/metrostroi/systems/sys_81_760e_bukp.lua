@@ -24,7 +24,7 @@ local MAINMSG_RVFAIL = 4
 local ErrorsA = {
     {"RvErr", "Сбой РВ."},
     {"KmErr", "Сбой КМ."},
-    {"ArsFail",  "Неисправность АРС. Перейди на УОС.", "Неисправность АРС. Переведи\nблокиратор в положение АТС%d"},
+    {"ArsFail",  "Неисправность АРС.\nПерейди на УОС.", "Неисправность АРС. Переведи\nблокиратор в положение АТС%d"},
     {"BuvDiscon", "Нет связи с БУВ-С.", "Нет связи с БУВ-С на %d вагоне."},
     {"NoOrient", "Вагон не ориентирован.", "Вагон %d не ориентирован."},
     {"HullFail", "Кузов не в норме.", "Кузов не в норме на %d вагоне."},
@@ -33,18 +33,19 @@ local ErrorsA = {
     {"DisableDrive", "Запрет ТР от АРС.",},
     {"EmergencyBrake", "Экстренное торможение.", "Экстренное торможение\nна %d вагоне."},
     {"ParkingBrake", "Стояночный тормоз прижат.", "Стояночный тормоз прижат\nна %d вагоне."},
-    {"PneumoBrake", "Пневмотормоз включен.", "Пневмотормоз включен\nна %d вагоне."},
     {"Doors", "Двери не закрыты.", "Двери не закрыты на %d вагоне."},
+    {"BudDiscon", "Нет связи с БУД.", "Нет связи с БУД на %d вагоне."},
+    {"PneumoBrake", "Пневмотормоз включен.", "Пневмотормоз включен\nна %d вагоне."},
     {"Short", "КЗ.", "КЗ %d вагона."},
 }
 local ErrorsB = {
+    {"RearCabin", "Открыта кабина ХВ.",},
     {"KosCommand", "Торможение КОС."},
     {"BvDisabled", "БВ отключен.", "БВ отключен на %d вагоне."},
     {"RightBlock", "Правые двери заблокированы.",},
     {"LeftBlock", "Левые двери заблокированы.",},
     {"RedLightsAkb", "Выключи габаритные огни."},
     {"HV", "Напряжение КС.",},
-    {"RearCabin", "Открыта кабина ХВ.",},
 }
 local ErrorsC = {
     {"ProstDisableDrive", "Запрет ТР ПРОСТ."},
@@ -90,6 +91,7 @@ function TRAIN_SYSTEM:Initialize()
     self.State = 0
     self.State2 = 16
     self.Trains = {}
+    self.PoweroffReady = {}
     self.Errors = {}
     self.WagErrors = {}
     self.Error = 0
@@ -223,6 +225,8 @@ function TRAIN_SYSTEM:CANReceive(source, sourceid, target, targetid, textdata, n
     if not self.Trains[sourceid] then return end
     if textdata == "Get" then
         self.Reset = 1
+    elseif textdata == "PowerOffReady" then
+        self.PoweroffReady[sourceid] = numdata and CurTime() + 0.5 or nil
     else
         self.Trains[sourceid][textdata] = numdata
     end
@@ -648,7 +652,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.WagList = #self.Train.WagonList
     end
 
-    local Power = Train.Electric.Battery80V > 62
+    local Power = Train.Electric.UPIPower > 0
     local SkifWork = (Train.PpzAts2.Value + Train.PpzAts1.Value > 0) and Power
     if not SkifWork then
         self.State = 0
@@ -814,6 +818,8 @@ function TRAIN_SYSTEM:Think(dT)
                 self.BErrorsTimer = CurTime() + 3
                 self.InitTimer = CurTime() + 1
                 self:CheckError("SF", true, nil, true)
+            else
+                self:ReInit()
             end
         end
 
@@ -911,7 +917,7 @@ function TRAIN_SYSTEM:Think(dT)
                     local trainid = self.Trains[i]
                     local train = self.Trains[trainid]
                     local working = self:CheckBuv(train)
-                    local doorclose = working
+                    local doorclose = working and train.BUDWork
                     for d = 1, 8 do
                         if not train["Door" .. d .. "Closed"] then
                             doorclose = false
@@ -920,10 +926,11 @@ function TRAIN_SYSTEM:Think(dT)
                     end
 
                     self:CheckWagError(i, "BuvDiscon", not working)
+                    self:CheckWagError(i, "BudDiscon", not train.BUDWork)
                     self:CheckWagError(i, "NoOrient", working and (train.WagNOrientated or Train.PpzOrient.Value < 1 or Train.PpzActiveCabin.Value < 1))
                     self:CheckWagError(i, "EmergencyBrake", working and train.EmergencyBrake)
                     self:CheckWagError(i, "ParkingBrake", working and train.ParkingBrakeEnabled)
-                    self:CheckWagError(i, "Doors", not doorclose)
+                    self:CheckWagError(i, "Doors", not doorclose and working and train.BUDWork)
                     self:CheckWagError(i, "RearCabin", working and train.DoorBack and trainid ~= Train:GetWagonNumber())
                     self:CheckWagError(i, "PassLights", working and not train.PassLightEnabled)
                     self:CheckWagError(i, "BvDisabled", working and train.AsyncInverter and not train.BVEnabled)
@@ -1036,7 +1043,7 @@ function TRAIN_SYSTEM:Think(dT)
                 self.DoorsNotClosed = doorsNotClosed
 
                 Train:SetNW2Int("Skif:DoorsAll", (Train.PpzOrient.Value < 1 or doorsNotClosed) and 0 or 1)
-                Train:SetNW2Int("Skif:HvAll", hvGood == 0 and 0 or hvBad == 0 and 1 or 2)
+                Train:SetNW2Int("Skif:ElecAll", hvGood == 0 and 0 or hvBad == 0 and 1 or 2)
                 Train:SetNW2Int("Skif:BvAll", bvEnabled == 0 and 0 or bvDisabled == 0 and 1 or 2)
                 Train:SetNW2Bool("Skif:CondAny", condAny)
                 Train:SetNW2Bool("Skif:VoGood", voGood)
@@ -1046,7 +1053,7 @@ function TRAIN_SYSTEM:Think(dT)
                 Train:SetNW2Int("Skif:ALS", Train.ALS.Value * Train.ALSVal == 2 and 1 or -1)
                 Train:SetNW2Int("Skif:BOSD", Train.DoorBlock.Value == 1 and 0 or -1)
 
-                Train:SetNW2Bool("Skif:ShowDoors", self.Errors.Doors)
+                Train:SetNW2Bool("Skif:ShowDoors", doorsNotClosed)
                 Train:SetNW2Bool("Skif:ShowBV", bvDisabled > 0)
                 Train:SetNW2Bool("Skif:ShowScheme", self.SchemeTimer and self.SchemeTimer < CurTime())
                 Train:SetNW2Bool("Skif:ShowPTApply", errPT)
@@ -1478,12 +1485,33 @@ function TRAIN_SYSTEM:Think(dT)
 
         Train:SetNW2Int("Skif:Ptm", math.Round(Train.Pneumatic.BrakeLinePressure, 1) * 10)
         Train:SetNW2Int("Skif:Pnm", math.Round(Train.Pneumatic.TrainLinePressure, 1) * 10)
-        Train:SetNW2Int("Skif:Ubs", math.Round(Train.Electric.Battery80V, 1) * 10)
+        Train:SetNW2Int("Skif:Ubs", math.Round(Train.Electric.Supply80V, 1) * 10)
         Train:SetNW2Int("Skif:Uhv", math.Round(Train.Electric.Main750V, 1) * 10)
         Train:SetNW2Int("Skif:Speed", BARS.Speed)
     else
         self.Ring = false
     end
+
+    local bsOff = Train.Electric.UPIPower * Train.SF30F1.Value * Train.MasterPowerOff.Value > 0
+    local poweroffAll = false
+    if bsOff and self.WagNum > 0 then
+        local set = {}
+        local count = 0
+        for id, v in pairs(self.PoweroffReady) do
+            if not set[id] and v and v > CurTime() then
+                count = count + 1
+                if count >= self.WagNum then
+                    poweroffAll = true
+                    break
+                end
+                set[id] = true
+            end
+        end
+    end
+    if bsOff or self.WasPowerOff then Train:CANWrite("BUKP", Train:GetWagonNumber(), "BUV", nil, "PowerOff", bsOff) end
+    if poweroffAll then self.K8Timer = CurTime() + 3 end
+    Train.W30K8:TriggerInput("Set", self.K8Timer and CurTime() < self.K8Timer)
+    self.WasPowerOff = bsOff
 
     Train:SetNW2Int("Skif:ARS1", not BARS.BarsPower and 2 or BARS.ATS1Bypass and -1 or not self.BARS1 and 0 or BARS.DisableDrive and 2 or 1)
     Train:SetNW2Int("Skif:ARS2", not BARS.BarsPower and 2 or BARS.ATS2Bypass and -1 or not self.BARS2 and 0 or BARS.DisableDrive and 2 or 1)

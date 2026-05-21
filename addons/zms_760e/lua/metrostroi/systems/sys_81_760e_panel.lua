@@ -159,9 +159,13 @@ function TRAIN_SYSTEM:Initialize()
     end
 
     self.Train:LoadSystem("Battery", "Relay", "Switch", { bass = true, normally_closed = true })
-    self.Train:LoadSystem("PowerOn", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("PowerOff", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MasterPowerOn", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MasterPowerOff", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("BatteryCharge", "Relay", "Switch", { bass = true })
+
+    -- Allow BS disable from UPI
+    self.Train:LoadSystem("W30K8", "Relay")
+
     self.Train:LoadSystem("PB", "Relay", "Switch", { bass = true })
 
     -- MFDU

@@ -101,8 +101,8 @@ if SERVER then
 
         self.AnnounceStates = self.AnnounceStates or {}
 
-        local masterPower = Wag.Electric.Battery80V > 62
-        local masterWorking = masterPower and BUV.ADUDWork
+        local masterPower = Wag.Electric.KM > 0
+        local masterWorking = masterPower and BUV.BUDWork
 
         if masterPower and not masterWorking then
             self.DoorLeft = false

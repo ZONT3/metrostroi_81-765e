@@ -52,7 +52,6 @@ function TRAIN_SYSTEM:Initialize()
     self.TargetStrength = 0
     self.AKBVoltage = 0
     self.PrevBV = 0
-    self.PowerOff = 0
     self.SchemeSlope = false
     self.Recurperation = 1
     self.MainLights = 0
@@ -78,7 +77,7 @@ end
 function TRAIN_SYSTEM:Outputs()
     return {
         "Brake", "Drive", "DriveStrength", "Disassembly", "PSN", "MK", "Vent1", "Vent2", "Cond1", "Cond2", "Strength", "Recurperation",
-        "Slope", "Slope1", "AKBVoltage", "SchemeSlope", "PowerOff", "MainLights", "Power", "ZeroSpeed"}
+        "Slope", "Slope1", "AKBVoltage", "SchemeSlope", "MainLights", "Power", "ZeroSpeed"}
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -100,6 +99,8 @@ function TRAIN_SYSTEM:CANReceive(source, sourceid, target, targetid, textdata, n
         self.LastOrientate = sourceid
         self.FirstHalf = numdata
         self.Reset = CurTime()
+    elseif textdata == "PowerOff" then
+        self.PowerOff = numdata and CurTime() + 0.5 or nil
     elseif self.CurrentBUP then
         if not self.Commands[sourceid] then self.Commands[sourceid] = {} end
         if textdata == "DriveStrength" then
@@ -161,11 +162,11 @@ function TRAIN_SYSTEM:Think(dT)
     local P = HasEngine and Train.Electric.Power750V or Train.Electric.Main750V
 
     self.AKBVoltage = CheckVoltage(Train)
-    self.Power = Train.Electric.Battery80V > 62 and 1 or 0
+    self.Power = Train.Electric.EmerSupply
     self.State = self.Power > 0
     self.ADUVWork = (Train.Battery.Value * Train.SF21F1.Value > 0) or self.States.BCPressure == nil
     self.ADUTWork = (Train.Electric.BTO > 0) or self.States.BCPressure == nil
-    self.ADUDWork = Train.Battery.Value * (Train.SF80F13.Value + Train.SF80F14.Value + Train.SF80F12.Value) > 0
+    self.BUDWork = Train.Electric.KM * (Train.SF80F13.Value + Train.SF80F14.Value + Train.SF80F12.Value) > 0
     local SchemeWork = HasEngine and (
         Train:ReadTrainWire(6) * Train.SF23F5.Value > 0.5 or
         (Train:ReadTrainWire(14) + Train:ReadTrainWire(15) == 1 and 1 or 0) * Train.SF23F6.Value > 0
@@ -180,19 +181,19 @@ function TRAIN_SYSTEM:Think(dT)
         if not self.States.BUVWork then self.Train:CANWrite("BUV", Train:GetWagonNumber(), "BUKP", nil, "Get", 1) end
         self:CState("Battery", Train.Battery.Value == 1)
         for i = 1, 4 do
-            self:CState("Door" .. i .. "Closed", self.ADUDWork and Train.BUD.LeftDoorClosed[i] and CurTime() >= Train.BUD.LeftDoorClosed[i] or not self.ADUDWork and Train.Battery.Value > 0 and self.States["Door" .. i .. "Closed"])
-            self:CState("Door" .. (i + 4) .. "Closed", self.ADUDWork and Train.BUD.RightDoorClosed[i] and CurTime() >= Train.BUD.RightDoorClosed[i] or not self.ADUDWork and Train.Battery.Value > 0 and self.States["Door" .. (i + 4) .. "Closed"])
+            self:CState("Door" .. i .. "Closed", self.BUDWork and Train.BUD.LeftDoorClosed[i] and CurTime() >= Train.BUD.LeftDoorClosed[i] or not self.BUDWork and Train.Battery.Value > 0 and self.States["Door" .. i .. "Closed"])
+            self:CState("Door" .. (i + 4) .. "Closed", self.BUDWork and Train.BUD.RightDoorClosed[i] and CurTime() >= Train.BUD.RightDoorClosed[i] or not self.BUDWork and Train.Battery.Value > 0 and self.States["Door" .. (i + 4) .. "Closed"])
         end
 
-        self:CState("LeftDoorsOpened", self.ADUDWork and Train.LeftDoorsOpened or not self.ADUDWork and Train.Battery.Value > 0 and self.States.LeftDoorsOpened)
-        self:CState("RightDoorsOpened", self.ADUDWork and Train.RightDoorsOpened or not self.ADUDWork and Train.Battery.Value > 0 and self.States.RightDoorsOpened)
-        self:CState("BUDWork", self.ADUDWork)
+        self:CState("LeftDoorsOpened", self.BUDWork and Train.LeftDoorsOpened or not self.BUDWork and Train.Battery.Value > 0 and self.States.LeftDoorsOpened)
+        self:CState("RightDoorsOpened", self.BUDWork and Train.RightDoorsOpened or not self.BUDWork and Train.Battery.Value > 0 and self.States.RightDoorsOpened)
+        self:CState("BUDWork", self.BUDWork)
         if IsHead then
             self:CState("DoorBack", Train.PassengerDoor or Train.CabinDoorLeft or Train.CabinDoorRight)
             self:CState("CabDoorLeft", not Train.CabinDoorLeft)
             self:CState("CabDoorRight", not Train.CabinDoorRight)
             self:CState("CabDoorPass", not Train.PassengerDoor)
-            self:CState("CondK", Train.Electric.BSPowered * Train.SF62F3.Value > 0.5)
+            self:CState("CondK", Train.Electric.KM * Train.SF62F3.Value > 0.5)
         end
 
         self:CState("EmPT", Train:ReadTrainWire(28) > 0)
@@ -296,14 +297,14 @@ function TRAIN_SYSTEM:Think(dT)
             end
         end
 
-        self:CState("LV", Train.Electric.Battery80V)
+        self:CState("LV", Train.Electric.TrueBattery80V)
         self:CState("HVBad", Train.Electric.Main750V < 550)
-        self:CState("LVBad", Train.Electric.Battery80V < 62)
+        self:CState("LVBad", Train.Electric.TrueBattery80V < 60)
         self:CState("EnginesDone", self.EnginesDone)
         self:CState("PassLightEnabled", self.MainLights == 1)
         self:CState("VagEqConsumption", self.IVO)
         self:CState("HVVoltage", math.floor(P))
-        self:CState("LVVoltage", math.floor(Train.Electric.Battery80V))
+        self:CState("LVVoltage", math.floor(Train.Electric.TrueBattery80V))
         self:CState("Cond1", self.Cond1 > 0)
         self:CState("Cond2", self.Cond2 > 0)
         self:CState("HeatEnabled", false)
@@ -325,6 +326,19 @@ function TRAIN_SYSTEM:Think(dT)
         local bc = (self.ADUVWork and self.ADUTWork) and math.Round(Train.Pneumatic.BrakeCylinderPressure, 1) or (not self.ADUVWork or not self.ADUTWork) and self.States.BCPressure
         self:CState("BCPressure", bc)
         self:CState("BCPressure2", bc > 0.16 and math.max(0.12, bc + self.BC2Dev) or bc)
+
+        local PowerOff = self.PowerOff and CurTime() < self.PowerOff
+        if PowerOff and not self.PowerOffTimer then
+            self.PowerOffTimer = CurTime() + math.Rand(1, math.Rand(1.4, 2.8))
+        elseif not PowerOff then
+            if self.PowerOffTimer then self.PowerOffTimer = nil end
+            self.PowerOffPlayed = false
+        end
+        if not self.PowerOffPlayed and self.PowerOffTimer and CurTime() >= self.PowerOffTimer - 2 then
+            Train:PlayOnce("battery_pneumo", "", 1, 1)
+            self.PowerOffPlayed = true
+        end
+        Train:CANWrite("BUV", Train:GetWagonNumber(), "BUKP", nil, "PowerOffReady", self.PowerOffTimer and CurTime() >= self.PowerOffTimer)
 
     else
         self:CState("BUVWork", false)
@@ -355,9 +369,9 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     if self.Reset and self.Reset ~= CurTime() then self.Reset = nil end
-    self.IVO = Train.Electric.Battery80V > 67 and self.PSN > 0 and self.I * 10 + math.Round(math.Rand(2, 6), 1) or -00.1
+    self.IVO = Train.Electric.KM * self.PSN > 0 and self.I * 10 + math.Round(math.Rand(2, 6), 1) or -00.1
     if HasEngine then
-        local bv_off = (self:Get("BVOff") or Train.Battery.Value * Train.SF23F4.Value == 0 or Train.Electric.Battery80V <= 67) and (Train:ReadTrainWire(19) + Train:ReadTrainWire(45) == 0) or self:Get("PVU7")
+        local bv_off = (self:Get("BVOff") or Train.Battery.Value * Train.SF23F4.Value == 0 or Train.Electric.KM < 1) and (Train:ReadTrainWire(19) + Train:ReadTrainWire(45) == 0) or self:Get("PVU7")
         local bv_on = Train.Battery.Value > 0 and (self:Get("BVOn") or Train:ReadTrainWire(2) > 0 or self:Get("BVInit") or Train:ReadTrainWire(19) + Train:ReadTrainWire(45) > 0) and not self:Get("PVU7")
         if Train.BV.Value ~= self.PrevBV and Train:ReadTrainWire(5) == 0 and Train:ReadTrainWire(6) == 1 then self.PrevBV = Train.BV.Value end
         if Train:ReadTrainWire(5) ~= self.PrevBV1 then
@@ -497,13 +511,12 @@ function TRAIN_SYSTEM:Think(dT)
             self.MKSignal = self:Get("Compressor")
         end
         self.PSNSignal = self:Get("PSN")
-        self.PowerOff = (self:Get("PowerOff") or Train.SF30F2 and Train.SF30F2.Value == 0) and 1 or 0
         self.PassLight = self:Get("PassLight")
+
     else
         self.PassLight = false
         self.PSNSignal = false
         self.MKSignal = false
-        self.PowerOff = 0
     end
 
     if self.State then
@@ -535,7 +548,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.PN3 = self:Get("PN3") and self:Get("PN3") > 0 or false
     self.UosPn3 = self:Get("UosPn3") and self:Get("UosPn3") > 0 or false
 
-    self.PSN = not self:Get("PVU6") and Train.Electric.Battery80V > 67 and self.PSNSignal and Train.Battery.Value * Train.SF30F4.Value > 0 and 1 or Train:ReadTrainWire(42)
+    self.PSN = not self:Get("PVU6") and Train.Electric.EmerSupply > 0 and self.PSNSignal and Train.SF30F4.Value > 0 and 1 or Train:ReadTrainWire(42) * Train.Electric.AKB
     if Train.Electric.Main750V < 550 or Train.Electric.Main750V > 975 then self.PSN = 0 end
     if self.PSN == 0 and self.PassLight and self.MainLights == 1 and not self.MainLightsTimer then self.MainLightsTimer = CurTime() end
     self.Recurperation = not self:Get("ReccOff") and 1 or 0
