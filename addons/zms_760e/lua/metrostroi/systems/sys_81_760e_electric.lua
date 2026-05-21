@@ -57,6 +57,7 @@ function TRAIN_SYSTEM:Initialize()
     -- Need many iterations for engine simulation to converge
     self.SubIterations = 16
 
+    self.Train:LoadSystem("Battery", "81_765_Battery")
     self.Train:LoadSystem("BV", "Relay")
     self.Train:LoadSystem("GV", "Relay", "GV_10ZH", {
         bass = true
@@ -139,10 +140,6 @@ local function GetCurrent(command)
 end
 
 function TRAIN_SYSTEM:TriggerInput(name, value)
-    if name == "SetBatt" then
-        self.BattRand = Rand(value - 5.5, value + 5.5)
-    end
-
     if name == "Power" and value then
         self.ForcePoweron = CurTime() + 5
     end
@@ -165,7 +162,7 @@ local function Nw(x)
 end
 
 function TRAIN_SYSTEM:LV(x)
-    if not self.LvDeath then self.LvDeath = Rand(46.0, 50.4) end
+    if not self.LvDeath then self.LvDeath = Rand(49.5, 50.4) end
     return C(x > self.LvDeath)
 end
 
@@ -202,21 +199,19 @@ function TRAIN_SYSTEM:Think(dT, iter)
     ----------------------------------------------------------------------------
     -- Solve LV circuit
     ----------------------------------------------------------------------------
-    if not self.BattRand or not self.PsnRand then
-        self.BattRand = Rand(61.0, 63.6)
-        self.PsnRand = Rand(79.5, 82.4)
+    if not self.PsnRand then
+        self.PsnRand = Rand(81.0, 82.9)
     end
 
-    self.TrueBattery80V = self.BattRand  -- TODO Discharge/recharge
+    self.TrueBattery80V = Wag.Battery.Voltage
 
-    self.PsnRand = self.PsnRand + (Rand(78, 83) - self.PsnRand) * dT * 0.2
-    S.Ucharge = BUV.PSN * self.PsnRand
+    self.PsnRand = self.PsnRand + (Rand(Rand(78, 80.5), Rand(83.4, 85.0)) - self.PsnRand) * dT
+    S.Ucharge = BUV.PSN * self.PsnRand * min(1, Wag.W30KM.Value + Wag:ReadTrainWire(42))
     self.Psn80V = Wag.W30KM.Value * S.Ucharge
 
     Wag:WriteTrainWire(55, self.Psn80V)
     self.SharedPsn80V = Wag:ReadTrainWire(55) / max(1, Wag:ReadTrainWire(53))
 
-    self.TrueBattery80V = max(self.Psn80V, self.TrueBattery80V)
     self.Supply80V = Wag.W30KM.Value * self.TrueBattery80V
     self.Emer80V = max(self.Supply80V, self.SharedPsn80V)
 
@@ -254,6 +249,9 @@ function TRAIN_SYSTEM:Think(dT, iter)
 
     Wag.W30KM:TriggerInput("Set", S.BsControl)
 
+    Wag.Battery:TriggerInput("Charge", S.Ucharge)
+    S.Load = Wag.BUV.Load
+
     Wag:WriteTrainWire(74, Wag.W30K11.Value)
     Wag:WriteTrainWire(75, 1 - Wag.W30K11.Value)
 
@@ -264,6 +262,9 @@ function TRAIN_SYSTEM:Think(dT, iter)
     -- Solve internal electric
     ----------------------------------------------------------------------------
     if RV then
+        local BUP = Wag.BUKP
+        S.Load = S.Load + BUP.Load
+
         S.BsControl = min(1, self.AKB + self:LV(self.Shared80V)) * Wag.SF30F1.Value
         Wag:WriteTrainWire(72, S.BsControl * Wag.MasterPowerOn.Value)
         Wag:WriteTrainWire(73, S.BsControl * Wag.MasterPowerOff.Value * Wag.W30K8.Value)
@@ -271,19 +272,19 @@ function TRAIN_SYSTEM:Think(dT, iter)
         S.ActiveCabin = self.EmerSupply * min(1, RV["KRO13-14"] * Wag.SF23F2.Value --[[* Wag.SF23F13.Value]] + RV["KRR11-12"] * Wag.SF23F1.Value)
         S.OrientFwd = S.ActiveCabin * Wag.SF23F13.Value * (1 - RV["KRO7-8"])
 
-        S.PpzKm = Wag.BUKP.BtbuSd > 0 and Wag.SF22F4.Value or Wag.SF22F2.Value
+        S.PpzKm = BUP.BtbuSd > 0 and Wag.SF22F4.Value or Wag.SF22F2.Value
         S.PpzBtbu = Wag.SF22F2.Value
 
         self.UPIPower = self.EmerSupply * Wag.SF23F8.Value
         self.PowerReserve = self.EmerSupply * min(1, (1 - Wag.SF23F8.Value) * abs(RV.KRRPosition) + Wag.SF23F8.Value)
         Wag:WriteTrainWire(20, self.EmerSupply)
         Wag:WriteTrainWire(36, Wag.SF23F1.Value * Wag.EmergencyControls.Value)
-        S.Drive = Wag.BARS.Drive * min(Wag.BARS.UOS + (1 - Wag.BARS.Brake) * (Wag.BUKP.DoorClosed + Wag.DoorBlock.Value) * (1 - Wag.BUKP.BupDisableDrive), 1)
-        S.Orientation = C(Wag.SF23F13.Value * Wag.BUKP.Active + RV["KRR7-8"] > 0)
+        S.Drive = Wag.BARS.Drive * min(Wag.BARS.UOS + (1 - Wag.BARS.Brake) * (BUP.DoorClosed + Wag.DoorBlock.Value) * (1 - BUP.BupDisableDrive), 1)
+        S.Orientation = C(Wag.SF23F13.Value * BUP.Active + RV["KRR7-8"] > 0)
         Wag:WriteTrainWire(19, self.PowerReserve * (1 - Wag.SD3.Value) * RV["KRR7-8"] * S.Drive * Wag.EmerX1.Value)
         Wag:WriteTrainWire(45, self.PowerReserve * (1 - Wag.SD3.Value) * RV["KRR7-8"] * S.Drive * Wag.EmerX2.Value)
         self.EmerXod = self.PowerReserve * RV["KRR7-8"] * S.Drive * min(1, Wag.EmerX1.Value + Wag.EmerX2.Value)
-        S.RV = self.EmerSupply * (Wag.BUKP.InitTimer and Wag.BUKP.InitTimer > 0 and 1 or RV["KRO9-10"] + RV["KRR7-8"] * Wag.SF23F1.Value)
+        S.RV = self.EmerSupply * (BUP.InitTimer and BUP.InitTimer > 0 and 1 or RV["KRO9-10"] + RV["KRR7-8"] * Wag.SF23F1.Value)
         Wag:WriteTrainWire(3, S.RV * S.Orientation)
         Wag:WriteTrainWire(4, 0)
         Wag:WriteTrainWire(5, self.EmerSupply * RV["KRR7-8"] * S.Orientation)
@@ -312,14 +313,14 @@ function TRAIN_SYSTEM:Think(dT, iter)
         self.V2 = self.EmerSupply * min(1, RV["KRO1-2"] * S.PpzKm * Wag.SF23F2.Value + RV["KRR1-2"] * S.PpzKm)
         self.V1 = self.UPIPower * Wag.SF70F3.Value * min(1, Wag.HornB.Value + Wag.HornC.Value)
         Wag:WriteTrainWire(27, S.BTB)
-        Wag:WriteTrainWire(11, S.BTB * Wag.PmvParkingBrake.Value * Wag.SF22F3.Value * Wag.BUKP.Active)
-        Wag:WriteTrainWire(31, S.BTB * (1 - Wag.PmvParkingBrake.Value) * Wag.SF22F3.Value * Wag.BUKP.Active)
+        Wag:WriteTrainWire(11, S.BTB * Wag.PmvParkingBrake.Value * Wag.SF22F3.Value * BUP.Active)
+        Wag:WriteTrainWire(31, S.BTB * (1 - Wag.PmvParkingBrake.Value) * Wag.SF22F3.Value * BUP.Active)
         Wag:WriteTrainWire(28, S.BTB * Wag.EmerBrake.Value)
         Wag:WriteTrainWire(29, S.BTB * Wag.EmerBrake.Value * Wag.EmerBrakeAdd.Value)
         Wag:WriteTrainWire(30, S.BTB * Wag.EmerBrake.Value * Wag.EmerBrakeRelease.Value)
         Wag:WriteTrainWire(24, S.BTBp * (1 - Wag:ReadTrainWire(41)))
         Wag:WriteTrainWire(25, S.BTBp == 0 and Wag:ReadTrainWire(26) > 0 and Wag:ReadTrainWire(24) * self.BTB or 0)
-        Wag:WriteTrainWire(26, S.BTBp * Wag.BARS.BTB * (1 - Wag.BUKP.ESD * (1 - Wag.ABESD.Value)) * (1 - Wag.BUKP.EmergencyBrake))
+        Wag:WriteTrainWire(26, S.BTBp * Wag.BARS.BTB * (1 - BUP.ESD * (1 - Wag.ABESD.Value)) * (1 - BUP.EmergencyBrake))
         Wag:WriteTrainWire(41, Wag.EmergencyBrake.Value)
 
         if Wag:ReadTrainWire(26) > 0 and Wag:ReadTrainWire(24) == 0 then
@@ -329,12 +330,12 @@ function TRAIN_SYSTEM:Think(dT, iter)
         end
 
         S.ManualZeroSpeed = C(Wag.PmvAtsBlock.Value == 3) * Wag.PmvParkingBrake.Value
-        self.ZeroSpeed = S.RV * min(1, Wag.BUKP.BudZeroSpeed * Wag.BUKP.Active * Wag.SF80F5.Value + S.ManualZeroSpeed)
-        self.DoorsControl = self.ZeroSpeed * min(1, S.RV * Wag.SF80F5.Value * C(Wag.BUKP.State == 5) * Wag.SF23F2.Value + Wag.EmergencyDoors.Value)
+        self.ZeroSpeed = S.RV * min(1, BUP.BudZeroSpeed * BUP.Active * Wag.SF80F5.Value + S.ManualZeroSpeed)
+        self.DoorsControl = self.ZeroSpeed * min(1, S.RV * Wag.SF80F5.Value * C(BUP.State == 5) * Wag.SF23F2.Value + Wag.EmergencyDoors.Value)
 
         Wag:WriteTrainWire(10, self.KM * min(1, Wag.EmergencyCompressor.Value + Wag.EmergencyCompressor2.Value))
         S.EmergencyDoorsAllowOpen = self.DoorsControl * Wag.EmergencyDoors.Value
-        S.DoorClose = min(1, self.UPIPower * Wag.SF23F2.Value + self.DoorsControl) * Wag.SF80F5.Value * Wag.SF80F1.Value * S.RV * Wag.BUKP.Active * Wag.DoorClose.Value
+        S.DoorClose = min(1, self.UPIPower * Wag.SF23F2.Value + self.DoorsControl) * Wag.SF80F5.Value * Wag.SF80F1.Value * S.RV * BUP.Active * Wag.DoorClose.Value
         Wag:WriteTrainWire(40, Wag.EmergencyDoors.Value)
         Wag:WriteTrainWire(39, S.DoorClose)
         Wag:WriteTrainWire(38, S.EmergencyDoorsAllowOpen * self.ZeroSpeed * Wag.DoorLeft.Value)
@@ -343,8 +344,8 @@ function TRAIN_SYSTEM:Think(dT, iter)
         S.BatteryChargeBtn = min(1, C(self.TrueBattery80V > 22) + self:LV(self.Shared80V)) * Wag.SF30F1.Value * Wag.BatteryCharge.Value
         Wag:WriteTrainWire(42, S.BatteryChargeBtn)
 
-        Wag:WriteTrainWire(82, min(1, Wag.BUKP.BupActive + S.RV * S.ManualZeroSpeed))
-        Wag:WriteTrainWire(83, min(1, Wag.BUKP.BupActive * self.ZeroSpeed + S.RV * S.ManualZeroSpeed))
+        Wag:WriteTrainWire(82, min(1, BUP.BupActive + S.RV * S.ManualZeroSpeed))
+        Wag:WriteTrainWire(83, min(1, BUP.BupActive * self.ZeroSpeed + S.RV * S.ManualZeroSpeed))
 
         S.EmerBattPower = Wag.PmvEmerPower.Value * self.AKB
         Wag.ASNP_VV.Power = self.EmerSupply * Wag.SF42F1.Value * Wag.R_ASNPOn.Value
@@ -360,7 +361,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Panel.DoorCloseL = S.DoorClose
         Panel.DoorBlockL = self.UPIPower * Wag.DoorBlock.Value
         Panel.EmerBrakeL = self.PowerReserve * C(Wag.Pneumatic.EmerBrakeWork == 1 or Wag.Pneumatic.EmerBrakeWork == true) * S.BTB
-        Panel.EmerXodL = self.PowerReserve * abs(RV.KRRPosition) * (1 - Wag.SD3.Value) * Wag.BARS.Drive * (1 - Wag.BUKP.BupDisableDrive)
+        Panel.EmerXodL = self.PowerReserve * abs(RV.KRRPosition) * (1 - Wag.SD3.Value) * Wag.BARS.Drive * (1 - BUP.BupDisableDrive)
         Panel.KAHl = self.UPIPower * Wag.KAH.Value
         Panel.ALSl = self.UPIPower * Wag.ALS.Value
         Panel.PRl = self.UPIPower * Wag.Pr.Value * Wag.SF70F3.Value
@@ -375,6 +376,16 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Panel.PowerOffl = S.BsControl * Wag:ReadTrainWire(75) * Wag:ReadTrainWire(74)
         Panel.BatteryChargel = S.BatteryChargeBtn
         Panel.LV = self.Shared80V * self.EmerSupply * Wag.SF42F2.Value
+
+        S.Load = S.Load + (
+            (Panel.CabLight < 1 and 0 or Panel.CabLight < 2 and 14 or 32)
+            + Panel.HeadlightsFull * 100
+            + Panel.HeadlightsHalf * 75
+            + math.min(1, Panel.HeadlightsHalf + Panel.RedLights + Panel.HeadlightsFull) * 34
+            + Panel.CabVent * 1600
+            + Panel.Wiperl * 15
+            + Panel.Washerl * 7.5
+        )
     else
         Panel.LV = self.KM * self.TrueBattery80V
     end
@@ -423,6 +434,13 @@ function TRAIN_SYSTEM:Think(dT, iter)
         self.BvSoundTimer = nil
     end
 
+    S.Load = S.Load + (
+        Panel.SalonLighting1 * 180
+        + Panel.SalonLighting2 * 560
+        + Panel.WorkFan * 310
+    )
+    Wag.Battery:TriggerInput("Load", S.Load)
+
     if not Async then return end
 
     self.MK = self.PSN * S.HV * self.KM * Wag.SF30F3.Value * (BUV.MK > 0 and 1 or Wag:ReadTrainWire(10))
@@ -433,7 +451,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         self.command = command
     end
 
-    Async:TriggerInput("Power", self.KM * (Wag.SF23F4 and Wag.Battery.Value * Wag.SF23F4.Value or 1) * Wag.GV.Value * Wag.BV.Value)
+    Async:TriggerInput("Power", self.KM * (Wag.SF23F4 and Wag.SF23F4.Value or 1) * Wag.GV.Value * Wag.BV.Value)
     if self.command > 0 then
         Async:TriggerInput("Drive", self.command)
         Async:TriggerInput("Brake", 0)
@@ -473,4 +491,5 @@ function TRAIN_SYSTEM:Think(dT, iter)
 
     self.ElectricEnergyUsed = self.ElectricEnergyUsed + max(0, self.EnergyChange) * dT
     self.ElectricEnergyDissipated = self.ElectricEnergyDissipated + max(0, self.Iexit ^ 2) * 2.2 * dT
+
 end

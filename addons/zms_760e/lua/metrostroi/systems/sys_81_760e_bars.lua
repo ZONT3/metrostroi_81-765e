@@ -32,10 +32,14 @@ function TRAIN_SYSTEM:Initialize()
     self.NextNoFq = false
     self.Ready = false
     self.dV = 0
+    self.Load = 0
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {"Active", "ALSMode", "Ring", "Brake", "Drive", "Drive1", "Drive2", "AllowStart", "PN1", "PN2", "PN3", "UosPn3", "StillBrake", "SpeedLimit", "BTB", "UOS", "NextNoFq", "BadFq", "AO"}
+    return {
+        "Active", "ALSMode", "Ring", "Brake", "Drive", "Drive1", "Drive2", "AllowStart", "PN1", "PN2", "PN3", "UosPn3", "StillBrake",
+        "SpeedLimit", "BTB", "UOS", "NextNoFq", "BadFq", "AO", "Load"
+    }
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -87,6 +91,8 @@ function TRAIN_SYSTEM:Think(dT)
 
     self.KB = Wag.PB.Value > 0.5 or Wag.Attention.Value > 0.5
     self.KVT = Wag.AttentionBrake.Value > 0.5 --or self.KB
+
+    self.UosPn3 = 0
 
     local Active = Power and Wag.BUKP.State == 5
     local Emer = Wag.RV["KRR15-16"] * Wag.PpzEmerControls.Value > 0.5
@@ -492,6 +498,8 @@ function TRAIN_SYSTEM:Think(dT)
     elseif self.PN3Timer then
         self.PN3Timer = nil
     end
+
+    self.Load = (EnableALS and 120 or 0) + (Power and 20 or 0) + self.Active * 30
 end
 
 function TRAIN_SYSTEM:WhenStops(delay)

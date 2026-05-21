@@ -158,7 +158,6 @@ function TRAIN_SYSTEM:Initialize()
         })
     end
 
-    self.Train:LoadSystem("Battery", "Relay", "Switch", { bass = true, normally_closed = true })
     self.Train:LoadSystem("MasterPowerOn", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("MasterPowerOff", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("BatteryCharge", "Relay", "Switch", { bass = true })

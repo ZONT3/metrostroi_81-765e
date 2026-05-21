@@ -1113,7 +1113,7 @@ function TRAIN_SYSTEM:DrawAsyncPage(Wag, x, y, w, h)
                 text = "Р"
             end
             if idx == 2 then
-                if not Wag:GetNW2Bool("Skif:Battery" .. wagIdx, false) or not Wag:GetNW2Bool("Skif:InvSf" .. wagIdx, false) then
+                if not Wag:GetNW2Bool("Skif:InvSf" .. wagIdx, false) then
                     color = colorBrightText
                 elseif Wag:GetNW2Bool("Skif:PVU7" .. wagIdx, false) then
                     text = "Р"
@@ -1231,8 +1231,7 @@ function TRAIN_SYSTEM:DrawElectric(Wag, x, y, w, h)
                 local val = Wag:GetNW2Int("Skif:UBS" .. idx, 0) / 10
                 return math.Round(val), Wag:GetNW2Bool("Skif:LVGood" .. idx) and colorGreen or colorRed
             elseif row == 4 then
-                local hv = Wag:GetNW2Int("Skif:U" .. idx, 0) / 10
-                local val = Lerp(math.Clamp((hv - 550) / (720 - 550), 0, 1), 0, Wag:GetNW2Int("Skif:UBS" .. idx, 0) / 10) or 0
+                local val = Wag:GetNW2Int("Skif:Uch" .. idx, 0) / 10
                 return math.Round(val), val >= 62 and colorGreen or colorRed
             elseif row == 5 then
                 if not async then return end
@@ -1243,10 +1242,11 @@ function TRAIN_SYSTEM:DrawElectric(Wag, x, y, w, h)
                 local val = math.Round(Wag:GetNW2Int("Skif:I" .. idx, 0) / 10)
                 return val, colorGreen
             elseif row == 7 then
-                return 0, colorGreen
+                local val = Wag:GetNW2Int("Skif:Ich" .. idx, 0) / 10
+                return math.Round(val), colorGreen
             elseif row == 8 then
                 local val = Wag:GetNW2Int("Skif:IVO" .. idx, 0) / 10
-                return val, colorGreen
+                return math.Round(val), colorGreen
             elseif row == 9 then
                 return Wag:GetNW2Int("Skif:Power" .. idx, 0), colorGreen
             elseif row == 10 then

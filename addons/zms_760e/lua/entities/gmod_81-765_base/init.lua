@@ -7,7 +7,7 @@ include("shared.lua")
 
 ENT.BogeyDistance = 650
 ENT.SyncTable = {
-    "RearBrakeLineIsolation", "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "GV", "K31", "Battery", "K23",
+    "RearBrakeLineIsolation", "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "GV", "K31", "K23",
     "EmergencyBrakeValve", "CoupleCenteringR", "CoupleCenteringF", "PowerOn", "PowerOff"
 }
 

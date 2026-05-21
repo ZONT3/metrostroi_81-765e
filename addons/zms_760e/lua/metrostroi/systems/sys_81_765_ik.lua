@@ -7,9 +7,11 @@ TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
     self.Executables = {"Init", "Reset", "Execute"}
+    self.Load = 0
 end
 
 function TRAIN_SYSTEM:Outputs()
+    return {"Load"}
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -52,6 +54,8 @@ if SERVER then
                 end
             end
         end
+
+        self.Load = (Wag.BUV.Power * (Wag.SF45F7.Value + Wag.SF45F8.Value) * 130 + (self.Power and 74 or 0)) * (Wag:GetNW2Int("BNT:ScreenFps", 12) > 25 and 1.8 or 1)
     end
 
     function TRAIN_SYSTEM:RunInit()

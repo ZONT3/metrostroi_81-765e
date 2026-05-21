@@ -7,6 +7,7 @@ Metrostroi.DefineSystem("81_765_BUD")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
+    self.Load = 0
     self.Depart = false
     self.DoorLeft = false
     self.DoorRight = false
@@ -63,7 +64,7 @@ function TRAIN_SYSTEM:Initialize()
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {}
+    return {"Load"}
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -109,6 +110,8 @@ if SERVER then
             self.DoorRight = false
             for idx = 1, 8 do self.DoorCommand[idx] = false end
         end
+
+        self.Load = masterPower and (masterWorking and 89 or 20) or 0
 
         local stuckEmpty = true
         local zeroSpeed = BUV.ZeroSpeed > 0
@@ -209,6 +212,8 @@ if SERVER then
 
             if not working then
                 self.DoorCommand[idx] = false
+            else
+                self.Load = self.Load + 20.42
             end
 
             local manual = Wag["DoorManualOpenLever" .. idx].Value * Wag["DoorManualOpenLeverPl" .. idx].Value == 1
@@ -336,6 +341,8 @@ if SERVER then
                 if sgn ~= sgn2 then
                     dir[i] = 0
                 end
+
+                self.Load = self.Load + (poweron and not zeroSpeed and dir[i] ~= 0 and 145 or 0)
 
                 self.OpenButton[idx] = false
 
@@ -492,6 +499,8 @@ if SERVER then
                     (not self.DoorCommand[idx] and not isclosed or self.OpenButton[idx] and isclosed and selected and self.Depart) and 2 or 1) or 0)
 
             self.AnnounceStates[idx] = announceState
+
+            self.Load = self.Load + (dir[i] ~= 0 and 62.1 or 0)
         end
 
         Wag:SetPackedBool("DoorL", self.DoorLeft)
@@ -500,19 +509,25 @@ if SERVER then
         Wag.RightDoorsOpening = self.DoorRight
 
         for idx = 1, 8 do
-            local selected = idx < 5 and selectLeft or idx >= 5 and selectRight
-            local openTimer = selected and self.OpenTimer and CurTime() < self.OpenTimer
-            local anyClosing = idx < 5 and anyClosingLeft or idx >= 5 and anyClosingRight
+            local ledWork = Wag.SF52F4.Value > 0 and (idx > 4 or Wag.SF52F5.Value > 0)
             local announceState = self.AnnounceStates[idx]
-            if openTimer and announceState == "OpeningAddr" then
-                announceState = "Opening"
+            if ledWork then
+                local selected = idx < 5 and selectLeft or idx >= 5 and selectRight
+                local openTimer = selected and self.OpenTimer and CurTime() < self.OpenTimer
+                local anyClosing = idx < 5 and anyClosingLeft or idx >= 5 and anyClosingRight
+                if openTimer and announceState == "OpeningAddr" then
+                    announceState = "Opening"
+                end
+                if announceState == "ReadyToOpen" then
+                    announceState = openTimer and "OpeningAddr" or "Open"
+                end
+                if announceState == "Closed" and anyClosing then announceState = "ClosingAwaiting" end
+                if announceState == "Closing" and self:IsReverseOpening(idx) or self.AutoReverse[idx] == 3 and reverseMode == 3 then announceState = "ClosingAwaiting" end
+            else
+                announceState = "Unpowered"
             end
-            if announceState == "ReadyToOpen" then
-                announceState = openTimer and "OpeningAddr" or "Open"
-            end
-            if announceState == "Closed" and anyClosing then announceState = "ClosingAwaiting" end
-            if announceState == "Closing" and self:IsReverseOpening(idx) or self.AutoReverse[idx] == 3 and reverseMode == 3 then announceState = "ClosingAwaiting" end
             Wag:SetNW2String("DoorAnnounceState" .. idx, announceState)
+            self.Load = self.Load + (announceState ~= "Unpowered" and 36.6 or 0)
         end
 
         if not self.Depart and commandClose and Wag.DoorsOpened then

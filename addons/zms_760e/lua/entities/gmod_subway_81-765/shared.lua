@@ -830,6 +830,23 @@ ENT.SpawnerCustom = {
         Section = "Wear"
     },
     {
+        "BatteryWear", "Износ батареи", "Slider", 0, 0, 100, 0,
+        function(ent, val, rot, wagi, wagnum, rclk)
+            if rclk then return end
+            local max = 110 * 3600
+            ent.Battery:TriggerInput("SetCapacity", max - 0.5 * max * val / 100 - math.Rand(0, 0.06) * max)
+        end,
+        Section = "Wear"
+    },
+    {
+        "BatteryLevel", "Уровень заряда батареи", "Slider", 0, 0, 100, 100,
+        function(ent, val, rot, wagi, wagnum, rclk)
+            if rclk then return end
+            ent.Battery:TriggerInput("SetLevel", 0.79 * val / 100 + math.Rand(0.1, 0.11 + 0.1 * val / 100))
+        end,
+        Section = "Wear"
+    },
+    {
         "VVVFSound",
         "Звук инвертора",
         "List",
@@ -899,7 +916,6 @@ ENT.SpawnerCustom = {
                         SF70F2 = true,  -- PpzWindshieldHeat
                         SF43F3 = true,  -- PpzSmartdrive
                         SF51F2 = val ~= 3,  -- PpzBattLights
-                        SF30F1 = val > 2,  -- PpzBsControl
                         SF62F3 = val > 1,  -- PpzCabinAc
                         SF62F4 = val > 1,  -- PpzCabinEpra
                         SF70F4 = val > 2,  -- PpzAuxCabin
@@ -991,6 +1007,9 @@ ENT.SpawnerCustom = {
                 ent.Pneumatic.ParkingBrake = val == 3
                 ent._SpawnerStarted = val
             end
+        end,
+        function(self, spawnerList)
+            spawnerList.BatteryLevel:SetValue(self:GetSelectedID() < 3 and 100 or self:GetSelectedID() == 3 and 60 or 80)
         end
     }
 }
@@ -1013,6 +1032,7 @@ ENT.Spawner = {
     ENT.SpawnerCustom[23],  -- KdLongerDelay
     ENT.SpawnerCustom[24],  -- BreakRedChance
     ENT.SpawnerCustom[25],  -- DoorReverseMalfunc
+    ENT.SpawnerCustom[26],  -- BatteryWear
     { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
     ENT.SpawnerCustom[#ENT.SpawnerCustom]
 }

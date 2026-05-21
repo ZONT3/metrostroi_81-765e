@@ -25,6 +25,7 @@ function TRAIN_SYSTEM:Initialize()
     self:AddTrigger("R_Program1")
     self:AddTrigger("R_Program11", "R_Program1")
 
+    self.Load = 0
     self.State = 0
     self.State2 = 0
     self.Triggers = {}
@@ -74,7 +75,7 @@ function TRAIN_SYSTEM:CheckTriggers(dontRun)
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {}
+    return {"Load"}
 end
 if TURBOSTROI then return end
 
@@ -174,6 +175,13 @@ if SERVER then
     function TRAIN_SYSTEM:Think(dT)
         self:CheckTriggers()
 
+        local Wag = self.Train
+        local battery = Wag.Electric.EmerSupply > 0
+        local power = battery and Wag.SF45F11.Value > 0.5
+        local sarmat = Wag:GetNW2Int("BuikType", 1) == 3
+
+        self.Load = (power and (self.State == STATE_NORMAL and 56 or 37) or 0) * (sarmat and 1.6 or 1)
+
         if CurTime() < self.NextThink then return end
         self.NextThink = CurTime() + 0.26
 
@@ -182,15 +190,10 @@ if SERVER then
         local activate = self.Activate
         if activate then self.Activate = false end
 
-        local Wag = self.Train
-        local sarmat = Wag:GetNW2Int("BuikType", 1) == 3
         if sarmat ~= self.Sarmat then
             self.Sarmat = sarmat
             self.IkTypeChanged = true
         end
-
-        local battery = Wag.Electric.EmerSupply > 0
-        local power = battery and Wag.SF45F11.Value > 0.5
         if not power then
             self.State = STATE_POWEROFF
         elseif self.State == STATE_POWEROFF then

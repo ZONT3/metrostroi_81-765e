@@ -140,6 +140,7 @@ function TRAIN_SYSTEM:Initialize()
     self.CurTime1 = CurTime()
     self.NextThink = CurTime()
     self.HVLamp = false
+    self.Load = 0
 
     self:InitShared()
 end
@@ -185,7 +186,7 @@ end
 function TRAIN_SYSTEM:Outputs()
     return {
         "State", "ControllerState", "EmergencyBrake", "BTB", "WagNum", "Prost", "Kos", "CurrentSpeed", "InitTimer", "ZeroSpeed", "BudZeroSpeed",
-        "Active", "DoorClosed", "ESD", "BtbuSd", "BupDisableDrive", "BupActive"
+        "Active", "DoorClosed", "ESD", "BtbuSd", "BupDisableDrive", "BupActive", "Load"
     }
 end
 
@@ -642,6 +643,16 @@ function TRAIN_SYSTEM:Think(dT)
         end
     end
 
+    local Power = Train.Electric.UPIPower > 0
+    self.Load = (
+        Train.Electric.EmerSupply * 45
+        + Train.Electric.UPIPower * (24 + Train.SF45F1.Value * 80)
+        + (Power and 1 or 0) * (self.State >= 2 and 80 or 20)
+        + Train.Electric.KM * Train.SF45F11.Value * 130 * (Train:GetNW2Int("BuikType", 1) == 3 and 1.8 or 1)
+        + Train.BARS.Load
+        + Train.BUIK.Load
+    )
+
     if CurTime() < self.NextThink then return end
     self.NextThink = CurTime() + 0.075
 
@@ -652,7 +663,6 @@ function TRAIN_SYSTEM:Think(dT)
         self.WagList = #self.Train.WagonList
     end
 
-    local Power = Train.Electric.UPIPower > 0
     local SkifWork = (Train.PpzAts2.Value + Train.PpzAts1.Value > 0) and Power
     if not SkifWork then
         self.State = 0
@@ -960,13 +970,11 @@ function TRAIN_SYSTEM:Think(dT)
                     Train:SetNW2Bool("Skif:BUVState" .. i, working)
                     Train:SetNW2Bool("Skif:OrientGood" .. i, orientGood and Train.PpzActiveCabin.Value > 0)
                     Train:SetNW2Bool("Skif:WagOr" .. i, orientGood and train.Orientation)
-                    Train:SetNW2Bool("Skif:Battery" .. i, train.Battery)
                     Train:SetNW2Bool("Skif:BTBReady" .. i, train.BTBReady)
                     Train:SetNW2Bool("Skif:EPTGood" .. i, train.EmergencyBrakeGood)
                     Train:SetNW2Bool("Skif:EmerActive" .. i, not train.EmergencyBrake)
                     Train:SetNW2Bool("Skif:PTApply" .. i, not train.PTEnabled)
                     Train:SetNW2Bool("Skif:PSNEnabled" .. i, train.PSNEnabled)
-                    Train:SetNW2Bool("Skif:PSNWork" .. i, train.PSNWork)
                     Train:SetNW2Bool("Skif:Cond1" .. i, train.Cond1)
                     Train:SetNW2Bool("Skif:Cond2" .. i, train.Cond2)
                     Train:SetNW2Bool("Skif:PSNBroken" .. i, not train.PSNBroken)
@@ -978,6 +986,7 @@ function TRAIN_SYSTEM:Think(dT)
                     Train:SetNW2Bool("Skif:BadCombination" .. i, not train.BadCombination)
                     Train:SetNW2Bool("Skif:AsyncInverter" .. i, train.AsyncInverter)
                     Train:SetNW2Bool("Skif:HVGood" .. i, not train.HVBad)
+                    Train:SetNW2Bool("Skif:BUDWork" .. i, Train.PpzOrient.Value > 0 and Train.PpzActiveCabin.Value > 0 and train.BUDWork)
                     local orientation = Train.PpzOrient.Value > 0 and train.Orientation
 
                     self.SchemeEngaged = self.SchemeEngaged or not train.NoAssembly
@@ -1236,7 +1245,6 @@ function TRAIN_SYSTEM:Think(dT)
                         Train:SetNW2Bool("Skif:PantDisabled" .. i, not train.PantDisabled)
                         Train:SetNW2Bool("Skif:RessoraGood" .. i, train.HullOk)
                         Train:SetNW2Bool("Skif:PUGood" .. i, train.PuWork)
-                        Train:SetNW2Bool("Skif:BUDWork" .. i, Train.PpzOrient.Value > 0 and Train.PpzActiveCabin.Value > 0 and train.BUDWork)
                     end
                 elseif self.State2 == 13 then
                     for i = 1, self.WagNum do
@@ -1290,6 +1298,8 @@ function TRAIN_SYSTEM:Think(dT)
                         Train:SetNW2Int("Skif:UBS" .. i, train.LV and train.LV * 10 or 0)
                         Train:SetNW2Int("Skif:U" .. i, train.HVVoltage and train.HVVoltage * 10 or 0)
                         Train:SetNW2Int("Skif:I" .. i, train.I)
+                        Train:SetNW2Int("Skif:Ich" .. i, train.Ich * 10)
+                        Train:SetNW2Int("Skif:Uch" .. i, train.Uch * 10)
                         Train:SetNW2Int("Skif:Power" .. i, train.ElectricEnergyUsed)
                         Train:SetNW2Int("Skif:Dissipated" .. i, train.ElectricEnergyDissipated)
                     end
@@ -1463,7 +1473,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.ErrorRinging = (not Train:GetNW2Bool("SingleRing", false) and Train.ProstKos.Receiving and Train.Speed > 2 or Train.ProstKos.CommandKos > 0) or self.ErrorRing and CurTime() - self.ErrorRing < 2
         if self.MainMsg < 2 then
             self.PSN = (Train.PpzUpi.Value > 0) and self.State == 5
-            self.Compressor = (Train.PpzUpi.Value * Train.SF30F4.Value * Train.Battery.Value > 0) and self.State == 5 and Train.AK.Value > 0
+            self.Compressor = (Train.PpzUpi.Value * Train.SF30F4.Value * Train.Electric.KM > 0) and self.State == 5 and Train.AK.Value > 0
             self.PassLight = (1 - Train.PmvLights.Value) * Train.SF52F2.Value > 0 and self.State == 5
         end
 
