@@ -1994,6 +1994,7 @@ else
             self.LastState = state
         end
 
+        local power = true
         local colors = self.Train:GetNW2Int("BuikType", 1)
         local sarmat = colors == 3
         if dbg or self.colors ~= colors then
@@ -2129,7 +2130,29 @@ else
         -- Unpowered
         else
             surface.SetDrawColor(0, 0, 0)
-            surface.DrawRect(0, 0, scr_w, scr_h)
+            power = false
+        end
+
+        if power then
+            self:DrawMalfunc()
+        end
+    end
+
+    function TRAIN_SYSTEM:DrawMalfunc()
+        if self.Train:GetNW2Bool("LvCritical", false) then
+            if not self.Flashbang then self.Flashbang = math.random() < 0.75 and CurTime() + math.Rand(0, 0.6) or 0 end
+            if self.Flashbang and self.Flashbang > 0 and CurTime() >= self.Flashbang then
+                surface.SetDrawColor(255, 255, 255)
+                surface.DrawRect(0, 0, scr_w, scr_h)
+                if CurTime() - self.Flashbang > 0.1 then
+                    self.Flashbang = 0
+                end
+            elseif math.random() < 0.8 then
+                surface.SetDrawColor(8, 8, 8, math.floor(math.Rand(100, 180)))
+                surface.DrawRect(0, 0, scr_w, scr_h)
+            end
+        else
+            self.Flashbang = nil
         end
     end
 end

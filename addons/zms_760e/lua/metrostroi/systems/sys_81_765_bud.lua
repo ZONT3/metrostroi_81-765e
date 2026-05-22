@@ -204,7 +204,7 @@ if SERVER then
             local sf = Wag[DoorSFs[idx]]
             local poweron = masterPower and sf and sf.Value > 0
             local working = masterWorking and sf and sf.Value > 0
-            if not working and self.Working[idx] then self.Working[idx] = false self.Starting[idx] = false end
+            if not working then self.Working[idx] = false self.Starting[idx] = false end
             if working and not self.Working[idx] and not self.Starting[idx] then self.Starting[idx] = CurTime() + 5 end
             if self.Starting[idx] and CurTime() >= self.Starting[idx] then self.Starting[idx] = false self.Working[idx] = true end
             working = self.Working[idx]

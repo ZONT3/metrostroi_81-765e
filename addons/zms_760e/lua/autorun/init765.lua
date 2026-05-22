@@ -343,4 +343,12 @@ if SERVER then
         print(tostring(ply) .. " cleared all whell lock on his train")
     end)
 
+
+    hook.Add("EntityTakeDamage", "765.Recharge", function(ent, dmg)
+        if not IsValid(ent) or not ent.Battery or not ent.Battery.TriggerInput then return end
+        local swep = dmg:GetWeapon()
+        if not IsValid(swep) or swep:GetClass() ~= "weapon_stunstick" then return end
+        ent.Battery:TriggerInput("SetLevel", math.min(1, ent.Battery.Charge / ent.Battery.Capacity + 0.05))
+    end)
+
 end

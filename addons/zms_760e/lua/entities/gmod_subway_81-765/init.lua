@@ -21,7 +21,7 @@ table.Add(ENT.SyncTable, {
     "IGLA1", "IGLA2", "IGLA3", "IGLA4",
     "MfduHelp", "MfduKontr", "MfduTv", "MfduTv1", "MfduTv2",
     "Buik_EMsg1", "Buik_EMsg2", "Buik_Unused1", "Buik_Mode", "Buik_Path", "Buik_Return", "Buik_Down", "Buik_Up", "Buik_MicLine", "Buik_MicBtn", "Buik_Asotp", "Buik_Ik",
-    "BatteryCharge", "MasterPowerOn", "MasterPowerOff"
+    "BatteryCharge", "MasterTrainPowerOn", "MasterTrainPowerOff"
 })
 
 if not ENT.PpzToggles then print("ACHTUNG! PIZDEC!") end

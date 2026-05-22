@@ -402,6 +402,8 @@ function ENT:Think()
         -- end
     end
 
+    self:SetNW2Bool("LvCritical", self.Battery.Voltage < 57.5)
+
     self:SetPackedRatio("Speed", self.Speed)
 
     if not self.IsTrailer then

@@ -11,6 +11,9 @@ function TRAIN_SYSTEM:Inputs() return {} end
 if TURBOSTROI then return end
 if SERVER then return end
 
+local scrW, scrH = 1024, 768
+local scrOffsetX, scrOffsetY = 0, 0
+
 function TRAIN_SYSTEM:ClientThink()
     if not self.Train:ShouldDrawPanel("MFDU") then return end
 
@@ -48,6 +51,9 @@ function TRAIN_SYSTEM:ClientThink()
     end
     if state == 5 and drawThrottle and self.NormalWork then
         self:DrawMainThrottle()
+    end
+    if not poweroff then
+        self:DrawMalfunc()
     end
     cam.End2D()
     render.PopRenderTarget()
@@ -163,10 +169,26 @@ function TRAIN_SYSTEM:SkifMonitor()
             self:DrawIdent()
         end
     end
+
 end
 
-local scrW, scrH = 1024, 768
-local scrOffsetX, scrOffsetY = 0, 0
+function TRAIN_SYSTEM:DrawMalfunc()
+    if self.Train:GetNW2Bool("LvCritical", false) then
+        if not self.Flashbang then self.Flashbang = math.random() < 0.75 and CurTime() + math.Rand(0, 0.6) or 0 end
+        if self.Flashbang and self.Flashbang > 0 and CurTime() >= self.Flashbang then
+            surface.SetDrawColor(255, 255, 255)
+            surface.DrawRect(0, 0, scrW, scrH)
+            if CurTime() - self.Flashbang > 0.1 then
+                self.Flashbang = 0
+            end
+        elseif math.random() < 0.8 then
+            surface.SetDrawColor(8, 8, 8, math.floor(math.Rand(100, 180)))
+            surface.DrawRect(0, 0, scrW, scrH)
+        end
+    else
+        self.Flashbang = nil
+    end
+end
 
 local sizeFooter = 72
 local sizeStatus = 150

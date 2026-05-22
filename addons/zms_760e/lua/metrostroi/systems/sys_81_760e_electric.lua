@@ -49,6 +49,9 @@ function TRAIN_SYSTEM:Initialize()
     -- 30KM1 and 30KM2 power supply good
     self.KM = 0
 
+    -- Reserve PSN active
+    self.ReservePsn = 0
+
     -- Total energy used by train
     self.ElectricEnergyUsed = 0 -- joules
     self.ElectricEnergyDissipated = 0 -- joules
@@ -58,10 +61,8 @@ function TRAIN_SYSTEM:Initialize()
     self.SubIterations = 16
 
     self.Train:LoadSystem("Battery", "81_765_Battery")
-    self.Train:LoadSystem("BV", "Relay")
-    self.Train:LoadSystem("GV", "Relay", "GV_10ZH", {
-        bass = true
-    })
+    self.Train:LoadSystem("BV", "Relay", { bass = true })
+    self.Train:LoadSystem("GV", "Relay", "GV_10ZH", { bass = true })
 
     for idx = 1, 4 do
         -- UKKZ per-pant
@@ -117,7 +118,7 @@ end
 function TRAIN_SYSTEM:Outputs()
     return {
         "TrueBattery80V", "Shared80V", "Psn80V", "SharedPsn80V", "Emer80V", "Supply80V",
-        "AKB", "PSN", "EmerSupply", "KM", "Battery80V",
+        "AKB", "PSN", "EmerSupply", "KM", "Battery80V", "ReservePsn",
         "Brake", "Drive", "V2", "V1", "Main750V", "Power750V", "Aux750V", "BTB", "MK",
         "SD", "EmerXod", "UPIPower", "PowerReserve", "Recurperation", "Iexit", "Itotal", "Chopper", "ElectricEnergyUsed",
         "ElectricEnergyDissipated", "EnergyChange", "BTO", "ZeroSpeed", "DoorsControl",
@@ -203,10 +204,14 @@ function TRAIN_SYSTEM:Think(dT, iter)
         self.PsnRand = Rand(81.0, 82.9)
     end
 
-    self.TrueBattery80V = Wag.Battery.Voltage
+    S.dU = Wag.Battery.Voltage - self.TrueBattery80V
+    S.Uakb = self.TrueBattery80V + max(1, abs(S.dU)) * sign(S.dU) * dT * 4
+    if (Wag.Battery.Voltage - S.Uakb) * S.dU < 0 then S.Uakb = Wag.Battery.Voltage end
+
+    self.TrueBattery80V = S.Uakb
 
     self.PsnRand = self.PsnRand + (Rand(Rand(78, 80.5), Rand(83.4, 85.0)) - self.PsnRand) * dT
-    S.Ucharge = BUV.PSN * self.PsnRand * min(1, Wag.W30KM.Value + Wag:ReadTrainWire(42))
+    S.Ucharge = BUV.PSN * self.PsnRand
     self.Psn80V = Wag.W30KM.Value * S.Ucharge
 
     Wag:WriteTrainWire(55, self.Psn80V)
@@ -235,9 +240,10 @@ function TRAIN_SYSTEM:Think(dT, iter)
         S.ForcePoweron = 0
     end
 
-    S.BsControlPower = Wag.SF30F2.Value * self:LV(max(S.Ucharge, self.TrueBattery80V))
+    S.HasControlVoltage = C(self.TrueBattery80V > 50.8)
+    S.BsControlPower = Wag.SF30F2.Value * S.HasControlVoltage
     S.BsControl = S.BsControlPower * Nw(Wag.W30K12) * Nw(Wag.PowerOff) * Wag.W30K11.Value
-    Wag.W30K11:TriggerInput("CloseTime", Rand(0.05, 0.4))
+    Wag.W30K11:TriggerInput("CloseTime", Rand(0.2, 0.4))
     Wag.W30K11:TriggerInput("Set", min(1, S.BsControl + Wag:ReadTrainWire(72) + S.BsControlPower * Wag.PowerOn.Value + S.ForcePoweron))
 
     if Wag:ReadTrainWire(73) > 0 and not self.W30K12Timer then
@@ -248,12 +254,13 @@ function TRAIN_SYSTEM:Think(dT, iter)
     Wag.W30K12:TriggerInput("Set", self.W30K12Timer and CurTime() >= self.W30K12Timer and 1 or 0)
 
     Wag.W30KM:TriggerInput("Set", S.BsControl)
-
-    Wag.Battery:TriggerInput("Charge", S.Ucharge)
-    S.Load = Wag.BUV.Load
-
     Wag:WriteTrainWire(74, Wag.W30K11.Value)
     Wag:WriteTrainWire(75, 1 - Wag.W30K11.Value)
+
+    self.ReservePsn = Wag:ReadTrainWire(42) * S.HasControlVoltage
+
+    Wag.Battery:TriggerInput("Charge", S.Ucharge)
+    S.Load = Wag.BUV.Load + 220 * max(0.1, Wag.W30KM.Value)
 
     self.BTO = self.EmerSupply * Wag.SF22F1.Value
 
@@ -265,9 +272,12 @@ function TRAIN_SYSTEM:Think(dT, iter)
         local BUP = Wag.BUKP
         S.Load = S.Load + BUP.Load
 
-        S.BsControl = min(1, self.AKB + self:LV(self.Shared80V)) * Wag.SF30F1.Value
-        Wag:WriteTrainWire(72, S.BsControl * Wag.MasterPowerOn.Value)
-        Wag:WriteTrainWire(73, S.BsControl * Wag.MasterPowerOff.Value * Wag.W30K8.Value)
+        S.SharedLv = self:LV(self.Shared80V)
+        S.BsControl = min(1, self.AKB + S.SharedLv) * Wag.SF30F1.Value
+        Wag:WriteTrainWire(72, S.BsControl * Wag.MasterTrainPowerOn.Value)
+        Wag:WriteTrainWire(73, S.BsControl * Wag.MasterTrainPowerOff.Value * Wag.W30K8.Value)
+        S.BatteryChargeBtn = min(1, C(self.TrueBattery80V > 22) + S.SharedLv) * Wag.SF30F1.Value * Wag.BatteryCharge.Value
+        Wag:WriteTrainWire(42, S.BatteryChargeBtn)
 
         S.ActiveCabin = self.EmerSupply * min(1, RV["KRO13-14"] * Wag.SF23F2.Value --[[* Wag.SF23F13.Value]] + RV["KRR11-12"] * Wag.SF23F1.Value)
         S.OrientFwd = S.ActiveCabin * Wag.SF23F13.Value * (1 - RV["KRO7-8"])
@@ -340,9 +350,6 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Wag:WriteTrainWire(39, S.DoorClose)
         Wag:WriteTrainWire(38, S.EmergencyDoorsAllowOpen * self.ZeroSpeed * Wag.DoorLeft.Value)
         Wag:WriteTrainWire(37, S.EmergencyDoorsAllowOpen * self.ZeroSpeed * Wag.DoorRight.Value)
-
-        S.BatteryChargeBtn = min(1, C(self.TrueBattery80V > 22) + self:LV(self.Shared80V)) * Wag.SF30F1.Value * Wag.BatteryCharge.Value
-        Wag:WriteTrainWire(42, S.BatteryChargeBtn)
 
         Wag:WriteTrainWire(82, min(1, BUP.BupActive + S.RV * S.ManualZeroSpeed))
         Wag:WriteTrainWire(83, min(1, BUP.BupActive * self.ZeroSpeed + S.RV * S.ManualZeroSpeed))

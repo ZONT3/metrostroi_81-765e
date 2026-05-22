@@ -1558,7 +1558,8 @@ function ENT:DrawPost(special)
 end
 
 function ENT:OnPlay(soundid, location, range, pitch)
-    if location == "bass" and soundid == "W30KM" then
+    if location ~= "bass" then return soundid, location, range, pitch end
+    if soundid == "W30KM" then
         if range == 0 then
             timer.Simple(math.Rand(1, 1.15), function()
                 if not IsValid(self) then return end
@@ -1566,6 +1567,8 @@ function ENT:OnPlay(soundid, location, range, pitch)
             end)
         end
         return range > 0 and "battery_on_1" or "battery_off_1", location, 1, 1
+    elseif soundid == "BV" then
+        return range > 0 and "battery_pneumo" or "bv_off", location, 1, 1
     end
     return soundid, location, range, pitch
 end

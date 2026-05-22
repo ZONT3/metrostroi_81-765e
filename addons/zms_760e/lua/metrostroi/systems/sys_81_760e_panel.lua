@@ -158,8 +158,8 @@ function TRAIN_SYSTEM:Initialize()
         })
     end
 
-    self.Train:LoadSystem("MasterPowerOn", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MasterPowerOff", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MasterTrainPowerOn", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MasterTrainPowerOff", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("BatteryCharge", "Relay", "Switch", { bass = true })
 
     -- Allow BS disable from UPI

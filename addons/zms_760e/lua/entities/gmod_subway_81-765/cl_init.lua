@@ -1906,10 +1906,10 @@ ENT.ButtonMap["BackPPZ"] = {
     hideseat = 0.2,
     buttons = {
         {
-            ID = "MasterPowerOnSet", tooltip = "Включение бортсети",
+            ID = "MasterTrainPowerOnSet", tooltip = "Включение бортсети",
             x = 34, y = 47, radius = 20,
             model = {
-                var = "MasterPowerOn",
+                var = "MasterTrainPowerOn",
                 model = "models/metrostroi_train/81-760/81_760_button_green.mdl",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_green.mdl",
@@ -1921,10 +1921,10 @@ ENT.ButtonMap["BackPPZ"] = {
                 sndmin = 90, sndmax = 1e3,
             }
         }, {
-            ID = "MasterPowerOffSet", tooltip = "Выключение бортсети",
+            ID = "MasterTrainPowerOffSet", tooltip = "Выключение бортсети",
             x = 87, y = 47, radius = 20,
             model = {
-                var = "MasterPowerOff",
+                var = "MasterTrainPowerOff",
                 model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_red.mdl",

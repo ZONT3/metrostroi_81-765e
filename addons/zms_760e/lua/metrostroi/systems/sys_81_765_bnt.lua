@@ -566,6 +566,10 @@ else
             draw.DrawText("Поезд дальше не идет\nПожалуйста, выйдите из вагонов", "BNT.Terminus", tx, ty + 100, colorBlack, TEXT_ALIGN_LEFT)
             draw.DrawText("This train terminates here\nPlease leave the train", "BNT.Terminus", tx, ty + 260, colorEng, TEXT_ALIGN_LEFT)
         end
+
+        if power then
+            self:DrawMalfunc()
+        end
     end
 
     function TRAIN_SYSTEM:GetCachedColor(str, alpha)
@@ -680,6 +684,29 @@ else
             end
         end
         return ""
+    end
+
+    function TRAIN_SYSTEM:DrawMalfunc()
+        if self.Train:GetNW2Bool("LvCritical", false) then
+            if not self.Flashbang then self.Flashbang = math.random() < 0.75 and CurTime() + math.Rand(0, 0.6) or 0 end
+            if self.Flashbang and self.Flashbang > 0 and CurTime() >= self.Flashbang then
+                surface.SetDrawColor(255, 255, 255)
+                surface.DrawRect(0, 0, scw, sch)
+                if CurTime() - self.Flashbang > 0.1 then
+                    self.Flashbang = 0
+                end
+            elseif math.random() < 0.8 then
+                surface.SetDrawColor(8, 8, 8, math.floor(math.Rand(100, 180)))
+                surface.DrawRect(0, 0, scw, sch)
+                for idx = 1, math.random(10) do
+                    surface.SetDrawColor(8, 8, 8, math.floor(math.Rand(150, 230)))
+                    local h = math.random(1, 8)
+                    surface.DrawRect(0, math.random(0, math.floor(sch - h + 1)), scw, h)
+                end
+            end
+        else
+            self.Flashbang = nil
+        end
     end
 
     if not isfunction(HexToColor) then

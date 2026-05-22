@@ -1502,7 +1502,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.Ring = false
     end
 
-    local bsOff = Train.Electric.UPIPower * Train.SF30F1.Value * Train.MasterPowerOff.Value > 0
+    local bsOff = Train.Electric.UPIPower * Train.SF30F1.Value * Train.MasterTrainPowerOff.Value > 0
     local poweroffAll = false
     if bsOff and self.WagNum > 0 then
         local set = {}
