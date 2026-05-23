@@ -471,7 +471,7 @@ function TRAIN_SYSTEM:Think(dT)
     if HasEngine then
         strongerBrake = self.TargetStrength < 0 and self:Get("StrongerBrake") and self:Get("StrongerBrake") > 0
     else
-        strongerBrake = self.TargetStrength < -3.1 or self.TargetStrength < 0 and self:Get("StrongerBrake") and self:Get("StrongerBrake") > 0
+        strongerBrake = self.TargetStrength < -3.9 or self.TargetStrength < 0 and self:Get("StrongerBrake") and self:Get("StrongerBrake") > 0
     end
     self.DriveStrength = strength
     if not self.Slope then
@@ -503,6 +503,8 @@ function TRAIN_SYSTEM:Think(dT)
                 self.PTReplaceTimer = nil
             end
         end
+
+        if not HasEngine and self.TargetStrength >= -3.9 then strongerBrake = false end
 
         if self.PTReplaceTimer and CurTime() - self.PTReplaceTimer > (HasEngine and 2.2 or 0.5) or (Train.Speed < 7 and self.TargetStrength < 0) then
             self.PTReplace = true
@@ -553,7 +555,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.MK = not self:Get("PVU2") and self.MKSignal and 1 or 0
     else
         self.PN1 = (self:Get("PN1") and self:Get("PN1") > 0) or PN and (self:Get("DriveStrength") and self:Get("DriveStrength") > 1) or self:Get("PR") and self.TargetStrength <= 0
-        self.PN2 = self.Slope and self:Get("SlopeSpeed") or PN and strongerBrake
+        self.PN2 = self.Slope and self:Get("SlopeSpeed") or (self:Get("PN2") and self:Get("PN2") > 0) or PN and strongerBrake
     end
     self.PN3 = self:Get("PN3") and self:Get("PN3") > 0 or false
     self.UosPn3 = self:Get("UosPn3") and self:Get("UosPn3") > 0 or false

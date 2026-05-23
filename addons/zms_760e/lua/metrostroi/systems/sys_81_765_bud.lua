@@ -261,7 +261,7 @@ if SERVER then
             end
 
             local addressActive = addrMode and working
-            if self.OpenButton[idx] and (not addressActive or not bupActive and CurTime() >= self.OpenButton[idx] + 60) then
+            if self.OpenButton[idx] and (not addressActive or not bupActive and CurTime() >= self.OpenButton[idx] + 60 or not BUV.BupActive) then
                 self.OpenButton[idx] = false
             elseif addressActive and not self.OpenButton[idx] then
                 local btn = Wag["DoorAddressButton" .. idx]

@@ -652,7 +652,7 @@ local pneumoList = {
 local rightBarList = {
     {"Skif:ARS1", "АРС1"},
     {"Skif:ARS2", "АРС2"},
-    {"Skif:BTB", "БТБ", true},
+    {"Skif:BTB", "БТБ"},
     {"Skif:BvAll", "БВ"},
     {"Skif:KTR", "КТР"},
     {"Skif:ALS", "АЛС"},

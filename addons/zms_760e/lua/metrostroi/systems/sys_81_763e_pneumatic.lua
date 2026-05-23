@@ -294,7 +294,7 @@ function TRAIN_SYSTEM:Think(dT)
             elseif Train.BUV.PN2 then
                 EPMPressure = 0.9 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 0.5 --2 уставка
             elseif Train.BUV.PN1 then
-                EPMPressure = 0.73 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 0.4 --1 уставка
+                EPMPressure = 0.5 + self.BrakeCylinderRegulationError + self.WeightLoadRatio * 0.4 --1 уставка
             end
         end
     end

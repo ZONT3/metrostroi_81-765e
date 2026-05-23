@@ -1127,8 +1127,6 @@ function TRAIN_SYSTEM:Think(dT)
                     self.DoorClosed + Train.DoorBlock.Value < 1 or
                     self.Errors.NoOrient or
                     self.Errors.BuvDiscon or
-                    self.Errors.EncoderFail or
-                    self.Errors.HullFail or
                     self.DepotMode
                 ) and 1 or 0
 
@@ -1223,7 +1221,7 @@ function TRAIN_SYSTEM:Think(dT)
                 Train:SetNW2Int("Skif:SpeedLimit", (BARS.AO == 1 or BARS.NoFreq and not BARS.KB) and 0 or Train.BARS.SpeedLimit)
                 Train:SetNW2Int("Skif:NextSpeedLimit", (BARS.NoFreq or BARS.NextNoFq) and 0 or Train.BARS.NextLimit)
 
-                Train:SetNW2Bool("Skif:BTB", Train.BUV.BTB)
+                Train:SetNW2Int("Skif:BTB", BARS.UOS > 0 and -1 or Train.BUV.BTB and 0 or 1)
                 Train:SetNW2Bool("Skif:KRR", RvKrr > 0)
                 Train:SetNW2Bool("Skif:EmerActive", self.Errors.EmergencyBrake)
                 Train:SetNW2Bool("Skif:ParkEnabled", self.Errors.ParkingBrake)

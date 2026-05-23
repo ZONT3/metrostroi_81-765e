@@ -89,7 +89,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.PrevALS = ALSVal
     end
 
-    self.KB = Wag.PB.Value > 0.5 or Wag.Attention.Value > 0.5
+    self.KB = Wag.PB.Value > 0.5 or not UOS and Wag.Attention.Value > 0.5
     self.KVT = Wag.AttentionBrake.Value > 0.5 --or self.KB
 
     self.UosPn3 = 0
@@ -276,7 +276,6 @@ function TRAIN_SYSTEM:Think(dT)
             if AO then
                 if Wag.AttentionBrake.Value > 0.5 then self.RingingAO = false end
                 Ring = Ring or self.RingingAO
-                if not ZeroSpeed then PN3 = true end
             else
                 self.RingingAO = true
             end

@@ -160,6 +160,7 @@ function TRAIN_SYSTEM:Think()
         self.Readings = 0
         self.BlockDoorsL = false
         self.BlockDoorsR = false
+        return
     end
 
     self.Receiving = rv and (prostWork or kosWork) and self.Distance and CurTime() - self.LastTagTime < 0.4

@@ -348,8 +348,8 @@ function TRAIN_SYSTEM:Think(dT, iter)
         S.DoorClose = min(1, self.UPIPower * Wag.SF23F2.Value + self.DoorsControl) * Wag.SF80F5.Value * Wag.SF80F1.Value * S.RV * BUP.Active * Wag.DoorClose.Value
         Wag:WriteTrainWire(40, Wag.EmergencyDoors.Value)
         Wag:WriteTrainWire(39, S.DoorClose)
-        Wag:WriteTrainWire(38, S.EmergencyDoorsAllowOpen * self.ZeroSpeed * Wag.DoorLeft.Value)
-        Wag:WriteTrainWire(37, S.EmergencyDoorsAllowOpen * self.ZeroSpeed * Wag.DoorRight.Value)
+        Wag:WriteTrainWire(38, S.EmergencyDoorsAllowOpen * self.ZeroSpeed * Wag.DoorLeft.Value * Wag.DoorSelectL.Value * (1 - Wag.DoorSelectR.Value))
+        Wag:WriteTrainWire(37, S.EmergencyDoorsAllowOpen * self.ZeroSpeed * Wag.DoorRight.Value * Wag.DoorSelectR.Value * (1 - Wag.DoorSelectL.Value))
 
         Wag:WriteTrainWire(82, min(1, BUP.BupActive + S.RV * S.ManualZeroSpeed))
         Wag:WriteTrainWire(83, min(1, BUP.BupActive * self.ZeroSpeed + S.RV * S.ManualZeroSpeed))
