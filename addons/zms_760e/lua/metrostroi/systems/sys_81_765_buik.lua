@@ -1005,7 +1005,7 @@ if SERVER then
         self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "CisCfg", self.CisCfgIdx)
         self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "Route", self.Route)
 
-        if self.LineChanged then
+        if self.LineChanged or self.CloneBmt then
             self.LineChanged = false
             self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "UpdateBmt", not self.CloneBmt and self.Stations[1].index or lastStation and lastStation.index or nil)
         end
@@ -1243,7 +1243,8 @@ else
         if not ZMS or not ZMS.Rec765 or not ZMS.Rec765.GetSound then return end
 
         if wag.StopSounds or not wag.ClientPropsInitialized or wag.CreatingCSEnts then return end
-        wag:DestroySound(wag.Sounds[id], true)
+        local s = wag.Sounds[id]
+        if IsValid(s) then s:Stop() end
         wag.Sounds[id] = nil
         wag.SoundPositions[id] = {min, max, location}
 

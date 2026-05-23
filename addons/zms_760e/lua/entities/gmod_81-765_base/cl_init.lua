@@ -938,9 +938,13 @@ end
 
 function ENT:CheckBogeySounds(bogey)
     return IsValid(bogey) and bogey.SoundNames and (
-        not bogey.SoundNames or
+        not self.FrontBogey.EngineSNDConfig or
         Metrostroi.Version > 1537278077 and not bogey.SoundNames["ted1_765"] or
-        Metrostroi.Version <= 1537278077 and bogey.SoundNames["ted1_720"] ~= "subway_trains/765/rumble/engines/engine_8.wav"
+        Metrostroi.Version <= 1537278077 and (
+            not self.FrontBogey.EngineSNDConfig[1] or
+            self.FrontBogey.EngineSNDConfig[1][5] ~= 0.14 or
+            bogey.SoundNames["ted1_720"] ~= "subway_trains/765/rumble/engines/engine_8.wav"
+        )
     )
 end
 

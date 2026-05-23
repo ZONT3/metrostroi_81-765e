@@ -308,7 +308,7 @@ function TRAIN_SYSTEM:Think(dT)
                 end
                 local condition = not self.NoFreq and not KmCur and not ZeroSpeed and not self.SpeedGained
                 if condition and not self.NoSpeedGained then
-                    self.NoSpeedGained = CurTime() + 0.1
+                    self.NoSpeedGained = CurTime() + 0.25
                 end
                 if condition and self.NoSpeedGained and CurTime() >= self.NoSpeedGained then Ring = true end
                 RVTB = RVTB and self:RvtbTimer("NoSpeedGained", not condition)
