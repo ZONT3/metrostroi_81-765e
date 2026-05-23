@@ -97,6 +97,12 @@ local function precacheURL(url, cacheOnly, onReady)
     end
 
     sound.PlayURL(url, "3d noplay mono noblock", function(snd, errid, errname)
+        local duration = IsValid(snd) and snd:GetLength() or 0
+        ZMS.Rec765.SndCache[url] = {
+            duration = duration,
+            ready = true
+        }
+
         if errid then
             destroySound(snd)
             if errid ~= 41 then
@@ -107,12 +113,6 @@ local function precacheURL(url, cacheOnly, onReady)
             end
             return
         end
-
-        local duration = snd:GetLength() or 0
-        ZMS.Rec765.SndCache[url] = {
-            duration = duration,
-            ready = true
-        }
 
         if cacheOnly then
             snd:Pause()

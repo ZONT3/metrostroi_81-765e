@@ -1033,6 +1033,7 @@ ENT.Spawner = {
     ENT.SpawnerCustom[24],  -- BreakRedChance
     ENT.SpawnerCustom[25],  -- DoorReverseMalfunc
     ENT.SpawnerCustom[26],  -- BatteryWear
+    ENT.SpawnerCustom[27],  -- BatteryLevel
     { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
     ENT.SpawnerCustom[#ENT.SpawnerCustom]
 }
