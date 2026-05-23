@@ -597,14 +597,15 @@ function TRAIN_SYSTEM:Think(dT)
     self.Cond1 = condPower and 1 or 0
     if P < 550 or P > 975 then self.Cond1 = 0 end
 
-    local condState = self.Cond1 > 0
-    if condState then self.CondOffTimer = CurTime() + 16 end
+    Train:WriteTrainWire(60, self.Cond1)
+    local condState = self.Cond1 + Train:ReadTrainWire(60) > 0
+    if condState then self.CondOffTimer = CurTime() + 6 end
     if self.CondOffTimer and (not condPower or CurTime() >= self.CondOffTimer) then self.CondOffTimer = nil end
     if not condState and self.CondOffTimer then condState = true end
     self.Cond1 = condState and 1 or 0
     self.Cond2 = self.Cond1
 
-    self.Load = self.Load + (self.Cond1 + self.Cond2) * 1750
+    self.Load = self.Load + (self.Cond1 + self.Cond2) * 1920
 
     local ReOrientation = self.State and (self.Orientation or self.RevOrientation) and (self.Orientation ~= self.PrevOrientation or self.RevOrientation ~= self.PrevRevOrientation or self.CurrentBUP ~= (self.Orientation and self.Commands.Forward or self.Commands.Back))
     if ReOrientation then
