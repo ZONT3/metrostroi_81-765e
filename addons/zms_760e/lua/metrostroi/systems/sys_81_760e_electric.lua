@@ -168,10 +168,15 @@ function TRAIN_SYSTEM:LV(x)
     return C(x > self.LvDeath)
 end
 
+local function clamp(x, min, max)
+    return math.min(max or 1, math.max(min or 0, x))
+end
+
 local min, max, abs = math.min, math.max, math.abs
 --------------------------------------------------------------------------------
 function TRAIN_SYSTEM:Think(dT, iter)
     local Wag = self.Train
+    local Battery = Wag.Battery
     local Async = Wag.AsyncInverter
     local Panel = Wag.Panel
     local BUV = Wag.BUV
@@ -201,13 +206,21 @@ function TRAIN_SYSTEM:Think(dT, iter)
     ----------------------------------------------------------------------------
     -- Solve LV circuit
     ----------------------------------------------------------------------------
+    -- Wires
+    -- 52: Active PSN Count
+    -- 53: Active BS Count
+    -- 54: Train AKB Charge current demand
+    -- 55: Train PSN total current sum
+    -- 56: Train PSN total voltage sum
+    -- 57: Train BS total voltage sum
+    ----------------------------------------------------------------------------
     if not self.PsnRand then
         self.PsnRand = Rand(81.0, 82.9)
     end
 
-    S.dU = Wag.Battery.Voltage - self.TrueBattery80V
+    S.dU = Battery.Voltage - self.TrueBattery80V
     S.Uakb = self.TrueBattery80V + max(1, abs(S.dU)) * sign(S.dU) * dT * 4
-    if (Wag.Battery.Voltage - S.Uakb) * S.dU < 0 then S.Uakb = Wag.Battery.Voltage end
+    if (Battery.Voltage - S.Uakb) * S.dU < 0 then S.Uakb = Battery.Voltage end
 
     self.TrueBattery80V = S.Uakb
 
@@ -215,24 +228,30 @@ function TRAIN_SYSTEM:Think(dT, iter)
     S.Ucharge = BUV.PSN * self.PsnRand
     self.Psn80V = Wag.W30KM.Value * S.Ucharge
 
-    Wag:WriteTrainWire(55, self.Psn80V)
-    self.SharedPsn80V = Wag:ReadTrainWire(55) / max(1, Wag:ReadTrainWire(53))
+    -- 56: Train PSN total voltage sum
+    Wag:WriteTrainWire(56, self.Psn80V)
+    self.SharedPsn80V = Wag:ReadTrainWire(56) / max(1, Wag:ReadTrainWire(52)) - clamp((Wag:ReadTrainWire(54) - Wag:ReadTrainWire(55)) * 0.09, 0, 18)
 
     self.Supply80V = Wag.W30KM.Value * self.TrueBattery80V
     self.Emer80V = max(self.Supply80V, self.SharedPsn80V)
 
     self.Battery80V = self.Emer80V + 2.0  -- Legacy backport
 
-    Wag:WriteTrainWire(56, self.Supply80V)
-    self.Shared80V = Wag:ReadTrainWire(56) / max(1, Wag:ReadTrainWire(54))
+    -- 57: Train BS total voltage sum
+    Wag:WriteTrainWire(57, self.Supply80V)
+    self.Shared80V = Wag:ReadTrainWire(57) / max(1, Wag:ReadTrainWire(53))
 
     self.AKB = self:LV(self.TrueBattery80V)
     self.KM = self:LV(self.Supply80V)
     self.PSN = self:LV(self.Psn80V)
     self.EmerSupply = self:LV(self.Emer80V)
 
-    Wag:WriteTrainWire(53, self.PSN)
-    Wag:WriteTrainWire(54, Wag.W30KM.Value)
+    -- 51: Wagons to charge PSN Count
+    Wag:WriteTrainWire(51, (1 - self.PSN) * Wag:ReadTrainWire(42))
+    -- 52: Active PSN Count
+    Wag:WriteTrainWire(52, self.PSN)
+    -- 53: Active BS Count
+    Wag:WriteTrainWire(53, Wag.W30KM.Value)
 
     if self.ForcePoweron then
         S.ForcePoweron = 1
@@ -259,7 +278,16 @@ function TRAIN_SYSTEM:Think(dT, iter)
 
     self.ReservePsn = Wag:ReadTrainWire(42) * S.HasControlVoltage
 
-    Wag.Battery:TriggerInput("Charge", S.Ucharge)
+    -- 54: Train AKB Charge current demand
+    Wag:WriteTrainWire(54, N(self.PSN) * self.ReservePsn * max(0, Battery.Current))
+    -- 55: Train PSN total current sum
+    Wag:WriteTrainWire(55, max(0, self.PSN * (150 - Battery.LoadCurrent - max(0, Battery.Current))))
+    S.Ucharge = max(S.Ucharge, self.SharedPsn80V * Wag:ReadTrainWire(42))
+
+    Battery:TriggerInput("ChargeMaxCurrent", (self.PSN + N(Wag:ReadTrainWire(42)) > 0) and 30 or clamp(
+        (Wag:ReadTrainWire(55) - Wag:ReadTrainWire(54)) / max(1, Wag:ReadTrainWire(51)),
+        0, 30))
+    Battery:TriggerInput("Charge", S.Ucharge)
     S.Load = Wag.BUV.Load + 220 * max(0.1, Wag.W30KM.Value)
 
     self.BTO = self.EmerSupply * Wag.SF22F1.Value
@@ -446,8 +474,8 @@ function TRAIN_SYSTEM:Think(dT, iter)
         + Panel.SalonLighting2 * 560
         + Panel.WorkFan * 310
     )
-    Wag.Battery:TriggerInput("Load", S.Load)
-    Wag.Battery:TriggerInput("SetInfinite", 1 - Wag.W30KM.Value)
+    Battery:TriggerInput("Load", S.Load)
+    Battery:TriggerInput("SetInfinite", 1 - Wag.W30KM.Value)
 
     if not Async then return end
 

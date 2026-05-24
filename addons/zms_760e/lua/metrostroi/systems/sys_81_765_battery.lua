@@ -12,15 +12,16 @@ function TRAIN_SYSTEM:Initialize()
     -- Configuration
     self.FactoryCapacity = 110 * 3600  ----- A*second
     self.Capacity = self.FactoryCapacity  -- A*second
-    self.ChargeMaxCurrent = 30  ------------ A
+    self.PsnMaxCurrent = 150  -------------- A
     self.InternalResist = 0.04  ------------ Ω
     self.ChargeSumResist = 0.32  ----------- Ω
     self.FactoryChargedVoltage = 77.4  ----- V
     self.RuinedVoltage = 40  --------------- V
 
     -- Inputs
-    self.Load = 0  ----------- W
-    self.ChargeVoltage = 0  -- V
+    self.Load = 0  --------------- W
+    self.ChargeVoltage = 0  ------ V
+    self.ChargeMaxCurrent = 30  -- A
 
     -- Values
     -- Charge level in A*second
@@ -57,6 +58,8 @@ function TRAIN_SYSTEM:TriggerInput(name, value)
         self.Load = value
     elseif name == "Charge" then
         self.ChargeVoltage = value
+    elseif name == "ChargeMaxCurrent" then
+        self.ChargeMaxCurrent = value
 
     -- Should not be used
     elseif name == "Current" then
@@ -86,7 +89,7 @@ function TRAIN_SYSTEM:Think(dT)
 
     S.Icharge = clamp((self.ChargeVoltage - S.Ubat) / self.ChargeSumResist, 0, self.ChargeMaxCurrent)
     S.Icharge = S.Icharge * math.pow(1 - clamp((self.Charge / self.Capacity - 0.95) / 0.05), 2)
-    S.Ioverload = math.max(0, S.Iload - (self.ChargeVoltage >= S.Ubat and (150 - S.Icharge) or 0))
+    S.Ioverload = math.max(0, S.Iload - (self.ChargeVoltage >= S.Ubat and (self.PsnMaxCurrent - S.Icharge) or 0))
 
     self.LoadCurrent = S.Iload
     self.Current = S.Icharge - S.Ioverload
