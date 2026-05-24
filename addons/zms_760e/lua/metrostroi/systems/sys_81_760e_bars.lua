@@ -188,7 +188,7 @@ function TRAIN_SYSTEM:Think(dT)
     local ZeroSpeed = not SelfZs and Wag.BUKP.ZeroSpeed > 0 or SelfZs and Speed < 0.75
 
     local RVTB = true
-    local BTB = self.RVTB > 0
+    local BTB = true
     local Brake = self.Brake > 0
     local Ring = self.Ring > 0
     local Drive = self.Drive > 0
