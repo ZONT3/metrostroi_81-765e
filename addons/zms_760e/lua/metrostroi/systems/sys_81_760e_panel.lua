@@ -163,7 +163,7 @@ function TRAIN_SYSTEM:Initialize()
     self.Train:LoadSystem("BatteryCharge", "Relay", "Switch", { bass = true })
 
     -- Allow BS disable from UPI
-    self.Train:LoadSystem("W30K8", "Relay")
+    self.Train:LoadSystem("W30K8", "Relay", { open_time = 0.6 })
 
     self.Train:LoadSystem("PB", "Relay", "Switch", { bass = true })
 

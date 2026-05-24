@@ -282,6 +282,7 @@ function TRAIN_SYSTEM:Think(dT)
             self:CState("DriveStrength", math.min(0, Train.AsyncInverter.Torque + Train.AsyncInverter.Torque * math.Rand(0, 0.05)))
             self:CState("BrakeStrength", math.max(0, Train.AsyncInverter.Torque + Train.AsyncInverter.Torque * math.Rand(0, 0.05)))
             self:CState("I", Train.AsyncInverter.Current)
+            self:CState("EbrakeGood", not Train:GetNW2Int("BtbuSd", false) or not self.SchemeTimer or CurTime() < self.SchemeTimer)
         else
             self:CState("DriveStrength", 0)
             self:CState("BrakeStrength", 0)
@@ -329,7 +330,7 @@ function TRAIN_SYSTEM:Think(dT)
 
         local PowerOff = self.PowerOff and CurTime() < self.PowerOff
         if PowerOff and not self.PowerOffTimer then
-            self.PowerOffTimer = CurTime() + math.Rand(1, math.Rand(1.4, 2.8))
+            self.PowerOffTimer = CurTime() + math.Rand(1, math.Rand(0.8, 1.9))
         elseif not PowerOff then
             if self.PowerOffTimer then self.PowerOffTimer = nil end
             self.PowerOffPlayed = false
@@ -341,7 +342,9 @@ function TRAIN_SYSTEM:Think(dT)
             end
             self.Load = math.max(85, self.Load - 340)
         end
-        Train:CANWrite("BUV", Train:GetWagonNumber(), "BUKP", nil, "PowerOffReady", self.PowerOffTimer and CurTime() >= self.PowerOffTimer)
+        if not self.PowerOffTimer or CurTime() < self.PowerOffTimer then
+            Train:CANWrite("BUV", Train:GetWagonNumber(), "BUKP", nil, "PowerOffNotReady", true)
+        end
 
     else
         self:CState("BUVWork", false)
@@ -537,9 +540,18 @@ function TRAIN_SYSTEM:Think(dT)
                 self.ZeroSpeed = Train.Speed < 0.4 and 1 or 0
             end
         end
+
+        if self.States.Scheme and self.TargetStrength < 0 then
+            if not self.SchemeTimer then
+                self.SchemeTimer = CurTime() + math.Rand(0.2, 0.6)
+            end
+        else
+            self.SchemeTimer = nil
+        end
     else
         self.BupActive = false
         self.ZeroSpeed = 0
+        self.SchemeTimer = nil
     end
 
     local PN = self.PTReplace

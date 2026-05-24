@@ -226,8 +226,8 @@ function TRAIN_SYSTEM:CANReceive(source, sourceid, target, targetid, textdata, n
     if not self.Trains[sourceid] then return end
     if textdata == "Get" then
         self.Reset = 1
-    elseif textdata == "PowerOffReady" then
-        self.PoweroffReady[sourceid] = numdata and CurTime() + 0.5 or nil
+    elseif textdata == "PowerOffNotReady" then
+        self.K8Timer = numdata and CurTime() + 0.5 or self.K8Timer
     else
         self.Trains[sourceid][textdata] = numdata
     end
@@ -1290,6 +1290,7 @@ function TRAIN_SYSTEM:Think(dT)
                         Train:SetNW2Int("Skif:Power" .. i, train.ElectricEnergyUsed)
                         Train:SetNW2Int("Skif:I" .. i, train.I)
                         Train:SetNW2Int("Skif:U" .. i, train.HVVoltage and train.HVVoltage * 10 or 0)
+                        Train:SetNW2Int("Skif:EbrakeGood" .. i, train.EbrakeGood)
                     end
                 elseif self.State2 == 41 then
                     for i = 1, self.WagNum do
@@ -1503,26 +1504,10 @@ function TRAIN_SYSTEM:Think(dT)
         self.Ring = false
     end
 
-    local bsOff = Train.Electric.UPIPower * Train.SF30F1.Value * Train.MasterTrainPowerOff.Value > 0
-    local poweroffAll = false
-    if bsOff and self.WagNum > 0 then
-        local set = {}
-        local count = 0
-        for id, v in pairs(self.PoweroffReady) do
-            if not set[id] and v and v > CurTime() then
-                count = count + 1
-                if count >= self.WagNum then
-                    poweroffAll = true
-                    break
-                end
-                set[id] = true
-            end
-        end
+    if Train.Electric.UPIPower * Train.SF30F1.Value * Train.MasterTrainPowerOff.Value > 0 then
+        Train:CANWrite("BUKP", Train:GetWagonNumber(), "BUV", nil, "PowerOff", true)
     end
-    if bsOff or self.WasPowerOff then Train:CANWrite("BUKP", Train:GetWagonNumber(), "BUV", nil, "PowerOff", bsOff) end
-    if poweroffAll then self.K8Timer = CurTime() + 3 end
-    Train.W30K8:TriggerInput("Set", self.K8Timer and CurTime() < self.K8Timer)
-    self.WasPowerOff = bsOff
+    Train.W30K8:TriggerInput("Set", not self.K8Timer or CurTime() >= self.K8Timer and 1 or 0)
 
     Train:SetNW2Int("Skif:ARS1", not BARS.BarsPower and 2 or BARS.ATS1Bypass and -1 or not self.BARS1 and 0 or BARS.DisableDrive and 2 or 1)
     Train:SetNW2Int("Skif:ARS2", not BARS.BarsPower and 2 or BARS.ATS2Bypass and -1 or not self.BARS2 and 0 or BARS.DisableDrive and 2 or 1)

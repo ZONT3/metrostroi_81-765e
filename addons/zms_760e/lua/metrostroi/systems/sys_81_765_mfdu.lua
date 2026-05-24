@@ -1119,7 +1119,7 @@ local asyncLabels = {
     "СБОР СХЕМЫ", "БВ", "Отказ ИНВ", "Защита ИНВ", "Перегрев ИНВ", "Отказ ЭТ", "Неиспр. ВТР"
 }
 local asyncStates = {
-    "Skif:Scheme", "Skif:BV"
+    "Skif:Scheme", "Skif:BV", [6] = "Skif:EbrakeGood"
 }
 function TRAIN_SYSTEM:DrawAsyncPage(Wag, x, y, w, h)
     local gw, gh = w * 0.35 - sizeBorder * 2, h - 64 - sizeBorder * 6
@@ -1141,7 +1141,8 @@ function TRAIN_SYSTEM:DrawAsyncPage(Wag, x, y, w, h)
             if idx == 2 then
                 if not Wag:GetNW2Bool("Skif:InvSf" .. wagIdx, false) then
                     color = colorBrightText
-                elseif Wag:GetNW2Bool("Skif:PVU7" .. wagIdx, false) then
+                end
+                if Wag:GetNW2Bool("Skif:PVU7" .. wagIdx, false) then
                     text = "Р"
                 end
             end

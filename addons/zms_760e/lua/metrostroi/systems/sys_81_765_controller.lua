@@ -138,7 +138,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.IsOverriden = self.TractiveSettingOverride ~= nil
 
     if self.Online > 0 then
-        if self.VisualPosition == 0 and math.abs(self.TractiveSetting) >= 40 and not self.ZeroTimer then
+        if self.VisualPosition == 0 and math.abs(self.TractiveSetting) >= 30 and not self.ZeroTimer then
             self.ZeroTimer = CurTime()
         elseif self.ZeroTimer and not (self.VisualPosition == 0 and math.abs(self.TractiveSetting) > 2) then
             self.ZeroTimer = nil

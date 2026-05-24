@@ -75,7 +75,8 @@ function TRAIN_SYSTEM:Initialize()
     -- master UKKZ
     self.Train:LoadSystem("UKKZ", "Relay", "Switch")
 
-    math.randomseed(os.time())
+    -- __RANDOMSEED_MARGIN = (__RANDOMSEED_MARGIN or 0) + 1
+    -- math.randomseed(os.time() + __RANDOMSEED_MARGIN)
 
     -- Relay coils 30KM1 and 30KM2. Basically a 'BS on' flag.
     self.Train:LoadSystem("W30KM", "Relay", { close_time = Rand(0.05, 0.1), open_time = 0.1, bass = true })
@@ -208,8 +209,6 @@ function TRAIN_SYSTEM:Think(dT, iter)
     S.Uakb = self.TrueBattery80V + max(1, abs(S.dU)) * sign(S.dU) * dT * 4
     if (Wag.Battery.Voltage - S.Uakb) * S.dU < 0 then S.Uakb = Wag.Battery.Voltage end
 
-    S.OnCount = max(1, Wag:ReadTrainWire(54))
-
     self.TrueBattery80V = S.Uakb
 
     self.PsnRand = self.PsnRand + (Rand(Rand(78, 80.5), Rand(83.4, 85.0)) - self.PsnRand) * dT
@@ -217,7 +216,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
     self.Psn80V = Wag.W30KM.Value * S.Ucharge
 
     Wag:WriteTrainWire(55, self.Psn80V)
-    self.SharedPsn80V = Wag:ReadTrainWire(55) / S.OnCount
+    self.SharedPsn80V = Wag:ReadTrainWire(55) / max(1, Wag:ReadTrainWire(53))
 
     self.Supply80V = Wag.W30KM.Value * self.TrueBattery80V
     self.Emer80V = max(self.Supply80V, self.SharedPsn80V)
@@ -225,13 +224,14 @@ function TRAIN_SYSTEM:Think(dT, iter)
     self.Battery80V = self.Emer80V + 2.0  -- Legacy backport
 
     Wag:WriteTrainWire(56, self.Supply80V)
-    self.Shared80V = Wag:ReadTrainWire(56) / S.OnCount
+    self.Shared80V = Wag:ReadTrainWire(56) / max(1, Wag:ReadTrainWire(54))
 
     self.AKB = self:LV(self.TrueBattery80V)
     self.KM = self:LV(self.Supply80V)
     self.PSN = self:LV(self.Psn80V)
     self.EmerSupply = self:LV(self.Emer80V)
 
+    Wag:WriteTrainWire(53, self.PSN)
     Wag:WriteTrainWire(54, Wag.W30KM.Value)
 
     if self.ForcePoweron then
@@ -244,11 +244,10 @@ function TRAIN_SYSTEM:Think(dT, iter)
     S.HasControlVoltage = C(self.TrueBattery80V > 50.8)
     S.BsControlPower = Wag.SF30F2.Value * S.HasControlVoltage
     S.BsControl = S.BsControlPower * Nw(Wag.W30K12) * Nw(Wag.PowerOff) * Wag.W30K11.Value
-    Wag.W30K11:TriggerInput("CloseTime", Rand(0.2, 0.4))
     Wag.W30K11:TriggerInput("Set", min(1, S.BsControl + Wag:ReadTrainWire(72) + S.BsControlPower * Wag.PowerOn.Value + S.ForcePoweron))
 
     if Wag:ReadTrainWire(73) > 0 and not self.W30K12Timer then
-        self.W30K12Timer = CurTime() + Rand(2, 3)
+        self.W30K12Timer = CurTime() + Rand(2, 2.4)
     elseif Wag:ReadTrainWire(73) < 1 and self.W30K12Timer then
         self.W30K12Timer = nil
     end
@@ -286,11 +285,11 @@ function TRAIN_SYSTEM:Think(dT, iter)
         S.PpzKm = BUP.BtbuSd > 0 and Wag.SF22F4.Value or Wag.SF22F2.Value
         S.PpzBtbu = Wag.SF22F2.Value
 
-        self.UPIPower = self.EmerSupply * Wag.SF23F8.Value
+        self.UPIPower = S.SharedLv * Wag.SF23F8.Value
         self.PowerReserve = self.EmerSupply * min(1, (1 - Wag.SF23F8.Value) * abs(RV.KRRPosition) + Wag.SF23F8.Value)
         Wag:WriteTrainWire(20, self.EmerSupply)
         Wag:WriteTrainWire(36, Wag.SF23F1.Value * Wag.EmergencyControls.Value)
-        S.Drive = Wag.BARS.Drive * min(Wag.BARS.UOS + (1 - Wag.BARS.Brake) * (BUP.DoorClosed + Wag.DoorBlock.Value) * (1 - BUP.BupDisableDrive), 1)
+        S.Drive = Wag.BARS.Drive * min(Wag.BARS.UOS + (1 - Wag.BARS.Brake) * (BUP.DoorClosed + Wag.DoorBlock.Value), 1)
         S.Orientation = C(Wag.SF23F13.Value * BUP.Active + RV["KRR7-8"] > 0)
         Wag:WriteTrainWire(19, self.PowerReserve * (1 - Wag.SD3.Value) * RV["KRR7-8"] * S.Drive * Wag.EmerX1.Value)
         Wag:WriteTrainWire(45, self.PowerReserve * (1 - Wag.SD3.Value) * RV["KRR7-8"] * S.Drive * Wag.EmerX2.Value)
