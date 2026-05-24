@@ -1498,14 +1498,17 @@ else
         local wagX, wagY = wagonsMarginX, wagonsMarginY
         for idx = 1, wagNum do
             local err = Wag:GetNW2Bool("BUIK:WagErr" .. idx, false)
+            local reverse = false
             local doorsClosed = true
             for di = 1, 8 do
                 local closed = Wag:GetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), false)
                 wagDoors[di] = closed
                 doorsClosed = doorsClosed and closed
+                local left = di < 5
+                reverse = reverse or Wag:GetNW2Bool(string.format("Skif:DoorReverse%d%s%d", left and di or 9 - di, left and "L" or "R", idx), false)
             end
 
-            local color = err and colorRed or not doorsClosed and self.colorActive or self.colorInactive
+            local color = err and colorRed or reverse and colorYellow or not doorsClosed and self.colorActive or self.colorInactive
 
             local extendStart, extendEnd = 0, 0
             if idx == 1 then

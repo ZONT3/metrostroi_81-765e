@@ -1014,6 +1014,10 @@ function TRAIN_SYSTEM:Think(dT)
 
                     Train:SetNW2Bool("Skif:AddressDoorsL" .. i, orientation and train.AddressDoorsL or not orientation and train.AddressDoorsR)
                     Train:SetNW2Bool("Skif:AddressDoorsR" .. i, orientation and train.AddressDoorsR or not orientation and train.AddressDoorsL)
+                    for d = 1, 4 do
+                        Train:SetNW2Bool("Skif:DoorReverse" .. d .. "L" .. i, train["DoorReverse" .. (orientation and d or 9 - d)])
+                        Train:SetNW2Bool("Skif:DoorReverse" .. d .. "R" .. i, train["DoorReverse" .. (orientation and 9 - d or d)])
+                    end
 
                     local cab = not not train.HasCabin
                     Train:SetNW2Bool("Skif:HasCabin" .. i, cab)
@@ -1276,8 +1280,6 @@ function TRAIN_SYSTEM:Think(dT)
                         for d = 1, 4 do
                             Train:SetNW2Bool("Skif:Door" .. d .. "L" .. i, train["Door" .. (orientation and d or d + 4) .. "Closed"])
                             Train:SetNW2Bool("Skif:Door" .. d .. "R" .. i, train["Door" .. (orientation and d + 4 or d) .. "Closed"])
-                            Train:SetNW2Bool("Skif:DoorReverse" .. d .. "L" .. i, train["DoorReverse" .. (orientation and d or 9 - d)])
-                            Train:SetNW2Bool("Skif:DoorReverse" .. d .. "R" .. i, train["DoorReverse" .. (orientation and 9 - d or d)])
                             Train:SetNW2Bool("Skif:DoorAod" .. d .. "L" .. i, train["DoorAod" .. (orientation and d or 9 - d)])
                             Train:SetNW2Bool("Skif:DoorAod" .. d .. "R" .. i, train["DoorAod" .. (orientation and 9 - d or d)])
                         end
