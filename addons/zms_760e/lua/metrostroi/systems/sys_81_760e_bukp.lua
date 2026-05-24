@@ -1151,7 +1151,8 @@ function TRAIN_SYSTEM:Think(dT)
                     if (
                         Train.ProstKos.ProstActive == 1 and
                         Train.KV765.Position >= 0 and
-                        not (Train.KV765.Position > 0 and Train.ProstKos.Command > 0)
+                        not (Train.KV765.Position > 0 and Train.ProstKos.Command > 0) and
+                        not (Train.KV765.TractiveSetting ~= 0 and Train.ProstKos.Command >= 0)
                     ) then kvSetting = Train.ProstKos.Command == 1 and 0 or Train.ProstKos.Command end
                     if Train.ProstKos.CommandKos > 0 then kvSetting = -100 overrideKv = true end
                     if BARS.Brake > 0 then kvSetting = -80 overrideKv = true end
