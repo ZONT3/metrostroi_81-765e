@@ -27,7 +27,6 @@ local ErrorsA = {
     {"ArsFail",  "Неисправность АРС.\nПерейди на УОС.", "Неисправность АРС. Переведи\nблокиратор в положение АТС%d"},
     {"BuvDiscon", "Нет связи с БУВ-С.", "Нет связи с БУВ-С на %d вагоне."},
     {"NoOrient", "Вагон не ориентирован.", "Вагон %d не ориентирован."},
-    {"HullFail", "Кузов не в норме.", "Кузов не в норме на %d вагоне."},
     {"EncoderFail", "ДС не в норме.", "ДС не в норме на %d вагоне."},
     {"BrakeLine", "Низкое давление ТМ."},
     {"DisableDrive", "Запрет ТР от АРС.",},
@@ -39,6 +38,7 @@ local ErrorsA = {
     {"Short", "КЗ.", "КЗ %d вагона."},
 }
 local ErrorsB = {
+    {"HullFail", "Кузов не в норме.", "Кузов не в норме на %d вагоне."},
     {"RearCabin", "Открыта кабина ХВ.",},
     {"KosCommand", "Торможение КОС."},
     {"BvDisabled", "БВ отключен.", "БВ отключен на %d вагоне."},
@@ -572,7 +572,7 @@ function TRAIN_SYSTEM:CommitError()
             if isnumber(param) and str[3] then
                 self.Train:SetNW2String("Skif:ErrorStr", string.format(str[3], param))
             else
-                self.Train:SetNW2String("Skif:ErrorStr", str[1] == "HullFail" and math.random() < 0.2 and "Пизда поезду." or str[2])
+                self.Train:SetNW2String("Skif:ErrorStr", str[1] == "EncoderFail" and math.random() < 0.2 and "Пизда поезду." or str[2])
             end
         end
     end
@@ -916,6 +916,7 @@ function TRAIN_SYSTEM:Think(dT)
                 local voGood = true
                 local tpGood = true
                 local pnGood = countBL < 1
+                local puGood = true
                 local schemeAll = true
                 local schemeAny = false
                 local btbAll = true
@@ -961,6 +962,7 @@ function TRAIN_SYSTEM:Think(dT)
                         if not train.BTBReady then btbAll = false pnGood = false end
                         if train.TLPressure < 5.5 then pnGood = false end
                         if train.AsyncInverter and (not train.BVEnabled or not train.EnginesBroken) then tpGood = false end
+                        if train.PuWork and not (train.EncoderF and train.EncoderR) then puGood = false end
                     end
                     local orientGood = working and not train.WagNOrientated and Train.PpzOrient.Value > 0
                     if not working or not orientGood or not train.PSNEnabled or not train.BUDWork then voGood = false end
@@ -1058,6 +1060,7 @@ function TRAIN_SYSTEM:Think(dT)
                 Train:SetNW2Bool("Skif:VoGood", voGood)
                 Train:SetNW2Bool("Skif:TpGood", tpGood)
                 Train:SetNW2Bool("Skif:PnGood", pnGood)
+                Train:SetNW2Bool("Skif:PuGood", puGood)
                 Train:SetNW2Int("Skif:KTR", Train.EmerBrake.Value == 1 and 1 or -1)
                 Train:SetNW2Int("Skif:ALS", Train.ALS.Value * Train.ALSVal == 2 and 1 or -1)
                 Train:SetNW2Int("Skif:BOSD", Train.DoorBlock.Value == 1 and 0 or -1)
@@ -1426,14 +1429,14 @@ function TRAIN_SYSTEM:Think(dT)
         self.ControllerState = Train.PpzPrimaryControls.Value > 0 and kvSetting or 0
 
         if Train.KV765.Position == 0 and not self.KvToZero then
-            self.KvToZero = CurTime() + 1.0
+            self.KvToZero = CurTime() + 0.6
         elseif Train.KV765.Position ~= 0 and self.KvToZero then
             self.KvToZero = nil
         end
 
         Train:SetNW2Int("Skif:Throttle", (overrideKv or Train.ProstKos.Command < 10) and kvSetting or Train.KV765.TargetTractiveSetting)
         Train:SetNW2Bool("Skif:OverrideKv", overrideKv)
-        Train:SetNW2Bool("Skif:AccelKv", Train.KV765.Accel)
+        -- Train:SetNW2Bool("Skif:AccelKv", Train.KV765.Accel)
         Train:SetNW2Bool("Skif:ToZeroKv", not overrideKv and self.KvToZero and CurTime() >= self.KvToZero)
 
         self:CState("RV", RvWork, "BUKP")

@@ -8,9 +8,9 @@ TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 
 local SettingSpeed = 100  -- Per second
-local AccelSpeed = 180  -- Per second
+local AccelSpeed = 100  -- Per second
 local SettingDelay = 0.2  -- Seconds
-local ZeroTimer = 1.0  -- Seconds
+local ZeroTimer = 0.6  -- Seconds
 
 function TRAIN_SYSTEM:Initialize()
     self.VisualPosition = 0

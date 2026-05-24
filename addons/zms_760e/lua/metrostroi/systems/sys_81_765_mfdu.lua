@@ -637,6 +637,7 @@ local sizeMessageH = sizeStatus - sizeStatusIcon - sizeMainMargin
 local sizeStatusIconsGap = (sizeMessageW - sizeStatusIcon * 10) / 9
 local sizeMessageBorder = 6
 local sizeStatusVoltageMargin = 32
+
 local voltageList = {
     {"Skif:LvMin", "бс min"},
     {"Skif:LvMax", "бс max"},
@@ -658,6 +659,7 @@ local rightBarList = {
     {"Skif:ALS", "АЛС"},
     {"Skif:BOSD", "БОСД"},
 }
+
 local statusGetters = {
     -- ВО
     function(self, Wag) return Wag:GetNW2Bool("Skif:VoGood", false) and colorMain or colorRed end,
@@ -681,7 +683,7 @@ local statusGetters = {
     function(self, Wag) return Wag:GetNW2Bool("Skif:Pvu", false) and colorYellow or colorMain end,
 
     -- Противоюз
-    function(self, Wag) return colorMainDisabled end,
+    function(self, Wag) return Wag:GetNW2Bool("Skif:PuGood", false) and colorMainDisabled or colorRed end,
     -- Ст.тормоз
     function(self, Wag) return Wag:GetNW2Bool("Skif:ParkEnabled", false) and colorGreen or colorMainDisabled end,
     -- Пневмотормоз
@@ -710,9 +712,11 @@ local statusGetters = {
     -- Подъем
     function(self, Wag) return Wag:GetNW2Bool("AccelRateLamp", false) and colorGreen or colorMainDisabled end,
 }
+
 local errorsCat = {
     {"А", colorRed}, {"Б", colorYellow}, {"В", colorBlue}
 }
+
 function TRAIN_SYSTEM:DrawStatus(Wag)
     local errCat = Wag:GetNW2Int("Skif:ErrorCat", 0)
     if errorsCat[errCat] then
@@ -820,7 +824,7 @@ function TRAIN_SYSTEM:DrawMainThrottle()
     local Wag = self.Train
     local thr = Wag:GetNW2Int("Skif:Throttle", 0)
     local override = Wag:GetNW2Bool("Skif:OverrideKv")
-    local accel = Wag:GetNW2Bool("Skif:AccelKv", false) and thr > 0
+    -- local accel = Wag:GetNW2Bool("Skif:AccelKv", false) and thr > 0
     local toZero = Wag:GetNW2Bool("Skif:ToZeroKv", false)
     if override or override ~= self.LastOverride or not self.LastThrUpd or thr * (self.Throttle or 0) < 0 or thr == 0 and self.Throttle ~= 0 and toZero then
         self.Throttle = (override or thr < 0) and thr or 0
@@ -828,7 +832,7 @@ function TRAIN_SYSTEM:DrawMainThrottle()
         local dT = CurTime() - self.LastThrUpd
         if self.Throttle ~= thr then
             local sgn = (thr > self.Throttle and 1 or -1)
-            self.Throttle = (self.Throttle or 0) + sgn * (accel and 180 or 100) * dT
+            self.Throttle = (self.Throttle or 0) + sgn * 100 * dT
             if self.Throttle > thr and sgn > 0 or self.Throttle < thr and sgn < 0 then
                 self.Throttle = thr
             end

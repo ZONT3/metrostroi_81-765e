@@ -231,16 +231,12 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("PuWork", self.PuWork)
         if (not self:WheelsCheck(WheelsF) or not self:WheelsCheck(WheelsR)) then
             if not self.HullTimer then
-                self.HullTimer = CurTime() + 1.7
+                self.HullTimer = CurTime() + math.Rand(0.6, 1.7)
             end
         elseif self.HullTimer then
             self.HullTimer = nil
         end
-        local hullOk = (Train.HullCheckResult or 0) < 1
-        if hullOk and self.HullTimer and CurTime() < self.HullTimer then
-            hullOk = false
-        end
-        self:CState("HullOk", hullOk)
+        self:CState("HullOk", (Train.HullCheckResult or 0) < 1 and (not self.HullTimer or CurTime() >= self.HullTimer))
 
         for _, sf in ipairs(SFTbl) do
             self:CState(sf, not Train[sf] or Train[sf].Value == 1)
@@ -356,16 +352,14 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     if self.PuWork then
-        local CheckEncoderF = self:EncoderCheck(WheelsF, Train.FrontBogey)
-        local EncoderF = self.EncoderFWork == 1 and CheckEncoderF > 0 or Train.Speed < 1.8 and self.EncoderFWork == 1
-        local CheckEncoderR = self:EncoderCheck(WheelsR, Train.RearBogey)
-        local EncoderR = self.EncoderRWork == 1 and CheckEncoderR > 0 or Train.Speed < 1.8 and self.EncoderRWork == 1
+        local EncoderF = self.EncoderFWork == 1 and self:EncoderCheck(WheelsF, Train.FrontBogey) or Train.Speed < 1.8 and self.EncoderFWork == 1
+        local EncoderR = self.EncoderRWork == 1 and self:EncoderCheck(WheelsR, Train.RearBogey) or Train.Speed < 1.8 and self.EncoderRWork == 1
         self.EncoderFWork = EncoderF and 1 or 0
         self.EncoderRWork = EncoderR and 1 or 0
         self.EncoderWork = EncoderF and EncoderR and 1 or 0
 
-        self:CState("EncoderF", EncoderF and CheckEncoderF > 1)
-        self:CState("EncoderR", EncoderR and CheckEncoderR > 1)
+        self:CState("EncoderF", EncoderF)
+        self:CState("EncoderR", EncoderR)
     else
         self.EncoderFWork = 1
         self.EncoderRWork = 1
@@ -641,7 +635,7 @@ end
 function TRAIN_SYSTEM:WheelsCheck(wheels)
     if not IsValid(wheels) or wheels.KpConstrFail then return false end
     for idx = 1, 4 do
-        if wheels.KpResult and wheels.KpResult[idx] and wheels.KpResult[idx] > 4 then
+        if wheels.KpResult and wheels.KpResult[idx] and wheels.KpResult[idx] > 2 then
             return false
         end
     end
@@ -651,9 +645,9 @@ end
 function TRAIN_SYSTEM:EncoderCheck(wheels, bogey)
     if not IsValid(wheels) then return 0 end
     for idx = 1, 4 do
-        if wheels.KpResult and wheels.KpResult[idx] and wheels.KpResult[idx] > 2 then
-            return wheels.KpResult[idx] > 4 and 0 or 1
+        if wheels.KpResult and wheels.KpResult[idx] and wheels.KpResult[idx] > 4 then
+            return false
         end
     end
-    return not wheels:GetNW2Bool("Disabled", false) and not wheels.KpConstrFail and 2 or 0
+    return not wheels:GetNW2Bool("Disabled", false) and not wheels.KpConstrFail
 end

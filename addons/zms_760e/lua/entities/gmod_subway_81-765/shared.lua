@@ -642,11 +642,6 @@ ENT.SpawnerSpawnFnc = function(mg, mp, pp)
     end
 end
 
-BWFNC = function(ent, val, rot, wagi, wagnum, rclk)
-    if rclk then return end
-    local max = 110 * 3600
-    ent.Battery:TriggerInput("SetCapacity", max - 0.94 * max * val / 100 - math.Rand(0, 0.06) * max * Lerp(val / 100, 1, 0.5))
-end
 
 ENT.SpawnerCustom = {
     model = {"models/metrostroi_train/81-760e/81_760e_body.mdl", "models/metrostroi_train/81-760/81_760a_int.mdl", "models/metrostroi_train/81-765/cabin.mdl", "models/metrostroi_train/81-765/headlights_main_off.mdl",},
@@ -838,8 +833,10 @@ ENT.SpawnerCustom = {
     },
     {
         "BatteryWear", "Износ батареи", "Slider", 0, 0, 100, 0,
-        function(...)
-            return BWFNC(...)
+        function(ent, val, rot, wagi, wagnum, rclk)
+            if rclk then return end
+            local max = 110 * 3600
+            ent.Battery:TriggerInput("SetCapacity", max - 0.94 * max * val / 100 - math.Rand(0, 0.06) * max * Lerp(val / 100, 1, 0.5))
         end,
         Section = "Wear"
     },
