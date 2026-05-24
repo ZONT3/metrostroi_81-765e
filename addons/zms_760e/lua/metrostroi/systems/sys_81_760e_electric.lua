@@ -208,6 +208,8 @@ function TRAIN_SYSTEM:Think(dT, iter)
     S.Uakb = self.TrueBattery80V + max(1, abs(S.dU)) * sign(S.dU) * dT * 4
     if (Wag.Battery.Voltage - S.Uakb) * S.dU < 0 then S.Uakb = Wag.Battery.Voltage end
 
+    S.OnCount = max(1, Wag:ReadTrainWire(54))
+
     self.TrueBattery80V = S.Uakb
 
     self.PsnRand = self.PsnRand + (Rand(Rand(78, 80.5), Rand(83.4, 85.0)) - self.PsnRand) * dT
@@ -215,7 +217,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
     self.Psn80V = Wag.W30KM.Value * S.Ucharge
 
     Wag:WriteTrainWire(55, self.Psn80V)
-    self.SharedPsn80V = Wag:ReadTrainWire(55) / max(1, Wag:ReadTrainWire(53))
+    self.SharedPsn80V = Wag:ReadTrainWire(55) / S.OnCount
 
     self.Supply80V = Wag.W30KM.Value * self.TrueBattery80V
     self.Emer80V = max(self.Supply80V, self.SharedPsn80V)
@@ -223,15 +225,14 @@ function TRAIN_SYSTEM:Think(dT, iter)
     self.Battery80V = self.Emer80V + 2.0  -- Legacy backport
 
     Wag:WriteTrainWire(56, self.Supply80V)
-    self.Shared80V = Wag:ReadTrainWire(56) / max(1, Wag:ReadTrainWire(54))
+    self.Shared80V = Wag:ReadTrainWire(56) / S.OnCount
 
     self.AKB = self:LV(self.TrueBattery80V)
     self.KM = self:LV(self.Supply80V)
     self.PSN = self:LV(self.Psn80V)
     self.EmerSupply = self:LV(self.Emer80V)
 
-    Wag:WriteTrainWire(53, self.PSN)
-    Wag:WriteTrainWire(54, self.KM)
+    Wag:WriteTrainWire(54, Wag.W30KM.Value)
 
     if self.ForcePoweron then
         S.ForcePoweron = 1
@@ -447,6 +448,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         + Panel.WorkFan * 310
     )
     Wag.Battery:TriggerInput("Load", S.Load)
+    Wag.Battery:TriggerInput("SetInfinite", 1 - Wag.W30KM.Value)
 
     if not Async then return end
 

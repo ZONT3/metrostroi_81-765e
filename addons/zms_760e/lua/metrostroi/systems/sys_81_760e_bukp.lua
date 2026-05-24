@@ -1291,13 +1291,13 @@ function TRAIN_SYSTEM:Think(dT)
                 elseif self.State2 == 41 then
                     for i = 1, self.WagNum do
                         local train = self.Trains[self.Trains[i]]
-                        Train:SetNW2Int("Skif:IMK" .. i, train.MKCurrent and train.MKCurrent * 10)
-                        Train:SetNW2Int("Skif:IVO" .. i, train.VagEqConsumption * 10)
+                        Train:SetNW2Int("Skif:IMK" .. i, train.MKCurrent and train.MKCurrent * 10 or 0)
+                        Train:SetNW2Int("Skif:IVO" .. i, train.VagEqConsumption and train.VagEqConsumption * 10 or 0)
                         Train:SetNW2Int("Skif:UBS" .. i, train.LV and train.LV * 10 or 0)
                         Train:SetNW2Int("Skif:U" .. i, train.HVVoltage and train.HVVoltage * 10 or 0)
                         Train:SetNW2Int("Skif:I" .. i, train.I)
-                        Train:SetNW2Int("Skif:Ich" .. i, train.Ich * 10)
-                        Train:SetNW2Int("Skif:Uch" .. i, train.Uch * 10)
+                        Train:SetNW2Int("Skif:Ich" .. i, train.Ich and train.Ich * 10)
+                        Train:SetNW2Int("Skif:Uch" .. i, train.Uch and train.Uch * 10)
                         Train:SetNW2Int("Skif:Power" .. i, train.ElectricEnergyUsed)
                         Train:SetNW2Int("Skif:Dissipated" .. i, train.ElectricEnergyDissipated)
                     end

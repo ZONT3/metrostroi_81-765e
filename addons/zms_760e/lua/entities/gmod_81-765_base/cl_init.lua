@@ -1059,7 +1059,7 @@ function ENT:Think()
     end
 
     if not self.IsTrailer then self:Animate("VmBs", self:GetPackedRatio("IVO"), 0, 1, 16, 1) end
-    if self.IsTrailer then
+    if self.IsIntermediate then
         self:Animate("VmLv", self:GetPackedRatio("LV"), 0, 0.95, 16, 1)
         self:Animate("VmHv", self:GetPackedRatio("HV"), 0, 1, 16, 6)
         self:Animate("MnBl", self:GetPackedRatio("BL"), 0, 0.78, 256, 2)
@@ -1565,7 +1565,7 @@ function ENT:OnPlay(soundid, location, range, pitch)
     if location ~= "bass" then return soundid, location, range, pitch end
     if soundid == "W30KM" then
         if range == 0 then
-            timer.Simple(math.Rand(1, 1.15), function()
+            timer.Create("765.BatteryOffPost." .. self:EntIndex(), math.Rand(1, 1.15), 1, function()
                 if not IsValid(self) then return end
                 self:PlayOnce("battery_off_2", location, 1, 1)
             end)

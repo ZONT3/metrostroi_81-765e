@@ -402,7 +402,7 @@ function ENT:Think()
         -- end
     end
 
-    self:SetNW2Bool("LvCritical", self.Battery.Voltage < 57.5)
+    self:SetNW2Bool("LvCritical", self.Electric.Emer80V < 54.8)
 
     self:SetPackedRatio("Speed", self.Speed)
 
