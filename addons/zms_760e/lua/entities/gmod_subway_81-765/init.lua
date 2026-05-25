@@ -270,6 +270,7 @@ function ENT:Initialize()
         },
     })
 
+    self.NotificationPaper = true
     self.PassengerDoor = false
     self.CabinDoorLeft = false
     self.CabinDoorRight = false
@@ -429,6 +430,7 @@ function ENT:Think()
     self:SetNW2Bool("DoorCloseLamp", Panel.DoorCloseL > 0)
     self:SetNW2Bool("DoorBlockLamp", Panel.DoorBlockL > 0)
     self:SetPackedRatio("CabinLight", self.CabinLight.Value / 2)
+    self:SetPackedBool("NotificationPaper", Cfg765.NotificationPaper and self.NotificationPaper or false)
     self:SetPackedBool("PassengerDoor", self.PassengerDoor)
     self:SetPackedBool("CabinDoorLeft", self.CabinDoorLeft)
     self:SetPackedBool("CabinDoorRight", self.CabinDoorRight)
@@ -489,6 +491,7 @@ function ENT:OnButtonPress(button, ply)
         self.IGLA3:TriggerInput("Set", 1)
     end
 
+    if button == "NotificationPaperBtn" then self.NotificationPaper = not self.NotificationPaper end
     if button == "K31Cap" then self.DoorK31 = not self.DoorK31 end
     if button == "Chair" and not (self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver())) then self.Chair = not self.Chair end
     if button == "PassengerDoor" then

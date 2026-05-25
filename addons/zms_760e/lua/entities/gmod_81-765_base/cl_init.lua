@@ -1162,6 +1162,14 @@ function ENT:Think()
         self:ShowHide("ASHook", ValidfB)
         self:Animate("ASHook", self:GetPackedBool("ASHook") and 1 or 0, 0, 1, 8, 0.5)
 
+        if Cfg765 and Cfg765.NotificationPaper then
+            self:HidePanel("NotificationPaperBtn", false)
+            self:ShowHide("NotificationPaper", self:GetPackedBool("NotificationPaper", false))
+        else
+            self:HidePanel("NotificationPaperBtn", true)
+            self:ShowHide("NotificationPaper", false)
+        end
+
         local col = render.GetLightColor(self:GetPos() + 530 * self:GetForward())
         local val = math.floor((col.x * 255 + col.y * 255 + col.z * 255) * 5) / 5
         if self.LightVal ~= val and CurTime() - (self.LightValTimer or 0) > 0 or not self.LightVal then

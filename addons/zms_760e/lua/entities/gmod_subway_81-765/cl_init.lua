@@ -3365,6 +3365,43 @@ ENT.ClientProps["BtbuSdLabel"] = {
     hideseat = 0.5,
 }
 
+ENT.ClientProps["NotificationPaper"] = {
+    model = "models/metrostroi_train/81-765/notification_paper.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hideseat = 0.5,
+    callback = function(wag, ent)
+        if Cfg765 and Cfg765.NotificationMaterial then
+            ent:SetMaterial(Cfg765.NotificationMaterial)
+        else
+            wag:ShowHide("NotificationPaper", false)
+        end
+    end
+}
+
+ENT.ButtonMap["NotificationPaperBtn"] = {
+    pos = Vector(490.18, 40.043, -7.35),
+    -- from blender: X -> Z, Y -> X, Z -> Y
+    ang = Angle(0, -75.487, 62.8),
+    width = 38,
+    height = 75,
+    scale = 0.1,
+    buttons = {
+        {
+            ID = "NotificationPaperBtn",
+            x = 0,
+            y = 0,
+            w = 38,
+            h = 75,
+            tooltip = "Показать/скрыть уведомление",
+            model = {
+                var = "NotificationPaper",
+                states = {"Common.ClientProp.Hide", "Common.ClientProp.Show"}
+            }
+        },
+    }
+}
+
 -- ENT.ClientProps["wiper"] = {
 --     model = "models/metrostroi_train/81-760/81_760_wiper.mdl",
 --     pos = Vector(0, 0, 0),

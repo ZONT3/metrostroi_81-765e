@@ -1,10 +1,11 @@
 ZMS = ZMS or {}
 ZMS.Rec765 = ZMS.Rec765 or {}
 
+
 CreateClientConVar("765_rec_dur1", "0", true, true)
 CreateClientConVar("765_rec_dur2", "0", true, true)
-CreateClientConVar("765_rec1", "https://steamusercontent-a.akamaihd.net/ugc/9499205620757309889/D44F090374929A59ED4BF5C7FA3A2A642547BE30/", true, true)
-CreateClientConVar("765_rec2", "", true, true)
+CreateClientConVar("765_rec1", "https://steamusercontent-a.akamaihd.net/ugc/13614774836284261489/0D1AFCAED2F09DCB354A1DB285231C025695E2E0/", true, true)
+CreateClientConVar("765_rec2", "https://steamusercontent-a.akamaihd.net/ugc/9499205620757309889/D44F090374929A59ED4BF5C7FA3A2A642547BE30/", true, true)
 
 local TRACK_KEYS = {
     {
@@ -42,7 +43,12 @@ if SERVER then
     function ZMS.Rec765.GetDuration(ply, idx)
         local cvar = TRACK_KEYS[idx] and TRACK_KEYS[idx].durcvar
         if not cvar then return 0 end
-        return ply:GetInfoNum(cvar, 0)
+
+        local url = Cfg765.MapMessages and Cfg765.MapMessages[idx] or ply:GetInfo(TRACK_KEYS[idx].urlcvar, "")
+        if #url < 7 or string.sub(url, 1, 7) ~= "file://" then return ply:GetInfoNum(cvar, 0) end
+
+        local _, dur = unpack(string.Explode(",", string.sub(url, 8)))
+        return tonumber(dur) or ply:GetInfoNum(cvar, 0)
     end
 
     timer.Create("765.RecUrls", 1, 0, function()
@@ -114,16 +120,15 @@ local function precacheURL(url, cacheOnly, onReady)
             return
         end
 
-        if cacheOnly then
-            snd:Pause()
-            print(string.format( "[765 REC CACHE] Cached '%s' (%.2fs)", url, duration ))
-        end
+        snd:Play()
+        snd:Pause()
 
         if onReady then
             onReady(duration, snd)
         end
 
         if cacheOnly then
+            print(string.format( "[765 REC CACHE] Cached '%s' (%.2fs)", url, duration ))
             -- Keep the channel alive briefly so BASS fully buffers/caches
             -- then stop it.
             timer.Simple(2, function()
@@ -141,7 +146,7 @@ local function processPlayer(ply)
     local plySeen = ensureTable(ZMS.Rec765.PlySeen, ply)
 
     for idx, info in ipairs(TRACK_KEYS) do
-        local url = ply:GetNW2String(info.urlKey)
+        local url = Cfg765.MapMessages and Cfg765.MapMessages[idx] or ply:GetNW2String(info.urlKey)
         url = string.Trim(url)
         local valid = isValidAudioURL(url)
 
@@ -162,15 +167,31 @@ local function processPlayer(ply)
 end
 
 
-function ZMS.Rec765.GetSound(soundId, callback)
+function ZMS.Rec765.GetSoundPath(soundId)
     local steamid, idx = unpack(string.Explode(".", soundId))
-    local k = TRACK_KEYS[tonumber(idx) or 0]
+    idx = tonumber(idx) or 0
+    local k = TRACK_KEYS[idx]
     k = k and k.urlKey
     if not k then return end
     local ply = player.GetBySteamID64(steamid)
-    if not IsValid(ply) then return end
+    if not IsValid(ply) and not (Cfg765.MapMessages and Cfg765.MapMessages[idx]) then return end
 
-    local url = ply:GetNW2String(k, "")
+    local url = Cfg765.MapMessages and Cfg765.MapMessages[idx] or ply:GetNW2String(k, "")
+    if #url < 7 or string.sub(url, 1, 7) ~= "file://" then return end
+    local path, dur = unpack(string.Explode(",", string.sub(url, 8)))
+    return path, tonumber(dur)
+end
+
+function ZMS.Rec765.GetSound(soundId, callback)
+    local steamid, idx = unpack(string.Explode(".", soundId))
+    idx = tonumber(idx) or 0
+    local k = TRACK_KEYS[idx]
+    k = k and k.urlKey
+    if not k then return end
+    local ply = player.GetBySteamID64(steamid)
+    if not IsValid(ply) and not (Cfg765.MapMessages and Cfg765.MapMessages[idx]) then return end
+
+    local url = Cfg765.MapMessages and Cfg765.MapMessages[idx] or ply:GetNW2String(k, "")
     if not isValidAudioURL(url) then return end
 
     precacheURL(url, false, function(duration, snd)
@@ -195,6 +216,14 @@ timer.Create("765.UserSoundCache", 2, 0, function()
 end)
 
 
+local function ConfigureEntry(e, idx)
+    if Cfg765.MapMessages and Cfg765.MapMessages[idx] then
+        e:SetEnabled(false)
+    else
+        e:SetEnabled(true)
+    end
+end
+
 local function ChuraClientPanel(panel)
     panel:ClearControls()
     panel:SetPadding(0)
@@ -204,8 +233,8 @@ local function ChuraClientPanel(panel)
     panel:Help("Экстренные сообщения БУ-ИК")
     panel:ControlHelp("Применяются ко всем заспавненным вами 81-760Э и обновляются при каждом изменении.")
     panel:ControlHelp("Становятся доступны как только все игроки кэшировали звук. Если в меню БУ-ИК \"Доп. инфо\" на записи висит маркировка \"запись\" - значит кто-то все еще ее кэширует/скачивает. Видно только на БУ-ИК варианта Метроспецтехники.")
-    panel:TextEntry("Запись №1", "765_rec1")
-    panel:TextEntry("Запись №2", "765_rec2")
+    ConfigureEntry(panel:TextEntry("Запись №1", "765_rec1"), 1)
+    ConfigureEntry(panel:TextEntry("Запись №2", "765_rec2"), 2)
     panel:ControlHelp("Только прямые ссылки на звук. Некоторые форматы неподдерживаются, гуглите особенности BASS, если необходимо узнать подробности.")
 end
 

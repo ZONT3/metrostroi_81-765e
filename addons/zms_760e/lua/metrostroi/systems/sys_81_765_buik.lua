@@ -1209,7 +1209,7 @@ if SERVER then
             local ply = player.GetBySteamID64(self.OwnerSteamid)
             local idx = tonumber(rec[#rec])
             if idx and IsValid(ply) then
-                dur = ZMS.Rec765.GetDuration(ply, idx)
+                dur = ZMS.Rec765.GetDuration(ply, idx) + 2
             end
         end
         if rec then
@@ -1232,27 +1232,42 @@ if SERVER then
 
 else
 
+    local playSync = {}
+
     local function playOnceFromPos(wag, id, sndname, volume, pitch, min, max, location)
-        if not string.StartsWith(sndname, "#UserRec.") then
-            if wag.PlayOnceFromPos then
+        local userRec = string.StartsWith(sndname, "#UserRec.")
+        if userRec then sndname = string.sub(sndname, 10) end
+        local filePath = userRec and ZMS.Rec765.GetSoundPath(sndname)
+        if filePath then sndname = filePath userRec = false end
+
+        if not userRec then
+            if IsValid(wag) and wag.PlayOnceFromPos then
                 wag:PlayOnceFromPos(id, sndname, volume, pitch, min, max, location)
             end
             return
         end
 
         if not ZMS or not ZMS.Rec765 or not ZMS.Rec765.GetSound then return end
+        if not IsValid(wag) or wag.StopSounds or not wag.ClientPropsInitialized or wag.CreatingCSEnts then return end
 
-        if wag.StopSounds or not wag.ClientPropsInitialized or wag.CreatingCSEnts then return end
         local s = wag.Sounds[id]
         if IsValid(s) then s:Stop() end
         wag.Sounds[id] = nil
         wag.SoundPositions[id] = {min, max, location}
 
-        ZMS.Rec765.GetSound(string.sub(sndname, 10), function(snd)
+        local syncId = string.format("%s.%d", sndname, wag:EntIndex())
+        if not playSync[syncId] or CurTime() > playSync[syncId] then
+            playSync[syncId] = CurTime() + 2
+        end
+
+        ZMS.Rec765.GetSound(sndname, function(snd)
             if not snd then return end
             wag.Sounds[id] = snd
-            wag:SetBassParameters(wag.Sounds[id], pitch, volume, wag.SoundPositions[id], false)
-            snd:Play()
+            timer.Simple(playSync[syncId] - CurTime(), function()
+                if not IsValid(snd) or snd:GetState() ~= GMOD_CHANNEL_PAUSED then return end
+                wag:SetBassParameters(snd, pitch, volume, wag.SoundPositions[id], false)
+                snd:Play()
+            end)
         end)
     end
 
