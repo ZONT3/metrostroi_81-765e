@@ -907,7 +907,6 @@ ENT.SpawnerCustom = {
                     else
                         _Odometer = math.random(0, 999999)
                     end
-                    _randRoute = math.random(1, 89)
                     _DoorsDelay = math.Rand(0.42, 0.57)
                 end
                 if _Odometer then ent.Odometer = _Odometer end
@@ -983,13 +982,8 @@ ENT.SpawnerCustom = {
                     timer.Simple(7, function()
                         if not IsValid(ent) then return end
                         ent.BUV.PassLight = val == 1
-                        if ent.AsyncInverter then ent.BUV.PSNSignal = true end
+                        ent.BUV.PSNSignal = true
                         if ent.ASNP and isnumber(ent.ASNP.RouteNumber) then
-                            if val <= 2 and ent.ASNP.RouteNumber <= 0 then
-                                ent.ASNP.RouteNumber = _randRoute or 11
-                            elseif ent.ASNP.RouteNumber * 10 % 10 ~= 0 then
-                                ent.ASNP.RouteNumber = math.floor(ent.ASNP.RouteNumber * 10)
-                            end
                             ent.BUIK.RouteNumber = val <= 2 and ent.ASNP.RouteNumber or 0
                             ent.BUKP.RouteNumber = val <= 2 and ent.ASNP.RouteNumber or 0
                         end
