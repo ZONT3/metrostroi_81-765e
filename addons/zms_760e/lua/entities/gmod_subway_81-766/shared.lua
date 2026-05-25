@@ -24,7 +24,7 @@ end
 
 function ENT:InitializeSystems()
     self:LoadSystem("TR", "TR_3B")
-    self:LoadSystem("Electric", "81_760E_Electric")
+    self:LoadSystem("Electric", "81_765_Electric")
     self:LoadSystem("AsyncInverter", "81_760_AsyncInverter")
     self:LoadSystem("BUV", "81_760E_BUV")
     self:LoadSystem("BUD", "81_765_BUD")

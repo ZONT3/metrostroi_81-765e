@@ -491,7 +491,7 @@ ENT.PvzToggles = {
 
 function ENT:InitializeSystems()
     self:LoadSystem("TR", "TR_3B")
-    self:LoadSystem("Electric", "81_760E_Electric")
+    self:LoadSystem("Electric", "81_765_Electric")
     self:LoadSystem("AsyncInverter", "81_760_AsyncInverter")
     self:LoadSystem("KV765", "81_765_Controller")
     self:LoadSystem("RV", "81_720_RV")

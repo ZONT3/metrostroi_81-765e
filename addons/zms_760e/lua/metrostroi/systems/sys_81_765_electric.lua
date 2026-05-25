@@ -2,7 +2,7 @@
 -- ������������� ����
 -- ты ебанутый? ты в какой кодировке это сохранил?
 --------------------------------------------------------------------------------
-Metrostroi.DefineSystem("81_760E_Electric")
+Metrostroi.DefineSystem("81_765_Electric")
 TRAIN_SYSTEM.DontAccelerateSimulation = false
 local function Clamp(val, min, max)
     return math.max(min, math.min(max, val))
@@ -204,15 +204,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
 
 
     ----------------------------------------------------------------------------
-    -- Solve LV circuit
-    ----------------------------------------------------------------------------
-    -- Wires
-    -- 52: Active PSN Count
-    -- 53: Active BS Count
-    -- 54: Train AKB Charge current demand
-    -- 55: Train PSN total current sum
-    -- 56: Train PSN total voltage sum
-    -- 57: Train BS total voltage sum
+    -- Solve LV power circuits
     ----------------------------------------------------------------------------
     if not self.PsnRand then
         self.PsnRand = Rand(81.0, 82.9)
@@ -246,8 +238,8 @@ function TRAIN_SYSTEM:Think(dT, iter)
     self.PSN = self:LV(self.Psn80V)
     self.EmerSupply = self:LV(self.Emer80V)
 
-    -- 51: Wagons to charge PSN Count
-    Wag:WriteTrainWire(51, (1 - self.PSN) * Wag:ReadTrainWire(42))
+    -- 51: Wagons for PSN to charge Count
+    Wag:WriteTrainWire(51, N(self.PSN) * Wag:ReadTrainWire(42))
     -- 52: Active PSN Count
     Wag:WriteTrainWire(52, self.PSN)
     -- 53: Active BS Count
@@ -281,7 +273,8 @@ function TRAIN_SYSTEM:Think(dT, iter)
     -- 54: Train AKB Charge current demand
     Wag:WriteTrainWire(54, N(self.PSN) * self.ReservePsn * max(0, Battery.Current))
     -- 55: Train PSN total current sum
-    Wag:WriteTrainWire(55, max(0, self.PSN * (150 - Battery.LoadCurrent - max(0, Battery.Current))))
+    Wag:WriteTrainWire(55, max(0, self.PSN * (Battery.PsnMaxCurrent - Battery.LoadCurrent - max(0, Battery.Current))))
+
     S.Ucharge = max(S.Ucharge, self.SharedPsn80V * Wag:ReadTrainWire(42))
 
     Battery:TriggerInput("ChargeMaxCurrent", (self.PSN + N(Wag:ReadTrainWire(42)) > 0) and 30 or clamp(
