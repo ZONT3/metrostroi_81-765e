@@ -141,6 +141,7 @@ function TRAIN_SYSTEM:Initialize()
     self.NextThink = CurTime()
     self.HVLamp = false
     self.Load = 0
+    self.KahDrive = 1
 
     self:InitShared()
 end
@@ -186,7 +187,7 @@ end
 function TRAIN_SYSTEM:Outputs()
     return {
         "State", "ControllerState", "EmergencyBrake", "BTB", "WagNum", "Prost", "Kos", "CurrentSpeed", "InitTimer", "ZeroSpeed", "BudZeroSpeed",
-        "Active", "DoorClosed", "ESD", "BtbuSd", "BupDisableDrive", "BupActive", "Load"
+        "Active", "DoorClosed", "ESD", "BtbuSd", "BupDisableDrive", "BupActive", "Load", "KahDrive"
     }
 end
 
@@ -196,6 +197,8 @@ end
 
 if TURBOSTROI then return end
 if CLIENT then return end
+
+local CV_Kah = CreateConVar("765_kah_emer", "0", FCVAR_ARCHIVE, "Require KAH on UOS even on KRR", 0, 1)
 
 function TRAIN_SYSTEM:TriggerInput(name, value)
 end
@@ -1561,4 +1564,6 @@ function TRAIN_SYSTEM:Think(dT)
     if not self.DepotMode and self.DepotWags then self.DepotWags = false end
     if self.State > 0 and self.Reset and self.Reset == 1 then self.Reset = false end
     if self.PvuWag > 0 and not (self.State == 5 and self.State2 == 01) then self.PvuWag = 0 end
+
+    self.KahDrive = math.min(1, (CV_Kah:GetBool() and 0 or 1) + Train.KAH.Value)
 end

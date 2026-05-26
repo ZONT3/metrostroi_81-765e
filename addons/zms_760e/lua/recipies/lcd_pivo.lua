@@ -39,7 +39,7 @@ end
 local function DrawPixelatedScreenBuik(self, panel_name, pos, ang, scale)
     if not Pixelated then return end
 
-    Pixelated.SetBaseTexture(self.BUIK)
+    Pixelated.SetBaseTexture(self.BUIKscr)
     Pixelated.SetPixelMask("pixelated/pixelstripes1")
     Pixelated.SetPixelLuma(3)
     Pixelated.SetPixelLayout(Pixelated.LAYOUT_SQUARE, 0)

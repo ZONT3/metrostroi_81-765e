@@ -763,12 +763,12 @@ function TRAIN_SYSTEM:DrawStatus(Wag)
 
         x = 1 * w / 2 + sizeBorder
         y = scrOffsetY + scrH - sizeFooter - sizeBorder - 32
-        draw.SimpleText(self.Speed, "Mfdu765.SpeedSmall", x, y - 18, colorGreen, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+        draw.SimpleText(self.Speed, "Mfdu765.StatusValueSpeed", x, y - 8, colorGreen, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
         draw.SimpleText("км/ч", "Mfdu765.24", x, y - 16, colorBrightText, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
 
         x = w / 2
         y = scrOffsetY + scrH - sizeFooter - sizeBorder - sizeStatus * 0.75 - 24
-        draw.SimpleText("Режим " .. self.FreqMode, "Mfdu765.24", x, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText("Режим " .. self.FreqMode, "Mfdu765.24", x, y + 14, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
     for idx, v in ipairs(pneumoList) do

@@ -1293,11 +1293,11 @@ else
     local scr_w, scr_h = 2486, 496
 
     function TRAIN_SYSTEM:ClientThink(dT)
-        if not self.Train.BUIK or not self.Train:ShouldDrawPanel("BUIK") then return end
+        if not self.Train.BUIKscr or not self.Train:ShouldDrawPanel("BUIK") then return end
         if self.NextDraw and CurTime() < self.NextDraw then return end
         self.NextDraw = CurTime() + 0.05
 
-        render.PushRenderTarget(self.Train.BUIK, 0, 0, scr_w, scr_h)
+        render.PushRenderTarget(self.Train.BUIKscr, 0, 0, scr_w, scr_h)
         render.Clear(0, 0, 0, 0)
         cam.Start2D()
             self:DrawBuik()
@@ -1527,7 +1527,8 @@ else
 
             local extendStart, extendEnd = 0, 0
             if idx == 1 then
-                local cabinColor = Wag:GetNW2Bool("BUIK:ActiveCabin", false) and self.colorActiveCabin or self.colorBackground
+                self.ActiveCab = Wag:GetNW2Bool("BUIK:ActiveCabin", false)
+                local cabinColor = self.ActiveCab and self.colorActiveCabin or self.colorBackground
                 draw.RoundedBoxEx(sizeWagHead, wagX, wagY, sizeWagHead * 2, sizeWagH, color, true, false, true, false)
                 draw.RoundedBoxEx(sizeWagHead, wagX + 2, wagY + 2, (sizeWagHead * 2) - 4, sizeWagH - 4, cabinColor, true, false, true, false)
                 wagX = math.floor(wagX + sizeWagHead)
@@ -1563,7 +1564,14 @@ else
 
             draw.SimpleText(Wag:GetNW2String("BUIK:WagNum" .. idx, "?????"), "BUIK64", wagX + sizeWagW / 2,  wagY + sizeWagH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
+            self.Wagons = self.Wagons or {}
+            self.Wagons[idx] = err and 3 or reverse and 2 or not doorsClosed and 1 or nil
+
             wagX = math.floor(wagX + sizeWagGap * 2 + sizeWagW)
+        end
+
+        for idx = 1, 8 do
+            Wag:ShowHideSceenHelper(idx <= wagNum, "BUIK", "Wagon" .. idx)
         end
     end
 
@@ -1578,25 +1586,25 @@ else
         draw.RoundedBox(sizeRnMarginY, x, y, sizeRnDigitBoxW, sizeRnDigitBoxH, self.colorInactive)
         draw.RoundedBox(sizeRnMarginY, x + 2, y + 2, sizeRnDigitBoxW - 4, sizeRnDigitBoxH - 4, self.colorBackground)
 
+        self.RouteNum = Wag:GetNW2String("BUIK:RouteNumber", "---")
         local color = highlightsState["RouteNumber"] and self.colorActive or self.colorInactive
-        draw.SimpleText(Wag:GetNW2String("BUIK:RouteNumber", "---"), "BUIKRoute", x + sizeRnDigitBoxW / 2, y + sizeRnDigitBoxH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(self.RouteNum, "BUIKRoute", x + sizeRnDigitBoxW / 2, y + sizeRnDigitBoxH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
         local rnText = "№ Маршрута"
         draw.SimpleText(rnText, getLastStationFont(rnText, 0.8), x + sizeRnDigitBoxW / 2, y + sizeRnDigitBoxH / 2 - 70, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
-    local lastStationCvar = CreateClientConVar("zms_765ls", "ОШИБКА", false, false)
     function TRAIN_SYSTEM:DrawLastStation(Wag)
         local x, y = 0, scr_h - sizeFooterH * 2
-        local lastStation = Wag:GetNW2String("BUIK:LastStation", lastStationCvar:GetString())
+        self.LastStation = Wag:GetNW2String("BUIK:LastStation", "ОШИБКА")
         local color = highlightsState["LastStation"] and self.colorActive or self.colorInactive
-        draw.SimpleText(lastStation, getLastStationFont(lastStation), x + sizeLeftPanelW / 2, y + sizeFooterH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(self.LastStation, getLastStationFont(self.LastStation), x + sizeLeftPanelW / 2, y + sizeFooterH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
     function TRAIN_SYSTEM:DrawClock(Wag)
         local x, y = 0, scr_h - sizeFooterH
-        local time = Wag:GetNW2String("BUIK:Clock", "--:--:--")
-        draw.SimpleText(time, "BUIKClock", x + sizeLeftPanelW / 2, y + sizeFooterH / 2, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        self.Time = Wag:GetNW2String("BUIK:Clock", "--:--:--")
+        draw.SimpleText(self.Time, "BUIKClock", x + sizeLeftPanelW / 2, y + sizeFooterH / 2, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
     local sizePgGap = 16
@@ -1607,10 +1615,10 @@ else
     local pageNames = {"Станция", "Доп. инфо.", "Ст. оборота", "Маршруты"}
     local functionNames = {"AUTO PLAY", "СВЯЗЬ С СЦ"}
     function TRAIN_SYSTEM:DrawFooter(Wag)
-        local selected = Wag:GetNW2Int("BUIK:Page", 0)
+        self.Page = Wag:GetNW2Int("BUIK:Page", 0)
         local x, y = sizeLeftPanelW + sizePgGap, scr_h - sizeFooterH + sizePgMargin
         for idx = 1, 4 do
-            draw.RoundedBox(10, x, y, sizePgW, sizePgH, selected == idx and self.colorSelected or self.colorInactive)
+            draw.RoundedBox(10, x, y, sizePgW, sizePgH, self.Page == idx and self.colorSelected or self.colorInactive)
             draw.SimpleText(pageNames[idx], "BUIKSystemSmall", x + sizePgW / 2, y + sizePgH / 2, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             x = x + sizePgW + sizePgGap
         end
@@ -1622,10 +1630,11 @@ else
             x = x + sizePgW + sizePgGap
         end
 
+        self.Odometer = Wag:GetNW2Int("BUIK:Odometer", 0)
         surface.SetDrawColor(self.colorInactive)
         surface.DrawRect(x, y - sizePgMargin, 2, sizeFooterH)
         draw.SimpleText("км", "BUIKOdometer", scr_w - sizeSpeedometrW - sizeRightMargin, y + sizePgH / 2 + 1, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-        draw.SimpleText(string.format("%07d", Wag:GetNW2Int("BUIK:Odometer", 0)), "BUIKClock", scr_w - sizeSpeedometrW - sizeRightMargin - 60, y + sizePgH / 2, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+        draw.SimpleText(string.format("%07d", self.Odometer), "BUIKClock", scr_w - sizeSpeedometrW - sizeRightMargin - 60, y + sizePgH / 2, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     end
 
     local sizeStatusGapX = 28
@@ -1656,9 +1665,13 @@ else
                     if not color then print(idx, highlight, state) end
                     local textColor = (state ~= STATE_RED) and self.colorBackground or highlight and self.colorWhite or self.colorDarkerWhite
 
+                    local text = Wag:GetNW2String("BUIK:StateText" .. idx, statesDefaults[idx])
+                    self.StateText = self.StateText or {}
+                    self.StateText[idx] = text
+
                     draw.RoundedBox(10, x, y, w, sizeStatusStateH, color)
                     draw.SimpleText(
-                        Wag:GetNW2String("BUIK:StateText" .. idx, statesDefaults[idx]), "BUIKSystem",
+                        text, "BUIKSystem",
                         x + w / 2, y + sizeStatusStateH / 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER
                     )
                     x = x + w + sizeStatusGapX
@@ -1763,6 +1776,9 @@ else
 
         draw.SimpleText("00", "BUIKSpeedometer", x0, y0 - 88, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         draw.SimpleText(tostring(math.floor(speed) % 100), "BUIKSpeedometer", x0 + (speed < 10 and 70 or 0), y0 - 88, self.colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+        self.MaxSpeed = maxSpeed
+        self.NextSpeed = nextSpeed
     end
 
     local function drawOutlinedRoundedRect(r, x, y, w, h, borderColor, color, ...)
@@ -1840,17 +1856,26 @@ else
                 dx = dx + sizeSarmatDoorW + sizeSarmatDoorGap
             end
 
+            self.Wagons = self.Wagons or {}
+            self.Wagons[idx] = err and 3 or nil
+
             x = x + sizeSarmatWagW + 2
+        end
+
+        for idx = 1, 8 do
+            Wag:ShowHideSceenHelper(idx <= wagNum, "BUIK", "Wagon" .. idx)
         end
     end
 
     function TRAIN_SYSTEM:DrawRouteNumberSarmat(Wag)
         local x, y = scr_w - sizeSarmatFooterW + sizeSarmatRnBoxMargin + sizeSarmatRnBox / 2, sizeSarmatWagonsH + sizeSarmatRnBoxMargin + sizeSarmatRnBox / 2
-        draw.SimpleText(Wag:GetNW2String("BUIK:RouteNumber", "---"), "BUIKRouteSarmat", x + 52, y, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+        self.RouteNum = Wag:GetNW2String("BUIK:RouteNumber", "---")
+        draw.SimpleText(self.RouteNum, "BUIKRouteSarmat", x + 52, y, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     end
 
     function TRAIN_SYSTEM:DrawLastStationSarmat(Wag)
-        draw.SimpleText(Wag:GetNW2String("BUIK:LastStation", "---"), "BUIKSarmat",
+        self.LastStation = Wag:GetNW2String("BUIK:LastStation", "---")
+        draw.SimpleText(self.LastStation, "BUIKSarmat",
             scr_w - sizeSarmatSpeedometerW - 8, sizeSarmatWagonsH + (sizeSarmatCentralH - sizeSarmatTextLineH) / 2,
             self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     end
@@ -1889,8 +1914,8 @@ else
         draw.NoTexture()
         surface.DrawPoly(vtxSarmatCursor)
 
-        local selected = Wag:GetNW2Int("BUIK:Page", 0)
-        draw.SimpleText(sarmatPages[selected] or "", "BUIKSystemSmall",
+        self.Page = Wag:GetNW2Int("BUIK:Page", 0)
+        draw.SimpleText(sarmatPages[self.Page] or "", "BUIKSystemSmall",
             sizeSarmatLeftBarW - sizeSarmatCursorHalfS * 2 - 4, sizeSarmatWagonsH + sizeSarmatCursorBoxH / 2,
             self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     end
@@ -1915,9 +1940,13 @@ else
                 local color = highlight and self.statesColorsHighlighted[state] or self.statesColors[state]
                 if not color then print(trueIdx, highlight, state) end
 
+                local text = Wag:GetNW2String("BUIK:StateText" .. trueIdx, statesDefaults[trueIdx])
+                self.StateText = self.StateText or {}
+                self.StateText[idx] = text
+
                 drawOutlinedRoundedRect(8, x, y, w, sizeSarmatStatusBoxH, self.colorActive, color)
                 draw.SimpleText(
-                    Wag:GetNW2String("BUIK:StateText" .. trueIdx, statesDefaults[trueIdx]), "BUIKSystem",
+                    text, "BUIKSystem",
                     x + w / 2, y + sizeSarmatStatusBoxH / 2, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER
                 )
 
@@ -1982,6 +2011,9 @@ else
 
         draw.SimpleText(Format("%02d", math.floor(speed) % 100), "BUIKSpeedometerSarmat", x0, y0 - 106, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         draw.SimpleText(tostring(math.floor(speed) % 100), "BUIKSpeedometerSarmat", x0 + (speed < 10 and 54 or 0), y0 - 106, self.colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+        self.MaxSpeed = maxSpeed
+        self.NextSpeed = nextSpeed
     end
 
     local sizeSarmatListLineW = scr_w - sizeSarmatLeftBarW - sizeSarmatCentralW - sizeSarmatSpeedometerW - 3
@@ -2092,6 +2124,7 @@ else
             self.Train.BuikAlsArs = self.Train.BuikTwoToSix or self.Train:GetNW2Bool("AlsArs", false)
             self.Train.BuikAutoPlay = self.Train:GetNW2Bool("BUIK:AutoPlay", false)
             if sarmat then
+                self.Train:ShowScreenHelper("BUIK", self.Train.BuikTwoToSix and "Sarmat9" or "Sarmat8")
                 self:DrawBordersSarmat()
                 self:DrawWagonsSarmat(self.Train)
                 self:DrawRouteNumberSarmat(self.Train)
@@ -2101,6 +2134,7 @@ else
                 self:DrawSpeedometerSarmat(self.Train)
                 self:DrawListSarmat(self.Train)
             else
+                self.Train:ShowScreenHelper("BUIK", self.Train.BuikTwoToSix and "Mst5" or "Mst4")
                 self:DrawBorders()
                 self:UpdateHighlights(self.Train)
                 self:DrawWagons(self.Train)
@@ -2154,6 +2188,10 @@ else
 
         if power then
             self:DrawMalfunc()
+        end
+
+        if state ~= STATE_NORMAL then
+            self.Train:ShowScreenHelper("BUIK", false)
         end
     end
 

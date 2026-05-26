@@ -221,6 +221,47 @@ function ZMS.ImportBaseEnt(name, entName)
     end
 end
 
+function ZMS.ScreenHelper(panelName, group, name, x, y, w, h, buttons, margin)
+    if not ENT then return end
+    src = ENT.ButtonMap[panelName]
+    if not src then return end
+    local pos = src.pos + src.ang:Forward() * x * (src.scale or 0.016) + src.ang:Right() * y * (src.scale or 0.016)
+    local tgt = table.Copy(src)
+    tgt.pos = pos + src.ang:Up() * (margin and 0.4 or 0.2)
+    tgt.width = w
+    tgt.height = h
+    tgt.system = nil
+    tgt.buttons = buttons
+
+    name = name or panelName
+    group = group or name
+
+    local bmName = Format("Helper_%s_%s_%s", panelName, group, name)
+    ENT.ButtonMap[bmName] = tgt
+
+    ENT.ScreenHelpers[panelName] = ENT.ScreenHelpers[panelName] or {}
+    ENT.ScreenHelpers[panelName][group] = ENT.ScreenHelpers[panelName][group] or {}
+    ENT.ScreenHelpers[panelName][group][name] = bmName
+
+    ENT.ScreenHelpersHide[panelName] = ENT.ScreenHelpersHide[panelName] or {}
+    ENT.ScreenHelpersHide[panelName][group] = ENT.ScreenHelpersHide[panelName][group] or {}
+    ENT.ScreenHelpersHide[panelName][group][name] = {}
+
+    for idx, a in ipairs(buttons or {}) do
+        if a.hideArea then
+            local hname = Format("HelperHide_%s_%s_%s_%s", panelName, group, name, a.ID or tostring(idx))
+            ENT.ButtonMap[hname] = {
+                hideseat = 0.2,
+                pos = tgt.pos + tgt.ang:Forward() * a.x * (tgt.scale or 0.016) + tgt.ang:Right() * a.y * (tgt.scale or 0.016) + tgt.ang:Up() * 0.2,
+                ang = tgt.ang,
+                width = a.w, height = a.h,
+                scale = tgt.scale
+            }
+            ENT.ScreenHelpersHide[panelName][group][name][a.ID or tostring(idx)] = hname
+        end
+    end
+end
+
 if SERVER then
     local enttbl = {}
 

@@ -9,6 +9,8 @@ ENT.ClientProps = {}
 ENT.ButtonMap = {}
 ENT.ClientSounds = {}
 ENT.AutoAnims = {}
+ENT.ScreenHelpers = {}
+ENT.ScreenHelpersHide = {}
 ENT.ClientPropsInitialized = false
 
 ENT.ButtonMap["PVZ"] = {
@@ -1545,6 +1547,52 @@ function ENT:PlayDoorSound(bool, door)
     end
 end
 
+function ENT:ShowScreenHelper(screen, group)
+    self.ActiveHelperGroups = self.ActiveHelperGroups or {}
+    self.ActiveHelperGroups[screen] = group
+    for groupName, v in pairs(self.ScreenHelpers[screen] or {}) do
+        for _, bmName in pairs(v or {}) do
+            self:HidePanel(bmName, group ~= groupName or self.HiddenSH and self.HiddenSH[bmName])
+        end
+    end
+    for groupName, v in pairs(self.ScreenHelpersHide[screen] or {}) do
+        if groupName ~= group then
+            for _, hidePanels in pairs(v or {}) do
+                for _, bmName in pairs(hidePanels or {}) do
+                    self:HidePanel(bmName, true)
+                end
+            end
+        end
+    end
+end
+
+function ENT:ShowHideSceenHelper(val, screen, helper)
+    local group = self.ActiveHelperGroups and self.ActiveHelperGroups[screen]
+    if not screen or not group or not helper then return end
+    local panel = (
+        self.ScreenHelpers[screen] and
+        self.ScreenHelpers[screen][group] and
+        self.ScreenHelpers[screen][group][helper]
+    ) or nil
+    if panel then
+        self.HiddenSH = self.HiddenSH or {}
+        self.HiddenSH[panel] = not val
+    end
+end
+
+function ENT:ShowHideSceenHelperElement(val, screen, group, helper, name)
+    if not screen or not group or not helper or not name then return end
+    local panel = (
+        self.ScreenHelpersHide[screen] and
+        self.ScreenHelpersHide[screen][group] and
+        self.ScreenHelpersHide[screen][group][helper] and
+        self.ScreenHelpersHide[screen][group][helper][name]
+    ) or nil
+    if panel then
+        self:HidePanel(panel, val)
+    end
+end
+
 function ENT:Draw()
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.Draw(self)
@@ -1604,6 +1652,8 @@ end
 ENT:ExportFields(
     "ClientProps",
     "ButtonMap",
+    "ScreenHelpers",
+    "ScreenHelpersHide",
     "ClientSounds",
     "AutoAnims",
     "ClientPropsInitialized",
