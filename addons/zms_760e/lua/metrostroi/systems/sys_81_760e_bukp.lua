@@ -68,6 +68,7 @@ local ErrRingContinuous = {
     LeftBlock = true,
     DisableDrive = true,
     ProstDisableDrive = true,
+    HullFail = true,
 }
 local NoLogErr = {
     Doors = true
@@ -1151,12 +1152,10 @@ function TRAIN_SYSTEM:Think(dT)
                         overrideKv = false
                     end
 
-                    if (
-                        Train.ProstKos.ProstActive == 1 and
-                        Train.KV765.Position >= 0 and
-                        not (Train.KV765.Position > 0 and Train.ProstKos.Command > 0) and
-                        not (Train.KV765.TractiveSetting ~= 0 and Train.ProstKos.Command >= 0)
-                    ) then kvSetting = Train.ProstKos.Command == 1 and 0 or Train.ProstKos.Command end
+                    if Train.KV765.Position >= 0 and Train.ProstKos.ProstActive == 1 and Train.ProstKos.Command <= 0 then
+                        kvSetting = Train.ProstKos.Command
+                        overrideKv = true
+                    end
                     if Train.ProstKos.CommandKos > 0 then kvSetting = -100 overrideKv = true end
                     if BARS.Brake > 0 then kvSetting = -80 overrideKv = true end
                     if self.Errors.EmergencyBrake and self.ZeroSpeed < 1 then kvSetting = -100 overrideKv = true end
@@ -1435,13 +1434,18 @@ function TRAIN_SYSTEM:Think(dT)
         -- Вариант 2: просто нету сбора сх
         self.ControllerState = Train.PpzPrimaryControls.Value > 0 and kvSetting or 0
 
+        if overrideKv and Train.PpzPrimaryControls.Value > 0 then
+            Train.KV765.TractiveSetting = (Train.ProstKos.ProstActive == 1 and kvSetting < 0) and kvSetting or 0
+            Train.KV765.TargetTractiveSetting = (Train.ProstKos.ProstActive == 1 and kvSetting < 0) and kvSetting or 0
+        end
+
         if Train.KV765.Position == 0 and not self.KvToZero then
             self.KvToZero = CurTime() + 0.6
         elseif Train.KV765.Position ~= 0 and self.KvToZero then
             self.KvToZero = nil
         end
 
-        Train:SetNW2Int("Skif:Throttle", (overrideKv or Train.ProstKos.Command < 10) and kvSetting or Train.KV765.TargetTractiveSetting)
+        Train:SetNW2Int("Skif:Throttle", overrideKv and kvSetting or Train.KV765.TargetTractiveSetting)
         Train:SetNW2Bool("Skif:OverrideKv", overrideKv)
         -- Train:SetNW2Bool("Skif:AccelKv", Train.KV765.Accel)
         Train:SetNW2Bool("Skif:ToZeroKv", not overrideKv and self.KvToZero and CurTime() >= self.KvToZero)

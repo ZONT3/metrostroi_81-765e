@@ -245,9 +245,13 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     if self.TargetPosition == 0 and self.Set1Pressed and self.TargetTractiveSetting <= 20 then
+        self.TractiveSetting = 20
+        self.TargetTractiveSetting = 20
         self.TargetPosition = 1
         self.ControllerTimer = CurTime() - 1
     elseif self.TargetPosition == 0 and self.Set5Pressed and self.TargetTractiveSetting >= -20 then
+        self.TractiveSetting = -20
+        self.TargetTractiveSetting = -20
         self.TargetPosition = -1
         self.ControllerTimer = CurTime() - 1
     end
