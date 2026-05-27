@@ -1209,7 +1209,7 @@ function TRAIN_SYSTEM:Think(dT)
 
                 local buv = self.Trains[self.Trains[1]]
                 Train:SetNW2Int("Skif:BUVStrength", math.abs(Train.BUV.Strength))
-                if buv and buv.LV then
+                if buv and buv.LV and buv.BLPressure and buv.TLPressure then
                     Train:SetNW2Int("Skif:PNM", buv.TLPressure * 10)
                     Train:SetNW2Int("Skif:PTM", buv.BLPressure * 10)
                     Train:SetNW2Int("Skif:Ubs", buv.LV)
