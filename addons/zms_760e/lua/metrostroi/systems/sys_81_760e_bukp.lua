@@ -650,7 +650,7 @@ function TRAIN_SYSTEM:Think(dT)
         end
     end
 
-    local Power = Train.Electric.UPIPower > 0
+    local Power = Train.Electric.EmerSupply * Train.Electric.UPIPower > 0
     self.Load = (
         Train.Electric.EmerSupply * 45
         + Train.Electric.UPIPower * (24 + Train.SF45F1.Value * 80)
