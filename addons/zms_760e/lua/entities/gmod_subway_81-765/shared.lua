@@ -688,6 +688,9 @@ ENT.SpawnerCustom = {
     skins,
     -- Metrostroi.Skins.GetTable("PassTexture","Spawner.PassTexture",PassTexture,"pass"),
     -- Metrostroi.Skins.GetTable("CabTexture","Spawner.CabTexture",CabTexture,"cab"),
+    ENT.SpawnerLogos(),
+    { "BLIK:Anim", "Анимация БЛ-ИК", "Boolean", Section = "Branding" },
+    {},
     {
         "Announcer",
         "Spawner.760.Announcer",
@@ -722,80 +725,7 @@ ENT.SpawnerCustom = {
         end,
         Section = "IkConfig",
     },
-    ENT.SpawnerLogos(),
-    { "BLIK:Anim", "Анимация БЛ-ИК", "Boolean", Section = "Branding" },
-    { "SarmatBeep", "Звук теста аппаратуры от \"Сармат\"", "Boolean", Section = "Settings", Subsection = "AudioEvents", },
-    { "AnnouncerClicks", "Звук клика в оповещениях", "Boolean", Section = "Settings", Subsection = "AudioEvents" },
-    {
-        "SingleRing",
-        "Звонки 81-765",
-        "Boolean",
-        false,
-        nil,
-        function(self, sl)
-            if sl.RingType765 then
-                sl.RingType765:SetDisabled(not self:GetChecked())
-            end
-            if sl.CallRingType then
-                sl.CallRingType:SetDisabled(not self:GetChecked())
-            end
-        end,
-        Section = "Settings", Subsection = "AudioEvents"
-    },
-    { "RingType765", "Тип звонка", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
-    { "CallRingType", "Тип зв. передачи упр.", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 4, Section = "Settings", Subsection = "AudioEvents" },
-    { "HornType", "Тифон (механич.)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
-    { "ElectricHornType", "Тифон (ЭП)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
-    { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3, Section = "Settings", Subsection = "Sounds" },
-    { "AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
-    { "ForgivefulBars", "БАРС прощает ошибки", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
-    { "BtbuSd", "Автомат ППЗ БТБУ", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
-    { "CoupleSprings", "Центровка автосцепок", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
-    { "NerfKpDsHull", "Нерф КП/ДС/Кузов", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
-    { "DoorReverseMode", "Противозажатие", "List", { "1 авто, ∞ ручн.", "1 авто, 1 ручн.", "3 авто, ∞ ручн." }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
-    {
-        "NoTrailers", "Без прицепных 763Э", "Boolean", false, nil,
-        function(self, stbl)
-            local wagnField = stbl.WagNum
-            if self.TrainInjected == wagnField then return end
-            self.TrainInjected = wagnField
-            local t = self.Think or function() end
-            self.Think = function(_self)
-                local retval = { t(_self) }
-                local wagn = wagnField:GetValue()
-                if wagnField == self.TrainInjected and wagn ~= self.PrevWagn then
-                    local enable = wagn < 6 and wagn > 3
-                    self:SetEnabled(enable)
-                    if not enable then
-                        self:SetValue(wagn <= 3)
-                    else
-                        self:SetValue(false)
-                    end
-                    self.PrevWagn = wagn
-                end
-                return unpack(retval)
-            end
-        end,
-        Section = "Settings", Subsection = "FunctionalSettings"
-    },
-    { "BMIK:Font", "Шрифт БМТ, БНМ", "List", { "Тип 1 (2017)", "Тип 2 (2019)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
-    { "CikColor", "Цвет БМТ, БНМ", "List", { "Метроспецтехника (желтый)", "Сармат (рыжий)", "Ранний (зеленый)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
-    { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
-    { "BuikType", "БУ-ИК", "List", { "Метроспецтехника (Москва)", "Метроспецтехника (Чура)", "Сармат" }, 1, Section = "Settings", Subsection = "VisualSettings" },
-    {
-        "ArsMode",
-        "Режим для АБ",
-        "List",
-        {"1/5", "ДАУ (АБ)", "ДАУ (АЛС-АРС)"},
-        1,
-        function(ent, val)
-            ent.AlsArs = val == 3
-            ent.ArsDau = val ~= 1
-            ent:SetNW2String("AlsArs", ent.AlsArs)
-            ent:SetNW2String("ArsDau", ent.ArsDau)
-        end,
-        Section = "Settings", Subsection = "VisualSettings"
-    },
+    {},
     { "KdLongerDelay", "Задержка контроля дверей", "Boolean", false, Section = "Wear" },
     {
         "BreakRedChance", "Шанс сломать габ. огни", "Slider", 0, 0, 35, 0,
@@ -855,8 +785,85 @@ ENT.SpawnerCustom = {
         end,
         Section = "Wear"
     },
+    {},
+    { "SarmatBeep", "Звук теста аппаратуры от \"Сармат\"", "Boolean", Section = "Settings", Subsection = "AudioEvents", },
+    { "AnnouncerClicks", "Звук клика в оповещениях", "Boolean", Section = "Settings", Subsection = "AudioEvents" },
+    {
+        "SingleRing",
+        "Звонки 81-765",
+        "Boolean",
+        false,
+        nil,
+        function(self, sl)
+            if sl.RingType765 then
+                sl.RingType765:SetDisabled(not self:GetChecked())
+            end
+            if sl.CallRingType then
+                sl.CallRingType:SetDisabled(not self:GetChecked())
+            end
+        end,
+        Section = "Settings", Subsection = "AudioEvents"
+    },
+    { "RingType765", "Тип звонка", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
+    { "CallRingType", "Тип зв. передачи упр.", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 4, Section = "Settings", Subsection = "AudioEvents" },
+    { "HornType", "Тифон (механич.)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
+    { "ElectricHornType", "Тифон (ЭП)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
+    { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3, Section = "Settings", Subsection = "Sounds" },
+    {},
+    { "AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "ForgivefulBars", "БАРС прощает ошибки", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "BtbuSd", "Автомат ППЗ БТБУ", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "CoupleSprings", "Центровка автосцепок", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "NerfKpDsHull", "Нерф КП/ДС/Кузов", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "DoorReverseMode", "Противозажатие", "List", { "1 авто, ∞ ручн.", "1 авто, 1 ручн.", "3 авто, ∞ ручн." }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
+    {
+        "NoTrailers", "Без прицепных 763Э", "Boolean", false, nil,
+        function(self, stbl)
+            local wagnField = stbl.WagNum
+            if self.TrainInjected == wagnField then return end
+            self.TrainInjected = wagnField
+            local t = self.Think or function() end
+            self.Think = function(_self)
+                local retval = { t(_self) }
+                local wagn = wagnField:GetValue()
+                if wagnField == self.TrainInjected and wagn ~= self.PrevWagn then
+                    local enable = wagn < 6 and wagn > 3
+                    self:SetEnabled(enable)
+                    if not enable then
+                        self:SetValue(wagn <= 3)
+                    else
+                        self:SetValue(false)
+                    end
+                    self.PrevWagn = wagn
+                end
+                return unpack(retval)
+            end
+        end,
+        Section = "Settings", Subsection = "FunctionalSettings"
+    },
+    {},
+    { "BMIK:Font", "Шрифт БМТ, БНМ", "List", { "Тип 1 (2017)", "Тип 2 (2019)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
+    { "CikColor", "Цвет БМТ, БНМ", "List", { "Метроспецтехника (желтый)", "Сармат (рыжий)", "Ранний (зеленый)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
+    { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
+    { "BuikType", "БУ-ИК", "List", { "Метроспецтехника (Москва)", "Метроспецтехника (Чура)", "Сармат" }, 1, Section = "Settings", Subsection = "VisualSettings" },
+    {
+        "ArsMode",
+        "Режим для АБ",
+        "List",
+        {"1/5", "ДАУ (АБ)", "ДАУ (АЛС-АРС)"},
+        1,
+        function(ent, val)
+            ent.AlsArs = val == 3
+            ent.ArsDau = val ~= 1
+            ent:SetNW2String("AlsArs", ent.AlsArs)
+            ent:SetNW2String("ArsDau", ent.ArsDau)
+        end,
+        Section = "Settings", Subsection = "VisualSettings"
+    },
+    {},
     { "DoorsControls", "Упр. дверьми (A/D)", "List", { "Сначала выбор", "Классическое" }, 1, Section = "Controls" },
     { "CamsSelect", "Камеры на A/D", "Boolean", true, Section = "Controls" },
+    {},
     {
         "VVVFSound",
         "Звук инвертора",
@@ -896,6 +903,7 @@ ENT.SpawnerCustom = {
     },
     { "HSEngines", "Spawner.720a.HSEngines", "Boolean", Section = "Settings", Subsection = "AsyncSounds" },
     { "FirstONIX", "Spawner.720a.FirstONIX", "Boolean", Section = "Settings", Subsection = "AsyncSounds" },
+    {},
     {
         "SpawnMode",
         "Spawner.Common.SpawnMode",
@@ -993,6 +1001,9 @@ ENT.SpawnerCustom = {
                         ent.BUV.PassLight = val == 1
                         ent.BUV.PSNSignal = true
                         if ent.ASNP and isnumber(ent.ASNP.RouteNumber) then
+                            if val <= 2 and math.floor(ent.ASNP.RouteNumber * 10) % 10 ~= 0 then
+                                ent.ASNP.RouteNumber = math.floor(ent.ASNP.RouteNumber * 10)
+                            end
                             ent.BUIK.RouteNumber = val <= 2 and ent.ASNP.RouteNumber or 0
                             ent.BUKP.RouteNumber = val <= 2 and ent.ASNP.RouteNumber or 0
                         end
@@ -1019,6 +1030,13 @@ ENT.SpawnerCustom = {
     }
 }
 
+ENT.SpawnerFields = {}
+for _, v in ipairs(ENT.SpawnerCustom) do
+    if isstring(v[1]) then
+        ENT.SpawnerFields[v[1]] = v
+    end
+end
+
 for idx = 1, 4 do
     table.insert(ENT.SpawnerCustom.model, "models/metrostroi_train/81-765/headlights_" .. idx .. "_off.mdl")
 end
@@ -1028,20 +1046,26 @@ ENT.Spawner = {
     spawnfunc = ENT.SpawnerSpawnFnc("gmod_subway_81-765", "gmod_subway_81-766", "gmod_subway_81-767"),
     postfunc = ENT.SpawnerCustom.postfunc,
     ENT.SpawnerSkins("765", "760e.Moscow"),
-    ENT.SpawnerCustom[2], ENT.SpawnerCustom[3],
     ENT.SpawnerLogos("MosMetro", "MosBrend", "MosBrend3D"),
-    ENT.SpawnerCustom[5],  -- BLIK:Anim
-    ENT.SpawnerCustom[9],  -- RingType765
-    ENT.SpawnerCustom[19],  -- NoTrailers
-    ENT.SpawnerCustom[24],  -- ArsMode
-    ENT.SpawnerCustom[25],  -- KdLongerDelay
-    ENT.SpawnerCustom[26],  -- BreakRedChance
-    ENT.SpawnerCustom[27],  -- DoorReverseMalfunc
-    ENT.SpawnerCustom[28],  -- BatteryWear
-    ENT.SpawnerCustom[29],  -- BatteryLevel
-    ENT.SpawnerCustom[30],  -- DoorsControls
-    ENT.SpawnerCustom[31],  -- CamsSelect
+    ENT.SpawnerFields["BLIK:Anim"],
+    {},
+    ENT.SpawnerFields["Announcer"],
+    ENT.SpawnerFields["CISConfig"],
+    {},
+    ENT.SpawnerFields["KdLongerDelay"],
+    ENT.SpawnerFields["BreakRedChance"],
+    ENT.SpawnerFields["DoorReverseMalfunc"],
+    ENT.SpawnerFields["BatteryWear"],
+    ENT.SpawnerFields["BatteryLevel"],
+    {},
     { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
+    ENT.SpawnerFields["RingType765"],
+    ENT.SpawnerFields["NoTrailers"],
+    ENT.SpawnerFields["ArsMode"],
+    {},
+    ENT.SpawnerFields["DoorsControls"],
+    ENT.SpawnerFields["CamsSelect"],
+    {},
     ENT.SpawnerCustom[#ENT.SpawnerCustom]
 }
 
