@@ -124,7 +124,7 @@ function TRAIN_SYSTEM:Think(dT)
             self.VisualPosition = self.VisualPosition - 1
         end
 
-        self.Train:PlayOnce("KV_" .. previousPosition .. "_" .. self.VisualPosition, "cabin", 0.25, 0.95)
+        self.Train:PlayOnce((self.Train.KvSnd or "KV1_") .. previousPosition .. "_" .. self.VisualPosition, "cabin", 0.25, 0.95)
     end
 
     if self.VisualPosition == self.TargetPosition then self.ControllerTimer = nil end

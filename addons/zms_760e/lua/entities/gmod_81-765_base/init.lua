@@ -255,9 +255,6 @@ function ENT:SetSprings(isfront, force)
 end
 
 function ENT:TrainSpawnerUpdate()
-    if self.InitializeSounds then
-        self:InitializeSounds()
-    end
     if self.ResetSettings then
         self:ResetSettings()
     end
@@ -287,6 +284,20 @@ function ENT:TrainSpawnerUpdate()
         -- В любом случае, на 765 остальные сцепки - это БЗС.
         -- self:SetSprings(false)
     end
+
+    for _, k in ipairs({"Horn", "ElectricHorn"}) do
+        local hornType = self:GetNW2Int(k .. "Type", 0)
+        if hornType == 2 then hornType = math.random(3, 5) end
+        if hornType >= 3 and hornType < 6 then
+            self:SetNW2String(k .. "Snd", "horn" .. (hornType - 2))
+        else
+            self:SetNW2String(k .. "Snd", "horn")
+        end
+    end
+
+    local kvType = self:GetNW2Int("KvType", 1)
+    if kvType == 1 then kvType = math.random(2) else kvType = kvType - 1 end
+    self.KvSnd = kvType == 1 and "KV1_" or "KV2_"
 
     self:SetNW2Int("BNT:ScreenFps", self:GetNW2Int("BntFps", 2) == 2 and 60 or 15)
     self:UpdateTextures()

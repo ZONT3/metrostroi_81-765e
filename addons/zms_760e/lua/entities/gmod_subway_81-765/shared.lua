@@ -55,50 +55,49 @@ function ENT:InitializeSounds()
     self.SoundPositions["pneumo_disconnect_close"] = {100, 1e9, Vector(478, 45, -61), 0.5}
     self.SoundPositions["pneumo_disconnect_open"] = {100, 1e9, Vector(478, 45, -61), 0.5}
 
-    self.SoundNames["horn"] = {
-        loop = 0.6,
-        "subway_trains/common/pneumatic/horn/horn3_start.wav",
-        "subway_trains/common/pneumatic/horn/horn3_loop.wav",
-        "subway_trains/common/pneumatic/horn/horn3_end.wav"
-    }
-    self.SoundPositions["horn"] = {1100, 1e9, Vector(500, -25, -64)}
+    self.SoundNames["KV1_-3_-2"] = "subway_trains/722/kuau/x_xp.mp3"
+    self.SoundNames["KV1_-2_-1"] = "subway_trains/722/kuau/xp_x2.mp3"
+    self.SoundNames["KV1_-1_0"] = "subway_trains/722/kuau/x_xp.mp3"
+    self.SoundNames["KV1_0_1"] = "subway_trains/722/kuau/0_x.mp3"
+    self.SoundNames["KV1_1_2"] = "subway_trains/722/kuau/x_xp.mp3"
+    self.SoundNames["KV1_2_1"] = "subway_trains/722/kuau/xp_x2.mp3"
+    self.SoundNames["KV1_1_0"] = "subway_trains/722/kuau/x_xp.mp3"
+    self.SoundNames["KV1_0_-1"] = "subway_trains/722/kuau/0_x.mp3"
+    self.SoundNames["KV1_-1_-2"] = "subway_trains/722/kuau/x_xp.mp3"
+    self.SoundNames["KV1_-2_-3"] = "subway_trains/722/kuau/xp_x.mp3"
 
-    local kvType = self:GetNW2Int("KvType", 1)
-    if kvType == 1 then kvType = math.random(2) else kvType = kvType - 1 end
-    if kvType == 1 then
-        self.SoundNames["KV_-3_-2"] = "subway_trains/722/kuau/x_xp.mp3"
-        self.SoundNames["KV_-2_-1"] = "subway_trains/722/kuau/xp_x2.mp3"
-        self.SoundNames["KV_-1_0"] = "subway_trains/722/kuau/x_xp.mp3"
-        self.SoundNames["KV_0_1"] = "subway_trains/722/kuau/0_x.mp3"
-        self.SoundNames["KV_1_2"] = "subway_trains/722/kuau/x_xp.mp3"
-        self.SoundNames["KV_2_1"] = "subway_trains/722/kuau/xp_x2.mp3"
-        self.SoundNames["KV_1_0"] = "subway_trains/722/kuau/x_xp.mp3"
-        self.SoundNames["KV_0_-1"] = "subway_trains/722/kuau/0_x.mp3"
-        self.SoundNames["KV_-1_-2"] = "subway_trains/722/kuau/x_xp.mp3"
-        self.SoundNames["KV_-2_-3"] = "subway_trains/722/kuau/xp_x.mp3"
-    else
-        self.SoundNames["KV_-3_-2"] = "subway_trains/765/controller2/e-tp.mp3"
-        self.SoundNames["KV_-2_-1"] = "subway_trains/765/controller2/tp-t.mp3"
-        self.SoundNames["KV_-1_0"] = "subway_trains/765/controller2/t-0.mp3"
-        self.SoundNames["KV_0_1"] = "subway_trains/765/controller2/0-x.mp3"
-        self.SoundNames["KV_1_2"] = "subway_trains/765/controller2/x-xp.mp3"
-        self.SoundNames["KV_2_1"] = "subway_trains/765/controller2/xp-x.mp3"
-        self.SoundNames["KV_1_0"] = "subway_trains/765/controller2/x-0.mp3"
-        self.SoundNames["KV_0_-1"] = "subway_trains/765/controller2/0-t.mp3"
-        self.SoundNames["KV_-1_-2"] = "subway_trains/765/controller2/t-tp.mp3"
-        self.SoundNames["KV_-2_-3"] = "subway_trains/765/controller2/tp-e.mp3"
-    end
+    self.SoundNames["KV2_-3_-2"] = "subway_trains/765/controller2/e-tp.mp3"
+    self.SoundNames["KV2_-2_-1"] = "subway_trains/765/controller2/tp-t.mp3"
+    self.SoundNames["KV2_-1_0"] = "subway_trains/765/controller2/t-0.mp3"
+    self.SoundNames["KV2_0_1"] = "subway_trains/765/controller2/0-x.mp3"
+    self.SoundNames["KV2_1_2"] = "subway_trains/765/controller2/x-xp.mp3"
+    self.SoundNames["KV2_2_1"] = "subway_trains/765/controller2/xp-x.mp3"
+    self.SoundNames["KV2_1_0"] = "subway_trains/765/controller2/x-0.mp3"
+    self.SoundNames["KV2_0_-1"] = "subway_trains/765/controller2/0-t.mp3"
+    self.SoundNames["KV2_-1_-2"] = "subway_trains/765/controller2/t-tp.mp3"
+    self.SoundNames["KV2_-2_-3"] = "subway_trains/765/controller2/tp-e.mp3"
 
-    self.SoundPositions["KV_-3_-2"] = {80, 1e9, Vector(461.8, 25.3, -27.7)}
-    self.SoundPositions["KV_-2_-1"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_-1_0"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_0_1"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_1_2"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_2_1"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_1_0"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_0_-1"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_-1_-2"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_-2_-3"] = self.SoundPositions["KV_-3_-2"]
+    self.SoundPositions["KV1_-3_-2"] = {80, 1e9, Vector(461.8, 25.3, -27.7)}
+    self.SoundPositions["KV1_-2_-1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_-1_0"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_0_1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_1_2"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_2_1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_1_0"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_0_-1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_-1_-2"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_-2_-3"] = self.SoundPositions["KV1_-3_-2"]
+
+    self.SoundPositions["KV2_-3_-2"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_-2_-1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_-1_0"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_0_1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_1_2"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_2_1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_1_0"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_0_-1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_-1_-2"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_-2_-3"] = self.SoundPositions["KV1_-3_-2"]
 
     self.SoundNames["kro_in"] = {"subway_trains/717/kru/kru_insert1.mp3", "subway_trains/717/kru/kru_insert2.mp3"}
     self.SoundNames["kro_out"] = {"subway_trains/717/kru/kru_eject1.mp3", "subway_trains/717/kru/kru_eject2.mp3", "subway_trains/717/kru/kru_eject3.mp3",}
@@ -278,18 +277,19 @@ function ENT:InitializeSounds()
     end
 
 
-    local hornType = self:GetNW2Int("HornType", 0)
-    if hornType == 2 then hornType = math.random(3, 5) end
-    if hornType == 3 then
-        self.SoundNames["horn"] = { loop = 0.6, "subway_trains/common/pneumatic/horn/horn1_start.wav","subway_trains/common/pneumatic/horn/horn1_loop.wav", "subway_trains/common/pneumatic/horn/horn1_end.mp3" }
-        self.SoundPositions["horn"] = {1100,1e9,Vector(450,0,-55),1}
-    elseif hornType == 4 then
-        self.SoundNames["horn"] = { loop = 0.6, "subway_trains/common/pneumatic/horn/horn2_start.wav","subway_trains/common/pneumatic/horn/horn2_loop.wav", "subway_trains/common/pneumatic/horn/horn2_end.mp3" }
-        self.SoundPositions["horn"] = {1100,1e9,Vector(450,0,-55),1}
-    elseif hornType == 5 then
-        self.SoundNames["horn"] = { loop = 0.6, "subway_trains/765/tifon/tifon_start.mp3","subway_trains/765/tifon/tifon_loop.mp3", "subway_trains/765/tifon/tifon_end.mp3" }
-        self.SoundPositions["horn"] = {1100,1e9,Vector(450,0,-55),1}
-    end
+    self.SoundNames["horn"] = {
+        loop = 0.6,
+        "subway_trains/common/pneumatic/horn/horn3_start.wav",
+        "subway_trains/common/pneumatic/horn/horn3_loop.wav",
+        "subway_trains/common/pneumatic/horn/horn3_end.wav"
+    }
+    self.SoundPositions["horn"] = {1100, 1e9, Vector(500, -25, -64)}
+    self.SoundNames["horn1"] = { loop = 0.6, "subway_trains/common/pneumatic/horn/horn1_start.wav","subway_trains/common/pneumatic/horn/horn1_loop.wav", "subway_trains/common/pneumatic/horn/horn1_end.mp3" }
+    self.SoundPositions["horn1"] = {1100,1e9,Vector(450,0,-55),1}
+    self.SoundNames["horn2"] = { loop = 0.6, "subway_trains/common/pneumatic/horn/horn2_start.wav","subway_trains/common/pneumatic/horn/horn2_loop.wav", "subway_trains/common/pneumatic/horn/horn2_end.mp3" }
+    self.SoundPositions["horn2"] = {1100,1e9,Vector(450,0,-55),1}
+    self.SoundNames["horn3"] = { loop = 0.6, "subway_trains/765/tifon/tifon_start.mp3","subway_trains/765/tifon/tifon_loop.mp3", "subway_trains/765/tifon/tifon_end.mp3" }
+    self.SoundPositions["horn3"] = {1100,1e9,Vector(450,0,-55),1}
 
     self.SoundNames["mfdu_down"] = {
         "subway_trains/765/btn_mfdu_dn1.mp3",
@@ -502,7 +502,7 @@ function ENT:InitializeSystems()
     self:LoadSystem("BARS", "81_760E_BARS")
     self:LoadSystem("SD3", "Relay", "Switch")
     self:LoadSystem("Pneumatic", "81_760E_Pneumatic")
-    self:LoadSystem("Horn", "81_720_Horn")
+    self:LoadSystem("Horn", "81_765_Horn")
     self:LoadSystem("Panel", "81_760E_Panel")
 
     self:LoadSystem("ASNP", "81_760_ASNP")
@@ -738,7 +738,8 @@ ENT.SpawnerCustom = {
         Section = "Settings", Subsection = "AudioEvents"
     },
     { "RingType765", "Тип звонка", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
-    { "HornType", "Тифон", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
+    { "HornType", "Тифон (механич.)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
+    { "ElectricHornType", "Тифон (ЭП)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
     { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3, Section = "Settings", Subsection = "Sounds" },
     { "AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
     { "ForgivefulBars", "БАРС прощает ошибки", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
