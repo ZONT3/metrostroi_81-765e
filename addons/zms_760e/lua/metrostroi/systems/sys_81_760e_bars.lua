@@ -49,6 +49,9 @@ end
 function TRAIN_SYSTEM:TriggerInput(name, value)
 end
 
+if TURBOSTROI then return end
+local CV_debug = GetConVar("765_debug")
+
 function TRAIN_SYSTEM:Think(dT)
     local Wag = self.Train
     local ALS = Wag.ALSCoil
@@ -323,7 +326,7 @@ function TRAIN_SYSTEM:Think(dT)
             local BrakeEff = Brake and self.dV > -3.0 and not ZeroSpeed
             if BrakeEff and not self.BrakeEff then
                 self.BrakeEff = CurTime() + 3
-                print("Start dV", self.dV)
+                if CV_debug:GetBool() then print("Start dV", self.dV) end
             end
             RVTB = RVTB and self:RvtbTimer("BrakeEff", not BrakeEff)
 
@@ -511,10 +514,12 @@ function TRAIN_SYSTEM:RvtbTimer(name, restore, bypass)
         if CurTime() >= self[name] then
             local val = restore and (bypass or self:WhenStops() and self.Ring == 0)
             if val then self[name] = nil end
-            if name == "BrakeEff" and not val and self.RVTB == 1 then
-                print("Terminal dV", self.dV)
+            if CV_debug:GetBool() then
+                if name == "BrakeEff" and not val and self.RVTB == 1 then
+                    print("Terminal dV", self.dV)
+                end
+                if self.RVTB == 1 and not val then print(name) end
             end
-            if self.RVTB == 1 and not val then print(name) end
             return val
         elseif restore then
             self[name] = nil

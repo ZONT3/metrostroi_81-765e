@@ -84,6 +84,14 @@ end
 
 if TURBOSTROI then return end
 
+local CV_debug = GetConVar("765_debug")
+
+local function debug_print(...)
+    if CV_debug:GetBool() then
+        print(...)
+    end
+end
+
 if SERVER then
     local DoorSFs = {
         "SF80F14", "SF80F13", "SF80F12", "SF80F14",
@@ -247,7 +255,8 @@ if SERVER then
             if (
                 self.DoorClosed[idx] and not self.AutoReverse[idx] and not closedState[i] and
                 math.random() < 0.004 + (self.DoorReverseMalfunc[idx] or 0)
-            ) then self.AutoReverse[idx] = 1 print(self.Train:GetWagonNumber(), idx, "protivoza4atie") end
+            ) then
+                self.AutoReverse[idx] = 1 debug_print(self.Train:GetWagonNumber(), idx, "protivoza4atie") end
             closedState[i] = self.DoorClosed[idx] and (closedState[i] or CurTime() + 0.05)
             local isclosed = closedState[i] and CurTime() >= closedState[i]
 
@@ -291,7 +300,7 @@ if SERVER then
                         local halflen = Wag.BUV.TrainLen / 2
                         local wagWeight = math.Clamp(Lerp(math.abs(halflen - Wag.BUV.WagIdx) / halflen, 0.2, 1.0), 0.2, 1.0) / 4
                         local passLoad = wagWeight + platform:PopulationCount() / (200 * halflen)
-                        -- print(wagWeight, passLoad - wagWeight, passLoad)
+                        -- debug_print(wagWeight, passLoad - wagWeight, passLoad)
                         local open = math.random() < passLoad
                         if open then
                             self.MobsOpening[idx] = CurTime() + math.Rand(0.2, math.Rand(1.5, math.Rand(2, math.min(10, 10 / (passLoad - 0.3)))))
@@ -409,9 +418,9 @@ if SERVER then
                         self.ReverseDelay[idx] = CurTime() + 0.4
                         if self.StuckPass[idx] == 1 and math.random() < 0.9 then
                             self.StuckPass[idx] = 0
-                            print(self.Train:GetWagonNumber(), idx, "otjali")
+                            debug_print(self.Train:GetWagonNumber(), idx, "otjali")
                         elseif self.StuckPass[idx] == 1 then
-                            print(self.Train:GetWagonNumber(), idx, "zastryal")
+                            debug_print(self.Train:GetWagonNumber(), idx, "zastryal")
                         end
                     else
                         commandOpen = true
@@ -561,7 +570,7 @@ if SERVER then
 
             self.StuckPass[idx] = math.random() < canStuck and 1 or 0
 
-            if self.StuckPass[idx] == 1 then print(
+            if self.StuckPass[idx] == 1 then debug_print(
                 self.Train:GetWagonNumber(), idx, "zajali",
                 math.Round(base, 3),
                 math.Round(self.OpenedTimer[idx] and self.OpenedTimer[idx] >= CurTime() and ((self.OpenedTimer[idx] - CurTime()) / 14) or 0, 3),

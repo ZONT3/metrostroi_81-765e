@@ -392,4 +392,5 @@ if SERVER then
         ent.Battery:TriggerInput("SetLevel", math.min(1, ent.Battery.Charge / ent.Battery.Capacity + 0.05))
     end)
 
+    CreateConVar("765_debug", "0", FCVAR_ARCHIVE)
 end
