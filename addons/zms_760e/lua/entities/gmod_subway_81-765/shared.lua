@@ -26,6 +26,19 @@ function ENT:GetStandingArea()
     return Vector(-450, -30, -53), Vector(360, 30, -53)
 end
 
+local function getRing(ring)
+    if ring == 1 then
+        ring = math.random(2, 4)
+    end
+    if ring == 3 then
+        return "subway_trains/765/ring_msg.wav"
+    elseif ring == 4 then
+        return "subway_trains/760/new/ring_ars.wav"
+    else
+        return "subway_trains/765/rumble/ring_vityaz.wav"
+    end
+end
+
 function ENT:InitializeSounds()
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.InitializeSounds(self)
@@ -225,19 +238,8 @@ function ENT:InitializeSounds()
     self.SoundPositions["bkpu"] = {800, 1e9, Vector(410.2, 59, 1), 0.5}
 
     local ring = self:GetNW2Bool("SingleRing", false) and self:GetNW2Int("RingType765", 1) or nil
-    if ring then
-        if ring == 1 then
-            ring = math.random(2, 4)
-        end
-        if ring == 2 then
-            ring = "subway_trains/765/rumble/ring_vityaz.wav"
-        elseif ring == 3 then
-            ring = "subway_trains/765/ring_msg.wav"
-        elseif ring == 4 then
-            ring = "subway_trains/760/new/ring_ars.wav"
-        end
-    end
-    self.SoundNames["ring_call"] = { loop = true, ring or "subway_trains/765/rumble/ring_vityaz.wav" }
+    if ring then ring = getRing(ring) end
+    self.SoundNames["ring_call"] = { loop = true, getRing(ring and self:GetNW2Int("CallRingType", 2) or 2) }
     self.SoundPositions["ring_call"] = {800, 1e9, Vector(490, 21.6, -9.2), 0.5}
     self.SoundNames["ring_ppz"] = { loop = true, ring or "subway_trains/765/rumble/ring_vityaz.wav" }
     self.SoundPositions["ring_ppz"] = {800, 1e9, Vector(417, 36, 31.3), 0.5}
@@ -734,10 +736,14 @@ ENT.SpawnerCustom = {
             if sl.RingType765 then
                 sl.RingType765:SetDisabled(not self:GetChecked())
             end
+            if sl.CallRingType then
+                sl.CallRingType:SetDisabled(not self:GetChecked())
+            end
         end,
         Section = "Settings", Subsection = "AudioEvents"
     },
     { "RingType765", "Тип звонка", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
+    { "CallRingType", "Тип зв. передачи упр.", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 4, Section = "Settings", Subsection = "AudioEvents" },
     { "HornType", "Тифон (механич.)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
     { "ElectricHornType", "Тифон (ЭП)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
     { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3, Section = "Settings", Subsection = "Sounds" },
