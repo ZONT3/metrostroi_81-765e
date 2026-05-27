@@ -848,6 +848,8 @@ ENT.SpawnerCustom = {
         end,
         Section = "Wear"
     },
+    { "DoorsControls", "Упр. дверьми (A/D)", "List", { "Сначала выбор", "Классическое" }, 1, Section = "Controls" },
+    { "CamsSelect", "Камеры на A/D", "Boolean", true, Section = "Controls" },
     {
         "VVVFSound",
         "Звук инвертора",
@@ -1030,6 +1032,8 @@ ENT.Spawner = {
     ENT.SpawnerCustom[25],  -- DoorReverseMalfunc
     ENT.SpawnerCustom[26],  -- BatteryWear
     ENT.SpawnerCustom[27],  -- BatteryLevel
+    ENT.SpawnerCustom[28],  -- DoorsControls
+    ENT.SpawnerCustom[29],  -- CamsSelect
     { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
     ENT.SpawnerCustom[#ENT.SpawnerCustom]
 }

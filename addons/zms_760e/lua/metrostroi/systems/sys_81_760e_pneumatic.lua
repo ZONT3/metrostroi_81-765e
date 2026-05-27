@@ -485,7 +485,7 @@ function TRAIN_SYSTEM:Think(dT)
         if math.abs(self.BrakeCylinderPressure - targetPressure) < 0.001 then self.BrakeCylinderValve = 0 end
         local pneumaticValveConsumption_dPdT = 0
         trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0, pneumaticValveConsumption_dPdT)
-        if self.BrakeCylinderValve == 1 then self:equalizePressure(dT, "BrakeCylinderPressure", math.min(3.8, targetPressure), 6, 2.5, nil, self.BrakeCylinderPressure > targetPressure and 0.3 + math.Clamp((self.BrakeCylinderPressure - 0.0) / 3.3, 0, 0.6) or 0.9) end
+        if self.BrakeCylinderValve == 1 then self:equalizePressure(dT, "BrakeCylinderPressure", math.min(3.8, targetPressure), 6, 3.5, nil, self.BrakeCylinderPressure > targetPressure and 0.3 + math.Clamp((self.BrakeCylinderPressure - 0.0) / 3.3, 0, 0.6) or 0.9) end
     else
         self:equalizePressure(dT, "BrakeCylinderPressure", 0.0, 2.00)
     end
@@ -497,8 +497,8 @@ function TRAIN_SYSTEM:Think(dT)
         self.ParkingBrake = false
     end
 
-    self:equalizePressure(dT, "ParkingBrakePressure", self.ParkingBrake and math.min(0, PBPressure) or PBPressure, 0.4, 0.4, nil, 1.3)
-    Train:SetPackedRatio("ParkingBrakePressure_dPdT", self.ParkingBrakePressure_dPdT + 0.02)
+    self:equalizePressure(dT, "ParkingBrakePressure", self.ParkingBrake and 0 or PBPressure, 0.7, 0.6, nil, 1.3)
+    Train:SetPackedRatio("ParkingBrakePressure_dPdT", self.ParkingBrake and (self.ParkingBrakePressure_dPdT + 0.02) or 0)
     trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0, self.BrakeCylinderPressure_dPdT + self.ParkingBrakePressure_dPdT)
     self.Train:SetPackedRatio("BrakeCylinderPressure_dPdT", self.BrakeCylinderPressure_dPdT)
     self:UpdatePressures(Train, dT)

@@ -528,10 +528,11 @@ function ENT:OnButtonPress(button, ply)
     end
 
     if button == "DoorLeft" then
-        if self.DoorSelectL.Value == 1 or self.EmergencyDoors.Value == 1 --[[or self.DoorClose.Value == 0]] then
+        local classicDoors = self:GetNW2Int("DoorsControls", 1) == 2
+        if not classicDoors and self.DoorSelectL.Value == 1 or (self.EmergencyDoors.Value == 1 or classicDoors) and self.DoorClose.Value == 0 then
             self.DoorLeft:TriggerInput("Set", 1)
         end
-        if self.CAMS5 then
+        if self.CAMS5 and self:GetNW2Bool("CamsSelect", true) then
             self.CAMS5:TriggerInput("Set", 1)
         end
         self.DoorSelectL:TriggerInput("Set", 1)
@@ -539,10 +540,11 @@ function ENT:OnButtonPress(button, ply)
     end
 
     if button == "DoorRight" then
-        if self.DoorSelectR.Value == 1 or self.EmergencyDoors.Value == 1 --[[or self.DoorClose.Value == 0]] then
+        local classicDoors = self:GetNW2Int("DoorsControls", 1) == 2
+        if not classicDoors and self.DoorSelectR.Value == 1 or (self.EmergencyDoors.Value == 1 or classicDoors) and self.DoorClose.Value == 0 then
             self.DoorRight:TriggerInput("Set", 1)
         end
-        if self.CAMS6 then
+        if self.CAMS6 and self:GetNW2Bool("CamsSelect", true) then
             self.CAMS6:TriggerInput("Set", 1)
         end
         self.DoorSelectL:TriggerInput("Set", 0)

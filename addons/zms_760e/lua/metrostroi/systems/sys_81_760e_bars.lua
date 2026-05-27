@@ -208,7 +208,7 @@ function TRAIN_SYSTEM:Think(dT)
     if self.BarsPower and (Wag.BUKP.State == 5 or UOS) and ALSVal == 0 then
         RVTB = Active or UOS
 
-        if not TwoToSix or not Active or UOS then self.LN = false end
+        if not TwoToSix or not Active or Wag.BUKP.ActiveCabin < 1 or UOS then self.LN = false end
 
         local KmCur = KMState > 0 or Active and BUPKMState > 0
         if Active and not UOS then
@@ -434,7 +434,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.Drive1 = 0
         self.Drive2 = 0
         self.RingingAO = true
-        self.LN = Wag.BUKP.State > 0 and self.LN
+        self.LN = Wag.BUKP.State > 0 and Wag.BUKP.ActiveCabin > 0 and self.LN
         self.Ready = true
         self.StillBrake = 0
         self.SbTimer = 0
@@ -494,7 +494,8 @@ function TRAIN_SYSTEM:Think(dT)
         self.PN3Timer = CurTime() + 0.75
     elseif self.PN3Timer and CurTime() < self.PN3Timer then
         self.PN3 = 1
-    elseif self.PN3Timer then
+    end
+    if self.PN3 < 1 and self.PN3Timer then
         self.PN3Timer = nil
     end
 

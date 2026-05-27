@@ -118,6 +118,7 @@ function TRAIN_SYSTEM:Initialize()
     self.States = {}
     self.PVU = {}
     self.Active = 0
+    self.ActiveCabin = 0
     self.MainMsg = 0
     self.EnginesStrength = 0
     self.ControllerState = 0
@@ -188,7 +189,7 @@ end
 function TRAIN_SYSTEM:Outputs()
     return {
         "State", "ControllerState", "EmergencyBrake", "BTB", "WagNum", "Prost", "Kos", "CurrentSpeed", "InitTimer", "ZeroSpeed", "BudZeroSpeed",
-        "Active", "DoorClosed", "ESD", "BtbuSd", "BupDisableDrive", "BupActive", "Load", "KahDrive"
+        "Active", "DoorClosed", "ESD", "BtbuSd", "BupDisableDrive", "BupActive", "Load", "KahDrive", "ActiveCabin"
     }
 end
 
@@ -230,6 +231,8 @@ function TRAIN_SYSTEM:CANReceive(source, sourceid, target, targetid, textdata, n
     if not self.Trains[sourceid] then return end
     if textdata == "Get" then
         self.Reset = 1
+    elseif textdata == "Deactivate" then
+        self.Deactivate = numdata and sourceid ~= self.Train:GetWagonNumber() and CurTime() + numdata or self.Deactivate
     elseif textdata == "PowerOffNotReady" then
         self.K8Timer = numdata and CurTime() + 0.5 or self.K8Timer
     else
@@ -716,7 +719,10 @@ function TRAIN_SYSTEM:Think(dT)
     local RV = (1 - Train.RV["KRO5-6"]) + Train.RV["KRR15-16"]
     Train:SetNW2Int("Skif:RV", RV * Train.Electric.UPIPower)
     if self.State ~= 5 then self.MainMsg = RV * Train.Electric.UPIPower > 0 and MAINMSG_NONE or MAINMSG_RVOFF end
+
+    if self.Deactivate and CurTime() > self.Deactivate then self.Deactivate = nil end
     self.Active = RV and 1 or 0
+    self.ActiveCabin = self.Deactivate and 0 or math.max(Train.PpzActiveCabin.Value * self.Active, self.ActiveCabin)
 
     self.ESD = 0
     self.ZeroSpeedWire = false
@@ -868,12 +874,18 @@ function TRAIN_SYSTEM:Think(dT)
 
             local doorsNotClosed = Train.PpzActiveCabin.Value < 1 or Train.PpzDoorsSignal.Value < 1
 
+            local TwoRV = Back and RvWork and self.ActiveCabin < 1
+            if RvWork and not TwoRV then Back = false end
+            self.Active = TwoRV and 0 or self.Active
+
             self.PantDisabled = PantDisabled
             if HVBad and not self.HVBadMsg then self.HVBadMsg = CurTime() end
             if not HVBad and self.HVBadMsg then self.HVBadMsg = false end
             self.HVLamp = HVLamp
             self.SchemeEngaged = false
-            if RvWork and not Back then
+
+            if RvWork and self.ActiveCabin > 0 then
+                Train:CANWrite("BUKP", Train:GetWagonNumber(), "BUKP", nil, "Deactivate", 0.5)
                 for i = 1, self.WagNum do
                     Train:CANWrite("BUKP", Train:GetWagonNumber(), "BUV", self.Trains[i], "Orientate", i % 2 > 0)
                 end
@@ -1382,7 +1394,7 @@ function TRAIN_SYSTEM:Think(dT)
             if RV == 0 and not Back then
                 self.MainMsg = MAINMSG_RVOFF
             else
-                self.MainMsg = Back and RvWork and MAINMSG_2RV or Back and MAINMSG_REAR or not RvWork and RV > 0 and MAINMSG_RVFAIL or not RvWork and MAINMSG_RVOFF or MAINMSG_NONE
+                self.MainMsg = TwoRV and MAINMSG_2RV or Back and MAINMSG_REAR or not RvWork and RV > 0 and MAINMSG_RVFAIL or not RvWork and MAINMSG_RVOFF or MAINMSG_NONE
             end
 
             self:CheckError("RvErr", self.MainMsg == MAINMSG_RVFAIL)
@@ -1500,7 +1512,7 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("Ticker", true)
         self:CState("PassScheme", true)
         self:CState("Compressor", self.Compressor)
-        if self.State >= 4 and self.Active > 0 then
+        if self.State >= 4 and self.Active * self.ActiveCabin > 0 then
             self:CState("BVOn", Train.KV765.Position <= 0 and Train.EnableBV.Value * Train.PpzUpi.Value > 0)
             self:CState("BVOff", Train.DisableBV.Value * Train.PpzUpi.Value > 0)
         end
