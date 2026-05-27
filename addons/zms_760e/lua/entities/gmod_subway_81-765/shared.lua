@@ -728,7 +728,7 @@ ENT.SpawnerCustom = {
     { "AnnouncerClicks", "Звук клика в оповещениях", "Boolean", Section = "Settings", Subsection = "AudioEvents" },
     {
         "SingleRing",
-        "Один тип звонка",
+        "Звонки 81-765",
         "Boolean",
         false,
         nil,
@@ -1032,15 +1032,15 @@ ENT.Spawner = {
     ENT.SpawnerLogos("MosMetro", "MosBrend", "MosBrend3D"),
     ENT.SpawnerCustom[5],  -- BLIK:Anim
     ENT.SpawnerCustom[9],  -- RingType765
-    ENT.SpawnerCustom[17],  -- NoTrailers
-    ENT.SpawnerCustom[22],  -- ArsMode
-    ENT.SpawnerCustom[23],  -- KdLongerDelay
-    ENT.SpawnerCustom[24],  -- BreakRedChance
-    ENT.SpawnerCustom[25],  -- DoorReverseMalfunc
-    ENT.SpawnerCustom[26],  -- BatteryWear
-    ENT.SpawnerCustom[27],  -- BatteryLevel
-    ENT.SpawnerCustom[28],  -- DoorsControls
-    ENT.SpawnerCustom[29],  -- CamsSelect
+    ENT.SpawnerCustom[19],  -- NoTrailers
+    ENT.SpawnerCustom[24],  -- ArsMode
+    ENT.SpawnerCustom[25],  -- KdLongerDelay
+    ENT.SpawnerCustom[26],  -- BreakRedChance
+    ENT.SpawnerCustom[27],  -- DoorReverseMalfunc
+    ENT.SpawnerCustom[28],  -- BatteryWear
+    ENT.SpawnerCustom[29],  -- BatteryLevel
+    ENT.SpawnerCustom[30],  -- DoorsControls
+    ENT.SpawnerCustom[31],  -- CamsSelect
     { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
     ENT.SpawnerCustom[#ENT.SpawnerCustom]
 }
