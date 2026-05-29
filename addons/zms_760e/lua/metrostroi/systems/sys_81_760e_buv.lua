@@ -355,8 +355,8 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     if self.PuWork then
-        local EncoderF = self.EncoderFWork == 1 and self:EncoderCheck(WheelsF, Train.FrontBogey) or Train.Speed < 1.8 and self.EncoderFWork == 1
-        local EncoderR = self.EncoderRWork == 1 and self:EncoderCheck(WheelsR, Train.RearBogey) or Train.Speed < 1.8 and self.EncoderRWork == 1
+        local EncoderF = self:EncoderCheck(WheelsF, Train.FrontBogey) or Train.Speed < 1.8 and self.EncoderFWork == 1
+        local EncoderR = self:EncoderCheck(WheelsR, Train.RearBogey) or Train.Speed < 1.8 and self.EncoderRWork == 1
         self.EncoderFWork = EncoderF and 1 or 0
         self.EncoderRWork = EncoderR and 1 or 0
         self.EncoderWork = EncoderF and EncoderR and 1 or 0
