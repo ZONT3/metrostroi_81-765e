@@ -238,8 +238,10 @@ function TRAIN_SYSTEM:Think(dT, iter)
     self.PSN = self:LV(self.Psn80V)
     self.EmerSupply = self:LV(self.Emer80V)
 
+    S.AkbCharge = min(1, Wag:ReadTrainWire(42))
+
     -- 51: Wagons for PSN to charge Count
-    Wag:WriteTrainWire(51, N(self.PSN) * Wag:ReadTrainWire(42))
+    Wag:WriteTrainWire(51, N(self.PSN) * S.AkbCharge)
     -- 52: Active PSN Count
     Wag:WriteTrainWire(52, self.PSN)
     -- 53: Active BS Count
@@ -268,16 +270,16 @@ function TRAIN_SYSTEM:Think(dT, iter)
     Wag:WriteTrainWire(74, Wag.W30K11.Value)
     Wag:WriteTrainWire(75, 1 - Wag.W30K11.Value)
 
-    self.ReservePsn = Wag:ReadTrainWire(42) * S.HasControlVoltage
+    self.ReservePsn = S.AkbCharge * S.HasControlVoltage
 
     -- 54: Train AKB Charge current demand
     Wag:WriteTrainWire(54, N(self.PSN) * self.ReservePsn * max(0, Battery.Current))
     -- 55: Train PSN total current sum
     Wag:WriteTrainWire(55, max(0, self.PSN * (Battery.PsnMaxCurrent - Battery.LoadCurrent - max(0, Battery.Current))))
 
-    S.Ucharge = max(S.Ucharge, self.SharedPsn80V * Wag:ReadTrainWire(42))
+    S.Ucharge = max(S.Ucharge, self.SharedPsn80V * S.AkbCharge)
 
-    Battery:TriggerInput("ChargeMaxCurrent", (self.PSN + N(Wag:ReadTrainWire(42)) > 0) and 30 or clamp(
+    Battery:TriggerInput("ChargeMaxCurrent", (self.PSN + N(S.AkbCharge) > 0) and 30 or clamp(
         (Wag:ReadTrainWire(55) - Wag:ReadTrainWire(54)) / max(1, Wag:ReadTrainWire(51)),
         0, 30))
     Battery:TriggerInput("Charge", S.Ucharge)
