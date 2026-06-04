@@ -1115,6 +1115,11 @@ if SERVER then
                     wag.AnnouncementToLeaveWagon = true
                 end
             end
+
+            if self.Page == PAGE_MSG and not aux_msg then
+                self.Page = PAGE_MAIN
+                self:UpdatePage()
+            end
             return
         end
 
