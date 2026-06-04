@@ -1446,7 +1446,7 @@ function TRAIN_SYSTEM:Think(dT)
         -- Вариант 2: просто нету сбора сх
         self.ControllerState = Train.PpzPrimaryControls.Value > 0 and kvSetting or 0
 
-        if overrideKv and Train.PpzPrimaryControls.Value > 0 then
+        if overrideKv and Train.PpzPrimaryControls.Value > 0 and (Train.ProstKos.ProstActive == 1 or Train.KV765.TractiveSetting > 0 or Train.KV765.TargetTractiveSetting > 0) then
             Train.KV765.TractiveSetting = (Train.ProstKos.ProstActive == 1 and kvSetting < 0) and kvSetting or 0
             Train.KV765.TargetTractiveSetting = (Train.ProstKos.ProstActive == 1 and kvSetting < 0) and kvSetting or 0
         end
