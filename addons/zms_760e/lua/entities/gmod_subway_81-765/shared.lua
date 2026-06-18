@@ -9,8 +9,8 @@ ENT.Purpose = ""
 ENT.Instructions = ""
 ENT.Category = "Metrostroi (trains)"
 ENT.Base = "gmod_subway_base"
-ENT.SkinsType = "81-760e"
-ENT.Model = "models/metrostroi_train/81-760e/81_760e_body.mdl"
+ENT.SkinsType = "81-765"
+ENT.Model = "models/metrostroi_train/81-765/765_hull.mdl"
 ENT.NoTrain = false
 ENT.Spawnable = true
 ENT.AdminSpawnable = false
@@ -558,7 +558,7 @@ ENT.SubwayTrain = {
         Aproove0As325Hz = false,
         CheckLKT = false,
     },
-    EKKType = 763,
+    EKKType = 765,
     NoFrontEKK = true,
 }
 
@@ -646,8 +646,7 @@ end
 
 
 ENT.SpawnerCustom = {
-    model = {"models/metrostroi_train/81-760e/81_760e_body.mdl", "models/metrostroi_train/81-760/81_760a_int.mdl", "models/metrostroi_train/81-765/cabin.mdl", "models/metrostroi_train/81-765/headlights_main_off.mdl",},
-    spawnfunc = ENT.SpawnerSpawnFnc("gmod_subway_81-765e", "gmod_subway_81-766e", "gmod_subway_81-767e"),
+    model = {"models/metrostroi_train/81-765/765_hull.mdl", "models/metrostroi_train/81-765/765_salon.mdl", "models/metrostroi_train/81-765/765_underwag.mdl", "models/metrostroi_train/81-765/cabin.mdl"},
     postfunc = function(trains, WagNum)
         if #trains ~= WagNum then return end
         local wag1 = trains[1]:GetWagonNumber()
@@ -1066,7 +1065,7 @@ ENT.Spawner = {
     ENT.SpawnerFields["DoorsControls"],
     ENT.SpawnerFields["CamsSelect"],
     {},
-    ENT.SpawnerCustom[#ENT.SpawnerCustom]
+    ENT.SpawnerCustom[#ENT.SpawnerCustom]  -- SpawnMode
 }
 
 

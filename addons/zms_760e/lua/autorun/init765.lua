@@ -2,6 +2,9 @@ timer.Simple(0, function()
     local models = {
         ["models/metrostroi_train/81-760e/81_760e_body.mdl"] = true,
         ["models/metrostroi_train/81-760e/81_761e_body.mdl"] = true,
+        ["models/metrostroi_train/81-765/765_hull.mdl"] = true,
+        ["models/metrostroi_train/81-765/766_hull.mdl"] = true,
+        ["models/metrostroi_train/81-765/765_couple_r.mdl"] = true,
     }
 
     if CLIENT then
@@ -168,6 +171,14 @@ timer.Simple(1, function()
             local wag = ent:GetNW2Entity("TrainEntity")
             if wag.CPPICanPickup and not wag:CPPICanPickup(owner) then return end
             hook.Run("TrainHammerSwing", ent, wag, trace, self)
+        end
+    end
+
+    if SERVER then
+        local sent = scripted_ents.Get("gmod_train_couple")
+        if sent then
+            sent.Types["765DC"] = {"models/metrostroi_train/81-765/765_couple_r.mdl", Vector(64.43, 0, 0), Vector(64.6, 0, -2), Angle(0, -90, 0)}
+            scripted_ents.Register(sent, "gmod_train_couple")
         end
     end
 end)

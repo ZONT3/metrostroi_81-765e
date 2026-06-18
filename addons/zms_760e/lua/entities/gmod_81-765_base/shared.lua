@@ -8,8 +8,8 @@
 ENT.Type = "anim"
 ENT.Base = "gmod_subway_base"
 ENT.Category = "Metrostroi (trains)"
-ENT.SkinsType = "81-760e"
-ENT.Model = "models/metrostroi_train/81-760e/81_760e_body.mdl"
+ENT.SkinsType = "81-765"
+ENT.Model = "models/metrostroi_train/81-765/766_hull.mdl"
 ENT.NoTrain = true
 ENT.Spawnable = false
 ENT.AdminSpawnable = false
@@ -21,16 +21,11 @@ ENT.DontAccelerateSimulation = false
 ENT.Version = "765-dev"
 ENT.IkVersion = "765-dev"
 
-
-local function GetDoorPosition(i, k)
-    return Vector(381 - 36.0 + 1 * k - 0.85 * (k == 1 and 1 or 0) - 230 * i, -66 * (1 - 2 * k), -1)
-end
-
 ENT.LeftDoorPositions = {}
 ENT.RightDoorPositions = {}
 for i = 0, 3 do
-    table.insert(ENT.LeftDoorPositions, GetDoorPosition(i, 1))
-    table.insert(ENT.RightDoorPositions, GetDoorPosition(i, 0))
+    table.insert(ENT.LeftDoorPositions, Vector(350.14 - i * 235.617, 64.63, 14.4))
+    table.insert(ENT.RightDoorPositions, Vector(350.14 - i * 235.617, -64.63, 14.4))
 end
 -- Workshop version backport
 ENT.LeftDoorPositionsBAK = ENT.LeftDoorPositions

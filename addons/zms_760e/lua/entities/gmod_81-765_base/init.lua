@@ -5,7 +5,7 @@ AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
-ENT.BogeyDistance = 650
+ENT.BogeyDistance = 660
 ENT.SyncTable = {
     "RearBrakeLineIsolation", "RearTrainLineIsolation", "FrontBrakeLineIsolation", "FrontTrainLineIsolation", "GV", "K31", "K23",
     "EmergencyBrakeValve", "CoupleCenteringR", "CoupleCenteringF", "PowerOn", "PowerOff"
@@ -24,14 +24,14 @@ end
 
 function ENT:Initialize()
     -- Set model and initialize
-    self:SetModel(self.IsIntermediate and "models/metrostroi_train/81-760e/81_761e_body.mdl" or "models/metrostroi_train/81-760e/81_760e_body.mdl")
+    self:SetModel(self.Model)
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.Initialize(self)
     self:SetPos(self:GetPos() + Vector(0, 0, 140))
 
     -- Create bogeys
-    self.FrontBogey = self:CreateBogey(Vector(self.IsTrailer and (338 - 20.8) or (297 + 20.8), 0, -70), Angle(0, 180, 0), true, self.IsTrailer and "763" or self.IsIntermediate and "760" or "760F")
-    self.RearBogey = self:CreateBogey(Vector(-338 + 20.8, 0, -70), Angle(0, 0, 0), false, self.IsTrailer and "763" or "760")
+    self.FrontBogey = self:CreateBogey(Vector(self.IsTrailer and 317.2 or 327, 0, -70), Angle(0, 180, 0), true, self.IsTrailer and "763" or self.IsIntermediate and "760" or "760F")
+    self.RearBogey = self:CreateBogey(Vector(-317.2, 0, -70), Angle(0, 0, 0), false, self.IsTrailer and "763" or "760")
     self.FrontBogey:SetNWBool("Async", true)
     self.RearBogey:SetNWBool("Async", true)
     self.FrontBogey:SetNWFloat("SqualPitch", 0.75)
@@ -47,8 +47,8 @@ function ENT:Initialize()
         self.RearBogey.DisableSound = 1
     end
 
-    self.FrontCouple = self:CreateCouple(self.IsIntermediate and Vector(437 - 23.6, 0, -68) or Vector(442.2 + 30, 0, -68), Angle(0, 0, 0), true, self.IsIntermediate and "763" or "722")
-    self.RearCouple = self:CreateCouple(self.IsIntermediate and Vector(-437 + 23.6, 0, -68) or Vector(-439 + 23.6, 0, -68), Angle(0, 180, 0), false, "763")
+    self.FrontCouple = self:CreateCouple(self.IsIntermediate and Vector(427.1, 0, -69) or Vector(475.4, 0, -68), Angle(0, 0, 0), true, self.IsIntermediate and "765DC" or "722")
+    self.RearCouple = self:CreateCouple(Vector(-433.5, 0, -69), Angle(0, 180, 0), false, "765DC")
     self:SetNW2Entity("FrontBogey", self.FrontBogey)
     self:SetNW2Entity("RearBogey", self.RearBogey)
     self:SetNW2Entity("FrontCouple", self.FrontCouple)

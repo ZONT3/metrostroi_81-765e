@@ -3187,7 +3187,7 @@ ENT.ButtonMap["CabinDoorR1"] = {
 }
 
 ENT.ClientProps["Salon"] = {
-    model = "models/metrostroi_train/81-760/81_760a_int.mdl",
+    model = "models/metrostroi_train/81-765/765_salon.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
@@ -3251,7 +3251,7 @@ ENT.ClientProps["HeadLightsRed"] = {
 }
 
 table.insert(ENT.ClientProps, {
-    model = "models/metrostroi_train/81-760/81_760_underwagon.mdl",
+    model = "models/metrostroi_train/81-765/765_underwag.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
@@ -3465,7 +3465,8 @@ ENT.ClientProps["ASHook"] = {
 }
 
 
-ENT.ClientProps["FenceF"] = nil
+ENT.ClientProps["MezhwagF"] = nil
+ENT.ClientProps["CoupleDynF"] = nil
 ENT.ClientProps["FencePlF"] = nil
 ENT.ClientProps["BoxDoorL"] = nil
 ENT.ClientProps["BoxDoorR"] = nil

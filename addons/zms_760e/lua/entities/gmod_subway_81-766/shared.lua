@@ -9,8 +9,8 @@ ENT.Contact = ""
 ENT.Purpose = ""
 ENT.Instructions = ""
 ENT.Category = "Metrostroi (trains)"
-ENT.SkinsType = "81-760e"
-ENT.Model = "models/metrostroi_train/81-760e/81_761e_body.mdl"
+ENT.SkinsType = "81-765"
+ENT.Model = "models/metrostroi_train/81-765/766_hull.mdl"
 ENT.NoTrain = false
 ENT.Spawnable = true
 ENT.AdminSpawnable = false
@@ -47,7 +47,7 @@ ENT.SubwayTrain = {
     Name = "81-766",
     WagType = 2,
     Manufacturer = "MVM",
-    EKKType = 763,
+    EKKType = 765,
 }
 
 ENT.NumberRanges = {{66001, 66999}}

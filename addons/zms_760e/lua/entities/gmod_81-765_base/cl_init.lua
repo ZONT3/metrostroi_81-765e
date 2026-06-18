@@ -315,23 +315,23 @@ ENT.ClientProps["Stopkran"] = {
 }
 ENT.ClientSounds["EmergencyBrakeValve"] = {{"Stopkran", function() return "disconnectvalve" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)}}
 
-for i = 0, 4 do
-    local name = "TrainNumberL" .. i
-    ENT.ClientProps[name] = {
-        model = "models/metrostroi_train/81-760/numbers/number_0.mdl",
-        pos = Vector(0, 0, 0),
-        ang = Angle(0, 90, 0),
-        hide = 1.5,
-        callback = function(ent) ent.WagonNumber = false end,
-    }
-    ENT.ClientProps[name] = {
-        model = "models/metrostroi_train/81-760/numbers/number_0.mdl",
-        pos = Vector(0, 0, 0),
-        ang = Angle(0, -90, 0),
-        hide = 1.5,
-        callback = function(ent) ent.WagonNumber = false end,
-    }
-end
+-- for i = 0, 4 do
+--     local name = "TrainNumberL" .. i
+--     ENT.ClientProps[name] = {
+--         model = "models/metrostroi_train/81-760/numbers/number_0.mdl",
+--         pos = Vector(0, 0, 0),
+--         ang = Angle(0, 90, 0),
+--         hide = 1.5,
+--         callback = function(ent) ent.WagonNumber = false end,
+--     }
+--     ENT.ClientProps[name] = {
+--         model = "models/metrostroi_train/81-760/numbers/number_0.mdl",
+--         pos = Vector(0, 0, 0),
+--         ang = Angle(0, -90, 0),
+--         hide = 1.5,
+--         callback = function(ent) ent.WagonNumber = false end,
+--     }
+-- end
 
 for i = 1, 4 do
     ENT.ButtonMap["BNTL" .. i] = {
@@ -367,7 +367,7 @@ for i = 1, 4 do
 end
 
 ENT.ClientProps["Salon"] = {
-    model = "models/metrostroi_train/81-760/81_761a_int.mdl",
+    model = "models/metrostroi_train/81-765/766_salon.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
@@ -443,18 +443,32 @@ ENT.ClientProps["MnBl"] = {
     hideseat = 0.2,
 }
 
-ENT.ClientProps["FenceR"] = {
-    model = "models/metrostroi_train/81-765/fence.mdl",
-    pos = Vector(-464.07, 0, 0),
+ENT.ClientProps["MezhwagR"] = {
+    model = "models/metrostroi_train/81-765/765_mezhwag.mdl",
+    pos = Vector(-494.34, 0, 0),
     ang = Angle(0, 0, 0),
     nohide = true,
 }
 
-ENT.ClientProps["FenceF"] = {
-    model = "models/metrostroi_train/81-765/fence.mdl",
-    pos = Vector(464.37, 0, 0),
-    ang = Angle(0, 0, 0),
+ENT.ClientProps["MezhwagF"] = {
+    model = "models/metrostroi_train/81-765/765_mezhwag.mdl",
+    pos = Vector(487.88, 0, 0),
+    ang = Angle(0, 180, 0),
     nohide = true,
+}
+
+ENT.ClientProps["CoupleDynR"] = {
+    model = "models/metrostroi_train/81-765/765_couple_dyn.mdl",
+    pos = Vector(-433.5, 0, -69),
+    ang = Angle(0, 180, 0),
+    hide = 2,
+}
+
+ENT.ClientProps["CoupleDynF"] = {
+    model = "models/metrostroi_train/81-765/765_couple_dyn.mdl",
+    pos = Vector(427.1, 0, -69),
+    ang = Angle(0, 0, 0),
+    hide = 2,
 }
 
 ENT.ClientProps["FencePlR"] = {
@@ -801,22 +815,6 @@ function ENT:UpdateTextures()
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     if isfunction(BaseClass.UpdateTextures) then BaseClass.UpdateTextures(self) end
     self.Number = self:GetWagonNumber()
-    for i = 0, 4 do
-        local num = tostring(self.Number)[i + 1]
-        if not num or num == "" then num = "3" end
-        local number = self.ClientEnts["TrainNumberL" .. i]
-        if IsValid(number) then
-            number:SetPos(self:LocalToWorld(Vector(269 - i * 5.8, 68, -21)))
-            number:SetAngles(self:LocalToWorldAngles(Angle(0, 90, 0)))
-            number:SetModel(Format("models/metrostroi_train/81-760/numbers/number_%s.mdl", num))
-        end
-        number = self.ClientEnts["TrainNumberR" .. i]
-        if IsValid(number) then
-            number:SetPos(self:LocalToWorld(Vector(-443.7 + i * 5.8, -68, -21)))
-            number:SetAngles(self:LocalToWorldAngles(Angle(0, -90, 0)))
-            number:SetModel(Format("models/metrostroi_train/81-760/numbers/number_%s.mdl", num))
-        end
-    end
     if not IsValid(self.RearBogey) then self.RearBogey = self:GetNW2Entity("RearBogey") end
     if not IsValid(self.FrontBogey) then self.FrontBogey = self:GetNW2Entity("FrontBogey") end
 
@@ -836,24 +834,6 @@ function ENT:UpdateTextures()
             end
         end
     end
-end
-
-function ENT:IsNumberBroken()
-    for i = 0, 4 do
-        local ent = self.ClientEnts["TrainNumber" .. i]
-        if IsValid(ent) and (ent:GetPos() == self:GetPos()) then
-            return true
-        end
-        ent = self.ClientEnts["TrainNumberL" .. i]
-        if IsValid(ent) and (ent:GetPos() == self:GetPos()) then
-            return true
-        end
-        ent = self.ClientEnts["TrainNumberR" .. i]
-        if IsValid(ent) and (ent:GetPos() == self:GetPos()) then
-            return true
-        end
-    end
-    return false
 end
 
 function ENT:ReInitBogeySounds(bogey)
@@ -950,26 +930,12 @@ function ENT:CheckBogeySounds(bogey)
     )
 end
 
-local function old_fence(ent, m)
-    for idx = 1, 2 do
-        local bidx = ent:LookupBone("Bone0" .. (idx + 2))
-        if bidx and ent:GetBoneName(bidx) ~= "__INVALIDBONE__" then
-            m:SetTranslation(ent["fpos" .. idx])
-            m:SetAngles(ent["fang" .. idx])
-            ent:SetBoneMatrix(bidx, m)
-        end
-    end
-end
-
-local new_fence_bones = { "Bone.L", "Bone.R", "Bone.C" }
-local function new_fence(ent, m)
-    for idx = 1, 3 do
-        local bidx = ent:LookupBone(new_fence_bones[idx])
-        if bidx and ent:GetBoneName(bidx) ~= "__INVALIDBONE__" then
-            m:SetTranslation(ent["fpos" .. idx])
-            m:SetAngles(ent["fang" .. idx])
-            ent:SetBoneMatrix(bidx, m)
-        end
+local function set_bone_transform(ent, m, bone, pos, ang)
+    local bidx = ent:LookupBone(bone)
+    if bidx and ent:GetBoneName(bidx) ~= "__INVALIDBONE__" then
+        m:SetTranslation(pos)
+        m:SetAngles(ang)
+        ent:SetBoneMatrix(bidx, m)
     end
 end
 
@@ -982,7 +948,6 @@ local maxPosOffsetSqr = 24 * 24  -- squared distance
 local angFreq = 3.0
 local angDamping = 0.2  -- < 1 = overshoot
 local maxAngOffset = Angle(12, 12, 12)
-local angCorrection = Angle(-90, 0, 90)
 local targetOffset = Vector(0, 0, -2)
 
 local function spring_fnc(cur, target, vel, freq, damping, dt)
@@ -1017,16 +982,11 @@ local function calculate_fence_mid(fence, dt)
     if dt <= 0 then return end
 
     local origin = fence:GetPos()
-
     local fwdAng = fence:GetAngles()
-    if fence:WorldToLocal(fence.fpos1).x > fence:WorldToLocal(fence.fpos2).x then
-        fwdAng:RotateAroundAxis(fwdAng:Up(), 180)
-    end
-    fwdAng:Normalize()
 
     local targetWorldPos = (fence.fpos1 + fence.fpos2) * 0.5
     local targetRelPos = targetWorldPos - origin + targetOffset
-    local dir = fence.fpos2 - fence.fpos1
+    local dir = fence.fpos1 - fence.fpos2
     if dir:LengthSqr() < 1e-8 then
         dir = Vector(1, 0, 0)
     end
@@ -1046,7 +1006,6 @@ local function calculate_fence_mid(fence, dt)
         targetAng.y = clamp_axis(targetAng.y, fwdAng.y, maxAngOffset.y)
         targetAng.r = clamp_axis(targetAng.r, fwdAng.r, maxAngOffset.r)
         origin:Add(targetRelPos)
-        targetAng:Add(angCorrection)
         fence.fpos3 = origin
         fence.fang3 = targetAng
         return
@@ -1088,42 +1047,101 @@ local function calculate_fence_mid(fence, dt)
     fence._bone3Ang = ang
 
     fence.fpos3 = origin + pos
-    fence.fang3 = ang + angCorrection
+    fence.fang3 = ang
 end
 
-function ENT:SetupFence(platform, fence, wag, front, dt)
-    local otherFront = wag:GetNW2Entity("FrontTrain") == self
-    local k = not otherFront and -1 or 1
-    if IsValid(platform) then
-        local ang1 = platform:WorldToLocalAngles(wag:LocalToWorldAngles(Angle(0, 90 * k, 0)))
-        local vec = platform:WorldToLocal(wag:LocalToWorld(Vector(480.1 * k, k * ang1.p * 1.585, 0.6)))
-        platform:ManipulateBoneAngles(0, Angle(-ang1.r / 2, ang1.y / 2, ang1.p / 3) + Angle(0, 90, 0))
-        platform:ManipulateBonePosition(0, Vector(vec.x / 2, vec.y / 2, vec.z / 2))
-    end
-    if IsValid(fence) then
-        if not fence.HasCallback then
-            fence:AddCallback("BuildBonePositions", function(ent)
-                if ent:IsMarkedForDeletion() then return end
-                if not ent.fpos1 or not ent.fpos2 or not ent.fang1 or not ent.fang2 then return end
-                local mdl = ent:GetModel()
-                local m = Matrix()
-                if mdl == "models/metrostroi_train/81-765/fence.mdl" then
-                    new_fence(ent, m)
-                else
-                    old_fence(ent, m)
-                end
-            end)
-            fence.HasCallback = true
+local new_fence_bones = { "Bone.L", "Bone.R", "Bone.C", "Bone.Safety.L", "Bone.Safety.R", "Bone.Couple" }
+function ENT:SetupMezhwag(platform, mezhwag, coupleDyn, wag, front, dt)
+    local couple = self:GetNW2Entity(front and "FrontCouple" or "RearCouple")
+    local coupleValid = IsValid(couple)
+
+    if IsValid(wag) then
+        local otherFront = wag:GetNW2Entity("FrontTrain") == self
+        local k = not otherFront and -1 or 1
+
+        if IsValid(platform) then
+            local ang1 = platform:WorldToLocalAngles(wag:LocalToWorldAngles(Angle(0, 90 * k, 0)))
+            local vec = platform:WorldToLocal(wag:LocalToWorld(Vector(480.1 * k, k * ang1.p * 1.585, 0.6)))
+            platform:ManipulateBoneAngles(0, Angle(-ang1.r / 2, ang1.y / 2, ang1.p / 3) + Angle(0, 90, 0))
+            platform:ManipulateBonePosition(0, Vector(vec.x / 2, vec.y / 2, vec.z / 2))
         end
-        fence.fpos1 = wag:LocalToWorld(Vector(otherFront and 464.37 or -464.07, 0, 0))
-        fence.fpos2 = self:LocalToWorld(Vector(front and 464.37 or -464.07, 0, 0))
-        fence.fang1 = wag:LocalToWorldAngles(Angle(0, otherFront and 180 or 0, -90))
-        fence.fang2 = self:LocalToWorldAngles(Angle(0, front and 180 or 0, 90))
-        calculate_fence_mid(fence, dt)
+
+        if IsValid(mezhwag) then
+            if not mezhwag.HasCallback then
+                mezhwag:AddCallback("BuildBonePositions", function(ent)
+                    if ent:IsMarkedForDeletion() then return end
+                    local mdl = ent:GetModel()
+                    local m = Matrix()
+                    if mdl == "models/metrostroi_train/81-765/765_mezhwag.mdl" then
+                        for idx = 1, 6 do
+                            local pos = "fpos" .. idx
+                            local ang = "fang" .. idx
+                            if not ent[pos] or not ent[ang] then return end
+                            set_bone_transform(ent, m, new_fence_bones[idx], ent[pos], ent[ang])
+                        end
+                    else -- TODO remove
+                        if not ent.fpos1 or not ent.fpos2 or not ent.fang1 or not ent.fang2 then return end
+                        for idx = 1, 2 do
+                            set_bone_transform(ent, m, "Bone0" .. (idx + 2), ent["fpos" .. idx], ent["fang" .. idx])
+                        end
+                    end
+                end)
+
+                mezhwag.HasCallback = true
+            end
+
+            if mezhwag:GetModel() == "models/metrostroi_train/81-765/765_mezhwag.mdl" then
+                mezhwag.fpos1 = self:LocalToWorld(Vector(front and 471.07 or -477.53, 0, 0))
+                mezhwag.fpos2 = wag:LocalToWorld(Vector(otherFront and 471.07 or -477.53, 0, 0))
+                mezhwag.fang1 = self:LocalToWorldAngles(Angle(0, front and 0 or 180, 0))
+                mezhwag.fang2 = wag:LocalToWorldAngles(Angle(0, otherFront and 0 or 180, 0))
+                calculate_fence_mid(mezhwag, dt)
+                mezhwag.fpos4 = self:LocalToWorld(Vector(front and 424.38 or -430.84, 0, -79.47))
+                mezhwag.fpos5 = wag:LocalToWorld(Vector(otherFront and 424.38 or -430.84, 0, -79.47))
+                mezhwag.fang4 = (mezhwag.fpos5 - mezhwag.fpos4):GetNormalized():Angle()
+                mezhwag.fang5 = (mezhwag.fpos4 - mezhwag.fpos5):GetNormalized():Angle()
+                mezhwag.fang4:Normalize()
+                mezhwag.fang5:Normalize()
+                local couple2 = wag:GetNW2Entity(otherFront and "FrontCouple" or "RearCouple")
+                if coupleValid and IsValid(couple2) then
+                    local cpos1 = couple:LocalToWorld(Vector(64.43, 0, 0))
+                    local cpos2 = couple2:LocalToWorld(Vector(64.43, 0, 0))
+                    mezhwag.fpos6 = cpos1 + (cpos2 - cpos1) / 2
+                    mezhwag.fang6 = mezhwag.fang5
+                end
+
+            else
+                mezhwag.fpos1 = wag:LocalToWorld(Vector(otherFront and 464.37 or -464.07, 0, 0))
+                mezhwag.fpos2 = self:LocalToWorld(Vector(front and 464.37 or -464.07, 0, 0))
+                mezhwag.fang1 = wag:LocalToWorldAngles(Angle(0, otherFront and 180 or 0, -90))
+                mezhwag.fang2 = self:LocalToWorldAngles(Angle(0, front and 180 or 0, 90))
+            end
+        end
+    end
+
+    if coupleValid and IsValid(coupleDyn) then
+        if not coupleDyn.HasCallback then
+            coupleDyn:AddCallback("BuildBonePositions", function(ent)
+                if ent:IsMarkedForDeletion() then return end
+                if not ent.AngMovable or not ent.AngRotatable then return end
+                local m = Matrix()
+                local pos = ent:GetPos()
+                set_bone_transform(ent, m, "movable", pos, ent.AngMovable)
+                set_bone_transform(ent, m, "rotatable", pos, ent.AngRotatable)
+            end)
+            coupleDyn.HasCallback = true
+        end
+
+        local ang = couple:GetAngles()
+        coupleDyn.AngMovable = Angle(ang)
+        local selfAng = self:GetAngles()
+        ang.p = selfAng.p
+        ang.r = selfAng.r * (front and 1 or -1)
+        coupleDyn.AngRotatable = ang
     end
 end
 
-function ENT:FenceConnectable(wag, prefix)
+function ENT:MezhwagConnectable(wag, prefix)
     local compatible = IsValid(wag) and (wag:GetClass():find("76") and wag:GetClass()[19] == "e" or string.match(wag:GetClass(), "76[567]"))
     return (
         compatible and (
@@ -1152,7 +1170,6 @@ function ENT:Think()
     if self.Texture ~= self:GetNW2String("Texture") then self:UpdateTextures() end
     if self.PassTexture ~= self:GetNW2String("passtexture") then self:UpdateTextures() end
     if self.CabinTexture ~= self:GetNW2String("cabtexture") then self:UpdateTextures() end
-    if self:IsNumberBroken() then self:UpdateTextures() end
 
     local ValidfB, ValidrB = IsValid(self.FrontBogey), IsValid(self.RearBogey)
     for i = 1, 4 do
@@ -1165,22 +1182,18 @@ function ENT:Think()
     end
 
     local RearTrain, FrontTrain = self:GetNW2Entity("RearTrain"), self:GetNW2Entity("FrontTrain")
-    self:ShowHide("FenceR", self:FenceConnectable(RearTrain, "Fence"))
-    self:ShowHide("FencePlR", self:FenceConnectable(RearTrain, "FencePl"))
+    self:ShowHide("MezhwagR", self:MezhwagConnectable(RearTrain, "Mezhwag"))
+    self:ShowHide("FencePlR", self:MezhwagConnectable(RearTrain, "FencePl"))
     if self.IsIntermediate then
-        self:ShowHide("FenceF", self:FenceConnectable(FrontTrain, "Fence"))
-        self:ShowHide("FencePlF", self:FenceConnectable(FrontTrain, "FencePl"))
+        self:ShowHide("MezhwagF", self:MezhwagConnectable(FrontTrain, "Mezhwag"))
+        self:ShowHide("FencePlF", self:MezhwagConnectable(FrontTrain, "FencePl"))
     end
 
     local dT = self.DeltaTime
 
-    local fenceRear, fenceFront = self.ClientEnts["FenceR"], self.ClientEnts["FenceF"]
-    local platformRear, platformFront = self.ClientEnts["FencePlR"], self.ClientEnts["FencePlF"]
-    if IsValid(RearTrain) then
-        self:SetupFence(platformRear, fenceRear, RearTrain, false, dT)
-    end
-    if self.IsIntermediate and IsValid(FrontTrain) then
-        self:SetupFence(platformFront, fenceFront, FrontTrain, true, dT)
+    self:SetupMezhwag(self.ClientEnts["FencePlR"], self.ClientEnts["MezhwagR"], self.ClientEnts["CoupleDynR"], RearTrain, false, dT)
+    if self.IsIntermediate then
+        self:SetupMezhwag(self.ClientEnts["FencePlF"], self.ClientEnts["MezhwagF"], self.ClientEnts["CoupleDynF"], FrontTrain, true, dT)
     end
 
     local speed = self:GetPackedRatio("Speed", 0)
@@ -1239,8 +1252,6 @@ function ENT:Think()
     self:ShowHide("K31", K31cap > 0)
     self:HidePanel("K31", K31cap < 1)
     self:Animate("K31", self:GetPackedBool("K31") and 0 or 1, 0, 1, 16, 0.5)
-
-    local dT = self.DeltaTime
 
     self.FrontLeak = math.Clamp(self.FrontLeak + 10 * (-self:GetPackedRatio("FrontLeak") - self.FrontLeak) * dT, 0, 1)
     self.RearLeak = math.Clamp(self.RearLeak + 10 * (-self:GetPackedRatio("RearLeak") - self.RearLeak) * dT, 0, 1)

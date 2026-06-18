@@ -12,7 +12,7 @@ ENT.AutoAnims = {}
 ENT.ClientPropsInitialized = false
 
 table.insert(ENT.ClientProps, {
-    model = "models/metrostroi_train/81-760/81_761_underwagon.mdl",
+    model = "models/metrostroi_train/81-765/766_underwag.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
