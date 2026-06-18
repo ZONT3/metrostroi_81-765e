@@ -8,7 +8,7 @@ local MapCorrection = {
 }
 
 
-timer.Simple(6, function()
+local function ResetProst()
     local plates = ents.FindByClass("gmod_track_autodrive_plate")
     local stations = ents.FindByClass("gmod_track_platform")
     local offset = MapCorrection[game.GetMap()] or 0
@@ -36,4 +36,11 @@ timer.Simple(6, function()
         end
     end
     print(string.format("Updated %d PrOst tags", #plates))
-end)
+end
+
+timer.Simple(6, ResetProst)
+
+concommand.Add("zms_refresh_prost", function(ply)
+    if IsValid(ply) then return end
+    ResetProst()
+end, nil, "Refresh PrOst data for 81-765")

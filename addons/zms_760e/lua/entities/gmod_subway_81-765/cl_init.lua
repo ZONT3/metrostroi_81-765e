@@ -1906,10 +1906,10 @@ ENT.ButtonMap["BackPPZ"] = {
     hideseat = 0.2,
     buttons = {
         {
-            ID = "PowerOnSet", tooltip = "Включение бортсети",
+            ID = "MasterTrainPowerOnSet", tooltip = "Включение бортсети",
             x = 34, y = 47, radius = 20,
             model = {
-                var = "PowerOn",
+                var = "MasterTrainPowerOn",
                 model = "models/metrostroi_train/81-760/81_760_button_green.mdl",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_green.mdl",
@@ -1921,10 +1921,10 @@ ENT.ButtonMap["BackPPZ"] = {
                 sndmin = 90, sndmax = 1e3,
             }
         }, {
-            ID = "PowerOffSet", tooltip = "Выключение бортсети",
+            ID = "MasterTrainPowerOffSet", tooltip = "Выключение бортсети",
             x = 87, y = 47, radius = 20,
             model = {
-                var = "PowerOff",
+                var = "MasterTrainPowerOff",
                 model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_red.mdl",
@@ -1965,6 +1965,9 @@ ENT.ButtonMap["PpzCover"] = {
     hideseat = 0.2,
     buttons = {}
 }
+
+ENT.ButtonMap["Power"].pos = Vector(402, 10.8, 20)
+ENT.ButtonMap["Power"].ang = Angle(0, 90, 90)
 
 ENT.ButtonMap["PVZ"] = {
     pos = Vector(402, 10.8, 12.6),
@@ -2869,6 +2872,21 @@ ENT.ClientProps["FrontTrain"] = {
     hide = 2,
 }
 
+ENT.ButtonMap["CoupleCenteringF"] = {
+    pos = Vector(520, -50, -50), ang = Angle(0, 90, 90),
+    width = 100, height = 30, scale = 1,
+    buttons = {
+        {
+            ID = "CoupleCenteringFToggle",
+            x = 0, y = 0, w = 100, h = 30,
+            tooltip = "Ручная центровка",
+            model = {
+                var = "CoupleCenteringF",
+            }
+        }
+    }
+}
+
 ENT.ButtonMap["PassengerDoor"] = {
     pos = Vector(400, -28.5, 40),
     ang = Angle(0, 90, 90),
@@ -3294,17 +3312,6 @@ ENT.ClientProps["GvWrench"] = {
     hide = 0.5,
 }
 
-for i = 0, 3 do
-    for k = 0, 1 do
-        ENT.ClientProps["door" .. i .. "x" .. k] = {
-            model = "models/metrostroi_train/81-760e/81_760e_door.mdl",
-            pos = Vector(229.92 * i * (k == 0 and 1 or -1), 0, 0),
-            ang = Angle(0, 180 + k * 180, 0),
-            hide = 2
-        }
-    end
-end
-
 ENT.ClientProps["DoorCabM"] = {
     model = "models/metrostroi_train/81-765/sdoor.mdl",
     pos = Vector(0, 0, 0),
@@ -3356,6 +3363,43 @@ ENT.ClientProps["BtbuSdLabel"] = {
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hideseat = 0.5,
+}
+
+ENT.ClientProps["NotificationPaper"] = {
+    model = "models/metrostroi_train/81-765/notification_paper.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hideseat = 0.5,
+    callback = function(wag, ent)
+        if Cfg765 and Cfg765.NotificationMaterial then
+            ent:SetMaterial(Cfg765.NotificationMaterial)
+        else
+            wag:ShowHide("NotificationPaper", false)
+        end
+    end
+}
+
+ENT.ButtonMap["NotificationPaperBtn"] = {
+    pos = Vector(490.18, 40.043, -7.35),
+    -- from blender: X -> Z, Y -> X, Z -> Y
+    ang = Angle(0, -75.487, 62.8),
+    width = 38,
+    height = 75,
+    scale = 0.1,
+    buttons = {
+        {
+            ID = "NotificationPaperBtn",
+            x = 0,
+            y = 0,
+            w = 38,
+            h = 75,
+            tooltip = "Показать/скрыть уведомление",
+            model = {
+                var = "NotificationPaper",
+                states = {"Common.ClientProp.Hide", "Common.ClientProp.Show"}
+            }
+        },
+    }
 }
 
 -- ENT.ClientProps["wiper"] = {
@@ -3420,11 +3464,11 @@ ENT.ClientProps["ASHook"] = {
     end,
 }
 
+
 ENT.ClientProps["FenceF"] = nil
 ENT.ClientProps["FencePlF"] = nil
 ENT.ClientProps["BoxDoorL"] = nil
 ENT.ClientProps["BoxDoorR"] = nil
-ENT.ButtonMap["Power"] = nil
 ENT.ButtonMap["ClosetCapL"] = nil
 ENT.ButtonMap["ClosetCapLop"] = nil
 ENT.ButtonMap["ClosetCapR"] = nil
@@ -3631,6 +3675,353 @@ ENT.ButtonMap["BLIK"] = {
     hide = 10,
 }
 
+
+local buikHelper = {
+    {
+        ID = "!Speed",
+        x = 2486 - 740, y = 0, w = 740, h = 496,
+        tooltip = "Скорость",
+        tooltipFunc = function(wag)
+            local freq = not wag:GetNW2Bool("Skif:NoFreq", false) and wag.BUIK.MaxSpeed
+            local nextFreq = not wag:GetNW2Bool("Skif:NextNoFreq", false) and wag.BUIK.NextSpeed
+            return Format("Фактическая %d км/ч\nДопустимая %s%s",
+                math.floor(wag:GetPackedRatio("Speed", 0)),
+                freq and Format("%d км/ч", freq) or "ОЧ",
+                wag.BUIK.NextSpeed and (nextFreq and Format("\nПредупредительная %d км/ч", nextFreq) or "\nОЧ") or "")
+        end
+    },
+
+    {
+        ID = "!Page",
+        x = 266, y = 496 - 70, w = 800, h = 70,
+        tooltip = "Страница",
+        tooltipFunc = function(wag)
+            local pg = wag.BUIK.Page or 0
+            return pg == 1 and "Записи информатора" or pg == 2 and "Записи доп. информации" or pg == 3 and "Выбор конечной станции" or pg == 4 and "Выбор линии (конфига)" or "Н/Д"
+        end
+    }, {
+        ID = "!AutoPlay",
+        x = 1066, y = 496 - 70, w = 398 / 2, h = 70,
+        tooltip = "Автовоспр. записи на прибытие\nВключается через Metrostroi Advanced",
+        tooltipFunc = function(wag)
+            return wag.BuikAutoPlay and "Включено" or "Выключено"
+        end
+    }, {
+        ID = "!LineSC",
+        x = 1066 + 398 / 2, y = 496 - 70, w = 398 / 2, h = 70,
+        tooltip = "Не используется",
+    }, {
+        ID = "!Odometer",
+        x = 1464, y = 496 - 70, w = 2486 - 740 - 1464, h = 70,
+        tooltip = "Одометер (пробег)",
+        tooltipFunc = function(wag) return Format("%d км", wag.BUIK.Odometer or 0) end
+    },
+
+    {
+        ID = "!WagonHead",
+        x = 0, y = 0, w = 64, h = 200,
+        tooltip = "Активная кабина",
+        tooltipFunc = function(wag) return wag.BUIK.ActiveCab and "Активна" or "Неактивна" end
+    }, {
+        ID = "!RouteNum",
+        x = 0, y = 200, w = 266, h = 496 - 140 - 200,
+        tooltip = "Номер маршрута\nДля смены - выключить АТС1, АТС2, затем\nвключить и следовать инструкциям на МФДУ",
+        tooltipFunc = function(wag) return wag.BUIK.RouteNum or "Н/Д" end
+    }, {
+        ID = "!LastSt",
+        x = 0, y = 496 - 140, w = 266, h = 70,
+        tooltip = "Конечная станция",
+        tooltipFunc = function(wag) return wag.BUIK.LastStation or "Н/Д" end
+    }, {
+        ID = "!Clock",
+        x = 0, y = 496 - 70, w = 266, h = 70,
+        tooltip = "Время",
+        tooltipFunc = function(wag) return wag.BUIK.Time or "Н/Д" end
+    },
+
+    {
+        ID = "!FreqMode",
+        x = 1050, y = 200, w = 696 / 4, h = 113,
+        tooltip = "Режим дешифратора АЛС",
+        tooltipFunc = function(wag) return wag.BUIK.StateText and wag.BUIK.StateText[1] or nil end
+    }, {
+        ID = "!ATS1",
+        x = 1050 + 1 * 696 / 4, y = 200, w = 696 / 4, h = 113,
+        tooltip = "Состояние полукомплекта БАРС1",
+        tooltipFunc = function(wag)
+            local state = wag:GetNW2Int("BUIK:State2", 1)
+            return state == 3 and "Запрет движения" or state == 4 and "Разрешение движения" or state == 5 and "Запрет тягового режима" or "Шунтирован"
+        end
+    }, {
+        ID = "!ATS2",
+        x = 1050 + 2 * 696 / 4, y = 200, w = 696 / 4, h = 113,
+        tooltip = "Состояние полукомплекта БАРС2",
+        tooltipFunc = function(wag)
+            local state = wag:GetNW2Int("BUIK:State3", 1)
+            return state == 3 and "Запрет движения" or state == 4 and "Разрешение движения" or state == 5 and "Запрет тягового режима" or "Шунтирован"
+        end
+    }, {
+        ID = "!AtsBlockS",
+        x = 1050 + 3 * 696 / 4, y = 200, w = 696 / 4, h = 113,
+        tooltip = "Режим блокиратора АТС",
+        tooltipFunc = function(wag)
+            local text = wag.BUIK.StateText and wag.BUIK.StateText[4] or nil
+            return text == "ШТАТ" and "Штатный режим" or text == "АТС1" and "АТС2 шунтирован" or text == "АТС2" and "АТС1 шунтирован" or text == "УОС" and "Режим УОС" or "Н/Д"
+        end
+    }
+}
+
+local buikHelperX4 = table.Copy(buikHelper)
+table.Add(buikHelperX4, {
+    {
+        ID = "!ArsZero",
+        x = 1050, y = 313, w = 696 / 4, h = 113,
+        tooltip = "Частота АРС 0",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State6", 1) == 3 and "Присутствует" or "Норма" end
+    }, {
+        ID = "!ArsNoFq",
+        x = 1050 + 1 * 696 / 4, y = 313, w = 696 / 4, h = 113,
+        tooltip = "Отсутствие частоты",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State7", 1) == 3 and "Частота отсутствует" or "Норма" end
+    }, {
+        ID = "!ArsAo",
+        x = 1050 + 2 * 696 / 4, y = 313, w = 696 / 4, h = 113,
+        tooltip = "Сигнал Абсолютной Остановки",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State8", 1) == 3 and "Присутствует" or "Норма" end
+    }, {
+        ID = "!BOSD",
+        x = 1050 + 3 * 696 / 4, y = 313, w = 696 / 4, h = 113,
+        tooltip = "Режим движения без контроля дверей",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State9", 1) == 3 and "Включено" or "Норма" end
+    }
+})
+
+table.Add(buikHelper, {
+    {
+        ID = "!LN",
+        x = 1050, y = 313, w = 696 / 5, h = 113,
+        tooltip = "Признак направления движения (ЛН)",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State5", 1) == 3 and "Отсутствует" or "Норма" end
+    }, {
+        ID = "!ArsZero",
+        x = 1050 + 1 * 696 / 5, y = 313, w = 696 / 5, h = 113,
+        tooltip = "Частота АРС 0",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State6", 1) == 3 and "Присутствует" or "Норма" end
+    }, {
+        ID = "!ArsNoFq",
+        x = 1050 + 2 * 696 / 5, y = 313, w = 696 / 5, h = 113,
+        tooltip = "Отсутствие частоты",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State7", 1) == 3 and "Частота отсутствует" or "Норма" end
+    }, {
+        ID = "!ArsAo",
+        x = 1050 + 3 * 696 / 5, y = 313, w = 696 / 5, h = 113,
+        tooltip = "Сигнал Абсолютной Остановки",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State8", 1) == 3 and "Присутствует" or "Норма" end
+    }, {
+        ID = "!BOSD",
+        x = 1050 + 4 * 696 / 5, y = 313, w = 696 / 5, h = 113,
+        tooltip = "Режим движения без контроля дверей",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State9", 1) == 3 and "Включено" or "Норма" end
+    }
+})
+
+ZMS.ScreenHelper("BUIK", nil, "Mst4", 0, 0, 2486, 496, buikHelperX4)
+ZMS.ScreenHelper("BUIK", nil, "Mst5", 0, 0, 2486, 496, buikHelper)
+
+
+local sarmat9 = {
+    {
+        ID = "!Speed",
+        x = 2486 - 739, y = 0, w = 739, h = 416,
+        tooltip = "Скорость",
+        tooltipFunc = function(wag)
+            local freq = not wag:GetNW2Bool("Skif:NoFreq", false) and wag.BUIK.MaxSpeed
+            local nextFreq = not wag:GetNW2Bool("Skif:NextNoFreq", false) and wag.BUIK.NextSpeed
+            return Format("Фактическая %d км/ч\n%s%s",
+                math.floor(wag:GetPackedRatio("Speed", 0)),
+                freq and Format("Допустимая %d км/ч", freq) or "ОЧ",
+                wag.BUIK.NextSpeed and (nextFreq and Format("\nПредупредительная %d км/ч", nextFreq) or "\nОЧ") or "")
+        end
+    },
+
+    {
+        ID = "!Page",
+        x = 0, y = 160, w = 220, h = 74,
+        tooltip = "Страница",
+        tooltipFunc = function(wag)
+            local pg = wag.BUIK.Page or 0
+            return pg == 1 and "Записи информатора" or pg == 2 and "Записи доп. информации" or pg == 3 and "Выбор конечной станции" or pg == 4 and "Выбор линии (конфига)" or "Н/Д"
+        end
+    }, {
+        ID = "!AutoPlay",
+        x = 0, y = 237, w = 220, h = 262 / 3,
+        tooltip = "Автовоспр. записи на прибытие\nВключается через Metrostroi Advanced",
+        tooltipFunc = function(wag)
+            return wag.BuikAutoPlay and "Включено" or "Выключено"
+        end
+    }, {
+        ID = "!LineSC",
+        x = 0, y = 237 + 262 / 3, w = 220, h = 262 / 3,
+        tooltip = "Не используется",
+    }, {
+        ID = "!PassCall",
+        x = 0, y = 237 + 2 * 262 / 3, w = 220, h = 262 / 3,
+        tooltip = "Вызов пассажира",
+    },
+
+    {
+        ID = "!RouteNum",
+        x = 947, y = 160, w = 170, h = 170,
+        tooltip = "Номер маршрута\nДля смены - выключить АТС1, АТС2, затем\nвключить и следовать инструкциям на МФДУ",
+        tooltipFunc = function(wag) return wag.BUIK.RouteNum or "Н/Д" end
+    }, {
+        ID = "!LastSt",
+        x = 947 + 170, y = 160, w = 800 - 170, h = 170,
+        tooltip = "Конечная станция",
+        tooltipFunc = function(wag) return wag.BUIK.LastStation or "Н/Д" end
+    }
+}
+
+local sarmat8 = table.Copy(sarmat9)
+table.Add(sarmat8, {
+    {
+        x = 947, y = 496 - 80, w = 1539 / 8, h = 80,
+        ID = "!FreqMode",
+        tooltip = "Режим дешифратора АЛС",
+        tooltipFunc = function(wag) return wag.BUIK.StateText and wag.BUIK.StateText[1] or nil end
+    }, {
+        x = 947 + 1 * 1539 / 8, y = 496 - 80, w = 1539 / 8, h = 80,
+        ID = "!ATS1",
+        tooltip = "Состояние полукомплекта БАРС1",
+        tooltipFunc = function(wag)
+            local state = wag:GetNW2Int("BUIK:State2", 1)
+            return state == 3 and "Запрет движения" or state == 4 and "Разрешение движения" or state == 5 and "Запрет тягового режима" or "Шунтирован"
+        end
+    }, {
+        x = 947 + 2 * 1539 / 8, y = 496 - 80, w = 1539 / 8, h = 80,
+        ID = "!ATS2",
+        tooltip = "Состояние полукомплекта БАРС2",
+        tooltipFunc = function(wag)
+            local state = wag:GetNW2Int("BUIK:State3", 1)
+            return state == 3 and "Запрет движения" or state == 4 and "Разрешение движения" or state == 5 and "Запрет тягового режима" or "Шунтирован"
+        end
+    }, {
+        x = 947 + 3 * 1539 / 8, y = 496 - 80, w = 1539 / 8, h = 80,
+        ID = "!AtsBlockS",
+        tooltip = "Режим блокиратора АТС",
+        tooltipFunc = function(wag)
+            local text = wag.BUIK.StateText and wag.BUIK.StateText[4] or nil
+            return text == "ШТАТ" and "Штатный режим" or text == "АТС1" and "АТС2 шунтирован" or text == "АТС2" and "АТС1 шунтирован" or text == "УОС" and "Режим УОС" or "Н/Д"
+        end
+    }, {
+        x = 947 + 4 * 1539 / 8, y = 496 - 80, w = 1539 / 8, h = 80,
+        ID = "!ArsZero",
+        tooltip = "Частота АРС 0",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State6", 1) == 3 and "Присутствует" or "Норма" end
+    }, {
+        x = 947 + 5 * 1539 / 8, y = 496 - 80, w = 1539 / 8, h = 80,
+        ID = "!ArsAo",
+        tooltip = "Сигнал Абсолютной Остановки",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State8", 1) == 3 and "Присутствует" or "Норма" end
+    }, {
+        x = 947 + 6 * 1539 / 8, y = 496 - 80, w = 1539 / 8, h = 80,
+        ID = "!ArsNoFq",
+        tooltip = "Отсутствие частоты",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State7", 1) == 3 and "Частота отсутствует" or "Норма" end
+    }, {
+        x = 947 + 7 * 1539 / 8, y = 496 - 80, w = 1539 / 8, h = 80,
+        ID = "!BOSD",
+        tooltip = "Режим движения без контроля дверей",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State9", 1) == 3 and "Включено" or "Норма" end
+    }
+})
+
+table.Add(sarmat9, {
+    {
+        x = 947, y = 496 - 80, w = 1539 / 9, h = 80,
+        ID = "!FreqMode",
+        tooltip = "Режим дешифратора АЛС",
+        tooltipFunc = function(wag) return wag.BUIK.StateText and wag.BUIK.StateText[1] or nil end
+    }, {
+        x = 947 + 1 * 1539 / 9, y = 496 - 80, w = 1539 / 9, h = 80,
+        ID = "!ATS1",
+        tooltip = "Состояние полукомплекта БАРС1",
+        tooltipFunc = function(wag)
+            local state = wag:GetNW2Int("BUIK:State2", 1)
+            return state == 3 and "Запрет движения" or state == 4 and "Разрешение движения" or state == 5 and "Запрет тягового режима" or "Шунтирован"
+        end
+    }, {
+        x = 947 + 2 * 1539 / 9, y = 496 - 80, w = 1539 / 9, h = 80,
+        ID = "!ATS2",
+        tooltip = "Состояние полукомплекта БАРС2",
+        tooltipFunc = function(wag)
+            local state = wag:GetNW2Int("BUIK:State3", 1)
+            return state == 3 and "Запрет движения" or state == 4 and "Разрешение движения" or state == 5 and "Запрет тягового режима" or "Шунтирован"
+        end
+    }, {
+        x = 947 + 3 * 1539 / 9, y = 496 - 80, w = 1539 / 9, h = 80,
+        ID = "!AtsBlockS",
+        tooltip = "Режим блокиратора АТС",
+        tooltipFunc = function(wag)
+            local text = wag.BUIK.StateText and wag.BUIK.StateText[4] or nil
+            return text == "ШТАТ" and "Штатный режим" or text == "АТС1" and "АТС2 шунтирован" or text == "АТС2" and "АТС1 шунтирован" or text == "УОС" and "Режим УОС" or "Н/Д"
+        end
+    }, {
+        x = 947 + 4 * 1539 / 9, y = 496 - 80, w = 1539 / 9, h = 80,
+        ID = "!LN",
+        tooltip = "Признак направления движения (ЛН)",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State5", 1) == 3 and "Отсутствует" or "Норма" end
+    }, {
+        x = 947 + 5 * 1539 / 9, y = 496 - 80, w = 1539 / 9, h = 80,
+        ID = "!ArsZero",
+        tooltip = "Частота АРС 0",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State6", 1) == 3 and "Присутствует" or "Норма" end
+    }, {
+        x = 947 + 6 * 1539 / 9, y = 496 - 80, w = 1539 / 9, h = 80,
+        ID = "!ArsAo",
+        tooltip = "Сигнал Абсолютной Остановки",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State8", 1) == 3 and "Присутствует" or "Норма" end
+    }, {
+        x = 947 + 7 * 1539 / 9, y = 496 - 80, w = 1539 / 9, h = 80,
+        ID = "!ArsNoFq",
+        tooltip = "Отсутствие частоты",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State7", 1) == 3 and "Частота отсутствует" or "Норма" end
+    }, {
+        x = 947 + 8 * 1539 / 9, y = 496 - 80, w = 1539 / 9, h = 80,
+        ID = "!BOSD",
+        tooltip = "Режим движения без контроля дверей",
+        tooltipFunc = function(wag) return wag:GetNW2Int("BUIK:State9", 1) == 3 and "Включено" or "Норма" end
+    }
+})
+
+ZMS.ScreenHelper("BUIK", nil, "Sarmat8", 0, 0, 2486, 496, sarmat8)
+ZMS.ScreenHelper("BUIK", nil, "Sarmat9", 0, 0, 2486, 496, sarmat9)
+
+
+local wagW = (2486 - 740 - 128) / 8
+local sarmatWagW = (2486 - 739) / 8
+for k, g in ipairs({"Mst4", "Mst5", "Sarmat8", "Sarmat9"}) do
+    for idx = 1, 8 do
+        ZMS.ScreenHelper(
+            "BUIK", g, "Wagon" .. idx,
+            (k < 3 and 64 or 6) + (idx - 1) * (k < 3 and wagW or sarmatWagW), 0,
+            k < 3 and wagW or sarmatWagW, k < 3 and 200 or 160, {
+            {
+                ID = "!Wagon" .. idx,
+                x = 0, y = 0,
+                w = k < 3 and wagW or sarmatWagW, h = 200,
+                tooltip = idx > 1 and ("Вагон №" .. idx) or "Головной вагон",
+                tooltipFunc = function(wag) return wag.BUIK.Wagons and (
+                    wag.BUIK.Wagons[idx] == 3 and "Есть проблемы, см. МФДУ" or
+                    wag.BUIK.Wagons[idx] == 2 and "Сработка противозажатия" or
+                    wag.BUIK.Wagons[idx] == 1 and "Двери не закрыты"
+                ) or "Норма" end
+            }
+        }, true)
+    end
+end
+
+
 for _, cfg in pairs(ENT.PakToggles or {}) do
     if cfg.buttons and cfg.btnmap and ENT.ButtonMap[cfg.btnmap] and ENT.ButtonMap[cfg.btnmap].buttons then
         table.Add(ENT.ButtonMap[cfg.btnmap].buttons, cfg.buttons)
@@ -3649,8 +4040,8 @@ end
 function ENT:Initialize()
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.Initialize(self)
-    self.MFDU = self:CreateRT("765MFDU", 1024, 768)
-    self.BUIK = self:CreateRT("765BUIK", 2486, 496)
+    self.MFDUrt = self:CreateRT("765MFDU", 1024, 768)
+    self.BUIKscr = self:CreateRT("765BUIK", 2486, 496)
     self.CAMS = self:CreateRT("760CAMS", 1024, 768)
     self.ASNP = self:CreateRT("760ASNP", 512, 128)
     self.IGLA = self:CreateRT("760IGLA", 512, 128)
@@ -3669,7 +4060,7 @@ function ENT:DrawPost(special)
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.DrawPost(self, special)
 
-    self.RTMaterial:SetTexture("$basetexture", self.MFDU)
+    self.RTMaterial:SetTexture("$basetexture", self.MFDUrt)
     self:DrawOnPanel("MFDU", function(...)
         surface.SetMaterial(self.RTMaterial)
         surface.SetDrawColor(255, 255, 255)
@@ -3704,7 +4095,7 @@ function ENT:DrawPost(special)
         surface.DrawTexturedRectRotated(1280 / 2, 512, 1280, 1024, 0)
     end)
 
-    self.RTMaterial:SetTexture("$basetexture", self.BUIK)
+    self.RTMaterial:SetTexture("$basetexture", self.BUIKscr)
     self:DrawOnPanel("BUIK", function(...)
         surface.SetMaterial(self.RTMaterial)
         surface.SetDrawColor(255, 255, 255)
@@ -3757,6 +4148,8 @@ end
 ENT:ExportFields(
     "ClientProps",
     "ButtonMap",
+    "ScreenHelpers",
+    "ScreenHelpersHide",
     "ClientSounds",
     "AutoAnims",
     "ClientPropsInitialized",

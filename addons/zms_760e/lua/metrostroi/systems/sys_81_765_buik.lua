@@ -11,7 +11,7 @@ local dbg = false
 function TRAIN_SYSTEM:Initialize()
     self:InitTrigger("Buik_EMsg1")  -- Экстр. Сообщение 1
     self:InitTrigger("Buik_EMsg2")  -- Экстр. Сообщение 2
-    self:InitTrigger("Buik_EMsg3")  -- Экстр. Сообщение 2
+    -- self:InitTrigger("Buik_EMsg3")  -- Экстр. Сообщение 2
     self:InitTrigger("Buik_Unused1")  -- Не используется (резвервная линия)
     self:InitTrigger("Buik_Mode")  -- Безымянная (выбор режима/страницы)
     self:InitTrigger("Buik_Path")  -- Выбор маршрута
@@ -25,6 +25,7 @@ function TRAIN_SYSTEM:Initialize()
     self:AddTrigger("R_Program1")
     self:AddTrigger("R_Program11", "R_Program1")
 
+    self.Load = 0
     self.State = 0
     self.State2 = 0
     self.Triggers = {}
@@ -74,7 +75,7 @@ function TRAIN_SYSTEM:CheckTriggers(dontRun)
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {}
+    return {"Load"}
 end
 if TURBOSTROI then return end
 
@@ -174,6 +175,13 @@ if SERVER then
     function TRAIN_SYSTEM:Think(dT)
         self:CheckTriggers()
 
+        local Wag = self.Train
+        local battery = Wag.Electric.EmerSupply > 0
+        local power = battery and Wag.SF45F11.Value > 0.5
+        local sarmat = Wag:GetNW2Int("BuikType", 1) == 3
+
+        self.Load = (power and (self.State == STATE_NORMAL and 56 or 37) or 0) * (sarmat and 1.6 or 1)
+
         if CurTime() < self.NextThink then return end
         self.NextThink = CurTime() + 0.26
 
@@ -182,15 +190,10 @@ if SERVER then
         local activate = self.Activate
         if activate then self.Activate = false end
 
-        local Wag = self.Train
-        local sarmat = Wag:GetNW2Int("BuikType", 1) == 3
         if sarmat ~= self.Sarmat then
             self.Sarmat = sarmat
             self.IkTypeChanged = true
         end
-
-        local battery = Wag.Electric.Battery80V > 62
-        local power = battery and Wag.SF45F11.Value > 0.5
         if not power then
             self.State = STATE_POWEROFF
         elseif self.State == STATE_POWEROFF then
@@ -255,6 +258,7 @@ if SERVER then
                 self.CisCfgIdx = nil
                 self.Station = nil
                 self.Route = 0
+                self.Message = 1
                 self.LastStationDraft = "Посадки нет"
                 self.LastStation = "Посадки нет"
                 self.DoorAlarm = false
@@ -382,18 +386,24 @@ if SERVER then
             "Посадки нет",
         }
 
+        self.BaseMessages = {
+            { name = "Тест", rec = {"#SarmatInit"} }
+        }
+
         self.LastStationDraft = "Посадки нет"
         self.LastStation = "Посадки нет"
         self.DoorAlarm = false
+
+        self.OwnerSteamid = IsValid(self.Train.Owner) and self.Train.Owner:SteamID64() or "0000"
     end
 
-    function TRAIN_SYSTEM:SetupInformer(Wag)
+    function TRAIN_SYSTEM:SetupInformer(Wag, noPage, keepLastSt)
         local reset = self.InformerCfgIdx ~= Wag:GetNW2Int("Announcer", 1) or self.CisCfgIdx ~= Wag:GetNW2Int("CISConfig", 0) or self.RouteNumber < 0
         local idx = Wag:GetNW2Int("Announcer", 1)
         local cfg = Metrostroi.ASNPSetup[idx]
         local cisIdx = Wag:GetNW2Int("CISConfig", 0)
         local cisCfg = (Metrostroi.CISConfig or {})[cisIdx]
-        if not cfg[1] then
+        if not cfg or not cfg[1] then
             self.InformerState = STATE_SETUP
             self.InformerCfg = nil
             self.InformerCfgIdx = -1
@@ -406,14 +416,17 @@ if SERVER then
         self.CisCfgIdx = not reset and self.CisCfgIdx or cisIdx
         self.RouteNumber = self.RouteNumber >= 0 and self.RouteNumber or 0
         self.InformerState = not reset and STATE_NORMAL or STATE_SETUP
-        self.Page = not reset and PAGE_LAST_ST or PAGE_ROUTES
+        self.Page = not reset and PAGE_MAIN or PAGE_ROUTES
         self.Route = not reset and self.Route > 0 and self.Route or 1
         self.Path = Wag.Buik_Path.Value > 0
         self.PageSelTimer = nil
+        self:InitMessages()
         self:InitRoutes()
         self:InitRoute()
-        self:ReturnInformer(true)
-        self:UpdatePage(true)
+        self:ReturnInformer(not keepLastSt, noPage)
+        if not noPage then
+            self:UpdatePage(true)
+        end
     end
 
     function TRAIN_SYSTEM:WriteToIk(str, data, arg, ...)
@@ -442,6 +455,7 @@ if SERVER then
         if path ~= self.Path then
             self.Path = path
             self.RouteChanged = true
+            self.LineChanged = true
             self:Highlight("LastStation")
             self:ReturnInformer(true)
             self:UpdatePage(true)
@@ -453,16 +467,21 @@ if SERVER then
         if self.DoorAlarm and Wag.BUKP.DoorClosed > 0 then self.DoorAlarm = false end
         Wag.IK.DoorAlarm = self.DoorAlarm
 
+        if self.Page == PAGE_MAIN then
+            self.StationWas = self.Station
+        end
+
         if self.InformerState == STATE_SETUP then
             self.RouteNumber = Wag.BUKP.RouteNumber or 99
             self.InformerState = STATE_NORMAL
             self.RouteChanged = true
+            self.LineChanged = true
             self:Highlight("List")
 
         elseif self.InformerState == STATE_NORMAL then
             if self.Page ~= PAGE_MAIN then
-                if not self.PageSelTimer then self.PageSelTimer = CurTime() + PAGE_TIMEOUT end
-                if CurTime() >= self.PageSelTimer then
+                if not self.PageSelTimer and self.Page ~= PAGE_MSG then self.PageSelTimer = CurTime() + PAGE_TIMEOUT end
+                if self.PageSelTimer and CurTime() >= self.PageSelTimer then
                     self.PageSelTimer = nil
                     self.Page = PAGE_MAIN
                     self:Highlight("List")
@@ -474,6 +493,18 @@ if SERVER then
                     self.RouteChanged = false
                     self:ActivateRoute()
                 end
+            end
+        end
+
+        if self.Page == PAGE_MSG and not self.Sarmat then
+            local ply = player.GetBySteamID64(self.OwnerSteamid)
+            for idx = -1, 1 do
+                local msg = self.Messages[(self.Message or 1) + idx]
+                local val = false
+                if msg and (msg == self.RecMsg1 or msg == self.RecMsg2) and IsValid(ply) and ZMS and ZMS.Rec765 and ZMS.Rec765.AllReady then
+                    val = not ZMS.Rec765.AllReady(ply, msg == self.RecMsg1 and 1 or 2)
+                end
+                Wag:SetNW2Bool("BUIK:Recording" .. (idx + 2), val)
             end
         end
 
@@ -512,6 +543,21 @@ if SERVER then
                 self.UpdateIkTimer = nil
                 self:UpdateIk()
             end
+        elseif self.Page == PAGE_MSG then
+            if self.Sarmat then
+                self:SetSarmatList(self.Messages, self.Message, false, true)
+            else
+                if #self.Messages > 0 then
+                    self:SetListLine(1, self.Message > 1 and self.Messages[self.Message - 1].name or "")
+                    self:SetListLine(2, self.Messages[self.Message].name)
+                    self:SetListLine(3, #self.Messages > self.Message and self.Messages[self.Message + 1].name or "")
+                else
+                    self:SetErrMsg("Не заведено")
+                end
+            end
+            if not displayOnly then
+                self:UpdateLastStation()
+            end
         elseif self.Page == PAGE_LAST_ST then
             if self.Sarmat then
                 self:SetSarmatList(self.LastStations, self.LastStationIdx, false, true)
@@ -548,6 +594,7 @@ if SERVER then
             end
             if not displayOnly then
                 self.RouteChanged = true
+                self.LineChanged = true
                 self:Highlight("LastStation")
                 self:UpdateRoute()
             end
@@ -613,14 +660,8 @@ if SERVER then
     end
 
     function TRAIN_SYSTEM:Trigger(name, val)
-        if self.InformerState == STATE_NORMAL then
-            if val and name == "Buik_MicBtn" and self:IsCurrentlyPlaying() and self.Train.Buik_MicLine.Value > 0 then
-                self:StopMessage()
-                self.DoorAlarm = false
-                return
-            end
-
-            if val and name == "Buik_Mode" then
+        if self.InformerState == STATE_NORMAL and self.State == STATE_NORMAL and val then
+            if name == "Buik_Mode" then
                 local x = self.Page + 1
                 if x > 4 then x = 1 end
                 self.Page = x
@@ -629,14 +670,14 @@ if SERVER then
                 self.PageSelTimer = nil
                 return
             end
-            if val and self.Page ~= PAGE_MAIN and name == "Buik_Return" then
+            if self.Page ~= PAGE_MAIN and name == "Buik_Return" then
                 self.Page = PAGE_MAIN
                 self:Highlight("List")
                 self:UpdatePage(true)
                 return
             end
 
-            if val and not (self.RouteChanged and self.Page == PAGE_MAIN) and (name == "Buik_Down" or name == "Buik_Up") then
+            if not (self.RouteChanged and self.Page == PAGE_MAIN) and (name == "Buik_Down" or name == "Buik_Up") then
                 local delta = name == "Buik_Down" and 1 or -1
                 local listCfg = (
                     self.Page == PAGE_MAIN and "Station" or
@@ -650,50 +691,113 @@ if SERVER then
                 local allowZero = istable(listCfg) and listCfg[3]
                 local listTbl = self[listName]
                 if not listTbl then return end
+                self.PageSelTimer = nil
+                self:Highlight("List")
                 local listLen = #listTbl
                 if listLen < 1 then return end
 
                 local loop = (self.Page == PAGE_MAIN and self.Loop)
-                local x = self[cursorName] + delta
+                local x = (self[cursorName] or 1) + delta
                 if loop and x > listLen then x = 1 end
                 if loop and x < 1 then x = listLen end
                 if listLen >= x and (x > 0 or allowZero and x >= 0) then
                     self[cursorName] = x
                 end
-                self:Highlight("List")
                 self:UpdatePage()
-                self.PageSelTimer = nil
                 return
             end
 
-            if self.Page == PAGE_MAIN then
-                if val and self.RouteChanged and (name == "Buik_Return" or name == "R_Program1" or name == "Buik_Down" or name == "Buik_Up") then
+            if self.Page == PAGE_MAIN or self.Page == PAGE_MSG then
+                if self.RouteChanged and (name == "Buik_Return" or name == "R_Program1" or name == "Buik_Down" or name == "Buik_Up") then
                     self.RouteChanged = false
                     local exec = self.Station > 1 and name ~= "R_Program1"
                     self:ActivateRoute()
                     if exec then
                         self:Trigger(name, val)
                     end
+                    return
 
-                elseif val and name == "R_Program1" then
+                elseif name == "R_Program1" then
                     if self:IsCurrentlyPlaying() then
                         self:StopMessage()
-                        self.DoorAlarm = false
+                        if self.Page == PAGE_MAIN then
+                            self.DoorAlarm = false
+                        end
                     end
                     self:Play()
+                    return
 
-                elseif val and name == "Buik_Return" then
+                elseif name == "Buik_Return" then
                     self:ReturnInformer()
                     if not self.ServiceRoute then self.Station = 1 end
                     self:UpdatePage(true, true)
+                    return
 
                 end
             end
+
+            if name == "Buik_EMsg1" or name == "Buik_EMsg2" then
+                local msg = name == "Buik_EMsg1" and self.RecMsg1 or self.RecMsg2
+                if msg then
+                    if self:IsCurrentlyPlaying() then
+                        self:StopMessage()
+                    end
+                    self:Play(msg)
+                end
+                return
+            end
+        end
+
+        if self.InformerState == STATE_NORMAL and val and name == "Buik_MicBtn" and self:IsCurrentlyPlaying() and self.Train.Buik_MicLine.Value > 0 then
+            self:StopMessage()
+            self.DoorAlarm = false
+            return
         end
 
         if self.State == STATE_INACTIVE_CABIN and name == "Buik_Return" and val then
             self.Activate = true
         end
+    end
+
+    function TRAIN_SYSTEM:InitMessages()
+        self.Messages = {}
+        local cfg = self.InformerCfg[self.Route]
+        if cfg then
+            if cfg.spec_cik then
+                table.Add(self.Messages, cfg.spec_cik)
+            else
+                if cfg.spec_wait then
+                    if cfg.spec_wait[1] then
+                        table.insert(self.Messages, {
+                            name = "Поезд скоро отправится",
+                            rec = cfg.spec_wait[1]
+                        })
+                    end
+                    if cfg.spec_wait[2] then
+                        table.insert(self.Messages, {
+                            name = "Поезд отправляется",
+                            rec = cfg.spec_wait[2]
+                        })
+                    end
+                end
+                if cfg.spec_last then
+                    table.insert(self.Messages, {
+                        name = "Побыстрее выходите",
+                        rec = cfg.spec_last,
+                        expell = true
+                    })
+                end
+            end
+        end
+        for idx = 1, 2 do
+            local msg = {
+                name = "Запись с микрофона " .. idx,
+                rec = {string.format("#UserRec.%s.%d", self.OwnerSteamid, idx)}
+            }
+            self["RecMsg" .. idx] = msg
+            table.insert(self.Messages, msg)
+        end
+        table.Add(self.Messages, self.BaseMessages)
     end
 
     function TRAIN_SYSTEM:InitRoutes()
@@ -769,7 +873,7 @@ if SERVER then
         self:ReturnInformer(true)
     end
 
-    function TRAIN_SYSTEM:ReturnInformer(resetLastSt)
+    function TRAIN_SYSTEM:ReturnInformer(resetLastSt, noBack)
         if resetLastSt then
             self.LastStationIdx = 0
         end
@@ -836,12 +940,14 @@ if SERVER then
         self:Highlight("List")
 
         lastStation = lastStation or routeStations[1]
-        if self.LastStationDraft ~= lastStation.name then
+        if noBack or self.LastStationDraft ~= lastStation.name then
             self:Highlight("LastStation")
             self.RouteChanged = true
         end
         self.LastStationDraft = lastStation.name
-        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "RouteChanged", true)
+        if not noBack then
+            self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "RouteChanged", true)
+        end
     end
 
     function TRAIN_SYSTEM:InsertStation(routeStations, station, idx, lastStation, routeStationsCfg)
@@ -863,10 +969,9 @@ if SERVER then
     function TRAIN_SYSTEM:UpdateLastStation()
         local lastStation = self.LastStations[self.LastStationIdx]
         if self.LastStationDraft ~= lastStation.name then
-            local stationWas = self.Station
             self:ReturnInformer()
-            if not self.LoopRoute and stationWas < #self.Stations then
-                self.Station = stationWas
+            if not self.LoopRoute and (self.StationWas or 1) < #self.Stations then
+                self.Station = (self.StationWas or 1)
             end
         end
     end
@@ -888,8 +993,6 @@ if SERVER then
 
     function TRAIN_SYSTEM:UpdatePlates()
         self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "RouteNumber", self.RouteNumber)
-        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "Route", self.Route)
-        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "InformerCfg", self.InformerCfgIdx)
 
         local lastStationShort = (self.IsServiceRoute or self.Loop) and self.LastStation or self.Stations[1][2] or self.Stations[1][1]
         local lastStation = self.LastStations[self.LastStationIdx]
@@ -898,7 +1001,14 @@ if SERVER then
         self.Train.FrontIK:TriggerInput("SetRoute", self.LastStation, self.RouteNumber, lastStation and lastStation.index or nil)
         self.Train:SetNW2String("RouteNumber", self.RouteNumber)
 
-        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "UpdateBmt", not self.CloneBmt and self.Stations[1].index or lastStation and lastStation.index or nil)
+        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "InformerCfg", self.InformerCfgIdx)
+        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "CisCfg", self.CisCfgIdx)
+        self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "Route", self.Route)
+
+        if self.LineChanged or self.CloneBmt then
+            self.LineChanged = false
+            self.Train:CANWrite("BUIK", self.Train:GetWagonNumber(), "BUIK", nil, "UpdateBmt", not self.CloneBmt and self.Stations[1].index or lastStation and lastStation.index or nil)
+        end
     end
 
     function TRAIN_SYSTEM:InitIk(lastSt)
@@ -944,8 +1054,13 @@ if SERVER then
         if textdata == "Deactivate" then self.Active = false self.State = STATE_INACTIVE_CABIN end
         if textdata == "RouteChanged" then self.RouteChanged = numdata end
         if textdata == "RouteNumber" then self.RouteNumber = numdata end
-        if textdata == "Route" then self.Route = numdata end
         if textdata == "InformerCfg" then self.InformerCfgIdx = numdata self.InformerCfg = nil end
+        if textdata == "CisCfg" then self.CisCfgIdx = numdata end
+        if textdata == "Route" then
+            local routeChanged = self.Route ~= numdata
+            self.Route = numdata
+            self:SetupInformer(self.Train, true, not routeChanged)
+        end
         if textdata == "LastStation" then
             self.LastStation = numdata
             self.LastStationDraft = numdata
@@ -969,7 +1084,45 @@ if SERVER then
         return self.AnnSchedule and #self.AnnSchedule > 0 or self.AnnNextAt and CurTime() < self.AnnNextAt
     end
 
-    function TRAIN_SYSTEM:Play()
+    function TRAIN_SYSTEM:Play(aux_msg)
+        local clicks = self.Train:GetNW2Bool("AnnouncerClicks", false)
+
+        if not aux_msg then self:Highlight("List") end
+
+        if aux_msg or self.Page == PAGE_MSG then
+            if not aux_msg then self.PageSelTimer = nil end
+            local msg = aux_msg or self.Messages[self.Message]
+            if not msg or not msg.rec then return end
+
+            if (msg == self.RecMsg1 or msg == self.RecMsg2) then
+                local ply = player.GetBySteamID64(self.OwnerSteamid)
+                if not (IsValid(ply) and ZMS and ZMS.Rec765 and ZMS.Rec765.AllReady and ZMS.Rec765.AllReady(ply, msg == self.RecMsg1 and 1 or 2)) then
+                    return
+                end
+            end
+
+            if clicks then
+                self:QueueAnnounce("click2")
+            elseif msg.rec[1] and msg.rec[1] ~= "#SarmatInit" then
+                self:QueueAnnounce({0.4})
+            end
+            self:QueueAnnounce(msg.rec)
+            if clicks then
+                self:QueueAnnounce("click2")
+            end
+            if msg.expell then
+                for _, wag in pairs(self.Train.WagonList) do
+                    wag.AnnouncementToLeaveWagon = true
+                end
+            end
+
+            if self.Page == PAGE_MSG and not aux_msg then
+                self.Page = PAGE_MAIN
+                self:UpdatePage()
+            end
+            return
+        end
+
         if self.IsServiceRoute then return end
 
         self:UpdateIk(true)
@@ -979,7 +1132,6 @@ if SERVER then
         self.Arrived = not station.is_dep
         if self.Station < #self.Stations or self.Loop then
             self.Station = (self.Station % #self.Stations) + 1
-            self:Highlight("List")
             self:UpdatePage(false)
             self.UpdateIkTimer = nil
         end
@@ -997,7 +1149,6 @@ if SERVER then
 
         if station.is_dep and self.Train.BUKP.DoorClosed < 1 then self.DoorAlarm = CurTime() end
 
-        local clicks = self.Train:GetNW2Bool("AnnouncerClicks", false)
         if clicks then
             self:QueueAnnounce("click1")
         elseif not is_extra then
@@ -1059,6 +1210,13 @@ if SERVER then
             rec = snd[1]
             dur = snd[2]
         end
+        if isstring(rec) and ZMS and ZMS.Rec765 and ZMS.Rec765.GetDuration and string.StartsWith(rec, "#UserRec.") then
+            local ply = player.GetBySteamID64(self.OwnerSteamid)
+            local idx = tonumber(rec[#rec])
+            if idx and IsValid(ply) then
+                dur = ZMS.Rec765.GetDuration(ply, idx) + 2
+            end
+        end
         if rec then
             self:SendAnnouncerCmd(rec)
         end
@@ -1076,25 +1234,49 @@ if SERVER then
         end
     end
 
-    function TRAIN_SYSTEM:RouteNumberScroll(down)
-        if not self.RouteNumber or self.RouteNumber < 0 then
-            self.RouteNumber = 0
-            return
-        end
-        local delta = down and -1 or 1
-        local val = self.RouteNumber + delta
-        if val < 0 then val = 100
-        elseif val > 777 then val = 0
-        end
-        self.RouteNumber = val
-    end
-
 
 else
 
-    local announcerCommandSounds = {
-        ["#SarmatInit"] = "subway_trains/722/sarmat_start.mp3"
-    }
+    local playSync = {}
+
+    local function playOnceFromPos(wag, id, sndname, volume, pitch, min, max, location)
+        local userRec = string.StartsWith(sndname, "#UserRec.")
+        if userRec then sndname = string.sub(sndname, 10) end
+        local filePath = userRec and ZMS.Rec765.GetSoundPath(sndname)
+        if filePath then sndname = filePath userRec = false end
+
+        if not userRec then
+            if IsValid(wag) and wag.PlayOnceFromPos then
+                wag:PlayOnceFromPos(id, sndname, volume, pitch, min, max, location)
+            end
+            return
+        end
+
+        if not ZMS or not ZMS.Rec765 or not ZMS.Rec765.GetSound then return end
+        if not IsValid(wag) or wag.StopSounds or not wag.ClientPropsInitialized or wag.CreatingCSEnts then return end
+
+        local s = wag.Sounds[id]
+        if IsValid(s) then s:Stop() end
+        wag.Sounds[id] = nil
+        wag.SoundPositions[id] = {min, max, location}
+
+        local syncId = string.format("%s.%d", sndname, wag:EntIndex())
+        if not playSync[syncId] or CurTime() > playSync[syncId] then
+            playSync[syncId] = CurTime() + 2
+        end
+
+        ZMS.Rec765.GetSound(sndname, function(snd)
+            if not snd then return end
+            wag.Sounds[id] = snd
+            timer.Simple(playSync[syncId] - CurTime(), function()
+                if not IsValid(snd) or snd:GetState() ~= GMOD_CHANNEL_PAUSED then return end
+                wag:SetBassParameters(snd, pitch, volume, wag.SoundPositions[id], false)
+                snd:Play()
+            end)
+        end)
+    end
+
+    local announcerCommandSounds = { ["#SarmatInit"] = "subway_trains/765/sarmat_start.mp3" }
     net.Receive("BUIK765.AnnouncerCmd", function()
         local wagon = net.ReadEntity()
         local recording = net.ReadString()
@@ -1106,21 +1288,21 @@ else
 
         if wagon.AnnouncerPositions then
             for k, v in ipairs(wagon.AnnouncerPositions) do
-                wagon:PlayOnceFromPos("announcer" .. k, recording, wagon.OnAnnouncer and wagon:OnAnnouncer(v[3], k) or v[3] or 1, 1, v[2] or 400, 1e9, v[1])
+                playOnceFromPos(wagon, "announcer" .. k, recording, wagon.OnAnnouncer and wagon:OnAnnouncer(v[3], k) or v[3] or 1, 1, v[2] or 400, 1e9, v[1])
             end
         else
-            wagon:PlayOnceFromPos("announcer", recording, wagon.OnAnnouncer and wagon:OnAnnouncer(1) or 1, 1, 600, 1e9, Vector(0, 0, 0))
+            playOnceFromPos(wagon, "announcer", recording, wagon.OnAnnouncer and wagon:OnAnnouncer(1) or 1, 1, 600, 1e9, Vector(0, 0, 0))
         end
     end)
 
     local scr_w, scr_h = 2486, 496
 
     function TRAIN_SYSTEM:ClientThink(dT)
-        if not self.Train.BUIK or not self.Train:ShouldDrawPanel("BUIK") then return end
+        if not self.Train.BUIKscr or not self.Train:ShouldDrawPanel("BUIK") then return end
         if self.NextDraw and CurTime() < self.NextDraw then return end
         self.NextDraw = CurTime() + 0.05
 
-        render.PushRenderTarget(self.Train.BUIK, 0, 0, scr_w, scr_h)
+        render.PushRenderTarget(self.Train.BUIKscr, 0, 0, scr_w, scr_h)
         render.Clear(0, 0, 0, 0)
         cam.Start2D()
             self:DrawBuik()
@@ -1336,18 +1518,22 @@ else
         local wagX, wagY = wagonsMarginX, wagonsMarginY
         for idx = 1, wagNum do
             local err = Wag:GetNW2Bool("BUIK:WagErr" .. idx, false)
+            local reverse = false
             local doorsClosed = true
             for di = 1, 8 do
                 local closed = Wag:GetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), false)
                 wagDoors[di] = closed
                 doorsClosed = doorsClosed and closed
+                local left = di < 5
+                reverse = reverse or Wag:GetNW2Bool(string.format("Skif:DoorReverse%d%s%d", left and di or 9 - di, left and "L" or "R", idx), false)
             end
 
-            local color = err and colorRed or not doorsClosed and self.colorActive or self.colorInactive
+            local color = err and colorRed or reverse and colorYellow or not doorsClosed and self.colorActive or self.colorInactive
 
             local extendStart, extendEnd = 0, 0
             if idx == 1 then
-                local cabinColor = Wag:GetNW2Bool("BUIK:ActiveCabin", false) and self.colorActiveCabin or self.colorBackground
+                self.ActiveCab = Wag:GetNW2Bool("BUIK:ActiveCabin", false)
+                local cabinColor = self.ActiveCab and self.colorActiveCabin or self.colorBackground
                 draw.RoundedBoxEx(sizeWagHead, wagX, wagY, sizeWagHead * 2, sizeWagH, color, true, false, true, false)
                 draw.RoundedBoxEx(sizeWagHead, wagX + 2, wagY + 2, (sizeWagHead * 2) - 4, sizeWagH - 4, cabinColor, true, false, true, false)
                 wagX = math.floor(wagX + sizeWagHead)
@@ -1383,7 +1569,14 @@ else
 
             draw.SimpleText(Wag:GetNW2String("BUIK:WagNum" .. idx, "?????"), "BUIK64", wagX + sizeWagW / 2,  wagY + sizeWagH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
+            self.Wagons = self.Wagons or {}
+            self.Wagons[idx] = err and 3 or reverse and 2 or not doorsClosed and 1 or nil
+
             wagX = math.floor(wagX + sizeWagGap * 2 + sizeWagW)
+        end
+
+        for idx = 1, 8 do
+            Wag:ShowHideSceenHelper(idx <= wagNum, "BUIK", "Wagon" .. idx)
         end
     end
 
@@ -1398,25 +1591,25 @@ else
         draw.RoundedBox(sizeRnMarginY, x, y, sizeRnDigitBoxW, sizeRnDigitBoxH, self.colorInactive)
         draw.RoundedBox(sizeRnMarginY, x + 2, y + 2, sizeRnDigitBoxW - 4, sizeRnDigitBoxH - 4, self.colorBackground)
 
+        self.RouteNum = Wag:GetNW2String("BUIK:RouteNumber", "---")
         local color = highlightsState["RouteNumber"] and self.colorActive or self.colorInactive
-        draw.SimpleText(Wag:GetNW2String("BUIK:RouteNumber", "---"), "BUIKRoute", x + sizeRnDigitBoxW / 2, y + sizeRnDigitBoxH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(self.RouteNum, "BUIKRoute", x + sizeRnDigitBoxW / 2, y + sizeRnDigitBoxH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
         local rnText = "№ Маршрута"
         draw.SimpleText(rnText, getLastStationFont(rnText, 0.8), x + sizeRnDigitBoxW / 2, y + sizeRnDigitBoxH / 2 - 70, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
-    local lastStationCvar = CreateClientConVar("zms_765ls", "ОШИБКА", false, false)
     function TRAIN_SYSTEM:DrawLastStation(Wag)
         local x, y = 0, scr_h - sizeFooterH * 2
-        local lastStation = Wag:GetNW2String("BUIK:LastStation", lastStationCvar:GetString())
+        self.LastStation = Wag:GetNW2String("BUIK:LastStation", "ОШИБКА")
         local color = highlightsState["LastStation"] and self.colorActive or self.colorInactive
-        draw.SimpleText(lastStation, getLastStationFont(lastStation), x + sizeLeftPanelW / 2, y + sizeFooterH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(self.LastStation, getLastStationFont(self.LastStation), x + sizeLeftPanelW / 2, y + sizeFooterH / 2, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
     function TRAIN_SYSTEM:DrawClock(Wag)
         local x, y = 0, scr_h - sizeFooterH
-        local time = Wag:GetNW2String("BUIK:Clock", "--:--:--")
-        draw.SimpleText(time, "BUIKClock", x + sizeLeftPanelW / 2, y + sizeFooterH / 2, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        self.Time = Wag:GetNW2String("BUIK:Clock", "--:--:--")
+        draw.SimpleText(self.Time, "BUIKClock", x + sizeLeftPanelW / 2, y + sizeFooterH / 2, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
     local sizePgGap = 16
@@ -1427,10 +1620,10 @@ else
     local pageNames = {"Станция", "Доп. инфо.", "Ст. оборота", "Маршруты"}
     local functionNames = {"AUTO PLAY", "СВЯЗЬ С СЦ"}
     function TRAIN_SYSTEM:DrawFooter(Wag)
-        local selected = Wag:GetNW2Int("BUIK:Page", 0)
+        self.Page = Wag:GetNW2Int("BUIK:Page", 0)
         local x, y = sizeLeftPanelW + sizePgGap, scr_h - sizeFooterH + sizePgMargin
         for idx = 1, 4 do
-            draw.RoundedBox(10, x, y, sizePgW, sizePgH, selected == idx and self.colorSelected or self.colorInactive)
+            draw.RoundedBox(10, x, y, sizePgW, sizePgH, self.Page == idx and self.colorSelected or self.colorInactive)
             draw.SimpleText(pageNames[idx], "BUIKSystemSmall", x + sizePgW / 2, y + sizePgH / 2, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             x = x + sizePgW + sizePgGap
         end
@@ -1442,10 +1635,11 @@ else
             x = x + sizePgW + sizePgGap
         end
 
+        self.Odometer = Wag:GetNW2Int("BUIK:Odometer", 0)
         surface.SetDrawColor(self.colorInactive)
         surface.DrawRect(x, y - sizePgMargin, 2, sizeFooterH)
         draw.SimpleText("км", "BUIKOdometer", scr_w - sizeSpeedometrW - sizeRightMargin, y + sizePgH / 2 + 1, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-        draw.SimpleText(string.format("%07d", Wag:GetNW2Int("BUIK:Odometer", 0)), "BUIKClock", scr_w - sizeSpeedometrW - sizeRightMargin - 60, y + sizePgH / 2, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+        draw.SimpleText(string.format("%07d", self.Odometer), "BUIKClock", scr_w - sizeSpeedometrW - sizeRightMargin - 60, y + sizePgH / 2, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     end
 
     local sizeStatusGapX = 28
@@ -1476,9 +1670,13 @@ else
                     if not color then print(idx, highlight, state) end
                     local textColor = (state ~= STATE_RED) and self.colorBackground or highlight and self.colorWhite or self.colorDarkerWhite
 
+                    local text = Wag:GetNW2String("BUIK:StateText" .. idx, statesDefaults[idx])
+                    self.StateText = self.StateText or {}
+                    self.StateText[idx] = text
+
                     draw.RoundedBox(10, x, y, w, sizeStatusStateH, color)
                     draw.SimpleText(
-                        Wag:GetNW2String("BUIK:StateText" .. idx, statesDefaults[idx]), "BUIKSystem",
+                        text, "BUIKSystem",
                         x + w / 2, y + sizeStatusStateH / 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER
                     )
                     x = x + w + sizeStatusGapX
@@ -1499,6 +1697,9 @@ else
         for idx = 1, 3 do
             if idx == 2 then
                 draw.RoundedBox(10, x, y, sizeListLineW, sizeListLineH, active and self.colorSelectedLineActive or self.colorSelectedLineInactive)
+            end
+            if Wag:GetNW2Int("BUIK:Page", 0) == PAGE_MSG and Wag:GetNW2Bool("BUIK:Recording" .. idx, false) then
+                draw.SimpleText("запись", "BUIKSystemSmall", x + sizeListLineW - 2, y + sizeListLineH / 2, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
             end
             local color = active and self.colorLineTextActive or idx == 2 and self.colorLineTextInactive or self.colorInactive
             draw.SimpleText(Wag:GetNW2String("BUIK:Line" .. idx, ""), "BUIK64", x + sizeListMargin, y + sizeListLineH / 2, color, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
@@ -1580,6 +1781,9 @@ else
 
         draw.SimpleText("00", "BUIKSpeedometer", x0, y0 - 88, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         draw.SimpleText(tostring(math.floor(speed) % 100), "BUIKSpeedometer", x0 + (speed < 10 and 70 or 0), y0 - 88, self.colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+        self.MaxSpeed = maxSpeed
+        self.NextSpeed = nextSpeed
     end
 
     local function drawOutlinedRoundedRect(r, x, y, w, h, borderColor, color, ...)
@@ -1657,17 +1861,26 @@ else
                 dx = dx + sizeSarmatDoorW + sizeSarmatDoorGap
             end
 
+            self.Wagons = self.Wagons or {}
+            self.Wagons[idx] = err and 3 or nil
+
             x = x + sizeSarmatWagW + 2
+        end
+
+        for idx = 1, 8 do
+            Wag:ShowHideSceenHelper(idx <= wagNum, "BUIK", "Wagon" .. idx)
         end
     end
 
     function TRAIN_SYSTEM:DrawRouteNumberSarmat(Wag)
         local x, y = scr_w - sizeSarmatFooterW + sizeSarmatRnBoxMargin + sizeSarmatRnBox / 2, sizeSarmatWagonsH + sizeSarmatRnBoxMargin + sizeSarmatRnBox / 2
-        draw.SimpleText(Wag:GetNW2String("BUIK:RouteNumber", "---"), "BUIKRouteSarmat", x + 52, y, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+        self.RouteNum = Wag:GetNW2String("BUIK:RouteNumber", "---")
+        draw.SimpleText(self.RouteNum, "BUIKRouteSarmat", x + 52, y, self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     end
 
     function TRAIN_SYSTEM:DrawLastStationSarmat(Wag)
-        draw.SimpleText(Wag:GetNW2String("BUIK:LastStation", "---"), "BUIKSarmat",
+        self.LastStation = Wag:GetNW2String("BUIK:LastStation", "---")
+        draw.SimpleText(self.LastStation, "BUIKSarmat",
             scr_w - sizeSarmatSpeedometerW - 8, sizeSarmatWagonsH + (sizeSarmatCentralH - sizeSarmatTextLineH) / 2,
             self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     end
@@ -1706,8 +1919,8 @@ else
         draw.NoTexture()
         surface.DrawPoly(vtxSarmatCursor)
 
-        local selected = Wag:GetNW2Int("BUIK:Page", 0)
-        draw.SimpleText(sarmatPages[selected] or "", "BUIKSystemSmall",
+        self.Page = Wag:GetNW2Int("BUIK:Page", 0)
+        draw.SimpleText(sarmatPages[self.Page] or "", "BUIKSystemSmall",
             sizeSarmatLeftBarW - sizeSarmatCursorHalfS * 2 - 4, sizeSarmatWagonsH + sizeSarmatCursorBoxH / 2,
             self.colorActive, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     end
@@ -1732,9 +1945,13 @@ else
                 local color = highlight and self.statesColorsHighlighted[state] or self.statesColors[state]
                 if not color then print(trueIdx, highlight, state) end
 
+                local text = Wag:GetNW2String("BUIK:StateText" .. trueIdx, statesDefaults[trueIdx])
+                self.StateText = self.StateText or {}
+                self.StateText[idx] = text
+
                 drawOutlinedRoundedRect(8, x, y, w, sizeSarmatStatusBoxH, self.colorActive, color)
                 draw.SimpleText(
-                    Wag:GetNW2String("BUIK:StateText" .. trueIdx, statesDefaults[trueIdx]), "BUIKSystem",
+                    text, "BUIKSystem",
                     x + w / 2, y + sizeSarmatStatusBoxH / 2, self.colorBackground, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER
                 )
 
@@ -1799,6 +2016,9 @@ else
 
         draw.SimpleText(Format("%02d", math.floor(speed) % 100), "BUIKSpeedometerSarmat", x0, y0 - 106, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         draw.SimpleText(tostring(math.floor(speed) % 100), "BUIKSpeedometerSarmat", x0 + (speed < 10 and 54 or 0), y0 - 106, self.colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+        self.MaxSpeed = maxSpeed
+        self.NextSpeed = nextSpeed
     end
 
     local sizeSarmatListLineW = scr_w - sizeSarmatLeftBarW - sizeSarmatCentralW - sizeSarmatSpeedometerW - 3
@@ -1830,6 +2050,7 @@ else
             self.LastState = state
         end
 
+        local power = true
         local colors = self.Train:GetNW2Int("BuikType", 1)
         local sarmat = colors == 3
         if dbg or self.colors ~= colors then
@@ -1908,6 +2129,7 @@ else
             self.Train.BuikAlsArs = self.Train.BuikTwoToSix or self.Train:GetNW2Bool("AlsArs", false)
             self.Train.BuikAutoPlay = self.Train:GetNW2Bool("BUIK:AutoPlay", false)
             if sarmat then
+                self.Train:ShowScreenHelper("BUIK", self.Train.BuikTwoToSix and "Sarmat9" or "Sarmat8")
                 self:DrawBordersSarmat()
                 self:DrawWagonsSarmat(self.Train)
                 self:DrawRouteNumberSarmat(self.Train)
@@ -1917,6 +2139,7 @@ else
                 self:DrawSpeedometerSarmat(self.Train)
                 self:DrawListSarmat(self.Train)
             else
+                self.Train:ShowScreenHelper("BUIK", self.Train.BuikTwoToSix and "Mst5" or "Mst4")
                 self:DrawBorders()
                 self:UpdateHighlights(self.Train)
                 self:DrawWagons(self.Train)
@@ -1965,7 +2188,33 @@ else
         -- Unpowered
         else
             surface.SetDrawColor(0, 0, 0)
-            surface.DrawRect(0, 0, scr_w, scr_h)
+            power = false
+        end
+
+        if power then
+            self:DrawMalfunc()
+        end
+
+        if state ~= STATE_NORMAL then
+            self.Train:ShowScreenHelper("BUIK", false)
+        end
+    end
+
+    function TRAIN_SYSTEM:DrawMalfunc()
+        if self.Train:GetNW2Bool("LvCritical", false) then
+            if not self.Flashbang then self.Flashbang = math.random() < 0.75 and CurTime() + math.Rand(0, 0.6) or 0 end
+            if self.Flashbang and self.Flashbang > 0 and CurTime() >= self.Flashbang then
+                surface.SetDrawColor(255, 255, 255)
+                surface.DrawRect(0, 0, scr_w, scr_h)
+                if CurTime() - self.Flashbang > 0.1 then
+                    self.Flashbang = 0
+                end
+            elseif math.random() < 0.8 then
+                surface.SetDrawColor(8, 8, 8, math.floor(math.Rand(100, 180)))
+                surface.DrawRect(0, 0, scr_w, scr_h)
+            end
+        else
+            self.Flashbang = nil
         end
     end
 end

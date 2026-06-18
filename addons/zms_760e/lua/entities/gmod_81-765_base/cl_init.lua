@@ -9,6 +9,8 @@ ENT.ClientProps = {}
 ENT.ButtonMap = {}
 ENT.ClientSounds = {}
 ENT.AutoAnims = {}
+ENT.ScreenHelpers = {}
+ENT.ScreenHelpersHide = {}
 ENT.ClientPropsInitialized = false
 
 ENT.ButtonMap["PVZ"] = {
@@ -25,7 +27,7 @@ table.Add(ENT.ButtonMap["PVZ"].buttons, ENT.PvzToggles)
 ENT.ButtonMap["Power"] = {
     pos = Vector(448.7, 43.2, -6.3),
     ang = Angle(0, -90, 90),
-    width = 50,
+    width = 100,
     height = 50,
     scale = 0.0625,
     hideseat = 0.2,
@@ -37,9 +39,29 @@ ENT.ButtonMap["Power"] = {
             radius = 20,
             tooltip = "Бортсеть вкл",
             model = {
-                model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
+                model = "models/metrostroi_train/81-760/81_760_button_green.mdl",
                 z = -0.5,
                 var = "PowerOn",
+                speed = 12,
+                vmin = 0,
+                vmax = 0.5,
+                sndvol = 0.3,
+                snd = function(val) return val and "button_square_on" or "button_square_off" end,
+                sndmin = 80,
+                sndmax = 1e3 / 3,
+                sndang = Angle(-90, 0, 0),
+            }
+        },
+        {
+            ID = "PowerOffSet",
+            x = 51,
+            y = 25,
+            radius = 20,
+            tooltip = "Бортсеть выкл",
+            model = {
+                model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
+                z = -0.5,
+                var = "PowerOff",
                 speed = 12,
                 vmin = 0,
                 vmax = 0.5,
@@ -157,6 +179,35 @@ ENT.ClientProps["RearTrain"] = {
 
 ENT.ClientSounds["RearBrakeLineIsolation"] = {{"RearBrake", function() return "disconnectvalve" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)}}
 ENT.ClientSounds["RearTrainLineIsolation"] = {{"RearTrain", function() return "disconnectvalve" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)}}
+
+ENT.ButtonMap["CoupleCenteringF"] = {
+    pos = Vector(460, -50, -50), ang = Angle(0, 90, 90),
+    width = 100, height = 30, scale = 1,
+    buttons = {
+        {
+            ID = "CoupleCenteringFToggle",
+            x = 0, y = 0, w = 100, h = 30,
+            tooltip = "Ручная центровка",
+            model = {
+                var = "CoupleCenteringF",
+            }
+        }
+    }
+}
+ENT.ButtonMap["CoupleCenteringR"] = {
+    pos = Vector(-460, 50, -50), ang = Angle(0, -90, 90),
+    width = 100, height = 30, scale = 1,
+    buttons = {
+        {
+            ID = "CoupleCenteringRToggle",
+            x = 0, y = 0, w = 100, h = 30,
+            tooltip = "Ручная центровка",
+            model = {
+                var = "CoupleCenteringR",
+            }
+        }
+    }
+}
 
 ENT.ButtonMap["ClosetCapL"] = {
     pos = Vector(445.5, 63, 26),
@@ -551,20 +602,15 @@ ENT.ClientProps["K31cap"] = {
     hide = 0.5,
 }
 
-for i = 0, 3 do
-    for k = 0, 1 do
-        ENT.ClientProps["door" .. i .. "x" .. k] = {
-            model = "models/metrostroi_train/81-760e/81_760e_door.mdl",
-            pos = Vector(229.92 * i * (k == 0 and 1 or -1), 0, 0),
-            ang = Angle(0, 180 + k * 180, 0),
-            hide = 2,
-        }
-    end
-end
-
 for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}) do
     for i, pos in ipairs(tbl) do
         local idx = (k - 1) * 4 + i
+        ENT.ClientProps["Door" .. idx] = {
+            model = "models/metrostroi_train/81-760e/81_760e_door.mdl",
+            pos = k == 1 and pos - tbl[1] or tbl[1] - pos * Vector(-1, 1, 1),
+            ang = Angle(0, k == 1 and 0 or -180, 0),
+            hide = 2,
+        }
         ENT.ButtonMap["DoorAddressOpen" .. idx] = {
             pos = pos + Vector(k == 1 and -250 - 10 or 250 + 10, 0, 170) * 0.05,
             ang = Angle(0, k == 1 and 0 or -180, 90),
@@ -591,8 +637,8 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
         }
         ENT.ClientProps["DoorArrdessButton" .. idx] = {
             model = "models/metrostroi_train/81-765/door_button.mdl",
-            pos = Vector(229.92 * (i - 1) * (k == 1 and 1 or -1), k == 1 and 0.08 or -0.08, 0),
-            ang = Angle(0, 180 + (k - 1) * 180, 0),
+            pos = k == 1 and pos - tbl[1] or tbl[1] - pos * Vector(-1, 1, 1),
+            ang = Angle(0, k == 1 and 0 or -180, 0),
             hide = 2,
         }
         ENT.ButtonMap["DoorManualBlock" .. idx] = {
@@ -894,9 +940,13 @@ end
 
 function ENT:CheckBogeySounds(bogey)
     return IsValid(bogey) and bogey.SoundNames and (
-        not bogey.SoundNames or
+        not self.FrontBogey.EngineSNDConfig or
         Metrostroi.Version > 1537278077 and not bogey.SoundNames["ted1_765"] or
-        Metrostroi.Version <= 1537278077 and bogey.SoundNames["ted1_720"] ~= "subway_trains/765/rumble/engines/engine_8.wav"
+        Metrostroi.Version <= 1537278077 and (
+            not self.FrontBogey.EngineSNDConfig[1] or
+            self.FrontBogey.EngineSNDConfig[1][5] ~= 0.14 or
+            bogey.SoundNames["ted1_720"] ~= "subway_trains/765/rumble/engines/engine_8.wav"
+        )
     )
 end
 
@@ -1153,7 +1203,7 @@ function ENT:Think()
     end
 
     if not self.IsTrailer then self:Animate("VmBs", self:GetPackedRatio("IVO"), 0, 1, 16, 1) end
-    if self.IsTrailer then
+    if self.IsIntermediate then
         self:Animate("VmLv", self:GetPackedRatio("LV"), 0, 0.95, 16, 1)
         self:Animate("VmHv", self:GetPackedRatio("HV"), 0, 1, 16, 6)
         self:Animate("MnBl", self:GetPackedRatio("BL"), 0, 0.78, 256, 2)
@@ -1190,73 +1240,7 @@ function ENT:Think()
     self:HidePanel("K31", K31cap < 1)
     self:Animate("K31", self:GetPackedBool("K31") and 0 or 1, 0, 1, 16, 0.5)
 
-    -- LEGACY, to be removed
-    if not self.DoorStates then self.DoorStates = {} end
-    if not self.DoorLoopStates then self.DoorLoopStates = {} end
-    for i = 0, 3 do
-        for k = 0, 1 do
-            local st = k == 1 and "DoorL" or "DoorR"
-            local id, sid = st .. (i + 1), "door" .. i .. "x" .. k
-            local doorstate = self:GetPackedBool("Command" .. id)
-            local state = self:GetPackedRatio(id)
-
-            local randvalKey = "Door" .. (k == 1 and "L" or "R") .. "BR" .. (i + 1)
-            if not self[randvalKey] then self[randvalKey] = math.random(0, 1) end
-            local randval = self[randvalKey]
-            if (state ~= 1 and state ~= 0) ~= self.DoorStates[id] then
-                if doorstate and state < 1 or not doorstate and state > 0 then
-                    if doorstate then
-                        self:PlayOnce(sid .. "op" .. randval, "", 1, 1)
-                    end
-                else
-                    if state > 0 then
-                        self:PlayOnce(sid .. "o" .. randval, "", 1, 1)
-                    else
-                        self:PlayOnce(sid .. "c" .. randval, "", 1, 1)
-                    end
-                    self[randvalKey] = math.random(0, 1)
-                end
-
-                self.DoorStates[id] = state ~= 1 and state ~= 0
-            end
-
-            if state ~= 1 and state ~= 0 then
-                self.DoorLoopStates[id] = math.Clamp((self.DoorLoopStates[id] or 0) + 2 * self.DeltaTime, 0, 1)
-            else
-                self.DoorLoopStates[id] = math.Clamp((self.DoorLoopStates[id] or 0) - 6 * self.DeltaTime, 0, 1)
-            end
-
-            self:SetSoundState(sid .. "r" .. randval, self.DoorLoopStates[id], 1) --0.9+self.DoorLoopStates[id]*0.1)
-            self:SetSoundState(sid .. "r" .. math.abs(1 - randval), 0, 0)
-            local n_l = "door" .. i .. "x" .. k
-            self:Animate(n_l, 1 - state, 0, 1, 15, 1) --0.8 + (-0.2+0.4*math.random()),0)
-
-            local idx = k * 4 + i + 1
-            local btnKey = "DoorArrdessButton" .. idx
-            self:Animate(btnKey, 1 - state, 0, 1, 15, 1)
-        end
-    end
-
-    for idx = 1, 8 do
-        self:HidePanel("DoorManual" .. idx, not self:GetNW2Bool("DoorManualOpenLever" .. idx, false))
-        self:HidePanel("DoorManualOutside" .. idx, not self:GetNW2Bool("DoorManualOpenLever" .. idx, false))
-        local open = self:GetPackedRatio((idx < 5 and "DoorL" or "DoorR") .. (idx < 5 and idx or 9 - idx), 0) > 0
-        self:HidePanel("DoorManualBlock" .. idx, open)
-        self:HidePanel("DoorAddressOpen" .. idx, open or not self:GetNW2Bool("AddressDoors", false))
-        self:HidePanel("DoorAddressOpenOutside" .. idx, open or not self:GetNW2Bool("AddressDoors", false))
-        local btnKey = "DoorArrdessButton" .. idx
-        self:ShowHide(btnKey, self:GetNW2Bool("AddressDoors", false))
-        local btn = self.ClientEnts[btnKey]
-        if IsValid(btn) then
-            local idx2 = (idx < 5 and 9 - idx or idx - 4)
-            local led = self:GetNW2Bool("DoorButtonLed" .. idx2, false)
-            if led then
-                local state = self:GetNW2String("DoorAnnounceState" .. idx2)
-                led = state ~= "Closed" or CurTime() % 1.2 < 0.6
-            end
-            btn:SetSubMaterial(1, led and "models/metrostroi_train/81-765/led_green" or "models/metrostroi_train/81-765/led_off")
-        end
-    end
+    local dT = self.DeltaTime
 
     self.FrontLeak = math.Clamp(self.FrontLeak + 10 * (-self:GetPackedRatio("FrontLeak") - self.FrontLeak) * dT, 0, 1)
     self.RearLeak = math.Clamp(self.RearLeak + 10 * (-self:GetPackedRatio("RearLeak") - self.RearLeak) * dT, 0, 1)
@@ -1321,6 +1305,14 @@ function ENT:Think()
     if not self.IsIntermediate then
         self:ShowHide("ASHook", ValidfB)
         self:Animate("ASHook", self:GetPackedBool("ASHook") and 1 or 0, 0, 1, 8, 0.5)
+
+        if Cfg765 and Cfg765.NotificationPaper then
+            self:HidePanel("NotificationPaperBtn", false)
+            self:ShowHide("NotificationPaper", self:GetPackedBool("NotificationPaper", false))
+        else
+            self:HidePanel("NotificationPaperBtn", true)
+            self:ShowHide("NotificationPaper", false)
+        end
 
         local col = render.GetLightColor(self:GetPos() + 530 * self:GetForward())
         local val = math.floor((col.x * 255 + col.y * 255 + col.z * 255) * 5) / 5
@@ -1412,6 +1404,9 @@ function ENT:Think()
 
         self:AnimateCustom("DoorCabL", "position_window", self:GetPackedBool("CabinWindowLeft") and 1 or 0, 0, 1, 8, 0.5)
         self:AnimateCustom("DoorCabR", "position_window", self:GetPackedBool("CabinWindowRight") and 1 or 0, 0, 1, 8, 0.5)
+
+        self:HidePanel("CoupleCenteringF", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("FrontCoupled", false))
+        self:HidePanel("CoupleCenteringR", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("RearCoupled", false))
 
         local state = self:GetPackedBool("WorkCabVent", false)
         local ventTimer = self:GetPackedRatio("VentTimer", 0)
@@ -1694,6 +1689,52 @@ function ENT:PlayDoorSound(bool, door)
     end
 end
 
+function ENT:ShowScreenHelper(screen, group)
+    self.ActiveHelperGroups = self.ActiveHelperGroups or {}
+    self.ActiveHelperGroups[screen] = group
+    for groupName, v in pairs(self.ScreenHelpers[screen] or {}) do
+        for _, bmName in pairs(v or {}) do
+            self:HidePanel(bmName, group ~= groupName or self.HiddenSH and self.HiddenSH[bmName])
+        end
+    end
+    for groupName, v in pairs(self.ScreenHelpersHide[screen] or {}) do
+        if groupName ~= group then
+            for _, hidePanels in pairs(v or {}) do
+                for _, bmName in pairs(hidePanels or {}) do
+                    self:HidePanel(bmName, true)
+                end
+            end
+        end
+    end
+end
+
+function ENT:ShowHideSceenHelper(val, screen, helper)
+    local group = self.ActiveHelperGroups and self.ActiveHelperGroups[screen]
+    if not screen or not group or not helper then return end
+    local panel = (
+        self.ScreenHelpers[screen] and
+        self.ScreenHelpers[screen][group] and
+        self.ScreenHelpers[screen][group][helper]
+    ) or nil
+    if panel then
+        self.HiddenSH = self.HiddenSH or {}
+        self.HiddenSH[panel] = not val
+    end
+end
+
+function ENT:ShowHideSceenHelperElement(val, screen, group, helper, name)
+    if not screen or not group or not helper or not name then return end
+    local panel = (
+        self.ScreenHelpersHide[screen] and
+        self.ScreenHelpersHide[screen][group] and
+        self.ScreenHelpersHide[screen][group][helper] and
+        self.ScreenHelpersHide[screen][group][helper][name]
+    ) or nil
+    if panel then
+        self:HidePanel(panel, val)
+    end
+end
+
 function ENT:Draw()
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.Draw(self)
@@ -1718,6 +1759,22 @@ function ENT:DrawPost(special)
     end
 end
 
+function ENT:OnPlay(soundid, location, range, pitch)
+    if location ~= "bass" then return soundid, location, range, pitch end
+    if soundid == "W30KM" then
+        if range == 0 then
+            timer.Create("765.BatteryOffPost." .. self:EntIndex(), math.Rand(1, 1.15), 1, function()
+                if not IsValid(self) then return end
+                self:PlayOnce("battery_off_2", location, 1, 1)
+            end)
+        end
+        return range > 0 and "battery_on_1" or "battery_off_1", location, 1, 1
+    elseif soundid == "BV" then
+        return range > 0 and "battery_pneumo" or "bv_off", location, 1, 1
+    end
+    return soundid, location, range, pitch
+end
+
 local dist = {}
 for id, panel in pairs(ENT.ButtonMap) do
     if not panel.buttons then continue end
@@ -1737,6 +1794,8 @@ end
 ENT:ExportFields(
     "ClientProps",
     "ButtonMap",
+    "ScreenHelpers",
+    "ScreenHelpersHide",
     "ClientSounds",
     "AutoAnims",
     "ClientPropsInitialized",

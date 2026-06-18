@@ -21,7 +21,7 @@ table.Add(ENT.SyncTable, {
     "IGLA1", "IGLA2", "IGLA3", "IGLA4",
     "MfduHelp", "MfduKontr", "MfduTv", "MfduTv1", "MfduTv2",
     "Buik_EMsg1", "Buik_EMsg2", "Buik_Unused1", "Buik_Mode", "Buik_Path", "Buik_Return", "Buik_Down", "Buik_Up", "Buik_MicLine", "Buik_MicBtn", "Buik_Asotp", "Buik_Ik",
-    "BatteryCharge"
+    "BatteryCharge", "MasterTrainPowerOn", "MasterTrainPowerOff"
 })
 
 if not ENT.PpzToggles then print("ACHTUNG! PIZDEC!") end
@@ -85,22 +85,7 @@ function ENT:Initialize()
     -- Create bogeys
     self.FrontCouple:SetModel("models/metrostroi_train/81-760/81_760_couple_wtht_ekk.mdl")
     self.FrontCouple:PhysicsInit(SOLID_VPHYSICS)
-    constraint.AdvBallsocket(self, self.FrontCouple, 0, --bone
-        0, --bone
-        Vector(431.2 + 20.8, 0, -68), Vector(0, 0, 0), 1, --forcelimit
-        1, --torquelimit
-        -2, --xmin
-        -2, --ymin
-        -15, --zmin
-        2, --xmax
-        2, --ymax
-        15, --zmax
-        0.1, --xfric
-        0.1, --yfric
-        1, --zfric
-        0, --rotonly
-        1) -- nocollide
-    self.FrontCouple.CouplingPointOffset = Vector(65, 0, 0)
+    constraint.AdvBallsocket(self, self.FrontCouple, 0, 0, self.FrontCouple.SpawnPos, Vector(0, 0, 0), 1, 1, -2, -2, -15, 2, 2, 15, 0.1, 0.1, 1, 0, 1)
     self.FrontCouple.SnakePos = Vector(65.1, 1, -4.9)
 
     -- Initialize key mapping
@@ -128,9 +113,10 @@ function ENT:Initialize()
         [KEY_M] = "AttentionSet",
         [KEY_H] = "PrToggle",
         [KEY_LSHIFT] = {
+            [KEY_W] = "KV765Set3",
             [KEY_S] = "KV765Set7",
             [KEY_SPACE] = "AttentionBrakeSet",
-            [KEY_V] = "EmergencyDoorsToggle",
+            [KEY_V] = "DoorBlockToggle",
             [KEY_9] = "KRR-",
             [KEY_0] = "KRR+",
             [KEY_G] = "DisableBVSet",
@@ -284,6 +270,7 @@ function ENT:Initialize()
         },
     })
 
+    self.NotificationPaper = true
     self.PassengerDoor = false
     self.CabinDoorLeft = false
     self.CabinDoorRight = false
@@ -443,6 +430,7 @@ function ENT:Think()
     self:SetNW2Bool("DoorCloseLamp", Panel.DoorCloseL > 0)
     self:SetNW2Bool("DoorBlockLamp", Panel.DoorBlockL > 0)
     self:SetPackedRatio("CabinLight", self.CabinLight.Value / 2)
+    self:SetPackedBool("NotificationPaper", Cfg765.NotificationPaper and self.NotificationPaper or false)
     self:SetPackedBool("PassengerDoor", self.PassengerDoor)
     self:SetPackedBool("CabinDoorLeft", self.CabinDoorLeft)
     self:SetPackedBool("CabinDoorRight", self.CabinDoorRight)
@@ -503,6 +491,7 @@ function ENT:OnButtonPress(button, ply)
         self.IGLA3:TriggerInput("Set", 1)
     end
 
+    if button == "NotificationPaperBtn" then self.NotificationPaper = not self.NotificationPaper end
     if button == "K31Cap" then self.DoorK31 = not self.DoorK31 end
     if button == "Chair" and not (self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver())) then self.Chair = not self.Chair end
     if button == "PassengerDoor" then
@@ -539,10 +528,11 @@ function ENT:OnButtonPress(button, ply)
     end
 
     if button == "DoorLeft" then
-        if self.DoorSelectL.Value == 1 or self.EmergencyDoors.Value == 1 --[[or self.DoorClose.Value == 0]] then
+        local classicDoors = self:GetNW2Int("DoorsControls", 1) == 2
+        if not classicDoors and self.DoorSelectL.Value == 1 or (self.EmergencyDoors.Value == 1 or classicDoors) and self.DoorClose.Value == 0 then
             self.DoorLeft:TriggerInput("Set", 1)
         end
-        if self.CAMS5 then
+        if self.CAMS5 and self:GetNW2Bool("CamsSelect", true) then
             self.CAMS5:TriggerInput("Set", 1)
         end
         self.DoorSelectL:TriggerInput("Set", 1)
@@ -550,10 +540,11 @@ function ENT:OnButtonPress(button, ply)
     end
 
     if button == "DoorRight" then
-        if self.DoorSelectR.Value == 1 or self.EmergencyDoors.Value == 1 --[[or self.DoorClose.Value == 0]] then
+        local classicDoors = self:GetNW2Int("DoorsControls", 1) == 2
+        if not classicDoors and self.DoorSelectR.Value == 1 or (self.EmergencyDoors.Value == 1 or classicDoors) and self.DoorClose.Value == 0 then
             self.DoorRight:TriggerInput("Set", 1)
         end
-        if self.CAMS6 then
+        if self.CAMS6 and self:GetNW2Bool("CamsSelect", true) then
             self.CAMS6:TriggerInput("Set", 1)
         end
         self.DoorSelectL:TriggerInput("Set", 0)

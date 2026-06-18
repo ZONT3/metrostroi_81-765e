@@ -16,13 +16,15 @@ function TRAIN_SYSTEM:Initialize()
     self.Drive = 0
     self.Drive1 = 0
     self.Drive2 = 0
+    self.Emer = 0
     self.LN = false
     self.StillBrake = 0
     self.SbTimer = 0
-    self.ZsErrorMargin = math.random() * 0.15 + 0.35
+    self.ZsErrorMargin = math.random() * 0.2 + 0.15
     self.PN1 = 0
     self.PN2 = 0
     self.PN3 = 0
+    self.UosPn3 = 0
     self.BTB = 0
     self.UOS = 0
     self.RVTB = 0
@@ -30,10 +32,14 @@ function TRAIN_SYSTEM:Initialize()
     self.NextNoFq = false
     self.Ready = false
     self.dV = 0
+    self.Load = 0
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {"Active", "ALSMode", "Ring", "Brake", "Drive", "Drive1", "Drive2", "AllowStart", "PN1", "PN2", "PN3", "StillBrake", "SpeedLimit", "BTB", "UOS", "NextNoFq", "BadFq", "AO"}
+    return {
+        "Active", "ALSMode", "Ring", "Brake", "Drive", "Drive1", "Drive2", "AllowStart", "PN1", "PN2", "PN3", "UosPn3", "StillBrake",
+        "SpeedLimit", "BTB", "UOS", "NextNoFq", "BadFq", "AO", "Load"
+    }
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -43,18 +49,21 @@ end
 function TRAIN_SYSTEM:TriggerInput(name, value)
 end
 
+if TURBOSTROI then return end
+local CV_debug = GetConVar("765_debug")
+
 function TRAIN_SYSTEM:Think(dT)
     local Wag = self.Train
     local ALS = Wag.ALSCoil
     local ALSVal = Wag.ALS.Value * (Wag.ALSVal == 2 and 1 or 0) * Wag.PpzUpi.Value
     local UOS = (Wag.PmvAtsBlock.Value == 3) and (Wag.RV["KRO5-6"] == 0 or Wag.RV["KRR15-16"] > 0)
-    local EnableALS = Wag.Electric.Battery80V > 62 and (1 - Wag.RV["KRO5-6"]) + Wag.RV["KRR15-16"] > 0
+    local EnableALS = Wag.Electric.EmerSupply > 0 and (1 - Wag.RV["KRO5-6"]) + Wag.RV["KRR15-16"] > 0
     local DAU = Wag.PmvFreq.Value == 0
     local TwoToSix = Wag.PmvFreq.Value > 0
     if EnableALS ~= (ALS.Enabled == 1) then ALS:TriggerInput("Enable", EnableALS and 1 or 0) end
 
     -- Kolhoz tipa 81-765 (skoree vsego huinya)
-    self.BarsPower = Wag.Electric.Battery80V > 62 and (Wag.RV["KRO5-6"] == 0 or Wag.RV["KRR15-16"] > 0)
+    self.BarsPower = Wag.Electric.EmerSupply > 0 and (Wag.RV["KRO5-6"] == 0 or Wag.RV["KRR15-16"] > 0)
     self.ATS1Bypass = not self.BarsPower or UOS or Wag.PmvAtsBlock.Value == 2
     self.ATS2Bypass = not self.BarsPower or UOS or Wag.PmvAtsBlock.Value == 1
     self.ATS1 = self.BarsPower and (self.ATS1Bypass or Wag.PpzAts1.Value > 0.5)
@@ -83,8 +92,10 @@ function TRAIN_SYSTEM:Think(dT)
         self.PrevALS = ALSVal
     end
 
-    self.KB = Wag.PB.Value > 0.5 or Wag.Attention.Value > 0.5
+    self.KB = Wag.PB.Value > 0.5 or not UOS and Wag.Attention.Value > 0.5
     self.KVT = Wag.AttentionBrake.Value > 0.5 --or self.KB
+
+    self.UosPn3 = 0
 
     local Active = Power and Wag.BUKP.State == 5
     local Emer = Wag.RV["KRR15-16"] * Wag.PpzEmerControls.Value > 0.5
@@ -172,27 +183,25 @@ function TRAIN_SYSTEM:Think(dT)
         self.NextLimit = 0
     end
 
-    self.AO = AO and 1 or 0
-
     local forgiveful = Wag:GetNW2Bool("ForgivefulBars", true)
 
     local Backward = Emer and Wag.RV["KRR13-14"] > 0 or Wag.RV["KRO15-16"] > 0
     local Speed = self.Speed * Wag.SpeedSign * (Backward and -1 or 1)
-    local SelfZs = Emer or Wag.BUKP.State ~= 5
-    local ZeroSpeed = not SelfZs and Wag.BUKP.ZeroSpeed > 0 or SelfZs and Speed < 1.4
+    local SelfZs = Emer or Wag.BUKP.State ~= 5 or Wag.BUKP.InitTimer and CurTime() < Wag.BUKP.InitTimer
+    local ZeroSpeed = not SelfZs and Wag.BUKP.ZeroSpeed > 0 or SelfZs and Speed < 0.75
 
     local RVTB = true
-    local BTB = self.RVTB > 0
+    local BTB = true
     local Brake = self.Brake > 0
     local Ring = self.Ring > 0
     local Drive = self.Drive > 0
     local AllowStart = self.AllowStart > 0
     local DisableDrive = self.DisableDrive
     local SpeedLimit = self.SpeedLimit
+    local PN3 = false
 
     self.PN1 = 0
     self.PN2 = 0
-    self.PN3 = 0
 
     self.Drive1 = 0
     self.Drive2 = 0
@@ -202,7 +211,7 @@ function TRAIN_SYSTEM:Think(dT)
     if self.BarsPower and (Wag.BUKP.State == 5 or UOS) and ALSVal == 0 then
         RVTB = Active or UOS
 
-        if not TwoToSix or not Active or UOS then self.LN = false end
+        if not TwoToSix or not Active or Wag.BUKP.ActiveCabin < 1 or UOS then self.LN = false end
 
         local KmCur = KMState > 0 or Active and BUPKMState > 0
         if Active and not UOS then
@@ -225,7 +234,7 @@ function TRAIN_SYSTEM:Think(dT)
             if Ring and self.KVT --[[or ZeroSpeed]] then
                 Ring = false
             end
-            RVTB = RVTB and self:RvtbTimer("KvtTimer", not (Brake and KmCur or not forgiveful and AO))
+            RVTB = RVTB and self:RvtbTimer("KvtTimer", not (Ring or KmCur or not forgiveful and AO))
 
             if Speed > SpeedLimit - 1.3 and KmCur then
                 if not Drive then
@@ -240,7 +249,7 @@ function TRAIN_SYSTEM:Think(dT)
             RVTB = RVTB and self:RvtbTimer("TryDriveTimer", not KmCur or Speed <= SpeedLimit - 1.3)
 
             if self.TryDriveTimer or Brake and Speed < 7 then
-                self.PN3 = 1
+                PN3 = true
             end
 
             if Brake and DisableDrive then
@@ -256,13 +265,13 @@ function TRAIN_SYSTEM:Think(dT)
             end
             if KmCur and DisableDrive and not self.ControllerInDrive then
                 if not forgiveful then
-                    self.DisableDriveAttempt = CurTime()
+                    self:RvtbNow("DisableDriveAttempt")
                 else
                     Brake = true
                 end
                 Ring = true
             end
-            RVTB = RVTB and self:RvtbTimer("DisableDriveAttempt")
+            RVTB = RVTB and self:RvtbTimer("DisableDriveAttempt", not KmCur)
 
             if AO and Drive then
                 Brake = true
@@ -270,7 +279,6 @@ function TRAIN_SYSTEM:Think(dT)
             if AO then
                 if Wag.AttentionBrake.Value > 0.5 then self.RingingAO = false end
                 Ring = Ring or self.RingingAO
-                if not ZeroSpeed then self.PN3 = 1 end
             else
                 self.RingingAO = true
             end
@@ -291,7 +299,22 @@ function TRAIN_SYSTEM:Think(dT)
             if not self.NoFreq and KmCur and Speed < 0.8 and not self.NoSpeedTimer then
                 self.NoSpeedTimer = CurTime() + (Emer and 6.2 or 4.8)
             end
-            RVTB = RVTB and self:RvtbTimer("NoSpeedTimer", self.NoFreq or not KmCur or Speed >= 0.8)
+            RVTB = RVTB and self:RvtbTimer("NoSpeedTimer", self.NoFreq or not KmCur or Speed >= 1.4)
+
+            if not forgiveful then
+                if ZeroSpeed and self.SpeedGained then
+                    self.SpeedGained = false
+                end
+                if self.NoFreq or KmCur and not self.SpeedGained and Speed > 2.3 then
+                    self.SpeedGained = true
+                end
+                local condition = not self.NoFreq and not KmCur and not ZeroSpeed and not self.SpeedGained
+                if condition and not self.NoSpeedGained then
+                    self.NoSpeedGained = CurTime() + 0.35
+                end
+                if condition and self.NoSpeedGained and CurTime() >= self.NoSpeedGained then Ring = true end
+                RVTB = RVTB and self:RvtbTimer("NoSpeedGained", not condition)
+            end
 
             if self.PrevSpeed and self.PrevDvMeasure then
                 self.dV = (Speed - self.PrevSpeed) / (CurTime() - self.PrevDvMeasure)
@@ -300,10 +323,10 @@ function TRAIN_SYSTEM:Think(dT)
             self.PrevDvMeasure = CurTime()
             DvMeasured = true
 
-            local BrakeEff = Brake and self.dV > -3.0
+            local BrakeEff = Brake and self.dV > -3.0 and not ZeroSpeed
             if BrakeEff and not self.BrakeEff then
                 self.BrakeEff = CurTime() + 3
-                print("Start dV", self.dV)
+                if CV_debug:GetBool() then print("Start dV", self.dV) end
             end
             RVTB = RVTB and self:RvtbTimer("BrakeEff", not BrakeEff)
 
@@ -311,17 +334,18 @@ function TRAIN_SYSTEM:Think(dT)
             local EmerGood = Emer and not Wag.BUKP.Errors.RvErr
             local ZsError = not EmerGood and self.BUKPErr and Wag.BUKP.ZeroSpeed < 1 and Speed < 7
             if ZsError then
-                ZsError = false
                 if not self.ZsErrorTimer then
-                    self.ZsErrorTimer = CurTime() + self.ZsErrorMargin + math.Rand(0, 0.2)
-                elseif CurTime() >= self.ZsErrorTimer then
-                    ZsError = true
+                    self.ZsErrorTimer = CurTime() + math.Rand(self.ZsErrorMargin - 0.1, self.ZsErrorMargin + 0.1)
                 end
-            else
+                if self.ZsErrorTimer > CurTime() then
+                    ZsError = false
+                end
+            elseif self.ZsErrorTimer and (CurTime() >= self.ZsErrorTimer or Speed <= 0.15) then
+                ZsError = true
                 self.ZsErrorTimer = nil
             end
 
-            self.PN3 = (self.PN3 > 0 or ZsError or KmCur and Speed < 7 and not EmerGood and self.BUKPErr) and 1 or 0
+            PN3 = PN3 or ZsError or KmCur and Speed < 7 and not EmerGood and self.BUKPErr
         elseif UOS then
             SpeedLimit = self.KB and (TwoToSix and 45 or 80) + 0.5 or 0
             self.SpeedLimit = SpeedLimit
@@ -337,31 +361,39 @@ function TRAIN_SYSTEM:Think(dT)
         Drive = travel or AllowStart and (KmCur or UOS and Speed >= 7)
 
         if UOS then
-            if not Emer and Wag.PpzUpi.Value * Wag.KAH.Value < 1 or Speed > SpeedLimit then
+            Drive = Drive and self.KB and (Emer or Wag.PpzUpi.Value * Wag.KAH.Value >= 1)
+            BTB = BTB and (Emer or self.KB)
+            if Speed > SpeedLimit and not (self.KB and Speed < 7) then
                 Drive = false
+                if not Emer then BTB = false end
             end
             if Emer and Speed > SpeedLimit then
                 self.UosLimitTimer = CurTime() - 1
                 RVTB = false
             end
-            BTB = BTB and self.KB and (Speed < 7 or Drive)
-            self.PN3 = self.PN3 < 1 and BTB and 0 or 1
+            self.UosPn3 = not Emer and (PN3 or not BTB) and 1 or 0
+            PN3 = false
         end
         RVTB = RVTB and self:RvtbTimer("UosLimitTimer", true, ZeroSpeed)
 
         if Emer then
-            local EmerCondition = not UOS and Drive and not (Brake and SpeedLimit > 21) or UOS and self.KB
+            local EmerCondition = not UOS and Drive and not (Brake and SpeedLimit > 21) and self.Emer == 1 or UOS and self.KB
             if not EmerCondition and not self.EmerTimer then
-                self.EmerTimer = CurTime()
+                self:RvtbNow("EmerTimer")
             end
             RVTB = RVTB and self:RvtbTimer("EmerTimer", EmerCondition, not UOS and ZeroSpeed and AllowStart and KmCur or UOS and self.KB)
         end
+
+        if UOS then BTB = RVTB end
 
         self.RVTB = RVTB and 1 or 0
         self.BTB = BTB and 1 or 0
         self.Brake = Brake and 1 or 0
         self.Ring = Ring and 1 or 0
         self.Drive = Drive and 1 or 0
+        self.Emer = Emer and 1 or 0
+        self.AO = AO and 1 or 0
+        self.PN3 = PN3 and 1 or 0
         self.AllowStart = AllowStart and 1 or 0
         self.DisableDrive = DisableDrive
         self.SpeedLimit = SpeedLimit > self.SpeedLimit and SpeedLimit or self.SpeedLimit
@@ -376,7 +408,6 @@ function TRAIN_SYSTEM:Think(dT)
         self.Drive2 = self.ATS2 and Drive and (not Emer and not UOS or RVTB and BTB) and not self.BrakeTimer and 1 or 0
 
     elseif ALSVal == 1 then
-        -- TODO Some BUKP logic for speed regulation
         self.PN1 = 0
         self.PN2 = 0
         self.PN3 = 0
@@ -389,6 +420,12 @@ function TRAIN_SYSTEM:Think(dT)
         self.RVTB = 1
         self.DisableDrive = false
 
+        self.AO = 0
+        self.WasAlsZero = false
+        self.WasAlsNoFq = false
+        self.LastAoFeature = nil
+        self.NoAoFeatureChangeTimer = nil
+
     else
         self.BTB = 0
         self.Brake = 0
@@ -400,10 +437,16 @@ function TRAIN_SYSTEM:Think(dT)
         self.Drive1 = 0
         self.Drive2 = 0
         self.RingingAO = true
-        self.LN = Wag.BUKP.State > 0 and self.LN
+        self.LN = Wag.BUKP.State > 0 and Wag.BUKP.ActiveCabin > 0 and self.LN
         self.Ready = true
         self.StillBrake = 0
         self.SbTimer = 0
+
+        self.AO = 0
+        self.WasAlsZero = false
+        self.WasAlsNoFq = false
+        self.LastAoFeature = nil
+        self.NoAoFeatureChangeTimer = nil
     end
 
     if not DvMeasured then
@@ -450,13 +493,16 @@ function TRAIN_SYSTEM:Think(dT)
         self.PN2 = 1
     end
 
-    if self.PN3 > 0 then
-        self.PN3Timer = CurTime() + 0.6
+    if self.PN3 > 0 and not self.PN3Timer then
+        self.PN3Timer = CurTime() + 0.75
     elseif self.PN3Timer and CurTime() < self.PN3Timer then
         self.PN3 = 1
-    elseif self.PN3Timer then
+    end
+    if self.PN3 < 1 and self.PN3Timer then
         self.PN3Timer = nil
     end
+
+    self.Load = (EnableALS and 120 or 0) + (Power and 20 or 0) + self.Active * 30
 end
 
 function TRAIN_SYSTEM:WhenStops(delay)
@@ -468,14 +514,20 @@ function TRAIN_SYSTEM:RvtbTimer(name, restore, bypass)
         if CurTime() >= self[name] then
             local val = restore and (bypass or self:WhenStops() and self.Ring == 0)
             if val then self[name] = nil end
-            if name == "BrakeEff" and not val and self.RVTB == 1 then
-                print("Terminal dV", self.dV)
+            if CV_debug:GetBool() then
+                if name == "BrakeEff" and not val and self.RVTB == 1 then
+                    print("Terminal dV", self.dV)
+                end
+                if self.RVTB == 1 and not val then print(name) end
             end
-            if self.RVTB == 1 and not val then print(name) end
             return val
         elseif restore then
             self[name] = nil
         end
     end
     return true
+end
+
+function TRAIN_SYSTEM:RvtbNow(name)
+    self[name] = CurTime()
 end

@@ -121,7 +121,7 @@
     - [ ] New CAMS
     - [x] Uhv without GV behaivor
     - [x] Still brake PN1/PN2 revise
-    - [ ] Pneumatic weight load PN setting adjustment
+    - [x] Pneumatic weight load PN setting adjustment
     - [ ] FIX: Doors close delay reset logic
 - [ ] 81-765/766/767/.2/.4 (modeling 765, maybe getting rest from 760A code, maybe dependencies (systems) too)
   - [ ] Models (temporary)
@@ -148,6 +148,5 @@
     - [ ] Rewrite pant logic
       - [ ] HV per-pant
       - [ ] UKKZ per-pant
-    - [x] Rewrite BARS
-    - [ ] Electric-side doors closed signal
-  
+    - [ ] ~~Electric-side doors closed signal~~ *Not found on any schematics*
+    - [ ] Brake squeal remake

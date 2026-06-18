@@ -7,9 +7,11 @@ TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
     self.Executables = {"Init", "Reset", "Execute"}
+    self.Load = 0
 end
 
 function TRAIN_SYSTEM:Outputs()
+    return {"Load"}
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -37,17 +39,23 @@ if SERVER then
 
     function TRAIN_SYSTEM:Think(dT)
         local Wag = self.Train
-        local Power = Wag.Electric.Battery80V > 62 and Wag.BUV.Power * (Wag.SF45F7.Value + Wag.SF45F8.Value) > 0
-        Wag:SetNW2Bool("DoorAlarmState", Power and self.DoorAlarm or false)
+        self.Power = Wag.Electric.KM > 0 and Wag.BUV.Power * (Wag.SF45F7.Value + Wag.SF45F8.Value) > 0
+        local poweron = self.Power and not self.Train.BNT.Power
+        self.Train.BNT.Power = self.Power
+        Wag:SetNW2Bool("DoorAlarmState", self.Power and self.DoorAlarm or false)
+
+        if poweron then self.Reset = true end
 
         for _, name in ipairs(self.Executables) do
             if self[name] then
                 self[name] = false
-                if Power then
+                if self.Power then
                     self["Run" .. name](self)
                 end
             end
         end
+
+        self.Load = (Wag.BUV.Power * (Wag.SF45F7.Value + Wag.SF45F8.Value) * 130 + (self.Power and 74 or 0)) * (Wag:GetNW2Int("BNT:ScreenFps", 12) > 25 and 1.8 or 1)
     end
 
     function TRAIN_SYSTEM:RunInit()

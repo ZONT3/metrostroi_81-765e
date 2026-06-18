@@ -13,10 +13,6 @@ local PvzToggles = {
 }
 
 function TRAIN_SYSTEM:Initialize()
-    self.Train:LoadSystem("Battery", "Relay", "Switch", {bass = true, normally_closed = true})
-
-    self.Train:LoadSystem("PowerOn", "Relay", "Switch", {bass = true})
-
     for _, name in ipairs(PvzToggles or {}) do
         self.Train:LoadSystem(name, "Relay", "Switch", {
             bass = true, normally_closed = true,
@@ -32,15 +28,8 @@ function TRAIN_SYSTEM:Initialize()
     self.LV = 0
     if self.Train.AsyncInverter then self.WorkFan = 0 end
 
-    -- BUD
-    for idx = 1, 8 do
-        self.Train:LoadSystem("DoorManualBlock" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenLever" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenLeverPl" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenPush" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenPull" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorAddressButton" .. idx, "Relay", "Switch", { bass = true })
-    end
+    self.Train:LoadSystem("CoupleCenteringR", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("CoupleCenteringF", "Relay", "Switch", { bass = true })
 end
 
 function TRAIN_SYSTEM:Inputs()

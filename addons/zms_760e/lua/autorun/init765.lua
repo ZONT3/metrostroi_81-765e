@@ -220,3 +220,177 @@ function ZMS.ImportBaseEnt(name, entName)
         end
     end
 end
+
+function ZMS.ScreenHelper(panelName, group, name, x, y, w, h, buttons, margin)
+    if not ENT then return end
+    src = ENT.ButtonMap[panelName]
+    if not src then return end
+    local pos = src.pos + src.ang:Forward() * x * (src.scale or 0.016) + src.ang:Right() * y * (src.scale or 0.016)
+    local tgt = table.Copy(src)
+    tgt.pos = pos + src.ang:Up() * (margin and 0.4 or 0.2)
+    tgt.width = w
+    tgt.height = h
+    tgt.system = nil
+    tgt.buttons = buttons
+
+    name = name or panelName
+    group = group or name
+
+    local bmName = Format("Helper_%s_%s_%s", panelName, group, name)
+    ENT.ButtonMap[bmName] = tgt
+
+    ENT.ScreenHelpers[panelName] = ENT.ScreenHelpers[panelName] or {}
+    ENT.ScreenHelpers[panelName][group] = ENT.ScreenHelpers[panelName][group] or {}
+    ENT.ScreenHelpers[panelName][group][name] = bmName
+
+    ENT.ScreenHelpersHide[panelName] = ENT.ScreenHelpersHide[panelName] or {}
+    ENT.ScreenHelpersHide[panelName][group] = ENT.ScreenHelpersHide[panelName][group] or {}
+    ENT.ScreenHelpersHide[panelName][group][name] = {}
+
+    for idx, a in ipairs(buttons or {}) do
+        if a.hideArea then
+            local hname = Format("HelperHide_%s_%s_%s_%s", panelName, group, name, a.ID or tostring(idx))
+            ENT.ButtonMap[hname] = {
+                hideseat = 0.2,
+                pos = tgt.pos + tgt.ang:Forward() * a.x * (tgt.scale or 0.016) + tgt.ang:Right() * a.y * (tgt.scale or 0.016) + tgt.ang:Up() * 0.2,
+                ang = tgt.ang,
+                width = a.w, height = a.h,
+                scale = tgt.scale
+            }
+            ENT.ScreenHelpersHide[panelName][group][name][a.ID or tostring(idx)] = hname
+        end
+    end
+end
+
+if SERVER then
+    local enttbl = {}
+
+    local function find_differ_vals(tbl1, tbl2)
+        local result = {}
+        result["_EQUAL_VAL_COUNT"] = 0
+        for k, v in pairs(tbl1) do
+            local v2 = tbl2[k]
+            if istable(v) and istable(v2) then
+                result[k] = find_differ_vals(v, v2)
+                result["_TABLES_COUNT"] = (result["_TABLES_COUNT"] or 0) + 1
+            elseif v2 ~= v then
+                result[k] = {tostring(v), tostring(v2)}
+            else
+                result["_EQUAL_VAL_COUNT"] = result["_EQUAL_VAL_COUNT"] + 1
+            end
+        end
+        return result
+    end
+
+    local function build_tbl(ent)
+        local phys = ent:GetPhysicsObject()
+        local bs = constraint.FindConstraint(ent, "AdvBallsocket")
+        local wag = bs and bs.Ent1
+        return {
+            -- Constraints = constraint.GetTable(ent),
+            Physics = {
+                Solid = ent:GetSolid(),
+                SolidFlags = ent:GetSolidFlags(),
+                Mass = phys:GetMass(),
+                MassCenter = phys:GetMassCenter(),
+                Inertia = phys:GetInertia(),
+                AngVel = phys:GetAngleVelocity(),
+            },
+            Ballsock = bs and {
+                Wagon = wag,
+                LPos1 = bs.LPos1,
+                ActualLPos1 = wag and wag:WorldToLocal(ent:GetPos()),
+                OffsetLPos1 = wag and (bs.LPos1 - wag:WorldToLocal(ent:GetPos())),
+            },
+        }
+    end
+
+    -- Debug function
+    concommand.Add("zms_prop_check", function(ply)
+        if not IsValid(ply) then return end
+        local ent = ply:GetEyeTrace().Entity
+        if not IsValid(ent) then print(ent) return end
+        if not enttbl[ply] then enttbl[ply] = ent print("First ent", ent) return end
+        print("Second ent", ent)
+        local first = enttbl[ply]
+        enttbl[ply] = nil
+
+        if first ~= ent then
+            PrintTable(find_differ_vals(build_tbl(first), build_tbl(ent)))
+        else
+            PrintTable(build_tbl(ent))
+            ent:GetPhysicsObject():OutputDebugInfo()
+        end
+    end)
+
+    -- Клин колесной пары (пары колесных пар на данный момент).
+    -- set == true: заклинили, == false: отклинили, иначе - переключили.
+    -- idx == 2: задняя телега, иначе - передняя.
+    function ZMS.LockKp(set, wagon, idx)
+        if not IsValid(wagon) then return end
+        local bogey = idx == 2 and wagon.RearBogey or wagon.FrontBogey
+        local wheels = IsValid(bogey) and bogey.Wheels
+        if not IsValid(wheels) then return end
+        local prev = wheels:GetNW2Bool("Disabled", false)
+        set = isbool(set) and set == true or not isbool(set) and not prev
+        wheels:SetNW2Bool("Disabled", set)
+        return set
+    end
+
+    -- [1] wag_idx: wagon sequential number
+    -- [2] kp_idx: same as idx in function above
+    concommand.Add("765_kp_lock", function(ply, _, args)
+        if not isfunction(ZMS.LockKp) then return end
+        if not IsValid(ply) then return end
+        local wag_idx = tonumber(args[1]) or nil
+        local kp_idx = tonumber(args[2]) or nil
+
+        local train = ply:GetTrain()
+        if not IsValid(train) then
+            ply:PrintMessage(HUD_PRINTCONSOLE, "You must be inside a train")
+            return
+        end
+        train:UpdateWagonList()
+        local wag = train.WagonList and (wag_idx and train.WagonList[wag_idx] or train.WagonList[#train.WagonList > 0 and math.random(#train.WagonList) or 1])
+        if not IsValid(wag) then
+            ply:PrintMessage(HUD_PRINTCONSOLE, "Wagon not found for index " .. (wag_idx or 1))
+            return
+        end
+
+        if not ply:IsAdmin() and wag.Owner ~= ply then
+            ply:PrintMessage(HUD_PRINTCONSOLE, "You should be an owner of this train")
+            return
+        end
+
+        local res = ZMS.LockKp(not wag_idx and true or nil, wag, kp_idx)
+        local msg = string.format("%s wheels on %s %s bogey.", res and "Locked" or "Unlocked", tostring(wag), idx == 2 and "rear" or "front")
+        ply:PrintMessage(HUD_PRINTCONSOLE, msg)
+        print(tostring(ply) .. " " .. msg)
+    end)
+
+    concommand.Add("765_kp_lock_reset", function(ply)
+        if not isfunction(ZMS.LockKp) then return end
+        if not IsValid(ply) then return end
+        local train = ply:GetTrain()
+        if not IsValid(train) then return end
+        train:UpdateWagonList()
+        for _, wag in pairs(train.WagonList or {}) do
+            if IsValid(wag) then
+                ZMS.LockKp(false, wag, 1)
+                ZMS.LockKp(false, wag, 2)
+            end
+        end
+        ply:PrintMessage(HUD_PRINTCONSOLE, "Cleared all wheel lock on the train")
+        print(tostring(ply) .. " cleared all whell lock on his train")
+    end)
+
+
+    hook.Add("EntityTakeDamage", "765.Recharge", function(ent, dmg)
+        if not IsValid(ent) or not ent.Battery or not ent.Battery.TriggerInput then return end
+        local swep = dmg:GetWeapon()
+        if not IsValid(swep) or swep:GetClass() ~= "weapon_stunstick" then return end
+        ent.Battery:TriggerInput("SetLevel", math.min(1, ent.Battery.Charge / ent.Battery.Capacity + 0.05))
+    end)
+
+    CreateConVar("765_debug", "0", FCVAR_ARCHIVE)
+end

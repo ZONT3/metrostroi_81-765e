@@ -22,12 +22,8 @@ ENT.Version = "765-dev"
 ENT.IkVersion = "765-dev"
 
 
-local function GetDoorPosition(i, k, j)
-    if j == 0 then
-        return Vector(381 - 36.0 + 1 * k - 0.85 * (k == 1 and 1 or 0) - 230 * i, -66 * (1 - 2 * k), -1)
-    else
-        return Vector(381 - 36.0 + 1 * k - 0.85 * (k == 1 and 1 or 0) - 230 * i, -66 * (1 - 2 * k), -1)
-    end
+local function GetDoorPosition(i, k)
+    return Vector(381 - 36.0 + 1 * k - 0.85 * (k == 1 and 1 or 0) - 230 * i, -66 * (1 - 2 * k), -1)
 end
 
 ENT.LeftDoorPositions = {}
@@ -39,6 +35,13 @@ end
 -- Workshop version backport
 ENT.LeftDoorPositionsBAK = ENT.LeftDoorPositions
 ENT.RightDoorPositionsBAK = ENT.RightDoorPositions
+
+ENT.ZmsKpCheck = {
+    Vector( 41,  54, -18),
+    Vector( 41, -54, -18),
+    Vector(-41,  54, -18),
+    Vector(-41, -54, -18),
+}
 
 --------------------------------------------------------------------------------
 function ENT:PassengerCapacity()
@@ -221,39 +224,39 @@ function ENT:InitializeSounds()
     self.SoundPositions["rolling_medium2"] = {480,1e12,Vector(0,0,0),0.90*0.4}
     self.SoundPositions["rolling_high2"] = {480,1e12,Vector(0,0,0),1.00*0.4}
 
-    for i = 0, 3 do
-        for k = 0, 1 do
-            self.SoundNames["door" .. i .. "x" .. k .. "r0"] = {loop = true, "subway_trains/765/doors/door_open_loop1.mp3"}
-            self.SoundPositions["door" .. i .. "x" .. k .. "r0"] = {100, 1e9, GetDoorPosition(i, k), 0.8}
-            self.SoundNames["door" .. i .. "x" .. k .. "r1"] = {loop = true, "subway_trains/765/doors/door_open_loop2.mp3"}
-            self.SoundPositions["door" .. i .. "x" .. k .. "r1"] = {100, 1e9, GetDoorPosition(i, k), 0.8}
-
-            self.SoundNames["door" .. i .. "x" .. k .. "o0"] = {"subway_trains/765/doors/door_open_end1.mp3"}
-            self.SoundPositions["door" .. i .. "x" .. k .. "o0"] = {150, 1e9, GetDoorPosition(i, k), 1.0}
-            self.SoundNames["door" .. i .. "x" .. k .. "o1"] = {"subway_trains/765/doors/door_open_end2.mp3"}
-            self.SoundPositions["door" .. i .. "x" .. k .. "o1"] = {150, 1e9, GetDoorPosition(i, k), 1.0}
-
-            self.SoundNames["door" .. i .. "x" .. k .. "op0"] = {"subway_trains/765/doors/door_open_start1.mp3"}
-            self.SoundPositions["door" .. i .. "x" .. k .. "op0"] = {150, 1e9, GetDoorPosition(i, k), 1.0}
-            self.SoundNames["door" .. i .. "x" .. k .. "op1"] = {"subway_trains/765/doors/door_open_start2.mp3"}
-            self.SoundPositions["door" .. i .. "x" .. k .. "op1"] = {150, 1e9, GetDoorPosition(i, k), 1.0}
-
-            self.SoundNames["door" .. i .. "x" .. k .. "c0"] = {"subway_trains/765/doors/door_close_end1.mp3"}
-            self.SoundPositions["door" .. i .. "x" .. k .. "c0"] = {250, 1e9, GetDoorPosition(i, k), 1.0}
-            self.SoundNames["door" .. i .. "x" .. k .. "c1"] = {"subway_trains/765/doors/door_close_end2.mp3"}
-            self.SoundPositions["door" .. i .. "x" .. k .. "c1"] = {250, 1e9, GetDoorPosition(i, k), 1.0}
-        end
-    end
-
     local doorAlarmFile = self:GetNW2Bool("FastDoorSignal", true) and "subway_trains/765/doors/door_alarm_fast.mp3" or "subway_trains/765/doors/door_alarm.mp3"
     for k, tbl in ipairs({self.LeftDoorPositions or {}, self.RightDoorPositions or {}}) do
         for i, pos in ipairs(tbl) do
             local idx = (k - 1) * 4 + i
-            local sid = "door_alarm_" .. idx
-            self.SoundNames[sid] = { loop = true, doorAlarmFile }
-            self.SoundPositions[sid] = { 100, 1e9, pos + Vector(0, 0, 30), 1 }
+            pos = pos + Vector(0, 0, 30)
+            self.SoundNames["door_alarm_" .. idx] = { loop = true, doorAlarmFile }
+            self.SoundPositions["door_alarm_" .. idx] = { 100, 1e9, pos, 0.75 }
+
+            self.SoundNames["door_loop1_" .. idx] = {loop = true, "subway_trains/765/doors/door_open_loop1.mp3"}
+            self.SoundPositions["door_loop1_" .. idx] = {100, 1e9, pos, 0.8}
+            self.SoundNames["door_loop2_" .. idx] = {loop = true, "subway_trains/765/doors/door_open_loop2.mp3"}
+            self.SoundPositions["door_loop2_" .. idx] = {100, 1e9, pos, 0.8}
+
+            self.SoundNames["door_opened1_" .. idx] = {"subway_trains/765/doors/door_open_end1.mp3"}
+            self.SoundPositions["door_opened1_" .. idx] = {150, 1e9, pos, 1.0}
+            self.SoundNames["door_opened2_" .. idx] = {"subway_trains/765/doors/door_open_end2.mp3"}
+            self.SoundPositions["door_opened2_" .. idx] = {150, 1e9, pos, 1.0}
+
+            self.SoundNames["door_opens1_" .. idx] = {"subway_trains/765/doors/door_open_start1.mp3"}
+            self.SoundPositions["door_opens1_" .. idx] = {150, 1e9, pos, 1.0}
+            self.SoundNames["door_opens2_" .. idx] = {"subway_trains/765/doors/door_open_start2.mp3"}
+            self.SoundPositions["door_opens2_" .. idx] = {150, 1e9, pos, 1.0}
+
+            self.SoundNames["door_closed1_" .. idx] = {"subway_trains/765/doors/door_close_end1.mp3"}
+            self.SoundPositions["door_closed1_" .. idx] = {250, 1e9, pos, 1.0}
+            self.SoundNames["door_closed2_" .. idx] = {"subway_trains/765/doors/door_close_end2.mp3"}
+            self.SoundPositions["door_closed2_" .. idx] = {250, 1e9, pos, 1.0}
         end
     end
+    self.SoundNames["door_alarm_l"] = { loop = true, doorAlarmFile }
+    self.SoundPositions["door_alarm_l"] = { 800, 1e9, Vector(0, 40, 50), 1 }
+    self.SoundNames["door_alarm_r"] = { loop = true, doorAlarmFile }
+    self.SoundPositions["door_alarm_r"] = { 800, 1e9, Vector(0, -40, 50), 1 }
     self.SoundNames["door_alarm"] = {"subway_trains/765/rumble/door_alarm_fast.mp3"}
     self.SoundPositions["door_alarm"] = {800, 1e9, Vector(0, 0, 0), 0.5}
 
@@ -322,9 +325,6 @@ function ENT:InitializeSounds()
         }
 
         self.SoundPositions["announcer_noiseW" .. k] = {v[2] or 300, 1e9, v[1], v[3] * 0.2}
-
-        self.SoundNames["announcer_sarmat_start" .. k] = {"subway_trains/722/sarmat_start.mp3"}
-        self.SoundPositions["announcer_sarmat_start" .. k] = {v[2] or 300, 1e9, v[1], v[3] * 0.2}
     end
 
     self.SoundNames["bv_off"] = {"subway_trains/760/new/bv_off.wav"}
@@ -429,6 +429,7 @@ ENT.SharedFields = {
     "RightDoorPositions",
     "LeftDoorPositionsBAK",
     "RightDoorPositionsBAK",
+    "ZmsKpCheck",
 }
 function ENT:ExportFields(...)
     Metrostroi.BaseEnts = Metrostroi.BaseEnts or {}

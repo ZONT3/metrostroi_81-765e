@@ -158,10 +158,13 @@ function TRAIN_SYSTEM:Initialize()
         })
     end
 
-    self.Train:LoadSystem("Battery", "Relay", "Switch", { bass = true, normally_closed = true })
-    self.Train:LoadSystem("PowerOn", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("PowerOff", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MasterTrainPowerOn", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("MasterTrainPowerOff", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("BatteryCharge", "Relay", "Switch", { bass = true })
+
+    -- Allow BS disable from UPI
+    self.Train:LoadSystem("W30K8", "Relay", { open_time = 0.6 })
+
     self.Train:LoadSystem("PB", "Relay", "Switch", { bass = true })
 
     -- MFDU
@@ -190,15 +193,8 @@ function TRAIN_SYSTEM:Initialize()
     self.Train:LoadSystem("MfduTv1", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("MfduTv2", "Relay", "Switch", { bass = true })
 
-    -- BUD
-    for idx = 1, 8 do
-        self.Train:LoadSystem("DoorManualBlock" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenLever" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenLeverPl" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenPush" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenPull" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorAddressButton" .. idx, "Relay", "Switch", { bass = true })
-    end
+    self.Train:LoadSystem("CoupleCenteringR", "Relay", "Switch", { bass = true })
+    self.Train:LoadSystem("CoupleCenteringF", "Relay", "Switch", { bass = true })
 
     self.Controller = 0
 

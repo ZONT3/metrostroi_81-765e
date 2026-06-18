@@ -6,6 +6,9 @@ Entities.gmod_subway_81-765.Name = 81-765 (Москва головной)
 Entities.gmod_subway_81-766.Name = 81-766 (Москва промежуточный моторный)
 Entities.gmod_subway_81-767.Name = 81-767 (Москва промежуточный немоторный)
 
+Common.ClientProp.Show                                                         = Показано
+Common.ClientProp.Hide                                                         = Скрыто
+
 Common.765.CabLight.Off                                                        = Выключено
 Common.765.CabLight.Normal                                                     = Нормальное
 Common.765.CabLight.Full                                                       = Усиленное

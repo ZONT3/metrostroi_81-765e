@@ -7,9 +7,10 @@ Metrostroi.DefineSystem("81_765_Controller")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 
-local SettingSpeed = 80  -- Per second
+local SettingSpeed = 100  -- Per second
+local AccelSpeed = 100  -- Per second
 local SettingDelay = 0.2  -- Seconds
-local ZeroTimer = 1.6  -- Seconds
+local ZeroTimer = 0.6  -- Seconds
 
 function TRAIN_SYSTEM:Initialize()
     self.VisualPosition = 0
@@ -24,8 +25,6 @@ function TRAIN_SYSTEM:Initialize()
     self.TargetTractiveSetting = 0
     self.IsOverriden = 0
     self.DelayBypass = 0
-
-    self.Train.KvSettingSpeed = SettingSpeed
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -101,6 +100,8 @@ function TRAIN_SYSTEM:TriggerInput(name, value)
             self.MotionBlocked = true
             self.TractiveSetting = self.TargetTractiveSetting <= 0 and self.TargetTractiveSetting or 0
             self.TargetTractiveSetting = self.TargetTractiveSetting <= 0 and self.TargetTractiveSetting or 0
+        else
+            self.MotionBlocked = false
         end
 
     elseif name == "SetTractiveSetting" then
@@ -123,7 +124,7 @@ function TRAIN_SYSTEM:Think(dT)
             self.VisualPosition = self.VisualPosition - 1
         end
 
-        self.Train:PlayOnce("KV_" .. previousPosition .. "_" .. self.VisualPosition, "cabin", 0.25, 0.95)
+        self.Train:PlayOnce((self.Train.KvSnd or "KV1_") .. previousPosition .. "_" .. self.VisualPosition, "cabin", 0.25, 0.95)
     end
 
     if self.VisualPosition == self.TargetPosition then self.ControllerTimer = nil end
@@ -137,7 +138,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.IsOverriden = self.TractiveSettingOverride ~= nil
 
     if self.Online > 0 then
-        if self.VisualPosition == 0 and math.abs(self.TractiveSetting) >= 40 and not self.ZeroTimer then
+        if self.VisualPosition == 0 and math.abs(self.TractiveSetting) >= 30 and not self.ZeroTimer then
             self.ZeroTimer = CurTime()
         elseif self.ZeroTimer and not (self.VisualPosition == 0 and math.abs(self.TractiveSetting) > 2) then
             self.ZeroTimer = nil
@@ -173,6 +174,11 @@ function TRAIN_SYSTEM:Think(dT)
                 if self.TargetTractiveSetting == 0 and (self.VisualPosition > 0.5 or self.VisualPosition < -0.5) then
                     self.TargetTractiveSetting = self.VisualPosition > 0 and 20 or -20
                     self.DelayBypass = CurTime() + SettingDelay + 0.05
+                    if self.VisualPosition > 0.5 then self.Accel = true end
+                end
+
+                if self.Accel and self.VisualPosition < 1.5 and (not self.DelayBypass or CurTime() >= self.DelayBypass) then
+                    self.Accel = false
                 end
 
                 if math.abs(self.TargetTractiveSetting) > 10 then
@@ -186,19 +192,23 @@ function TRAIN_SYSTEM:Think(dT)
                         if not self.DeltaDelay then
                             self.DeltaDelay = CurTime() + SettingDelay
                             self.DeltaDir = direction
-                            self.Accel40 = self.TractiveSetting == 100 and direction == -1
+                            self.Accel40 = self.TractiveSetting > 40 and direction == -1
+                            self.Accel20 = not self.Accel40 and self.TractiveSetting > 20 and direction == -1
                         end
                     else
                         if self.DeltaDelay then
                             direction = self.DeltaDir or direction
                             if self.Accel40 and self.TargetTractiveSetting >= 40 then
                                 new = 40
+                            elseif self.Accel20 and self.TargetTractiveSetting >= 20 then
+                                new = 20
                             else
-                                new = target + math.max(10, math.floor((self.DeltaDelay - CurTime()) * SettingSpeed / 10) * 10) * direction
+                                new = target + math.max(10, math.floor((self.DeltaDelay - CurTime()) * (self.Accel and AccelSpeed or SettingSpeed) / 10) * 10) * direction
                             end
                             self.DeltaDelay = nil
                             self.DeltaDir = nil
                             self.Accel40 = nil
+                            self.Accel20 = nil
                         end
                     end
 
@@ -213,7 +223,7 @@ function TRAIN_SYSTEM:Think(dT)
                 local delta = self.TargetTractiveSetting - self.TractiveSetting
                 local sgn = delta > 0 and 1 or delta < 0 and -1 or 0
                 if sgn ~= 0 then
-                    local newDelta = dT * SettingSpeed * sgn
+                    local newDelta = dT * (self.Accel and AccelSpeed or SettingSpeed) * sgn
                     if math.abs(newDelta) > math.abs(delta) then
                         self.TractiveSetting = self.TargetTractiveSetting
                     else
@@ -235,9 +245,13 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     if self.TargetPosition == 0 and self.Set1Pressed and self.TargetTractiveSetting <= 20 then
+        self.TractiveSetting = 20
+        self.TargetTractiveSetting = 20
         self.TargetPosition = 1
         self.ControllerTimer = CurTime() - 1
     elseif self.TargetPosition == 0 and self.Set5Pressed and self.TargetTractiveSetting >= -20 then
+        self.TractiveSetting = -20
+        self.TargetTractiveSetting = -20
         self.TargetPosition = -1
         self.ControllerTimer = CurTime() - 1
     end

@@ -26,6 +26,19 @@ function ENT:GetStandingArea()
     return Vector(-450, -30, -53), Vector(360, 30, -53)
 end
 
+local function getRing(ring)
+    if ring == 1 then
+        ring = math.random(2, 4)
+    end
+    if ring == 3 then
+        return "subway_trains/765/ring_msg.wav"
+    elseif ring == 4 then
+        return "subway_trains/760/new/ring_ars.wav"
+    else
+        return "subway_trains/765/rumble/ring_vityaz.wav"
+    end
+end
+
 function ENT:InitializeSounds()
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.InitializeSounds(self)
@@ -55,50 +68,49 @@ function ENT:InitializeSounds()
     self.SoundPositions["pneumo_disconnect_close"] = {100, 1e9, Vector(478, 45, -61), 0.5}
     self.SoundPositions["pneumo_disconnect_open"] = {100, 1e9, Vector(478, 45, -61), 0.5}
 
-    self.SoundNames["horn"] = {
-        loop = 0.6,
-        "subway_trains/common/pneumatic/horn/horn3_start.wav",
-        "subway_trains/common/pneumatic/horn/horn3_loop.wav",
-        "subway_trains/common/pneumatic/horn/horn3_end.wav"
-    }
-    self.SoundPositions["horn"] = {1100, 1e9, Vector(500, -25, -64)}
+    self.SoundNames["KV1_-3_-2"] = "subway_trains/722/kuau/x_xp.mp3"
+    self.SoundNames["KV1_-2_-1"] = "subway_trains/722/kuau/xp_x2.mp3"
+    self.SoundNames["KV1_-1_0"] = "subway_trains/722/kuau/x_xp.mp3"
+    self.SoundNames["KV1_0_1"] = "subway_trains/722/kuau/0_x.mp3"
+    self.SoundNames["KV1_1_2"] = "subway_trains/722/kuau/x_xp.mp3"
+    self.SoundNames["KV1_2_1"] = "subway_trains/722/kuau/xp_x2.mp3"
+    self.SoundNames["KV1_1_0"] = "subway_trains/722/kuau/x_xp.mp3"
+    self.SoundNames["KV1_0_-1"] = "subway_trains/722/kuau/0_x.mp3"
+    self.SoundNames["KV1_-1_-2"] = "subway_trains/722/kuau/x_xp.mp3"
+    self.SoundNames["KV1_-2_-3"] = "subway_trains/722/kuau/xp_x.mp3"
 
-    local kvType = self:GetNW2Int("KvType", 1)
-    if kvType == 1 then kvType = math.random(2) else kvType = kvType - 1 end
-    if kvType == 1 then
-        self.SoundNames["KV_-3_-2"] = "subway_trains/722/kuau/x_xp.mp3"
-        self.SoundNames["KV_-2_-1"] = "subway_trains/722/kuau/xp_x2.mp3"
-        self.SoundNames["KV_-1_0"] = "subway_trains/722/kuau/x_xp.mp3"
-        self.SoundNames["KV_0_1"] = "subway_trains/722/kuau/0_x.mp3"
-        self.SoundNames["KV_1_2"] = "subway_trains/722/kuau/x_xp.mp3"
-        self.SoundNames["KV_2_1"] = "subway_trains/722/kuau/xp_x2.mp3"
-        self.SoundNames["KV_1_0"] = "subway_trains/722/kuau/x_xp.mp3"
-        self.SoundNames["KV_0_-1"] = "subway_trains/722/kuau/0_x.mp3"
-        self.SoundNames["KV_-1_-2"] = "subway_trains/722/kuau/x_xp.mp3"
-        self.SoundNames["KV_-2_-3"] = "subway_trains/722/kuau/xp_x.mp3"
-    else
-        self.SoundNames["KV_-3_-2"] = "subway_trains/765/controller2/e-tp.mp3"
-        self.SoundNames["KV_-2_-1"] = "subway_trains/765/controller2/tp-t.mp3"
-        self.SoundNames["KV_-1_0"] = "subway_trains/765/controller2/t-0.mp3"
-        self.SoundNames["KV_0_1"] = "subway_trains/765/controller2/0-x.mp3"
-        self.SoundNames["KV_1_2"] = "subway_trains/765/controller2/x-xp.mp3"
-        self.SoundNames["KV_2_1"] = "subway_trains/765/controller2/xp-x.mp3"
-        self.SoundNames["KV_1_0"] = "subway_trains/765/controller2/x-0.mp3"
-        self.SoundNames["KV_0_-1"] = "subway_trains/765/controller2/0-t.mp3"
-        self.SoundNames["KV_-1_-2"] = "subway_trains/765/controller2/t-tp.mp3"
-        self.SoundNames["KV_-2_-3"] = "subway_trains/765/controller2/tp-e.mp3"
-    end
+    self.SoundNames["KV2_-3_-2"] = "subway_trains/765/controller2/e-tp.mp3"
+    self.SoundNames["KV2_-2_-1"] = "subway_trains/765/controller2/tp-t.mp3"
+    self.SoundNames["KV2_-1_0"] = "subway_trains/765/controller2/t-0.mp3"
+    self.SoundNames["KV2_0_1"] = "subway_trains/765/controller2/0-x.mp3"
+    self.SoundNames["KV2_1_2"] = "subway_trains/765/controller2/x-xp.mp3"
+    self.SoundNames["KV2_2_1"] = "subway_trains/765/controller2/xp-x.mp3"
+    self.SoundNames["KV2_1_0"] = "subway_trains/765/controller2/x-0.mp3"
+    self.SoundNames["KV2_0_-1"] = "subway_trains/765/controller2/0-t.mp3"
+    self.SoundNames["KV2_-1_-2"] = "subway_trains/765/controller2/t-tp.mp3"
+    self.SoundNames["KV2_-2_-3"] = "subway_trains/765/controller2/tp-e.mp3"
 
-    self.SoundPositions["KV_-3_-2"] = {80, 1e9, Vector(461.8, 25.3, -27.7)}
-    self.SoundPositions["KV_-2_-1"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_-1_0"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_0_1"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_1_2"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_2_1"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_1_0"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_0_-1"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_-1_-2"] = self.SoundPositions["KV_-3_-2"]
-    self.SoundPositions["KV_-2_-3"] = self.SoundPositions["KV_-3_-2"]
+    self.SoundPositions["KV1_-3_-2"] = {80, 1e9, Vector(461.8, 25.3, -27.7)}
+    self.SoundPositions["KV1_-2_-1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_-1_0"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_0_1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_1_2"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_2_1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_1_0"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_0_-1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_-1_-2"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV1_-2_-3"] = self.SoundPositions["KV1_-3_-2"]
+
+    self.SoundPositions["KV2_-3_-2"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_-2_-1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_-1_0"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_0_1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_1_2"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_2_1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_1_0"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_0_-1"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_-1_-2"] = self.SoundPositions["KV1_-3_-2"]
+    self.SoundPositions["KV2_-2_-3"] = self.SoundPositions["KV1_-3_-2"]
 
     self.SoundNames["kro_in"] = {"subway_trains/717/kru/kru_insert1.mp3", "subway_trains/717/kru/kru_insert2.mp3"}
     self.SoundNames["kro_out"] = {"subway_trains/717/kru/kru_eject1.mp3", "subway_trains/717/kru/kru_eject2.mp3", "subway_trains/717/kru/kru_eject3.mp3",}
@@ -226,19 +238,8 @@ function ENT:InitializeSounds()
     self.SoundPositions["bkpu"] = {800, 1e9, Vector(410.2, 59, 1), 0.5}
 
     local ring = self:GetNW2Bool("SingleRing", false) and self:GetNW2Int("RingType765", 1) or nil
-    if ring then
-        if ring == 1 then
-            ring = math.random(2, 4)
-        end
-        if ring == 2 then
-            ring = "subway_trains/765/rumble/ring_vityaz.wav"
-        elseif ring == 3 then
-            ring = "subway_trains/765/ring_msg.wav"
-        elseif ring == 4 then
-            ring = "subway_trains/760/new/ring_ars.wav"
-        end
-    end
-    self.SoundNames["ring_call"] = { loop = true, ring or "subway_trains/765/rumble/ring_vityaz.wav" }
+    if ring then ring = getRing(ring) end
+    self.SoundNames["ring_call"] = { loop = true, getRing(ring and self:GetNW2Int("CallRingType", 2) or 2) }
     self.SoundPositions["ring_call"] = {800, 1e9, Vector(490, 21.6, -9.2), 0.5}
     self.SoundNames["ring_ppz"] = { loop = true, ring or "subway_trains/765/rumble/ring_vityaz.wav" }
     self.SoundPositions["ring_ppz"] = {800, 1e9, Vector(417, 36, 31.3), 0.5}
@@ -278,18 +279,19 @@ function ENT:InitializeSounds()
     end
 
 
-    local hornType = self:GetNW2Int("HornType", 0)
-    if hornType == 2 then hornType = math.random(3, 5) end
-    if hornType == 3 then
-        self.SoundNames["horn"] = { loop = 0.6, "subway_trains/common/pneumatic/horn/horn1_start.wav","subway_trains/common/pneumatic/horn/horn1_loop.wav", "subway_trains/common/pneumatic/horn/horn1_end.mp3" }
-        self.SoundPositions["horn"] = {1100,1e9,Vector(450,0,-55),1}
-    elseif hornType == 4 then
-        self.SoundNames["horn"] = { loop = 0.6, "subway_trains/common/pneumatic/horn/horn2_start.wav","subway_trains/common/pneumatic/horn/horn2_loop.wav", "subway_trains/common/pneumatic/horn/horn2_end.mp3" }
-        self.SoundPositions["horn"] = {1100,1e9,Vector(450,0,-55),1}
-    elseif hornType == 5 then
-        self.SoundNames["horn"] = { loop = 0.6, "subway_trains/765/tifon/tifon_start.mp3","subway_trains/765/tifon/tifon_loop.mp3", "subway_trains/765/tifon/tifon_end.mp3" }
-        self.SoundPositions["horn"] = {1100,1e9,Vector(450,0,-55),1}
-    end
+    self.SoundNames["horn"] = {
+        loop = 0.6,
+        "subway_trains/common/pneumatic/horn/horn3_start.wav",
+        "subway_trains/common/pneumatic/horn/horn3_loop.wav",
+        "subway_trains/common/pneumatic/horn/horn3_end.wav"
+    }
+    self.SoundPositions["horn"] = {1100, 1e9, Vector(500, -25, -64)}
+    self.SoundNames["horn1"] = { loop = 0.6, "subway_trains/common/pneumatic/horn/horn1_start.wav","subway_trains/common/pneumatic/horn/horn1_loop.wav", "subway_trains/common/pneumatic/horn/horn1_end.mp3" }
+    self.SoundPositions["horn1"] = {1100,1e9,Vector(450,0,-55),1}
+    self.SoundNames["horn2"] = { loop = 0.6, "subway_trains/common/pneumatic/horn/horn2_start.wav","subway_trains/common/pneumatic/horn/horn2_loop.wav", "subway_trains/common/pneumatic/horn/horn2_end.mp3" }
+    self.SoundPositions["horn2"] = {1100,1e9,Vector(450,0,-55),1}
+    self.SoundNames["horn3"] = { loop = 0.6, "subway_trains/765/tifon/tifon_start.mp3","subway_trains/765/tifon/tifon_loop.mp3", "subway_trains/765/tifon/tifon_end.mp3" }
+    self.SoundPositions["horn3"] = {1100,1e9,Vector(450,0,-55),1}
 
     self.SoundNames["mfdu_down"] = {
         "subway_trains/765/btn_mfdu_dn1.mp3",
@@ -491,17 +493,18 @@ ENT.PvzToggles = {
 
 function ENT:InitializeSystems()
     self:LoadSystem("TR", "TR_3B")
-    self:LoadSystem("Electric", "81_760E_Electric")
+    self:LoadSystem("Electric", "81_765_Electric")
     self:LoadSystem("AsyncInverter", "81_760_AsyncInverter")
     self:LoadSystem("KV765", "81_765_Controller")
     self:LoadSystem("RV", "81_720_RV")
     self:LoadSystem("BUKP", "81_760E_BUKP")
+    self:LoadSystem("MFDU", "81_765_MFDU")
     self:LoadSystem("BUV", "81_760E_BUV")
     self:LoadSystem("BUD", "81_765_BUD")
     self:LoadSystem("BARS", "81_760E_BARS")
     self:LoadSystem("SD3", "Relay", "Switch")
     self:LoadSystem("Pneumatic", "81_760E_Pneumatic")
-    self:LoadSystem("Horn", "81_720_Horn")
+    self:LoadSystem("Horn", "81_765_Horn")
     self:LoadSystem("Panel", "81_760E_Panel")
 
     self:LoadSystem("ASNP", "81_760_ASNP")
@@ -641,10 +644,12 @@ ENT.SpawnerSpawnFnc = function(mg, mp, pp)
     end
 end
 
+
 ENT.SpawnerCustom = {
     model = {"models/metrostroi_train/81-760e/81_760e_body.mdl", "models/metrostroi_train/81-760/81_760a_int.mdl", "models/metrostroi_train/81-765/cabin.mdl", "models/metrostroi_train/81-765/headlights_main_off.mdl",},
     spawnfunc = ENT.SpawnerSpawnFnc("gmod_subway_81-765e", "gmod_subway_81-766e", "gmod_subway_81-767e"),
     postfunc = function(trains, WagNum)
+        if #trains ~= WagNum then return end
         local wag1 = trains[1]:GetWagonNumber()
         for i = 1, #trains do
             local ent = trains[i]
@@ -683,6 +688,9 @@ ENT.SpawnerCustom = {
     skins,
     -- Metrostroi.Skins.GetTable("PassTexture","Spawner.PassTexture",PassTexture,"pass"),
     -- Metrostroi.Skins.GetTable("CabTexture","Spawner.CabTexture",CabTexture,"cab"),
+    ENT.SpawnerLogos(),
+    { "BLIK:Anim", "Анимация БЛ-ИК", "Boolean", Section = "Branding" },
+    {},
     {
         "Announcer",
         "Spawner.760.Announcer",
@@ -717,13 +725,72 @@ ENT.SpawnerCustom = {
         end,
         Section = "IkConfig",
     },
-    ENT.SpawnerLogos(),
-    { "BLIK:Anim", "Анимация БЛ-ИК", "Boolean", Section = "Branding" },
+    {},
+    { "KdLongerDelay", "Задержка контроля дверей", "Boolean", false, Section = "Wear" },
+    {
+        "BreakRedChance", "Шанс сломать габ. огни", "Slider", 0, 0, 35, 0,
+        function(ent, val, rot, i)
+            if ent.SA1 then
+                local any = false
+                for idx = 1, 4 do
+                    local broke = math.random() < (val / 100)
+                    any = any or broke
+                    ent:SetNW2Bool("RlBroken" .. idx, broke)
+                end
+                if not any and val > 20 and i ~= 1 then
+                    ent:SetNW2Bool("RlBroken" .. math.random(4), true)
+                end
+            end
+        end,
+        Section = "Wear"
+    },
+    {
+        "DoorReverseMalfunc", "Кол-во проблемных дверей", "Slider", 0, 0, 8, 0,
+        function(ent, val, rot, wagi, wagnum, rclk)
+            if rclk then return end
+            if not _MalfDoors or _MalfDoorsLast ~= CurTime() then
+                _MalfDoors = {}
+                for idx = 1, math.floor(val) do
+                    local w = math.random(wagnum)
+                    if not _MalfDoors[w] then _MalfDoors[w] = {} end
+                    table.insert(_MalfDoors[w], math.random(8))
+                end
+                _MalfDoorsLast = CurTime()
+            end
+            if not ent.BUD or not _MalfDoors[wagi] then return end
+            ent.BUD.DoorReverseMalfunc = {}
+            for _, idx in ipairs(_MalfDoors[wagi]) do
+                ent.BUD.DoorReverseMalfunc[idx] = math.Rand(0.1, 0.45)
+            end
+            for idx, v in pairs(ent.BUD.DoorReverseMalfunc) do
+                print(string.format("81-765: Generated malfunctioning door for %s at %d (%s%%)", ent:GetWagonNumber(), idx, math.Round(v * 100, 1)))
+            end
+        end,
+        Section = "Wear"
+    },
+    {
+        "BatteryWear", "Износ батареи", "Slider", 0, 0, 100, 0,
+        function(ent, val, rot, wagi, wagnum, rclk)
+            if rclk then return end
+            local max = 110 * 3600
+            ent.Battery:TriggerInput("SetCapacity", max - 0.94 * max * val / 100 - math.Rand(0, 0.06) * max * Lerp(val / 100, 1, 0.5))
+        end,
+        Section = "Wear"
+    },
+    {
+        "BatteryLevel", "Уровень заряда батареи", "Slider", 0, 0, 100, 100,
+        function(ent, val, rot, wagi, wagnum, rclk)
+            if rclk then return end
+            ent.Battery:TriggerInput("SetLevel", 0.79 * val / 100 + math.Rand(0.1, 0.11 + 0.1 * val / 100))
+        end,
+        Section = "Wear"
+    },
+    {},
     { "SarmatBeep", "Звук теста аппаратуры от \"Сармат\"", "Boolean", Section = "Settings", Subsection = "AudioEvents", },
     { "AnnouncerClicks", "Звук клика в оповещениях", "Boolean", Section = "Settings", Subsection = "AudioEvents" },
     {
         "SingleRing",
-        "Один тип звонка",
+        "Звонки 81-765",
         "Boolean",
         false,
         nil,
@@ -731,15 +798,24 @@ ENT.SpawnerCustom = {
             if sl.RingType765 then
                 sl.RingType765:SetDisabled(not self:GetChecked())
             end
+            if sl.CallRingType then
+                sl.CallRingType:SetDisabled(not self:GetChecked())
+            end
         end,
         Section = "Settings", Subsection = "AudioEvents"
     },
     { "RingType765", "Тип звонка", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
-    { "HornType", "Тифон", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
+    { "CallRingType", "Тип зв. передачи упр.", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 4, Section = "Settings", Subsection = "AudioEvents" },
+    { "HornType", "Тифон (механич.)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
+    { "ElectricHornType", "Тифон (ЭП)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
     { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3, Section = "Settings", Subsection = "Sounds" },
+    {},
     { "AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
     { "ForgivefulBars", "БАРС прощает ошибки", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
     { "BtbuSd", "Автомат ППЗ БТБУ", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "CoupleSprings", "Центровка автосцепок", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "NerfKpDsHull", "Нерф КП/ДС/Кузов", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "DoorReverseMode", "Противозажатие", "List", { "1 авто, ∞ ручн.", "1 авто, 1 ручн.", "3 авто, ∞ ручн." }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
     {
         "NoTrailers", "Без прицепных 763Э", "Boolean", false, nil,
         function(self, stbl)
@@ -765,6 +841,7 @@ ENT.SpawnerCustom = {
         end,
         Section = "Settings", Subsection = "FunctionalSettings"
     },
+    {},
     { "BMIK:Font", "Шрифт БМТ, БНМ", "List", { "Тип 1 (2017)", "Тип 2 (2019)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "CikColor", "Цвет БМТ, БНМ", "List", { "Метроспецтехника (желтый)", "Сармат (рыжий)", "Ранний (зеленый)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
@@ -783,24 +860,10 @@ ENT.SpawnerCustom = {
         end,
         Section = "Settings", Subsection = "VisualSettings"
     },
-    { "KdLongerDelay", "Задержка контроля дверей", "Boolean", false, Section = "Wear" },
-    {
-        "BreakRedChance", "Шанс сломать габ. огни", "Slider", 0, 0, 35, 0,
-        function(ent, val, rot, i)
-            if ent.SA1 then
-                local any = false
-                for idx = 1, 4 do
-                    local broke = math.random() < (val / 100)
-                    any = any or broke
-                    ent:SetNW2Bool("RlBroken" .. idx, broke)
-                end
-                if not any and val > 20 and i ~= 1 then
-                    ent:SetNW2Bool("RlBroken" .. math.random(4), true)
-                end
-            end
-        end,
-        Section = "Wear"
-    },
+    {},
+    { "DoorsControls", "Упр. дверьми (A/D)", "List", { "Сначала выбор", "Классическое" }, 1, Section = "Controls" },
+    { "CamsSelect", "Камеры на A/D", "Boolean", true, Section = "Controls" },
+    {},
     {
         "VVVFSound",
         "Звук инвертора",
@@ -840,6 +903,7 @@ ENT.SpawnerCustom = {
     },
     { "HSEngines", "Spawner.720a.HSEngines", "Boolean", Section = "Settings", Subsection = "AsyncSounds" },
     { "FirstONIX", "Spawner.720a.FirstONIX", "Boolean", Section = "Settings", Subsection = "AsyncSounds" },
+    {},
     {
         "SpawnMode",
         "Spawner.Common.SpawnMode",
@@ -860,7 +924,6 @@ ENT.SpawnerCustom = {
                     else
                         _Odometer = math.random(0, 999999)
                     end
-                    _randRoute = math.random(1, 89)
                     _DoorsDelay = math.Rand(0.42, 0.57)
                 end
                 if _Odometer then ent.Odometer = _Odometer end
@@ -871,7 +934,6 @@ ENT.SpawnerCustom = {
                         SF70F2 = true,  -- PpzWindshieldHeat
                         SF43F3 = true,  -- PpzSmartdrive
                         SF51F2 = val ~= 3,  -- PpzBattLights
-                        SF30F1 = val > 2,  -- PpzBsControl
                         SF62F3 = val > 1,  -- PpzCabinAc
                         SF62F4 = val > 1,  -- PpzCabinEpra
                         SF70F4 = val > 2,  -- PpzAuxCabin
@@ -918,10 +980,12 @@ ENT.SpawnerCustom = {
                 ent.GV:TriggerInput("Set", val < 4 and 1 or 0)
 
                 if val <= 2 then
-                    if ent.SA1 then
-                        timer.Simple(2, function()
-                            if not IsValid(ent) then return end
+                    timer.Simple(2, function()
+                        if not IsValid(ent) then return end
+                        ent.BUV.ZeroSpeed = 1
+                        if ent.SA1 then
                             ent.BUKP.State = 5
+                            ent.BUKP.State2 = 0
                             ent.BUIK.State = 4
                             for idx = 1, 8 do
                                 ent:SetNW2String("BUIK:WagErr" .. idx, false)
@@ -929,18 +993,15 @@ ENT.SpawnerCustom = {
                                     ent:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), true)
                                 end
                             end
-                            ent.BUKP:CState("ZeroSpeed", true)
-                        end)
-                    end
+                        end
+                    end)
 
                     timer.Simple(7, function()
                         if not IsValid(ent) then return end
                         ent.BUV.PassLight = val == 1
-                        if ent.AsyncInverter then ent.BUV.PSNSignal = true end
+                        ent.BUV.PSNSignal = true
                         if ent.ASNP and isnumber(ent.ASNP.RouteNumber) then
-                            if val <= 2 and ent.ASNP.RouteNumber <= 0 then
-                                ent.ASNP.RouteNumber = _randRoute or 11
-                            elseif ent.ASNP.RouteNumber * 10 % 10 ~= 0 then
+                            if val <= 2 and math.floor(ent.ASNP.RouteNumber * 10) % 10 ~= 0 then
                                 ent.ASNP.RouteNumber = math.floor(ent.ASNP.RouteNumber * 10)
                             end
                             ent.BUIK.RouteNumber = val <= 2 and ent.ASNP.RouteNumber or 0
@@ -962,9 +1023,19 @@ ENT.SpawnerCustom = {
                 ent.Pneumatic.ParkingBrake = val == 3
                 ent._SpawnerStarted = val
             end
+        end,
+        function(self, spawnerList)
+            spawnerList.BatteryLevel:SetValue(self:GetSelectedID() < 3 and 100 or self:GetSelectedID() == 3 and 60 or 80)
         end
     }
 }
+
+ENT.SpawnerFields = {}
+for _, v in ipairs(ENT.SpawnerCustom) do
+    if isstring(v[1]) then
+        ENT.SpawnerFields[v[1]] = v
+    end
+end
 
 for idx = 1, 4 do
     table.insert(ENT.SpawnerCustom.model, "models/metrostroi_train/81-765/headlights_" .. idx .. "_off.mdl")
@@ -975,15 +1046,26 @@ ENT.Spawner = {
     spawnfunc = ENT.SpawnerSpawnFnc("gmod_subway_81-765", "gmod_subway_81-766", "gmod_subway_81-767"),
     postfunc = ENT.SpawnerCustom.postfunc,
     ENT.SpawnerSkins("765", "760e.Moscow"),
-    ENT.SpawnerCustom[2], ENT.SpawnerCustom[3],
-    ENT.SpawnerLogos("MosMetro", "MosBrend", "MosMetro765"),
-    ENT.SpawnerCustom[5],  -- BLIK:Anim
-    ENT.SpawnerCustom[9],  -- RingType765
-    ENT.SpawnerCustom[15],  -- NoTrailers
-    ENT.SpawnerCustom[20],  -- ArsMode
-    ENT.SpawnerCustom[21],  -- KdLongerDelay
-    ENT.SpawnerCustom[22],  -- BreakRedChance
+    ENT.SpawnerLogos("MosMetro", "MosBrend", "MosBrend3D"),
+    ENT.SpawnerFields["BLIK:Anim"],
+    {},
+    ENT.SpawnerFields["Announcer"],
+    ENT.SpawnerFields["CISConfig"],
+    {},
+    ENT.SpawnerFields["KdLongerDelay"],
+    ENT.SpawnerFields["BreakRedChance"],
+    ENT.SpawnerFields["DoorReverseMalfunc"],
+    ENT.SpawnerFields["BatteryWear"],
+    ENT.SpawnerFields["BatteryLevel"],
+    {},
     { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
+    ENT.SpawnerFields["RingType765"],
+    ENT.SpawnerFields["NoTrailers"],
+    ENT.SpawnerFields["ArsMode"],
+    {},
+    ENT.SpawnerFields["DoorsControls"],
+    ENT.SpawnerFields["CamsSelect"],
+    {},
     ENT.SpawnerCustom[#ENT.SpawnerCustom]
 }
 
@@ -1005,4 +1087,5 @@ ENT.SharedFields = {
     "RightDoorPositions",
     "LeftDoorPositionsBAK",
     "RightDoorPositionsBAK",
+    "ZmsKpCheck",
 }
