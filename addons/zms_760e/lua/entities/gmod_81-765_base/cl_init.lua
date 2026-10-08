@@ -1068,16 +1068,23 @@ function ENT:SetupMezhwag(platform, mezhwag, coupleDyn, wag, front, dt)
 
         if IsValid(mezhwag) then
             if not mezhwag.HasCallback then
+                mezhwag.fscale = Vector(1, 1, 1)
                 mezhwag:AddCallback("BuildBonePositions", function(ent)
                     if ent:IsMarkedForDeletion() then return end
                     local mdl = ent:GetModel()
                     local m = Matrix()
                     if mdl == "models/metrostroi_train/81-765/765_mezhwag.mdl" then
                         for idx = 1, 6 do
-                            local pos = "fpos" .. idx
-                            local ang = "fang" .. idx
-                            if not ent[pos] or not ent[ang] then return end
-                            set_bone_transform(ent, m, new_fence_bones[idx], ent[pos], ent[ang])
+                            local pos = ent["fpos" .. idx]
+                            local ang = ent["fang" .. idx]
+                            if not pos or not ang then return end
+                            if idx == 3 and ent.fpos1 and ent.fpos2 then
+                                mezhwag.fscale.x = math.Clamp(ent.fpos1:Distance(ent.fpos2) / 40.9524, 0.2, 1.8)  -- TODO adjust
+                            else
+                                mezhwag.fscale.x = 1
+                            end
+                            m:SetScale(mezhwag.fscale)
+                            set_bone_transform(ent, m, new_fence_bones[idx], pos, ang)
                         end
                     else -- TODO remove
                         if not ent.fpos1 or not ent.fpos2 or not ent.fang1 or not ent.fang2 then return end
@@ -1095,13 +1102,16 @@ function ENT:SetupMezhwag(platform, mezhwag, coupleDyn, wag, front, dt)
                 mezhwag.fpos2 = wag:LocalToWorld(Vector(otherFront and 471.07 or -477.53, 0, 0))
                 mezhwag.fang1 = self:LocalToWorldAngles(Angle(0, front and 0 or 180, 0))
                 mezhwag.fang2 = wag:LocalToWorldAngles(Angle(0, otherFront and 0 or 180, 0))
+
                 calculate_fence_mid(mezhwag, dt)
+
                 mezhwag.fpos4 = self:LocalToWorld(Vector(front and 424.38 or -430.84, 0, -79.47))
                 mezhwag.fpos5 = wag:LocalToWorld(Vector(otherFront and 424.38 or -430.84, 0, -79.47))
                 mezhwag.fang4 = (mezhwag.fpos5 - mezhwag.fpos4):GetNormalized():Angle()
                 mezhwag.fang5 = (mezhwag.fpos4 - mezhwag.fpos5):GetNormalized():Angle()
                 mezhwag.fang4:Normalize()
                 mezhwag.fang5:Normalize()
+
                 local couple2 = wag:GetNW2Entity(otherFront and "FrontCouple" or "RearCouple")
                 if coupleValid and IsValid(couple2) then
                     local cpos1 = couple:LocalToWorld(Vector(64.43, 0, 0))
