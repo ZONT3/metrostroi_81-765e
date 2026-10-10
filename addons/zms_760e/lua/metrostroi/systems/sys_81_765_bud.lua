@@ -606,10 +606,13 @@ if SERVER then
         end
     end)
 else
-    local mat_off = "models/metrostroi_train/81-765/led_off"
-    local mat_red = "models/metrostroi_train/81-765/led_red"
-    local mat_green = "models/metrostroi_train/81-765/led_green"
-    local mat_white = "models/metrostroi_train/81-765/led_white"
+    local mat_off = "models/metrostroi_train/81-765_v1/lights/strips_doors_off"
+    local mat_red = "models/metrostroi_train/81-765_v1/lights/strips_doors_red"
+    local mat_green = "models/metrostroi_train/81-765_v1/lights/strips_doors_green"
+    local mat_strip_off = "models/metrostroi_train/81-765_v1/lights/strips_salon_off"
+    local mat_strip_red = "models/metrostroi_train/81-765_v1/lights/strips_salon_red"
+    local mat_strip_green = "models/metrostroi_train/81-765_v1/lights/strips_salon_green"
+    local mat_strip_white = "models/metrostroi_train/81-765_v1/lights/strips_salon_white"
 
     function TRAIN_SYSTEM:ClientInitialize()
         self.WasOpen = {}
@@ -652,33 +655,36 @@ else
 
             if announceState == "Moving" then
                 outer = mat_off
-                inter = mat_white
+                inter = mat_strip_white
             elseif announceState == "Closed" then
                 outer = mat_red
-                inter = mat_red
+                inter = mat_strip_red
             elseif announceState == "Closing" or announceState == "ClosingAwaiting" then
                 outer = (announceState == "ClosingAwaiting" or blink1) and mat_off or mat_red
-                inter = blink2 and mat_off or mat_red
+                inter = blink2 and mat_strip_off or mat_strip_red
             elseif announceState == "Depart" then
                 outer = mat_red
-                inter = not delay and mat_red or mat_off
+                inter = not delay and mat_strip_red or mat_strip_off
             elseif announceState == "Open" then
                 self.WasOpen[idx] = true
                 outer = mat_green
-                inter = mat_green
+                inter = mat_strip_green
             elseif announceState == "Opening" or announceState == "OpeningAddr" then
                 outer = announceState == "OpeningAddr" and mat_green or blink1 and mat_off or mat_red
-                inter = blink2 and mat_off or mat_red
+                inter = blink2 and mat_strip_off or mat_strip_red
             else  -- Unpowered
                 outer = mat_off
-                inter = mat_off
+                inter = mat_strip_off
             end
 
-            local did = "Door" .. idx
-            local doorEnt = Wag.ClientEnts[did]
+            local doorEnt = Wag.ClientEnts["Door" .. idx]
             if IsValid(doorEnt) then
-                doorEnt:SetSubMaterial(3, outer)
-                doorEnt:SetSubMaterial(4, inter)
+                doorEnt:SetSubMaterial(1, outer)
+                -- doorEnt:SetSubMaterial(4, inter)
+            end
+            local strip = Wag.ClientEnts["Strip" .. idx]
+            if IsValid(strip) then
+                strip:SetSubMaterial(0, inter)
             end
 
             local state = Wag:GetPackedRatio("Door" .. idx)
@@ -712,7 +718,7 @@ else
                     animState = math.Clamp(animState + dir * dT, 0, 1)
                 end
                 delta = animState - prev
-                door:SetPoseParameter("position", animState)
+                door:SetPoseParameter("position", 1 - animState)
                 door.AnimState = animState
             end
 

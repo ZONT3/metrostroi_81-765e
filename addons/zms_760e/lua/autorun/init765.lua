@@ -177,7 +177,7 @@ timer.Simple(1, function()
     if SERVER then
         local sent = scripted_ents.Get("gmod_train_couple")
         if sent then
-            sent.Types["765DC"] = {"models/metrostroi_train/81-765/765_couple_r.mdl", Vector(64.43, 0, 0), Vector(64.6, 0, -2), Angle(0, -90, 0)}
+            sent.Types["765DC"] = {"models/metrostroi_train/81-765_v1/common/couple.mdl", Vector(64.43, 0, 0), Vector(64.6, 0, -2), Angle(0, -90, 0)}
             scripted_ents.Register(sent, "gmod_train_couple")
         end
     end

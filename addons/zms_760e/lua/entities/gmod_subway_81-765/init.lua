@@ -53,8 +53,8 @@ function ENT:Initialize()
         ABESDk = true,
         SD = {true, "SDk"},
         SDk = true,
-        ALS = {true, "ALSk"},
-        ALSk = true,
+        -- ALS = {true, "ALSk"},
+        -- ALSk = true,
         K9 = true,
         UAVA = true,
         R_ASNPOn = true,
@@ -62,7 +62,7 @@ function ENT:Initialize()
     }
 
     -- Create seat entities
-    self.DriverSeat = self:CreateSeat("driver", Vector(461, 14, -27)) --Vector(427,17.5,-35))--  -- +Vector(21,7,-10)) 447.8   455            Vector(455,18.1,-35)
+    self.DriverSeat = self:CreateSeat("driver", Vector(468, 15, -27)) --Vector(427,17.5,-35))--  -- +Vector(21,7,-10)) 447.8   455            Vector(455,18.1,-35)
     self.InstructorsSeat = self:CreateSeat("instructor", Vector(435.8, -12, -40), Angle(0, 90, 0), "models/vehicles/prisoner_pod_inner.mdl")
     self.InstructorsSeat2 = self:CreateSeat("instructor", Vector(435.8, 45, -40), Angle(0, 90, 0), "models/vehicles/prisoner_pod_inner.mdl")
     self.InstructorsSeat3 = self:CreateSeat("instructor", Vector(425, -43, -37))
@@ -177,7 +177,7 @@ function ENT:Initialize()
     self.Lights = {
         [1] = {
             "light",
-            Vector(515, -56, 0),
+            Vector(516, -55, 0),
             Angle(0, 0, 90),
             Color(200, 240, 255),
             brightness = 0.5,
@@ -185,7 +185,7 @@ function ENT:Initialize()
         },
         [2] = {
             "light",
-            Vector(515, 56, 0),
+            Vector(516, -55, 0),
             Angle(0, 0, 90),
             Color(200, 240, 255),
             brightness = 0.5,
@@ -193,7 +193,7 @@ function ENT:Initialize()
         },
         [3] = {
             "light",
-            Vector(508, -52, 34),
+            Vector(516, -55, 22),
             Angle(0, 0, 90),
             Color(255, 50, 50),
             brightness = 0.2,
@@ -202,7 +202,7 @@ function ENT:Initialize()
         },
         [4] = {
             "light",
-            Vector(508, 52, 34),
+            Vector(516, 55, 22),
             Angle(0, 0, 90),
             Color(255, 50, 50),
             brightness = 0.2,
@@ -211,7 +211,7 @@ function ENT:Initialize()
         },
         [10] = {
             "dynamiclight",
-            Vector(495, 13, 25),
+            Vector(449, 0, 45),
             Angle(0, 0, 0),
             Color(255, 255, 255),
             brightness = 0.1,

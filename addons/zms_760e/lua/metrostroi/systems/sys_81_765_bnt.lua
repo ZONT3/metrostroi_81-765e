@@ -90,7 +90,7 @@ if SERVER then
     end
 
 else
-    local scw, sch = 3840, 512
+    local scw, sch = 3830, 620
 
     local StationAnimDuration = 0.75
     local SlideDuration = 0.2
@@ -102,7 +102,7 @@ else
         self.NextDraw = CurTime() + (self.ScreenFt or (1 / 12))
         self.Working = Wag:GetNW2Bool("BNT:Working", false)
         if Wag:ShouldDrawPanel("BNTL") then
-            render.PushRenderTarget(self.Train.LBnt, 0, 0, 3840, 512)
+            render.PushRenderTarget(self.Train.LBnt, 0, 0, scw, sch)
             render.Clear(0, 0, 0, 0)
             cam.Start2D()
             self:DrawBnt(true)
@@ -110,7 +110,7 @@ else
             render.PopRenderTarget()
         end
         if Wag:ShouldDrawPanel("BNTR") then
-            render.PushRenderTarget(self.Train.RBnt, 0, 0, 3840, 512)
+            render.PushRenderTarget(self.Train.RBnt, 0, 0, scw, sch)
             render.Clear(0, 0, 0, 0)
             cam.Start2D()
             self:DrawBnt(false)
@@ -138,7 +138,7 @@ else
     surface.CreateFont("BNT.SystemSmall", {
         extended = true,
         font = "Arimo",
-        size = 40,
+        size = 48,
         weight = 500,
     })
 
@@ -166,62 +166,62 @@ else
     surface.CreateFont("BNT.Arrived", {
         extended = true,
         font = "Moscow Sans Regular",
-        size = 40,
+        size = 48,
         weight = 500,
     })
 
     surface.CreateFont("BNT.ChangeSymbol", {
         extended = true,
         font = "Moscow Sans Regular",
-        size = 54,
+        size = 60,
         weight = 600,
     })
 
     surface.CreateFont("BNT.ChangeSymbolBig", {
         extended = true,
         font = "Moscow Sans Regular",
-        size = 76,
+        size = 82,
         weight = 600,
     })
 
     surface.CreateFont("BNT.Footer", {
         extended = true,
         font = "Moscow Sans Regular",
-        size = 64,
+        size = 72,
         weight = 500,
     })
 
     surface.CreateFont("BNT.FooterEng", {
         extended = true,
         font = "Moscow Sans Regular",
-        size = 36,
+        size = 42,
         weight = 500,
     })
 
     surface.CreateFont("BNT.StationSmall", {
         extended = true,
         font = "Moscow Sans Regular",
-        size = 72,
+        size = 80,
         weight = 600,
     })
 
     surface.CreateFont("BNT.StationSmallEng", {
         extended = true,
         font = "Moscow Sans Regular",
-        size = 48,
+        size = 54,
         weight = 500,
     })
 
     surface.CreateFont("BNT.StationBig", {
         extended = true,
         font = "Moscow Sans Regular",
-        size = 140,
+        size = 152,
         weight = 600,
     })
     surface.CreateFont("BNT.StationBigEng", {
         extended = true,
         font = "Moscow Sans Regular",
-        size = 70,
+        size = 80,
         weight = 500,
     })
 
@@ -342,19 +342,19 @@ else
                 surface.CreateFont("BNT.StationBig." .. fps .. "." .. idx, {
                     extended = true,
                     font = "Moscow Sans Regular",
-                    size = Lerp(idx / self.FontTransitionFrames, 72, 140),
+                    size = Lerp(idx / self.FontTransitionFrames, 80, 152),
                     weight = 600,
                 })
                 surface.CreateFont("BNT.StationBigEng." .. fps .. "." .. idx, {
                     extended = true,
                     font = "Moscow Sans Regular",
-                    size = Lerp(idx / self.FontTransitionFrames, 48, 70),
+                    size = Lerp(idx / self.FontTransitionFrames, 54, 80),
                     weight = 500,
                 })
                 surface.CreateFont("BNT.ChangeSymbol." .. fps .. "." .. idx, {
                     extended = true,
                     font = "Moscow Sans Regular",
-                    size = Lerp(idx / self.FontTransitionFrames, 54, 76),
+                    size = Lerp(idx / self.FontTransitionFrames, 58, 82),
                     weight = 600,
                 })
             end
@@ -380,11 +380,11 @@ else
 
         local arrived = animName == "ArrivedAnim" and animate(anim, 1, SlideDuration) or 1 - animate(anim, 0, SlideDuration)
         local travel = animName == "ArrivedAnim" and 1 - animate(anim, 0, SlideDuration) or animate(anim, 1, SlideDuration)
-        x, y = 95, 10
+        x, y = 95, 24
         draw.SimpleText("СТАНЦИЯ", "BNT.Arrived", x, y + (1 - arrived) * 20, self:GetCachedColor(colorBlack, arrived), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-        draw.SimpleText("STATION", "BNT.Arrived", 300, y + (1 - arrived) * 20, self:GetCachedColor(colorEng, arrived), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+        draw.SimpleText("STATION", "BNT.Arrived", 324, y + (1 - arrived) * 20, self:GetCachedColor(colorEng, arrived), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
         draw.SimpleText("СЛЕДУЮЩАЯ", "BNT.Arrived", x, y + (1 - travel) * 20, self:GetCachedColor(colorBlack, travel), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-        draw.SimpleText("NEXT", "BNT.Arrived", 380, y + (1 - travel) * 20, self:GetCachedColor(colorEng, travel), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+        draw.SimpleText("NEXT", "BNT.Arrived", 404, y + (1 - travel) * 20, self:GetCachedColor(colorEng, travel), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
         local oppositeExit = animName == "ArrivedAnim" and (Wag:GetNW2Bool("BNT:SelectLeft", false) and not left or Wag:GetNW2Bool("BNT:SelectRight", false) and left)
         if oppositeExit or animName == "DepartAnim" then
@@ -417,14 +417,14 @@ else
             end
         end
 
-        local x0, y0 = 100, 290 + y * 0.75
+        local x0, y0 = 100, 316 + y * 0.75
         local station = Wag:GetNW2Int("BNT:Station", 1)
         local firstStation = station == 1
         local secondStation = station == 2
         local loop = Wag:GetNW2Int("BNT:Loop", 0) == 1
         local stcount = not self.Working and #self.Stations or loop and 7 or math.min(#self.Stations, Wag:GetNW2Int("BNT:LastStation", #self.Stations)) - station + 1
         local termx, termy = scw - sizeTrminusBanner * terminusAnim, y
-        local linex, liney = (not loop and firstStation and x0 or 0), y0 + 40
+        local linex, liney = (not loop and firstStation and x0 or 0), y0 + 60
         local lineEnd = scw
         x, y = x0, y0
 
@@ -496,29 +496,29 @@ else
             boxW = math.max(minBoxW, boxW + gap)
             if not change then
                 surface.SetDrawColor(lineColor)
-                surface.DrawRect(x, liney - 24, 24, 24)
+                surface.DrawRect(x, liney - 32, 32, 32)
             else
-                table.insert(circles1, circle(x + 12, liney + 11, 40, 40))
-                table.insert(circles2, circle(x + 12, liney + 11, 18, 20))
+                table.insert(circles1, circle(x + 12, liney + 16, 54, 40))
+                table.insert(circles2, circle(x + 12, liney + 16, 24, 20))
             end
             if idx == stcount then
                 lineEnd = x
             end
             if not change and not loop and (idx == stcount or idx <= 1 and firstStation or idx == 0 and secondStation) then
                 surface.SetDrawColor(lineColor)
-                surface.DrawRect(x, liney, 24, 44)
+                surface.DrawRect(x, liney, 32, 52)
             end
             x = x + boxW + (idx == 0 and Lerp(stationAnim, 0, x0) or 0)
             if x > scw then break end
         end
 
         if changesFooter > 0 then
-            x, y = x0, liney + 120 - 20 * (1 - changesFooter)
+            x, y = x0, liney + 156 - 20 * (1 - changesFooter)
             local stidx = station + (stationAnim < 1 and -1 or 0)
             if loop and stidx < 1 then stidx = #self.Stations + stidx end
             if loop and stidx > #self.Stations then stidx = stidx - #self.Stations end
             local cfg = self.Stations[stidx] or NullStation
-            local sz = sizeChange * 1.4
+            local sz = sizeChange * 1.6
             for cidx = 1, #cfg.changes do
                 local chCfg = cfg.changes[cidx]
                 local text = chCfg.name
@@ -546,7 +546,7 @@ else
         end
 
         surface.SetDrawColor(lineColor)
-        surface.DrawRect(linex, liney, lineEnd - linex, 24)
+        surface.DrawRect(linex, liney, lineEnd - linex, 32)
         draw.NoTexture()
         surface.SetDrawColor(lineColor)
         for _, c in ipairs(circles1) do

@@ -12,32 +12,11 @@ ENT.AutoAnims = {}
 ENT.ClientPropsInitialized = false
 
 table.insert(ENT.ClientProps, {
-    model = "models/metrostroi_train/81-765/766_underwag.mdl",
+    model = "models/metrostroi_train/81-765_v1/766/underwag_mp.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
 })
-
-ENT.ClientProps["BoxAdd"] = {
-    model = "models/metrostroi_train/81-760/81_763a_box_add.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2,
-}
-
-ENT.ClientProps["VmLv"] = {
-    model = "models/metrostroi_train/81-760/81_760_arrow_electric.mdl",
-    pos = Vector(448.42, 48.84, -11.3),
-    ang = Angle(0, -90, 0),
-    hide = 0.2,
-}
-
-ENT.ClientProps["VmHv"] = {
-    model = "models/metrostroi_train/81-760/81_760_arrow_electric.mdl",
-    pos = Vector(457.55, -42.825, -27.43),
-    ang = Angle(0, -90, 0),
-    hide = 0.2,
-}
 
 function ENT:ReInitBogeySounds(bogey)
     if not IsValid(bogey) then return end

@@ -10,7 +10,7 @@ ENT.Instructions = ""
 ENT.Category = "Metrostroi (trains)"
 ENT.Base = "gmod_subway_base"
 ENT.SkinsType = "81-765"
-ENT.Model = "models/metrostroi_train/81-765/765_hull.mdl"
+ENT.Model = "models/metrostroi_train/81-765_v1/765/hull.mdl"
 ENT.NoTrain = false
 ENT.Spawnable = true
 ENT.AdminSpawnable = false
@@ -512,12 +512,15 @@ function ENT:InitializeSystems()
     self:LoadSystem("IGLA_CBKI", "81_760_IGLA_CBKI1")
     self:LoadSystem("IGLA_PCBK", "81_760_IGLA_PCBK")
     self:LoadSystem("IK", "81_765_IK")
-    self:LoadSystem("RVS", "81_760A_RVS_1")
+    -- self:LoadSystem("RVS", "81_760A_RVS_1")
     self:LoadSystem("BNT", "81_765_BNT")
     self:LoadSystem("BUIK", "81_765_BUIK")
     self:LoadSystem("CAMS", "81_760_CAMS")
     self:LoadSystem("ProstKos", "81_765_ProstKos")
     self:LoadSystem("FrontIK", "81_765_FrontIK")
+
+    -- backward-compats
+    -- self.BUKP = self.BUP
 
     if self.InitializeSystemsServer then
         self:InitializeSystemsServer()
@@ -646,7 +649,7 @@ end
 
 
 ENT.SpawnerCustom = {
-    model = {"models/metrostroi_train/81-765/765_hull.mdl", "models/metrostroi_train/81-765/765_salon.mdl", "models/metrostroi_train/81-765/765_underwag.mdl", "models/metrostroi_train/81-765/cabin.mdl"},
+    model = {"models/metrostroi_train/81-765_v1/765/hull.mdl", "models/metrostroi_train/81-765_v1/765/salon.mdl", "models/metrostroi_train/81-765_v1/765/underwag_h.mdl", "models/metrostroi_train/81-765_v1/765/cab.mdl", "models/metrostroi_train/81-765_v1/765/headlights_moscow/headlights_moscow.mdl"},
     postfunc = function(trains, WagNum)
         if #trains ~= WagNum then return end
         local wag1 = trains[1]:GetWagonNumber()
@@ -1036,8 +1039,8 @@ for _, v in ipairs(ENT.SpawnerCustom) do
     end
 end
 
-for idx = 1, 4 do
-    table.insert(ENT.SpawnerCustom.model, "models/metrostroi_train/81-765/headlights_" .. idx .. "_off.mdl")
+for idx = 1, 6 do
+    table.insert(ENT.SpawnerCustom.model, string.format("models/metrostroi_train/81-765_v1/765/headlights_moscow/headlights_moscow_%s%d.mdl", idx % 2 == 0 and "l" or "r", math.ceil(idx / 2)))
 end
 
 ENT.Spawner = {

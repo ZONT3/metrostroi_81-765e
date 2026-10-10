@@ -335,140 +335,58 @@ ENT.ClientSounds["EmergencyBrakeValve"] = {{"Stopkran", function() return "disco
 
 for i = 1, 4 do
     ENT.ButtonMap["BNTL" .. i] = {
-        pos = Vector(319 - 229.975 * (i - 1), 46.24, 53.21),
-        ang = Angle(0, 0, 119.9),
-        width = 3840,
-        height = 512,
+        pos = Vector(375.83 - 235.64 * (i - 1), -43.90, 52.27),
+        ang = Angle(0.000, 180.000, 111.583),
+        width = 3830,
+        height = 620,
         scale = 0.0134,
         system = "LBnt",
         hide = 1,
     }
     ENT.ButtonMap["BNTR" .. i] = {
-        pos = Vector(-319 - 229.975 * (i - 4), -46.24, 53.21),
-        ang = Angle(180, 0, -60.1),
-        width = 3840,
-        height = 512,
+        pos = Vector(-382.42 - 235.64 * (i - 4), 43.90, 52.27),
+        ang = Angle(0.000, 0.000, 111.583),
+        width = 3830,
+        height = 620,
         scale = 0.0134,
         system = "RBnt",
         hide = 1,
     }
-    ENT.ClientProps["BntLcdL" .. i] = {
-        model = "models/metrostroi_train/81-765/bnt_lcd.mdl",
-        pos = Vector(319 - 229.975 * (i - 1), 46.4, 52.5) + Vector(25.72, 2, -2),
-        ang = Angle(119.9, -90, 0),
-        hide = 1,
-    }
-    ENT.ClientProps["BntLcdR" .. i] = {
-        model = "models/metrostroi_train/81-765/bnt_lcd.mdl",
-        pos = Vector(-319 - 229.975 * (i - 4), -46.4, 52.5) - Vector(25.72, 2, 2),
-        ang = Angle(119.9, 90, 0),
-        hide = 1,
-    }
 end
 
+ENT.ClientProps["Bnt"] = {
+    model = "models/metrostroi_train/81-765_v1/common/bnt_lcd_mst.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2,
+}
+
 ENT.ClientProps["Salon"] = {
-    model = "models/metrostroi_train/81-765/766_salon.mdl",
+    model = "models/metrostroi_train/81-765_v1/766/salon_p.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
 }
 
-ENT.ClientProps["BoxIntR"] = {
-    model = "models/metrostroi_train/81-760/81_761a_box_int_r.mdl",
+ENT.ClientProps["SalonLights"] = {
+    model = "models/metrostroi_train/81-765_v1/lights/salon_lights_p.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
-}
-
-ENT.ClientProps["BoxDoorL"] = {
-    model = "models/metrostroi_train/81-760/81_761a_box_door_l.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2,
-}
-
-ENT.ClientProps["BoxDoorR"] = {
-    model = "models/metrostroi_train/81-760/81_761a_box_door_r.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2,
-}
-
-ENT.ClientProps["SalonLightsHalf"] = {
-    model = "models/metrostroi_train/81-760/81_760_lamp_int_half.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2,
-}
-
-ENT.ClientProps["SalonLightsFull"] = {
-    model = "models/metrostroi_train/81-760/81_761_lamp_int_full.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2,
-}
-
-ENT.ClientProps["VmLv"] = {
-    model = "models/metrostroi_train/81-760/81_760_arrow_electric.mdl",
-    pos = Vector(448.42, 45, -8.82),
-    ang = Angle(0, -90, 0),
-    hide = 0.2,
-}
-
-ENT.ClientProps["VmHv"] = {
-    model = "models/metrostroi_train/81-760/81_760_arrow_electric.mdl",
-    pos = Vector(457.55, -42.825, -27.43),
-    ang = Angle(0, -90, 0),
-    hide = 0.2,
-}
-
-ENT.ClientProps["MnBc"] = {
-    model = "models/metrostroi_train/81-760/81_761_arrow_nm.mdl",
-    pos = Vector(455.09, -53.9, -21.3),
-    ang = Angle(45.1, 90, 0),
-    hideseat = 0.2,
-}
-
-ENT.ClientProps["MnTl"] = {
-    model = "models/metrostroi_train/81-760/81_761_arrow_nm.mdl",
-    pos = Vector(455.07, -47.6, -21.3),
-    ang = Angle(45.1, 90, 0),
-    hideseat = 0.2,
-}
-
-ENT.ClientProps["MnBl"] = {
-    model = "models/metrostroi_train/81-760/81_761_arrow_tm.mdl",
-    pos = Vector(455.09, -47.6, -21.3),
-    ang = Angle(45.1, 90, 0),
-    hideseat = 0.2,
 }
 
 ENT.ClientProps["MezhwagR"] = {
-    model = "models/metrostroi_train/81-765/765_mezhwag.mdl",
+    model = "models/metrostroi_train/81-765_v1/common/mezhwag.mdl",
     pos = Vector(-494.34, 0, 0),
     ang = Angle(0, 0, 0),
     nohide = true,
 }
 
 ENT.ClientProps["MezhwagF"] = {
-    model = "models/metrostroi_train/81-765/765_mezhwag.mdl",
+    model = "models/metrostroi_train/81-765_v1/common/mezhwag.mdl",
     pos = Vector(487.88, 0, 0),
     ang = Angle(0, 180, 0),
     nohide = true,
-}
-
-ENT.ClientProps["CoupleDynR"] = {
-    model = "models/metrostroi_train/81-765/765_couple_dyn.mdl",
-    pos = Vector(-433.5, 0, -69),
-    ang = Angle(0, 180, 0),
-    hide = 2,
-}
-
-ENT.ClientProps["CoupleDynF"] = {
-    model = "models/metrostroi_train/81-765/765_couple_dyn.mdl",
-    pos = Vector(427.1, 0, -69),
-    ang = Angle(0, 0, 0),
-    hide = 2,
 }
 
 ENT.ClientProps["FencePlR"] = {
@@ -528,101 +446,19 @@ for i = 1, 4 do
     }
 end
 
-ENT.ButtonMap["K23"] = {
-    pos = Vector(123, -60, -58),
-    ang = Angle(0, 0, 90),
-    width = 170,
-    height = 150,
-    scale = 0.1,
-    buttons = {
-        {
-            ID = "K23Toggle",
-            x = 0,
-            y = 0,
-            w = 170,
-            h = 150,
-            tooltip = "К23",
-            model = {
-                var = "K23",
-                sndid = "K23",
-            }
-        },
-    }
-}
-
-ENT.ClientProps["K23Valve"] = {
-    model = "models/metrostroi_train/81-760/81_760_crane_k23.mdl",
-    pos = Vector(131.42, -64.14, -64.6),
-    ang = Angle(0, 0, 0),
-    hide = 2,
-}
-
-ENT.ClientSounds["K23ValveIsolation"] = {{"K23Valve", function() return "disconnectvalve" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)}}
-ENT.ButtonMap["K31Cap"] = {
-    pos = Vector(76.9, 57, -13.4),
-    ang = Angle(0, 0, 90),
-    width = 50,
-    height = 50,
-    scale = 0.1 / 2,
-    hideseat = 0.2,
-    buttons = {
-        {
-            ID = "K31Cap",
-            x = 0,
-            y = 0,
-            w = 50,
-            h = 50,
-            tooltip = "Открыть крышку К31",
-            model = {
-                var = "K31Cap",
-            }
-        },
-    }
-}
-
-ENT.ButtonMap["K31"] = {
-    pos = Vector(74.6, 60, -13),
-    ang = Angle(0, 0, 90),
-    width = 150,
-    height = 250,
-    scale = 0.1 / 2,
-    hideseat = 0.2,
-    buttons = {
-        {
-            ID = "K31Toggle",
-            x = 0,
-            y = 0,
-            w = 150,
-            h = 250,
-            tooltip = "К31",
-            model = {
-                var = "K31",
-            }
-        },
-    }
-}
-
-ENT.ClientProps["K31"] = {
-    model = "models/metrostroi_train/81-760/81_760_crane_k31.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 0.5,
-}
-
-ENT.ClientProps["K31cap"] = {
-    model = "models/metrostroi_train/81-760/81_760_cap_k31.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 0.5,
-}
-
 for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}) do
     for i, pos in ipairs(tbl) do
         local idx = (k - 1) * 4 + i
         ENT.ClientProps["Door" .. idx] = {
-            model = "models/metrostroi_train/81-760e/81_760e_door.mdl",
-            pos = k == 1 and pos - tbl[1] or tbl[1] - pos * Vector(-1, 1, 1),
-            ang = Angle(0, k == 1 and 0 or -180, 0),
+            model = string.format("models/metrostroi_train/81-765_v1/common/door%d.mdl", idx),
+            pos = Vector(0, 0, 0),
+            ang = Angle(0, 0, 0),
+            hide = 2,
+        }
+        ENT.ClientProps["Strip" .. idx] = {
+            model = string.format("models/metrostroi_train/81-765_v1/lights/strips_salon_%d.mdl", idx),
+            pos = Vector(0, 0, 0),
+            ang = Angle(0, 0, 0),
             hide = 2,
         }
         ENT.ButtonMap["DoorAddressOpen" .. idx] = {
@@ -767,8 +603,8 @@ function ENT:Initialize()
 
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.Initialize(self)
-    self.LBnt = self:CreateRT("765LBnt", 3840, 512)
-    self.RBnt = self:CreateRT("765RBnt", 3840, 512)
+    self.LBnt = self:CreateRT("765LBnt", 3830, 620)
+    self.RBnt = self:CreateRT("765RBnt", 3830, 620)
     self.ReleasedPdT = 0
     self.PreviousCompressorState = false
     self.FrontLeak = 0
@@ -1051,7 +887,7 @@ local function calculate_fence_mid(fence, dt)
 end
 
 local new_fence_bones = { "Bone.L", "Bone.R", "Bone.C", "Bone.Safety.L", "Bone.Safety.R", "Bone.Couple" }
-function ENT:SetupMezhwag(platform, mezhwag, coupleDyn, wag, front, dt)
+function ENT:SetupMezhwag(platform, mezhwag, wag, front, dt)
     local couple = self:GetNW2Entity(front and "FrontCouple" or "RearCouple")
     local coupleValid = IsValid(couple)
 
@@ -1073,7 +909,7 @@ function ENT:SetupMezhwag(platform, mezhwag, coupleDyn, wag, front, dt)
                     if ent:IsMarkedForDeletion() then return end
                     local mdl = ent:GetModel()
                     local m = Matrix()
-                    if mdl == "models/metrostroi_train/81-765/765_mezhwag.mdl" then
+                    if mdl == "models/metrostroi_train/81-765_v1/common/mezhwag.mdl" then
                         for idx = 1, 6 do
                             local pos = ent["fpos" .. idx]
                             local ang = ent["fang" .. idx]
@@ -1097,7 +933,7 @@ function ENT:SetupMezhwag(platform, mezhwag, coupleDyn, wag, front, dt)
                 mezhwag.HasCallback = true
             end
 
-            if mezhwag:GetModel() == "models/metrostroi_train/81-765/765_mezhwag.mdl" then
+            if mezhwag:GetModel() == "models/metrostroi_train/81-765_v1/common/mezhwag.mdl" then
                 mezhwag.fpos1 = self:LocalToWorld(Vector(front and 471.07 or -477.53, 0, 0))
                 mezhwag.fpos2 = wag:LocalToWorld(Vector(otherFront and 471.07 or -477.53, 0, 0))
                 mezhwag.fang1 = self:LocalToWorldAngles(Angle(0, front and 0 or 180, 0))
@@ -1129,25 +965,27 @@ function ENT:SetupMezhwag(platform, mezhwag, coupleDyn, wag, front, dt)
         end
     end
 
-    if coupleValid and IsValid(coupleDyn) then
-        if not coupleDyn.HasCallback then
-            coupleDyn:AddCallback("BuildBonePositions", function(ent)
+    if coupleValid then
+        if not couple.HasCallback then
+            couple:AddCallback("BuildBonePositions", function(ent)
                 if ent:IsMarkedForDeletion() then return end
-                if not ent.AngMovable or not ent.AngRotatable then return end
+                if not ent.AngStatic or not ent.AngRotatable then return end
                 local m = Matrix()
                 local pos = ent:GetPos()
-                set_bone_transform(ent, m, "movable", pos, ent.AngMovable)
+                set_bone_transform(ent, m, "static", pos, ent.AngStatic)
                 set_bone_transform(ent, m, "rotatable", pos, ent.AngRotatable)
             end)
-            coupleDyn.HasCallback = true
+            couple.HasCallback = true
         end
 
         local ang = couple:GetAngles()
-        coupleDyn.AngMovable = Angle(ang)
         local selfAng = self:GetAngles()
         ang.p = selfAng.p
         ang.r = selfAng.r * (front and 1 or -1)
-        coupleDyn.AngRotatable = ang
+        couple.AngRotatable = Angle(ang)
+        ang.y = selfAng.y
+        if not front then ang.y = ang.y + 180 ang:Normalize() end
+        couple.AngStatic = ang
     end
 end
 
@@ -1201,9 +1039,9 @@ function ENT:Think()
 
     local dT = self.DeltaTime
 
-    self:SetupMezhwag(self.ClientEnts["FencePlR"], self.ClientEnts["MezhwagR"], self.ClientEnts["CoupleDynR"], RearTrain, false, dT)
+    self:SetupMezhwag(self.ClientEnts["FencePlR"], self.ClientEnts["MezhwagR"], RearTrain, false, dT)
     if self.IsIntermediate then
-        self:SetupMezhwag(self.ClientEnts["FencePlF"], self.ClientEnts["MezhwagF"], self.ClientEnts["CoupleDynF"], FrontTrain, true, dT)
+        self:SetupMezhwag(self.ClientEnts["FencePlF"], self.ClientEnts["MezhwagF"], FrontTrain, true, dT)
     end
 
     local speed = self:GetPackedRatio("Speed", 0)
@@ -1225,14 +1063,14 @@ function ENT:Think()
         self:ShowHideSmooth("GvWrench", CurTime() < self.GvWrenchHide and 1 or 0.1)
     end
 
-    if not self.IsTrailer then self:Animate("VmBs", self:GetPackedRatio("IVO"), 0, 1, 16, 1) end
-    if self.IsIntermediate then
-        self:Animate("VmLv", self:GetPackedRatio("LV"), 0, 0.95, 16, 1)
-        self:Animate("VmHv", self:GetPackedRatio("HV"), 0, 1, 16, 6)
-        self:Animate("MnBl", self:GetPackedRatio("BL"), 0, 0.78, 256, 2)
-        self:Animate("MnTl", self:GetPackedRatio("TL"), 0, 0.78, 256, 2)
-        self:Animate("MnBc", self:GetPackedRatio("BC"), 0, 0.78, 256, 2)
-    end
+    -- if not self.IsTrailer then self:Animate("VmBs", self:GetPackedRatio("IVO"), 0, 1, 16, 1) end
+    -- if self.IsIntermediate then
+    --     self:Animate("VmLv", self:GetPackedRatio("LV"), 0, 0.95, 16, 1)
+    --     self:Animate("VmHv", self:GetPackedRatio("HV"), 0, 1, 16, 6)
+    --     self:Animate("MnBl", self:GetPackedRatio("BL"), 0, 0.78, 256, 2)
+    --     self:Animate("MnTl", self:GetPackedRatio("TL"), 0, 0.78, 256, 2)
+    --     self:Animate("MnBc", self:GetPackedRatio("BC"), 0, 0.78, 256, 2)
+    -- end
     local BoxDoorL = self:Animate("BoxDoorL", self:GetPackedBool("CouchCapL") and 1 or 0, 0, 1, 2, 2)
     local BoxDoorR = self:Animate("BoxDoorR", self:GetPackedBool("CouchCapR") and 1 or 0, 0, 1, 2, 2)
     if self.IsIntermediate then
@@ -1244,24 +1082,32 @@ function ENT:Think()
         self:HidePanel("Power", BoxDoorL == 0)
     end
     self:HidePanel("PVZ", self.IsIntermediate and BoxDoorL == 0)
-    self:ShowHide("BoxIntL", self.IsIntermediate and BoxDoorL > 0)
-    self:ShowHide("BoxAdd", self.IsIntermediate and BoxDoorL > 0)
-    self:ShowHide("BoxIntR", self.IsIntermediate and BoxDoorR > 0)
-    self:ShowHide("VmHv", not self.IsIntermediate or BoxDoorR > 0)
-    self:ShowHide("MnBc", not self.IsIntermediate or BoxDoorR > 0)
-    self:ShowHide("MnTl", not self.IsIntermediate or BoxDoorR > 0)
-    self:ShowHide("MnBl", not self.IsIntermediate or BoxDoorR > 0)
-    self:ShowHide("VmLv", not self.IsIntermediate or BoxDoorL > 0)
+    -- self:ShowHide("BoxIntL", self.IsIntermediate and BoxDoorL > 0)
+    -- self:ShowHide("BoxAdd", self.IsIntermediate and BoxDoorL > 0)
+    -- self:ShowHide("BoxIntR", self.IsIntermediate and BoxDoorR > 0)
+    -- self:ShowHide("VmHv", not self.IsIntermediate or BoxDoorR > 0)
+    -- self:ShowHide("MnBc", not self.IsIntermediate or BoxDoorR > 0)
+    -- self:ShowHide("MnTl", not self.IsIntermediate or BoxDoorR > 0)
+    -- self:ShowHide("MnBl", not self.IsIntermediate or BoxDoorR > 0)
+    -- self:ShowHide("VmLv", not self.IsIntermediate or BoxDoorL > 0)
     if not self.IsTrailer then self:ShowHide("VmBs", self.IsIntermediate and BoxDoorL > 0) end
     self:ShowHide("Stopkran", BoxDoorR > 0)
 
-    self:ShowHideSmooth("SalonLightsHalf", self:Animate("LampsEmer", self:GetPackedBool("SalonLighting1") and 1 or 0, 0, 1, 5, false))
-    self:ShowHideSmooth("SalonLightsFull", self:Animate("LampsFull", self:GetPackedBool("SalonLighting2") and 1 or 0, 0, 1, 5, false))
-
-    local K31cap = self:Animate("K31cap", self:GetPackedBool("DoorK31") and 1 or 0, 0, 1, 4, 0.5)
-    self:ShowHide("K31", K31cap > 0)
-    self:HidePanel("K31", K31cap < 1)
-    self:Animate("K31", self:GetPackedBool("K31") and 0 or 1, 0, 1, 16, 0.5)
+    local lights = self.ClientEnts["SalonLights"]
+    if IsValid(lights) then
+        local half, full = self:GetPackedBool("SalonLighting1"), self:GetPackedBool("SalonLighting2")
+        if half and not full then
+            lights:SetSubMaterial(0, "models/metrostroi_train/81-765_v1/lights/lights_half")
+        elseif full then
+            lights:SetSubMaterial(0,
+                self:GetPackedBool("WarmLight") and
+                "models/metrostroi_train/81-765_v1/lights/lights_warm" or
+                "models/metrostroi_train/81-765_v1/lights/lights_cold"
+            )
+        else
+            lights:SetSubMaterial(0, nil)
+        end
+    end
 
     self.FrontLeak = math.Clamp(self.FrontLeak + 10 * (-self:GetPackedRatio("FrontLeak") - self.FrontLeak) * dT, 0, 1)
     self.RearLeak = math.Clamp(self.RearLeak + 10 * (-self:GetPackedRatio("RearLeak") - self.RearLeak) * dT, 0, 1)
@@ -1345,21 +1191,22 @@ function ENT:Think()
         local headl = math.max(0, self:GetPackedRatio("Headlights") + (self.LightVal >= 6 and self:GetPackedRatio("Headlights") == 1 and -0.5 or 0))
         self:SetLightPower(1, headl > 0, headl)
 
-        local redShouldOn = self:GetPackedBool("BacklightsEnabled")
+        local rl = self:GetPackedBool("BacklightsEnabled")
         local hl1 = (self:GetPackedBool("HeadLightsEnabled1") or self:GetPackedBool("HeadLightsEnabled2") and self.LightVal >= 6)
         local hl2 = self:GetPackedBool("HeadLightsEnabled2") and self.LightVal < 6
-        local rlm = redShouldOn and not (hl1 or hl2)
-        local hl0 = not rlm and not hl2 and not hl1 and not self:GetPackedBool("BacklightsEnabled")
+        local hl12 = hl1 or hl2
 
-        local rl = self:Animate("backlights0", redShouldOn and 1 or 0, 0, 1, 4, false)
-        self:SetLightPower(2, rl > 0, rl)
-
-        for idx = 1, 4 do
-            local redOn = not self:GetNW2Bool("RlBroken" .. idx, false) and redShouldOn
-            local whiteOn = not redShouldOn and not self:GetNW2Bool("WlBroken" .. idx, false) and (self:GetPackedBool("HeadLightsEnabled1") or self:GetPackedBool("HeadLightsEnabled2"))
-            self:ShowHideSmooth("RedLights" .. idx, self:Animate("rl" .. idx, redOn and 1 or 0, 0, 1, 12, false))
-            self:ShowHideSmooth("WhiteLights" .. idx, self:Animate("wl" .. idx, whiteOn and 1 or 0, 0, 1, 12, false))
-            self:ShowHideSmooth("OffLights" .. idx, self:Animate("ol" .. idx, not redOn and not whiteOn and 1 or 0, 0, 1, 12, false))
+        for idx = 1, 6 do
+            local lightEnt = self.ClientEnts["Headlights" .. idx]
+            if IsValid(lightEnt) then
+                local redOn = rl and (idx < 3 or idx > 4 or not hl12) and not self:GetNW2Bool("RlBroken" .. idx, false)
+                local whiteOn = hl12 and (not rl or idx >= 3 and idx <= 4) and not self:GetNW2Bool("WlBroken" .. idx, false)
+                lightEnt:SetSubMaterial(0,
+                    redOn and "models/metrostroi_train/81-765_v1/765/headlights_moscow_red" or
+                    whiteOn and "models/metrostroi_train/81-765_v1/765/headlights_moscow_white" or
+                    "models/metrostroi_train/81-765_v1/765/headlights_moscow_off"
+                )
+            end
         end
 
         local headlEnt = self.GlowingLights[1]
@@ -1369,22 +1216,16 @@ function ENT:Think()
             if headl == 1 and headlEnt:GetFarZ() < 8192 then headlEnt:SetFarZ(8192) end
         end
 
-        hl1 = self:Animate("headlights1", hl1 and 1 or 0, 0, 1, 12, false)
-        hl2 = self:Animate("headlights2", hl2 and 1 or 0, 0, 1, 12, false)
-        self:ShowHideSmooth("HeadLights0", self:Animate("headlights0", hl0 and 1 or 0, 0, 1, 12, false))
-        self:ShowHideSmooth("HeadLights1", hl1)
-        self:ShowHideSmooth("HeadLights2", hl2)
-        self:ShowHideSmooth("HeadLightsRed", self:Animate("headlightsRed", rlm and 1 or 0, 0, 1, 12, false))
-        local hlPower = math.min(1, hl1 + hl2)
-        self:SetLightPower(3, rl < 0.1 and hlPower > 0.1, hlPower)
+        self:SetLightPower(3, not rl and hl12, hl12 and 1 or 0)
+        self:SetLightPower(2, rl, rl and 1 or 0)
 
         local PanelLighting = self:GetPackedBool("PanelLighting")
         self:SetLightPower(11, PanelLighting)
         self:SetLightPower(12, PanelLighting)
 
-        self:Animate("MnBl", self:GetPackedRatio("BL"), 0, 0.853, 256, 2)
-        self:Animate("MnTl", self:GetPackedRatio("TL"), 0, 0.853, 256, 2)
-        self:Animate("MnBc", self:GetPackedRatio("BC"), 0, 0.827, 256, 2)
+        self:Animate("MnBl", self:GetPackedRatio("BL"), 0, 1, 256, 2)
+        self:Animate("MnTl", self:GetPackedRatio("TL"), 0, 1, 256, 2)
+        self:Animate("MnBc", self:GetPackedRatio("BC"), 0, 1, 256, 2)
         self:Animate("Controller", ControllerPos[self:GetPackedRatio("Controller") + 4] or 0, 0.316, 0.66, 2, false)
         self:Animate("EmergencyBrakeValve", self:GetPackedBool("EmergencyBrakeValve") and 1 or 0, 0, 1, 6, false)
 
@@ -1399,14 +1240,11 @@ function ENT:Think()
         self:Animate("PB", self:GetPackedBool("PB") and 1 or 0, 0, 1, 8, false)
 
         local cabl_full = self:GetPackedBool("CabinEnabledFull")
-        local cabl_half = not cabl_full and self:GetPackedBool("CabinEnabledEmer")
-        local cabl_off = not cabl_full and not cabl_half
+        local cabl_half = self:GetPackedBool("CabinEnabledEmer")
         cabl_full = self:Animate("CabFull", cabl_full and 1 or 0, 0, 1, 5, false)
         cabl_half = self:Animate("CabEmer", cabl_half and 1 or 0, 0, 1, 5, false)
-        cabl_off = self:Animate("CabOff", cabl_off and 1 or 0, 0, 1, 5, false)
         self:ShowHideSmooth("cab_full", cabl_full)
         self:ShowHideSmooth("cab_half", cabl_half)
-        self:ShowHideSmooth("cab_off", cabl_off)
 
         local DoorCabL = self:Animate("DoorCabL", self:GetPackedBool("CabinDoorLeft") and 1 or 0, 0, 1, 2, 0.5)
         local DoorCabR = self:Animate("DoorCabR", self:GetPackedBool("CabinDoorRight") and (self:GetPackedBool("CabinDoorRightLimit") and 0.6 or 1) or 0, 0, 1, 2, 0.5)
@@ -1415,16 +1253,20 @@ function ENT:Think()
         self:PlayDoorSound(DoorCabR > 0.2, "door_cab_r")
         self:HidePanel("PpzCover", DoorCabL == 0)
         self:Animate("CabChairAdd", self:GetPackedBool("CabChairAdd") and 1 or 0, 0, 1, 4, 0.5)
-        local Closet1Val = self:Animate("Closet1Val", self:GetPackedBool("Closet1Val") and 1 or 0, 0, 1, 2, 0.5)
+        local Closet1Val = self:Animate("DoorK35_1", self:GetPackedBool("Closet1Val") and 1 or 0, 0, 1, 2, 0.5)
+        local Closet2Val = self:Animate("DoorK35_2", self:GetPackedBool("Closet2Val") and 1 or 0, 0, 1, 2, 0.5)
         self:PlayDoorSound(Closet1Val > 0, "door_add_1")
+        self:PlayDoorSound(Closet2Val > 0, "door_add_2")
         self:HidePanel("Closet1", Closet1Val > 0)
         self:HidePanel("Closet1Op", Closet1Val < 1)
+        -- self:HidePanel("Closet2", Closet2Val > 0)
+        -- self:HidePanel("Closet2Op", Closet2Val < 1)
 
-        self:ShowHide("K35", Closet1Val > 0)
-        self:HidePanel("K35", Closet1Val == 0)
+        self:ShowHide("K35", Closet1Val + Closet2Val > 0)
+        self:HidePanel("K35", Closet1Val + Closet2Val == 0)
 
-        self:AnimateCustom("DoorCabL", "position_window", self:GetPackedBool("CabinWindowLeft") and 1 or 0, 0, 1, 8, 0.5)
-        self:AnimateCustom("DoorCabR", "position_window", self:GetPackedBool("CabinWindowRight") and 1 or 0, 0, 1, 8, 0.5)
+        self:AnimateCustom("DoorCabL", "window", self:GetPackedBool("CabinWindowLeft") and 1 or 0, 0, 1, 8, 0.5)
+        self:AnimateCustom("DoorCabR", "window", self:GetPackedBool("CabinWindowRight") and 1 or 0, 0, 1, 8, 0.5)
 
         self:HidePanel("CoupleCenteringF", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("FrontCoupled", false))
         self:HidePanel("CoupleCenteringR", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("RearCoupled", false))
@@ -1767,7 +1609,7 @@ function ENT:DrawPost(special)
         self:DrawOnPanel("BNTL" .. i, function(...)
             surface.SetMaterial(self.RTMaterial)
             surface.SetDrawColor(255, 255, 255)
-            surface.DrawTexturedRectRotated(1920, 256, 3840, 512, 0)
+            surface.DrawTexturedRectRotated(1915, 310, 3830, 620, 0)
         end)
     end
     self.RTMaterial:SetTexture("$basetexture", self.RBnt)
@@ -1775,7 +1617,7 @@ function ENT:DrawPost(special)
         self:DrawOnPanel("BNTR" .. i, function(...)
             surface.SetMaterial(self.RTMaterial)
             surface.SetDrawColor(255, 255, 255)
-            surface.DrawTexturedRectRotated(1920, 256, 3840, 512, 0)
+            surface.DrawTexturedRectRotated(1915, 310, 3830, 620, 0)
         end)
     end
 end

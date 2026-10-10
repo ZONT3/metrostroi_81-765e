@@ -1295,7 +1295,7 @@ else
         end
     end)
 
-    local scr_w, scr_h = 2486, 496
+    local scr_w, scr_h = 2716, 496
 
     function TRAIN_SYSTEM:ClientThink(dT)
         if not self.Train.BUIKscr or not self.Train:ShouldDrawPanel("BUIK") then return end
@@ -1348,7 +1348,7 @@ else
     surface.CreateFont("BUIKSpeedometerClock", {
         extended = true,
         font = "Arimo",
-        size = 38,
+        size = 46,
         weight = 700,
     })
     surface.CreateFont("BUIKSpeedometerClockSarmatSmall", {
@@ -1372,7 +1372,7 @@ else
     surface.CreateFont("BUIKSpeedometer", {
         extended = true,
         font = "Mvm765SegmentedMono",
-        size = 156,
+        size = 166,
     })
     surface.CreateFont("BUIKSpeedometerSmall", {
         extended = true,
@@ -1418,7 +1418,7 @@ else
     local logo = Material("zxc765/PIVO_logo_lt.png", "smooth ignorez")
     local sarmat_call = Material("zxc765/sarmat_call.png", "smooth ignorez")
 
-    local sizeSpeedometrW = 740
+    local sizeSpeedometrW = 860
     local sizeSpeedometrH = scr_h
     local sizeWagonsW = scr_w - sizeSpeedometrW
     local sizeWagonsH = 200
@@ -1427,7 +1427,7 @@ else
     local sizeFooterH = 70
     local sizeRnW = sizeLeftPanelW
     local sizeRnH = scr_h - sizeWagonsH - sizeFooterH * 2
-    local sizeStationsW = 800
+    local sizeStationsW = 860
     local sizeStationsH = scr_h - sizeWagonsH - sizeFooterH
     local sizeStatusW = scr_w - sizeSpeedometrW - sizeLeftPanelW - sizeStationsW
     local sizeStatusH = sizeStationsH
@@ -1708,8 +1708,8 @@ else
     end
 
 
-    local sizeSpeedometerMargin = 48
-    local sizeSpeedometerBar = 58
+    local sizeSpeedometerMargin = 52
+    local sizeSpeedometerBar = 64
     local sizeSpeedometerInnerRadius = (sizeSpeedometrW - sizeSpeedometerBar * 2 - sizeSpeedometerMargin * 2) / 2
     local sizeSpeedometerLineOffset = 4
     local circleResolution = 200
@@ -1763,7 +1763,7 @@ else
         for i = 0, 20 do
             local a = Lerp(i / 20, math.pi * 1.007, -math.pi * 0.007)
             local cosa, sina = math.cos(a), math.sin(a)
-            local rt = r4 + 18
+            local rt = r4 + 20
             local x1, y1 = x0 + cosa * r1, y0 - sina * r1
             local x2, y2 = x0 + cosa * r4, y0 - sina * r4
             local xl, yl = (x1 + x2) / 2, (y1 + y2) / 2
@@ -1780,7 +1780,7 @@ else
         end
 
         draw.SimpleText("00", "BUIKSpeedometer", x0, y0 - 88, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-        draw.SimpleText(tostring(math.floor(speed) % 100), "BUIKSpeedometer", x0 + (speed < 10 and 70 or 0), y0 - 88, self.colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(tostring(math.floor(speed) % 100), "BUIKSpeedometer", x0 + (speed < 10 and 76 or 0), y0 - 88, self.colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
         self.MaxSpeed = maxSpeed
         self.NextSpeed = nextSpeed

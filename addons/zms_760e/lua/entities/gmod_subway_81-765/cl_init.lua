@@ -32,7 +32,7 @@ local _getX, _getY, _bw, _bh
 _, _getX, _, _bw = _fncCoord(12, 425.8, 8)
 _, _getY = _fncCoord(2, 64, 20)
 ENT.ButtonMap["PU5"] = {
-    pos = Vector(490.9, 31.4, -8.95),
+    pos = Vector(497.53, 32.65, -8.97),
     ang = Angle(0, -90, 70.431),
     width = 425.8,
     height = 64,
@@ -562,7 +562,7 @@ ENT.ButtonMap["PU5"] = {
 _, _getX, _, _bw = _fncCoord(6, 261.2, 10)
 _, _getY = _fncCoordFixed(3, 167.2, _bw * 2)
 ENT.ButtonMap["PU2"] = {
-    pos = Vector(486.6, 15.48, -13.2),
+    pos = Vector(493.32, 16.34, -13.29),
     ang = Angle(0, -90, 0),
     width = 261.2,
     height = 167.2,
@@ -886,7 +886,7 @@ ENT.ButtonMap["PU2"] = {
 _, _getX, _, _bw = _fncCoord(3, 136, 18)
 _, _getY = _fncCoordFixed(3, 167, _bw * 2)
 ENT.ButtonMap["PU3"] = {
-    pos = Vector(486.6, -0.5, -13.2),
+    pos = Vector(493.32, 0.36, -13.29),
     ang = Angle(0, -90, 0),
     width = 136,
     height = 167,
@@ -1150,7 +1150,7 @@ ENT.ButtonMap["PU3"] = {
 }
 
 ENT.ButtonMap["RVTop"] = {
-    pos = Vector(487.6, 37, -13.2),
+    pos = Vector(494.02, 38, -13.29),
     ang = Angle(0, -90, 0),
     width = 80,
     height = 60,
@@ -1181,7 +1181,7 @@ ENT.ButtonMap["RVTop"] = {
 _, _getX, _, _bw = _fncCoord(3, 153, 20)
 _, _getY = _fncCoordFixed(2, 96, _bw * 2)
 ENT.ButtonMap["RV"] = {
-    pos = Vector(482.9, 39.9, -13.2),
+    pos = Vector(489.62, 40.83, -13.29),
     ang = Angle(0, -90, 0),
     width = 153,
     height = 96,
@@ -1341,7 +1341,7 @@ ENT.ButtonMap["VoltHelper1"] = {
 }
 
 ENT.ButtonMap["ASNPScreen"] = {
-    pos = Vector(416.8, 36.82, 37.85),
+    pos = Vector(416.77, 38.0, 33.8),
     ang = Angle(0, 90, 90),
     width = 512 * 1.35,
     height = 128 * 1.35,
@@ -1350,7 +1350,7 @@ ENT.ButtonMap["ASNPScreen"] = {
 }
 
 ENT.ButtonMap["ASNP"] = {
-    pos = Vector(416.82, 35, 38.6),
+    pos = Vector(416.82, 36.31, 34.52),
     ang = Angle(0, 90, 90),
     width = 180, height = 100,
     scale = 0.045,
@@ -1450,301 +1450,301 @@ ENT.ButtonMap["ASNP"] = {
     }
 }
 
-ENT.ButtonMap["RVSScreen"] = {
-    pos = Vector(479.1, 51.44, -13.29),
-    ang = Angle(0, -60, 0),
-    width = 256,
-    height = 140,
-    scale = 0.014,
-    hideseat = 0.2,
-    system = "RVS",
-}
+-- ENT.ButtonMap["RVSScreen"] = {
+--     pos = Vector(479.1, 51.44, -13.29),
+--     ang = Angle(0, -60, 0),
+--     width = 256,
+--     height = 140,
+--     scale = 0.014,
+--     hideseat = 0.2,
+--     system = "RVS",
+-- }
 
-ENT.ButtonMap["RVSButtons"] = {
-    pos = Vector(478.6, 55.56, -13.1),
-    ang = Angle(0, -60, 0),
-    width = 400,
-    height = 150,
-    scale = 0.03,
-    hideseat = 0.2,
-    buttons = {
-        {
-            ID = "RVS_KVSet",
-            x = 26,
-            y = 32,
-            w = 30,
-            h = 20,
-            tooltip = "КВ",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                lamp = {
-                    speed = 16,
-                    model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
-                    var = "RVSKV",
-                    ang = 90,
-                    color = Color(187, 255, 91),
-                    x = 31,
-                    y = 8,
-                    z = -5
-                },
-                var = "RVS_KV",
-                speed = 12,
-            }
-        },
-        {
-            ID = "!RVS_KVLamp",
-            x = 26,
-            y = 32,
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                lamp = {
-                    speed = 16,
-                    model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
-                    var = "RVSKVPRD",
-                    ang = 90,
-                    color = Color(255, 56, 30),
-                    x = 46,
-                    y = 6,
-                    z = -5
-                },
-            }
-        },
-        {
-            ID = "RVS_UKVSet",
-            x = 24,
-            y = 115,
-            w = 30,
-            h = 20,
-            tooltip = "УКВ",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                lamp = {
-                    speed = 16,
-                    model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
-                    var = "RVSUKV",
-                    ang = 90,
-                    color = Color(187, 255, 91),
-                    x = 31,
-                    y = 8,
-                    z = -5
-                },
-                var = "RVS_UKV",
-                speed = 12,
-            }
-        },
-        {
-            ID = "!RVS_UKVLamp",
-            x = 24,
-            y = 115,
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                lamp = {
-                    speed = 16,
-                    model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
-                    var = "RVSUKVPRD",
-                    ang = 90,
-                    color = Color(255, 56, 30),
-                    x = 46,
-                    y = 6,
-                    z = -5
-                },
-            }
-        },
-        {
-            ID = "RVS_SSet",
-            x = 277,
-            y = 42,
-            radius = 15,
-            tooltip = "С",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                lamp = {
-                    speed = 16,
-                    model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
-                    var = "RVSPRD",
-                    ang = 90,
-                    color = Color(187, 255, 91),
-                    x = 17,
-                    y = 0,
-                    z = -5
-                },
-                var = "RVS_S",
-                speed = 12,
-            }
-        },
-        {
-            ID = "RVS_FSet",
-            x = 104,
-            y = 42,
-            radius = 15,
-            tooltip = "F",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                var = "RVS_F",
-                speed = 12,
-            }
-        },
-        {
-            ID = "RVS_1Set",
-            x = 278,
-            y = 79,
-            radius = 12,
-            tooltip = "1",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                lamp = {
-                    speed = 16,
-                    model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
-                    var = "RVS1",
-                    ang = 90,
-                    color = Color(187, 255, 91),
-                    x = 0,
-                    y = -12,
-                    z = -5
-                },
-                var = "RVS_1",
-                speed = 12,
-            }
-        },
-        {
-            ID = "RVS_2Set",
-            x = 303,
-            y = 79,
-            radius = 12,
-            tooltip = "2",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                lamp = {
-                    speed = 16,
-                    model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
-                    var = "RVS2",
-                    ang = 90,
-                    color = Color(187, 255, 91),
-                    x = 0,
-                    y = -12,
-                    z = -5
-                },
-                var = "RVS_2",
-                speed = 12,
-            }
-        },
-        {
-            ID = "RVS_3Set",
-            x = 328,
-            y = 79,
-            radius = 12,
-            tooltip = "3",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                var = "RVS_3",
-                speed = 12,
-            }
-        },
-        {
-            ID = "RVS_4Set",
-            x = 278,
-            y = 99,
-            radius = 12,
-            tooltip = "4",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                var = "RVS_4",
-                speed = 12,
-            }
-        },
-        {
-            ID = "RVS_5Set",
-            x = 303,
-            y = 99,
-            radius = 12,
-            tooltip = "5",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                var = "RVS_5",
-                speed = 12,
-            }
-        },
-        {
-            ID = "RVS_6Set",
-            x = 328,
-            y = 99,
-            radius = 12,
-            tooltip = "6",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                var = "RVS_6",
-                speed = 12,
-            }
-        },
-        {
-            ID = "RVS_7Set",
-            x = 278,
-            y = 115,
-            radius = 12,
-            tooltip = "7",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                var = "RVS_7",
-                speed = 12,
-            }
-        },
-        {
-            ID = "RVS_8Set",
-            x = 303,
-            y = 115,
-            radius = 12,
-            tooltip = "8",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                var = "RVS_8",
-                speed = 12,
-            }
-        },
-        {
-            ID = "RVS_9Set",
-            x = 328,
-            y = 115,
-            radius = 12,
-            tooltip = "9",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                var = "RVS_9",
-                speed = 12,
-            }
-        },
-        {
-            ID = "RVS_0Set",
-            x = 303,
-            y = 130,
-            radius = 12,
-            tooltip = "0",
-            model = {
-                z = 1,
-                ang = Angle(-90, 0, 0),
-                var = "RVS_0",
-                speed = 12,
-            }
-        },
-    }
-}
+-- ENT.ButtonMap["RVSButtons"] = {
+--     pos = Vector(478.6, 55.56, -13.1),
+--     ang = Angle(0, -60, 0),
+--     width = 400,
+--     height = 150,
+--     scale = 0.03,
+--     hideseat = 0.2,
+--     buttons = {
+--         {
+--             ID = "RVS_KVSet",
+--             x = 26,
+--             y = 32,
+--             w = 30,
+--             h = 20,
+--             tooltip = "КВ",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 lamp = {
+--                     speed = 16,
+--                     model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
+--                     var = "RVSKV",
+--                     ang = 90,
+--                     color = Color(187, 255, 91),
+--                     x = 31,
+--                     y = 8,
+--                     z = -5
+--                 },
+--                 var = "RVS_KV",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "!RVS_KVLamp",
+--             x = 26,
+--             y = 32,
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 lamp = {
+--                     speed = 16,
+--                     model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
+--                     var = "RVSKVPRD",
+--                     ang = 90,
+--                     color = Color(255, 56, 30),
+--                     x = 46,
+--                     y = 6,
+--                     z = -5
+--                 },
+--             }
+--         },
+--         {
+--             ID = "RVS_UKVSet",
+--             x = 24,
+--             y = 115,
+--             w = 30,
+--             h = 20,
+--             tooltip = "УКВ",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 lamp = {
+--                     speed = 16,
+--                     model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
+--                     var = "RVSUKV",
+--                     ang = 90,
+--                     color = Color(187, 255, 91),
+--                     x = 31,
+--                     y = 8,
+--                     z = -5
+--                 },
+--                 var = "RVS_UKV",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "!RVS_UKVLamp",
+--             x = 24,
+--             y = 115,
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 lamp = {
+--                     speed = 16,
+--                     model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
+--                     var = "RVSUKVPRD",
+--                     ang = 90,
+--                     color = Color(255, 56, 30),
+--                     x = 46,
+--                     y = 6,
+--                     z = -5
+--                 },
+--             }
+--         },
+--         {
+--             ID = "RVS_SSet",
+--             x = 277,
+--             y = 42,
+--             radius = 15,
+--             tooltip = "С",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 lamp = {
+--                     speed = 16,
+--                     model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
+--                     var = "RVSPRD",
+--                     ang = 90,
+--                     color = Color(187, 255, 91),
+--                     x = 17,
+--                     y = 0,
+--                     z = -5
+--                 },
+--                 var = "RVS_S",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "RVS_FSet",
+--             x = 104,
+--             y = 42,
+--             radius = 15,
+--             tooltip = "F",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 var = "RVS_F",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "RVS_1Set",
+--             x = 278,
+--             y = 79,
+--             radius = 12,
+--             tooltip = "1",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 lamp = {
+--                     speed = 16,
+--                     model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
+--                     var = "RVS1",
+--                     ang = 90,
+--                     color = Color(187, 255, 91),
+--                     x = 0,
+--                     y = -12,
+--                     z = -5
+--                 },
+--                 var = "RVS_1",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "RVS_2Set",
+--             x = 303,
+--             y = 79,
+--             radius = 12,
+--             tooltip = "2",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 lamp = {
+--                     speed = 16,
+--                     model = "models/metrostroi_train/common/lamps/svetodiod1.mdl",
+--                     var = "RVS2",
+--                     ang = 90,
+--                     color = Color(187, 255, 91),
+--                     x = 0,
+--                     y = -12,
+--                     z = -5
+--                 },
+--                 var = "RVS_2",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "RVS_3Set",
+--             x = 328,
+--             y = 79,
+--             radius = 12,
+--             tooltip = "3",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 var = "RVS_3",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "RVS_4Set",
+--             x = 278,
+--             y = 99,
+--             radius = 12,
+--             tooltip = "4",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 var = "RVS_4",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "RVS_5Set",
+--             x = 303,
+--             y = 99,
+--             radius = 12,
+--             tooltip = "5",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 var = "RVS_5",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "RVS_6Set",
+--             x = 328,
+--             y = 99,
+--             radius = 12,
+--             tooltip = "6",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 var = "RVS_6",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "RVS_7Set",
+--             x = 278,
+--             y = 115,
+--             radius = 12,
+--             tooltip = "7",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 var = "RVS_7",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "RVS_8Set",
+--             x = 303,
+--             y = 115,
+--             radius = 12,
+--             tooltip = "8",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 var = "RVS_8",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "RVS_9Set",
+--             x = 328,
+--             y = 115,
+--             radius = 12,
+--             tooltip = "9",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 var = "RVS_9",
+--                 speed = 12,
+--             }
+--         },
+--         {
+--             ID = "RVS_0Set",
+--             x = 303,
+--             y = 130,
+--             radius = 12,
+--             tooltip = "0",
+--             model = {
+--                 z = 1,
+--                 ang = Angle(-90, 0, 0),
+--                 var = "RVS_0",
+--                 speed = 12,
+--             }
+--         },
+--     }
+-- }
 
 ENT.ButtonMap["IGLA"] = {
-    pos = Vector(416.9, 46.27, 28.94),
+    pos = Vector(416.9, 47.42, 24.80),
     ang = Angle(0, 90, 90),
     width = 512,
     height = 93,
@@ -1754,7 +1754,7 @@ ENT.ButtonMap["IGLA"] = {
 }
 
 ENT.ButtonMap["IGLAButtons"] = {
-    pos = Vector(417.08, 46.68, 30.64),
+    pos = Vector(417.1, 47.83, 26.54),
     ang = Angle(0, 90, 90),
     width = 133,
     height = 75,
@@ -1898,7 +1898,7 @@ ENT.ButtonMap["IGLAButtons"] = {
 }
 
 ENT.ButtonMap["BackPPZ"] = {
-    pos = Vector(416.99, 32.92, 31.96),
+    pos = Vector(416.99, 34.07, 27.89),
     ang = Angle(0, 90, 90),
     width = 482.6,
     height = 581,
@@ -2014,11 +2014,11 @@ ENT.ButtonMap["Lighting"] = {
 }
 
 ENT.ButtonMap["MfduButtons"] = {
-    pos = Vector(494.05, 5.2, 0.2),
+    pos = Vector(500.55, 5.45, -0.41),
     ang = Angle(0, -90, 70.431),
     width = 150,
     height = 117,
-    scale = 0.1,
+    scale = 0.10,
     hideseat = 0.2,
     buttons = {
         {
@@ -2278,15 +2278,15 @@ ENT.ButtonMap["MfduButtons"] = {
         },
         {
             ID = "!MfduLamp",
-            x = 6.9,
-            y = 114.3,
+            x = 4.4,
+            y = 112.5,
             radius = 2,
             model = {
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_led_small_mfdu.mdl",
                     ang = Angle(-90, 10, 0),
                     var = "MfduLamp",
-                    z = -4,
+                    z = -3,
                     color = Color(255, 255, 255)
                 },
             }
@@ -2297,7 +2297,7 @@ ENT.ButtonMap["MfduButtons"] = {
 _, _getX, _, _bw = _fncCoord(12, 425.8, 10)
 _, _getY = _fncCoord(1, 20.2, 0)
 ENT.ButtonMap["BUIKButtons"] = {
-    pos = Vector(491.75, 31.37, -6.42),
+    pos = Vector(498.42, 32.65, -6.47),
     ang = Angle(0, -90, 70.431),
     width = 425.8,
     height = 20.2,
@@ -2574,7 +2574,7 @@ ENT.ButtonMap["BUIKButtons"] = {
 }
 
 ENT.ButtonMap["CAMSButtons"] = {
-    pos = Vector(482.58, 50.71, -11.23),
+    pos = Vector(489.76, 50.82, -11.33),
     ang = Angle(0, -59.84, 72.91),
     width = 297.5,
     height = 20,
@@ -2587,106 +2587,106 @@ ENT.ButtonMap["CAMSButtons"] = {
             tooltip = "▼",
             model = {
                 model = "models/metrostroi_train/81-760/81_760_button_cam_green.mdl",
-                z = 6, scale = 1.05,
+                z = 5,
                 var = "CAMS1",
                 speed = 16,
             }
         },
         {
             ID = "CAMS2Set",
-            x = 28.3 * 1, y = 0, w = 20, h = 20,
+            x = 26.5 * 1, y = 0, w = 20, h = 20,
             tooltip = "▲",
             model = {
                 model = "models/metrostroi_train/81-760/81_760_button_cam_green.mdl",
-                z = 6, scale = 1.05,
+                z = 5,
                 var = "CAMS2",
                 speed = 16,
             }
         },
         {
             ID = "CAMS3Set",
-            x = 28.3 * 2, y = 0, w = 20, h = 20,
+            x = 26.5 * 2, y = 0, w = 20, h = 20,
             tooltip = "3",
             model = {
                 model = "models/metrostroi_train/81-760/81_760_button_cam_green.mdl",
-                z = 6, scale = 1.05,
+                z = 5,
                 var = "CAMS3",
                 speed = 16,
             }
         },
         {
             ID = "CAMS4Set",
-            x = 28.3 * 3, y = 0, w = 20, h = 20,
+            x = 26.5 * 3, y = 0, w = 20, h = 20,
             tooltip = "4",
             model = {
                 model = "models/metrostroi_train/81-760/81_760_button_cam_green.mdl",
-                z = 6, scale = 1.05,
+                z = 5,
                 var = "CAMS4",
                 speed = 16,
             }
         },
         {
             ID = "CAMS5Set",
-            x = 135.3, y = 0, w = 20, h = 20,
+            x = 126, y = 0, w = 20, h = 20,
             tooltip = "5",
             model = {
                 model = "models/metrostroi_train/81-760/81_760_button_cam_yellow.mdl",
-                z = 6, scale = 1.05,
+                z = 5,
                 var = "CAMS5",
                 speed = 16,
             }
         },
         {
             ID = "CAMS6Set",
-            x = 135.3 + 28.3 * 1, y = 0, w = 20, h = 20,
+            x = 126 + 26.5 * 1, y = 0, w = 20, h = 20,
             tooltip = "6",
             model = {
                 model = "models/metrostroi_train/81-760/81_760_button_cam_yellow.mdl",
-                z = 6, scale = 1.05,
+                z = 5,
                 var = "CAMS6",
                 speed = 16,
             }
         },
         {
             ID = "CAMS7Set",
-            x = 135.3 + 28.3 * 2, y = 0, w = 20, h = 20,
+            x = 126 + 26.5 * 2, y = 0, w = 20, h = 20,
             tooltip = "7",
             model = {
                 model = "models/metrostroi_train/81-760/81_760_button_cam_yellow.mdl",
-                z = 6, scale = 1.05,
+                z = 5,
                 var = "CAMS7",
                 speed = 16,
             }
         },
         {
             ID = "CAMS8Set",
-            x = 135.3 + 28.3 * 3, y = 0, w = 20, h = 20,
+            x = 126 + 26.5 * 3, y = 0, w = 20, h = 20,
             tooltip = "8",
             model = {
                 model = "models/metrostroi_train/81-760/81_760_button_cam_yellow.mdl",
-                z = 6,
+                z = 5,
                 var = "CAMS8",
                 speed = 16,
             }
         },
         {
             ID = "CAMS9Set",
-            x = 135.3 + 28.3 * 4, y = 0, w = 20, h = 20,
+            x = 126 + 26.5 * 4, y = 0, w = 20, h = 20,
             tooltip = "9",
             model = {
                 model = "models/metrostroi_train/81-760/81_760_button_cam_yellow.mdl",
-                z = 6, scale = 1.05,
+                z = 5,
                 var = "CAMS9",
                 speed = 16,
             }
         },
         {
             ID = "CAMS10Set",
-            x = 135.3 + 28.3 * 5, y = 0, w = 20, h = 20,
+            x = 126 + 26.5 * 5, y = 0, w = 20, h = 20,
             tooltip = "10",
             model = {
                 model = "models/metrostroi_train/81-760/81_760_button_cam_yellow.mdl",
-                z = 6, scale = 1.05,
+                z = 5,
                 var = "CAMS10",
                 speed = 16,
             }
@@ -3187,71 +3187,44 @@ ENT.ButtonMap["CabinDoorR1"] = {
 }
 
 ENT.ClientProps["Salon"] = {
-    model = "models/metrostroi_train/81-765/765_salon.mdl",
+    model = "models/metrostroi_train/81-765_v1/765/salon.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
 }
 
 ENT.ClientProps["Cabin"] = {
-    model = "models/metrostroi_train/81-765/cabin.mdl",
+    model = "models/metrostroi_train/81-765_v1/765/cab.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
 }
 
-
-for idx = 1, 4 do
-    ENT.ClientProps["RedLights" .. idx] = {
-        model = "models/metrostroi_train/81-765/headlights_" .. idx .. "_red.mdl",
-        pos = Vector(0, 0, 0),
-        ang = Angle(0, 0, 0),
-        nohide = true,
-    }
-    ENT.ClientProps["WhiteLights" .. idx] = {
-        model = "models/metrostroi_train/81-765/headlights_" .. idx .. "_on.mdl",
-        pos = Vector(0, 0, 0),
-        ang = Angle(0, 0, 0),
-        nohide = true,
-    }
-    ENT.ClientProps["OffLights" .. idx] = {
-        model = "models/metrostroi_train/81-765/headlights_" .. idx .. "_off.mdl",
+for idx = 1, 6 do
+    ENT.ClientProps["Headlights" .. idx] = {
+        model = string.format("models/metrostroi_train/81-765_v1/765/headlights_moscow/headlights_moscow_%s%d.mdl", idx % 2 == 0 and "r" or "l", math.ceil(idx / 2)),
         pos = Vector(0, 0, 0),
         ang = Angle(0, 0, 0),
         nohide = true,
     }
 end
 
-ENT.ClientProps["HeadLights0"] = {
-    model = "models/metrostroi_train/81-765/headlights_main_off.mdl",
+ENT.ClientProps["HeadlightsBody"] = {
+    model = "models/metrostroi_train/81-765_v1/765/headlights_moscow/headlights_moscow.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     nohide = true,
 }
 
-ENT.ClientProps["HeadLights1"] = {
-    model = "models/metrostroi_train/81-765/headlights_main_half.mdl",
+ENT.ClientProps["SalonLights"] = {
+    model = "models/metrostroi_train/81-765_v1/lights/salon_lights.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
-    nohide = true,
-}
-
-ENT.ClientProps["HeadLights2"] = {
-    model = "models/metrostroi_train/81-765/headlights_main_on.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    nohide = true,
-}
-
-ENT.ClientProps["HeadLightsRed"] = {
-    model = "models/metrostroi_train/81-765/headlights_main_red.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    nohide = true,
+    hide = 2,
 }
 
 table.insert(ENT.ClientProps, {
-    model = "models/metrostroi_train/81-765/765_underwag.mdl",
+    model = "models/metrostroi_train/81-765_v1/765/underwag_h.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
@@ -3264,19 +3237,19 @@ ENT.ClientProps["NmTmRear"] = {
     hide = 2,
 }
 
-ENT.ClientProps["KtiFan"] = {
-    model = "models/metrostroi_train/81-760/81_760_fan_kti.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 1.5,
-}
+-- ENT.ClientProps["KtiFan"] = {
+--     model = "models/metrostroi_train/81-760/81_760_fan_kti.mdl",
+--     pos = Vector(0, 0, 0),
+--     ang = Angle(0, 0, 0),
+--     hide = 1.5,
+-- }
 
-ENT.ClientProps["RFan"] = {
-    model = "models/metrostroi_train/81-760/81_760_fan_r.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 1.5,
-}
+-- ENT.ClientProps["RFan"] = {
+--     model = "models/metrostroi_train/81-760/81_760_fan_r.mdl",
+--     pos = Vector(0, 0, 0),
+--     ang = Angle(0, 0, 0),
+--     hide = 1.5,
+-- }
 
 ENT.ButtonMap["GV"] = {
     pos = Vector(-166.9, 42, -52 - 15),
@@ -3313,53 +3286,87 @@ ENT.ClientProps["GvWrench"] = {
 }
 
 ENT.ClientProps["DoorCabM"] = {
-    model = "models/metrostroi_train/81-765/sdoor.mdl",
+    model = "models/metrostroi_train/81-765_v1/765/door_cc.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
 }
 
 ENT.ClientProps["DoorCabL"] = {
-    model = "models/metrostroi_train/81-765/ldoor.mdl",
+    model = "models/metrostroi_train/81-765_v1/765/door_cl.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
     modelcallback = function(ent)
-        if ent.Anims and ent.Anims["DoorCabL.position_window"] then
-            ent.Anims["DoorCabL.position_window"].reload = true
+        if ent.Anims and ent.Anims["DoorCabL.window"] then
+            ent.Anims["DoorCabL.window"].reload = true
         end
     end
 }
 
 ENT.ClientProps["DoorCabR"] = {
-    model = "models/metrostroi_train/81-765/rdoor.mdl",
+    model = "models/metrostroi_train/81-765_v1/765/door_cr.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
     modelcallback = function(ent)
-        if ent.Anims and ent.Anims["DoorCabR.position_window"] then
-            ent.Anims["DoorCabR.position_window"].reload = true
+        if ent.Anims and ent.Anims["DoorCabR.window"] then
+            ent.Anims["DoorCabR.window"].reload = true
         end
     end
 }
 
-ENT.ClientProps["Closet1Val"] = {
-    model = "models/metrostroi_train/81-765/cldoor.mdl",
+ENT.ClientProps["DoorK35_1"] = {
+    model = "models/metrostroi_train/81-765_v1/765/bay_k35_door1.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2
+}
+
+ENT.ClientProps["DoorK35_2"] = {
+    model = "models/metrostroi_train/81-765_v1/765/bay_k35_door2.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2
+}
+
+ENT.ClientProps["DoorBay1"] = {
+    model = "models/metrostroi_train/81-765_v1/765/bay_main_cover.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2
+}
+
+ENT.ClientProps["DoorBay2"] = {
+    model = "models/metrostroi_train/81-765_v1/765/bay_main_cover2.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2
+}
+
+ENT.ClientProps["DoorBay3"] = {
+    model = "models/metrostroi_train/81-765_v1/765/bay_main_cover3.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2
+}
+
+ENT.ClientProps["PMV"] = {
+    model = "models/metrostroi_train/81-765_v1/765/pmv_early.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
 }
 
-
-ENT.ClientProps["CabChairAdd"] = {
-    model = "models/metrostroi_train/81-765/auxseat.mdl",
+ENT.ClientProps["BtbuSdLabel"] = {
+    model = "models/metrostroi_train/81-765_v1/765/pmv_btbu_sd.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hideseat = 0.5,
 }
 
-ENT.ClientProps["BtbuSdLabel"] = {
-    model = "models/metrostroi_train/81-765/btbu_label.mdl",
+ENT.ClientProps["CabChairAdd"] = {
+    model = "models/metrostroi_train/81-765_v1/765/cab_seat_lower.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hideseat = 0.5,
@@ -3410,30 +3417,30 @@ ENT.ButtonMap["NotificationPaperBtn"] = {
 -- }
 
 ENT.ClientProps["KRO"] = {
-    model = "models/metrostroi_train/81-760/81_760_switch_kro.mdl",
-    pos = Vector(485.6, 33.1, -12.38),
+    model = "models/metrostroi_train/81-765_v1/765/reversor.mdl",
+    pos = Vector(492.40, 34.11, -13.29),
     ang = Angle(0, 0, 0),
     hideseat = 0.5,
 }
 
 ENT.ClientProps["KRR"] = {
-    model = "models/metrostroi_train/81-760/81_760_switch_krr.mdl",
-    pos = Vector(485.6, 36, -12.38),
+    model = "models/metrostroi_train/81-765_v1/765/reversor_red.mdl",
+    pos = Vector(492.40, 36.98, -13.29),
     ang = Angle(0, 0, 0),
     hideseat = 0.5,
 }
 
 ENT.ClientProps["Controller"] = {
     model = "models/metrostroi_train/81-722/81-722_controller.mdl",
-    pos = Vector(482.4, 23.89, -14.2),
+    pos = Vector(488.6, 24.7, -14.2),
     ang = Angle(0, 90, 0),
     hide = 2,
 }
 
 ENT.ClientProps["KM013"] = {
-    model = "models/metrostroi_train/81-760/81_760_km_013.mdl",
-    pos = Vector(475.09, -11.89, -16.46),
-    ang = Angle(2.6, 11, 0),
+    model = "models/metrostroi_train/81-765_v1/765/krmsh_cab.mdl",
+    pos = Vector(484.06, -11.59, -16.47),
+    ang = Angle(-16.245, -21.177, 88.204),
     hideseat = 0.5,
 }
 
@@ -3441,8 +3448,8 @@ if not ENT.ClientSounds["br_013"] then ENT.ClientSounds["br_013"] = {} end
 table.insert(ENT.ClientSounds["br_013"], {"KM013", function(ent, _, var) return "br_013" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)})
 
 ENT.ClientProps["PB"] = {
-    model = "models/metrostroi_train/81-765/pb.mdl",
-    pos = Vector(487, 31.88, -49.42),
+    model = "models/metrostroi_train/81-765_v1/765/pb.mdl",
+    pos = Vector(495.93, 37.23, -46.48),
     ang = Angle(0, 0, 0),
 }
 
@@ -3466,7 +3473,6 @@ ENT.ClientProps["ASHook"] = {
 
 
 ENT.ClientProps["MezhwagF"] = nil
-ENT.ClientProps["CoupleDynF"] = nil
 ENT.ClientProps["FencePlF"] = nil
 ENT.ClientProps["BoxDoorL"] = nil
 ENT.ClientProps["BoxDoorR"] = nil
@@ -3475,77 +3481,52 @@ ENT.ButtonMap["ClosetCapLop"] = nil
 ENT.ButtonMap["ClosetCapR"] = nil
 ENT.ButtonMap["ClosetCapRop"] = nil
 
-local arrowsang = Angle(15.22, -46, 1.9432) -- 105.22 1.9432 -312.64
-local fwd = arrowsang:Forward()
-arrowsang:RotateAroundAxis(fwd, -56)
-local bcarrow = Angle(arrowsang)
-bcarrow:RotateAroundAxis(fwd, 8)
 ENT.ClientProps["MnBc"] = {
-    model = "models/metrostroi_train/81-760/81_760_arrow_nm.mdl",
-    pos = Vector(491.29, -13.54, -2.23) - fwd * 0.04,
-    ang = bcarrow,
+    model = "models/metrostroi_train/81-765_v1/765/arrow_bc.mdl",
+    pos = Vector(498.061, -13.866, -2.27934),
+    ang = Angle(39.697, -142.968, 70.110),
     hideseat = 0.2,
 }
 
 ENT.ClientProps["MnTl"] = {
-    model = "models/metrostroi_train/81-760/81_760_arrow_nm.mdl",
-    pos = Vector(488.81, -13.54, -9.20) - fwd * 0.04,
-    ang = arrowsang,
+    model = "models/metrostroi_train/81-765_v1/765/arrow_tl.mdl",
+    pos = Vector(495.455, -13.8682, -9.62502),
+    ang = Angle(30.679, -139.217, 72.280),
     hideseat = 0.2,
 }
 
 ENT.ClientProps["MnBl"] = {
-    model = "models/metrostroi_train/81-760/81_760_arrow_tm.mdl",
-    pos = Vector(488.81, -13.54, -9.20) - fwd * 0.08,
-    ang = arrowsang,
+    model = "models/metrostroi_train/81-765_v1/765/arrow_bl.mdl",
+    pos = Vector(495.455, -13.8682, -9.62502),
+    ang = Angle(30.679, -139.217, 72.280),
     hideseat = 0.2,
 }
 
-ENT.ClientProps["SalonLightsFull"] = {
-    model = "models/metrostroi_train/81-760/81_760_lamp_int_full.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2,
-}
-
 ENT.ClientProps["cab_full"] = {
-    model = "models/metrostroi_train/81-765/cablights_on.mdl",
+    model = "models/metrostroi_train/81-765_v1/lights/cab_lights_2.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hideseat = 1.1,
 }
 
 ENT.ClientProps["cab_half"] = {
-    model = "models/metrostroi_train/81-765/cablights_half.mdl",
+    model = "models/metrostroi_train/81-765_v1/lights/cab_lights_1.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hideseat = 1.1,
 }
-
-ENT.ClientProps["cab_off"] = {
-    model = "models/metrostroi_train/81-765/cablights.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hideseat = 1.1,
-}
-
-local vmang = Angle(-11.549, -60, 8.2)
-local rotvmang = Angle(-11.549, -119.91, 8.2)
-vmang:RotateAroundAxis(rotvmang:Right(), -10)
-vmang:RotateAroundAxis(rotvmang:Forward(), -6)
-local vmoffset = rotvmang:Up() * -0.65 + rotvmang:Forward() * -0.35 + Vector(0, -0.08, 0)
 
 ENT.ClientProps["VmLv"] = {
-    model = "models/metrostroi_train/81-760/81_760_arrow_electric.mdl",
-    pos = Vector(496.93, 55.47, 32.3) + vmoffset,
-    ang = vmang,
+    model = "models/metrostroi_train/81-765_v1/765/arrow_vm.mdl",
+    pos = Vector(502.661, 55.056, 27.0296),
+    ang = Angle(2.666, 115.454, -98.410),
     hide = 0.2,
 }
 
 ENT.ClientProps["VmHv"] = {
-    model = "models/metrostroi_train/81-760/81_760_arrow_electric.mdl",
-    pos = Vector(498.16, 55.34, 27.53) + vmoffset,
-    ang = vmang,
+    model = "models/metrostroi_train/81-765_v1/765/arrow_vm.mdl",
+    pos = Vector(503.355, 55.1535, 22.5089),
+    ang = Angle(2.666, 115.454, -98.410),
     hide = 0.2,
 }
 
@@ -3563,7 +3544,7 @@ ENT.Lights = {
     },
     [2] = {
         "headlight",
-        Vector(525, 0, -46),
+        Vector(520, 0, -46),
         Angle(0, 0, 0),
         Color(255, 0, 0),
         fov = 170,
@@ -3587,8 +3568,8 @@ ENT.Lights = {
     },
     [11] = {
         "headlight", --MnBc
-        Vector(491.4, -13.7, 0),
-        Angle(90, 240, 0),
+        Vector(498.501, -14.0054, -0.18),
+        Angle(50, -43.3124, 0),
         Color(235, 165, 60),
         farz = 6,
         nearz = 0.2,
@@ -3598,8 +3579,8 @@ ENT.Lights = {
     },
     [12] = {
         "headlight", --nm tm
-        Vector(488.96, -13.84, -7.04),
-        Angle(90, 240, 0),
+        Vector(495.881, -14.0065, -7.61),
+        Angle(50, -43.3124, 0),
         Color(235, 165, 60),
         farz = 6,
         nearz = 0.2,
@@ -3619,29 +3600,29 @@ ENT.Lights = {
 }
 
 ENT.ButtonMap["MFDU"] = {
-    pos = Vector(493.93, 3.77, -0.77),
+    pos = Vector(500.71, 4.24, -0.7),
     ang = Angle(0, -90, 70.431),
     width = 1024,
     height = 768,
-    scale = 0.01185,
+    scale = 0.0124,
     hideseat = 0.2,
     system = "MFDU",
     hide = 0.5,
 }
 
 ENT.ButtonMap["BUIK"] = {
-    pos = Vector(494.37, 37.06, 0.4),
+    pos = Vector(500.93, 37.93, -0.22),
     ang = Angle(0, -90, 70.431),
-    width = 2486,
+    width = 2716,
     height = 496,
-    scale = 0.01107,
+    scale = 0.01,
     system = "BUIK",
     hide = 0.5,
 }
 
 ENT.ButtonMap["CAMS"] = {
-    pos = Vector(484.8, 54.56, 0.15),
-    ang = Angle(0, -59.84, 72.91),
+    pos = Vector(491.82, 54.61, -0.59),
+    ang = Angle(0.000, -59.841, 72.914),
     width = 1280,
     height = 1024,
     scale = 0.0106,
@@ -4042,11 +4023,11 @@ function ENT:Initialize()
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.Initialize(self)
     self.MFDUrt = self:CreateRT("765MFDU", 1024, 768)
-    self.BUIKscr = self:CreateRT("765BUIK", 2486, 496)
+    self.BUIKscr = self:CreateRT("765BUIK", 2716, 496)
     self.CAMS = self:CreateRT("760CAMS", 1024, 768)
     self.ASNP = self:CreateRT("760ASNP", 512, 128)
     self.IGLA = self:CreateRT("760IGLA", 512, 128)
-    self.RVSScr = self:CreateRT("760RVS", 256, 256)
+    -- self.RVSScr = self:CreateRT("760RVS", 256, 256)
     self.BMIK = self:CreateRT("765BMIK", 1380, 230)
     self.BNMIK = self:CreateRT("765BNMIK", 380, 190)
     self.BLIK = self:CreateRT("765BLIK", 380, 380)
@@ -4082,12 +4063,12 @@ function ENT:DrawPost(special)
         surface.DrawTexturedRectRotated(256, 74, 512, 150, 0)
     end)
 
-    self.RTMaterial:SetTexture("$basetexture", self.RVSScr)
-    self:DrawOnPanel("RVSScreen", function(...)
-        surface.SetMaterial(self.RTMaterial)
-        surface.SetDrawColor(255, 255, 255)
-        surface.DrawTexturedRectRotated(128, 128, 256, 256, 0)
-    end)
+    -- self.RTMaterial:SetTexture("$basetexture", self.RVSScr)
+    -- self:DrawOnPanel("RVSScreen", function(...)
+    --     surface.SetMaterial(self.RTMaterial)
+    --     surface.SetDrawColor(255, 255, 255)
+    --     surface.DrawTexturedRectRotated(128, 128, 256, 256, 0)
+    -- end)
 
     self.RTMaterial:SetTexture("$basetexture", self.CAMS)
     self:DrawOnPanel("CAMS", function(...)
@@ -4100,7 +4081,7 @@ function ENT:DrawPost(special)
     self:DrawOnPanel("BUIK", function(...)
         surface.SetMaterial(self.RTMaterial)
         surface.SetDrawColor(255, 255, 255)
-        surface.DrawTexturedRectRotated(2486 / 2, 496 / 2, 2486, 496, 0)
+        surface.DrawTexturedRectRotated(2716 / 2, 496 / 2, 2716, 496, 0)
     end)
 
     self.RTMaterial:SetTexture("$basetexture", self.BMIK)

@@ -12,39 +12,25 @@ ENT.AutoAnims = {}
 ENT.ClientPropsInitialized = false
 
 table.insert(ENT.ClientProps, {
-    model = "models/metrostroi_train/81-765/766_underwag.mdl",
+    model = "models/metrostroi_train/81-765_v1/766/underwag_mp.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2,
 })
 
-ENT.ClientProps["KtiFan"] = {
-    model = "models/metrostroi_train/81-760/81_760_fan_kti.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 1,
-}
+-- ENT.ClientProps["KtiFan"] = {
+--     model = "models/metrostroi_train/81-760/81_760_fan_kti.mdl",
+--     pos = Vector(0, 0, 0),
+--     ang = Angle(0, 0, 0),
+--     hide = 1,
+-- }
 
-ENT.ClientProps["RFan"] = {
-    model = "models/metrostroi_train/81-760/81_760_fan_r.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 1,
-}
-
-ENT.ClientProps["BoxIntL"] = {
-    model = "models/metrostroi_train/81-760/81_761a_box_int_l.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2,
-}
-
-ENT.ClientProps["VmBs"] = {
-    model = "models/metrostroi_train/81-760/81_760_arrow_electric.mdl",
-    pos = Vector(448.42, 45.092, -12.94),
-    ang = Angle(0, -90, 0),
-    hide = 0.2,
-}
+-- ENT.ClientProps["RFan"] = {
+--     model = "models/metrostroi_train/81-760/81_760_fan_r.mdl",
+--     pos = Vector(0, 0, 0),
+--     ang = Angle(0, 0, 0),
+--     hide = 1,
+-- }
 
 ENT.ButtonMap["GV"] = {
     pos = Vector(-166.9, 42, -52 - 15),
