@@ -228,12 +228,23 @@ function ENT:InitializeSounds()
     self.SoundPositions["door_cab_m_open"] = {800, 1e9, Vector(380, 5, -12.3), 0.5}
     self.SoundNames["door_cab_m_close"] = self.SoundNames["door_cab_close"]
     self.SoundPositions["door_cab_m_close"] = {800, 1e9, Vector(380, 5, -12.3), 0.5}
-    self.SoundNames["door_add_1_open"] = self.SoundNames["door_cab_open"]
-    self.SoundPositions["door_add_1_open"] = {800, 1e9, Vector(411.2, -57.5, 45), 0.5}
-    self.SoundNames["door_add_1_close"] = self.SoundNames["door_cab_close"]
-    self.SoundPositions["door_add_1_close"] = {800, 1e9, Vector(411.2, -57.5, 45), 0.5}
-    self.SoundNames["door_pvz_close"] = self.SoundNames["door_cab_close"]
-    self.SoundPositions["door_pvz_close"] = {800, 1e9, Vector(411.6, 21, 42), 0.5}
+    self.SoundNames["door_k35_1_open"] = self.SoundNames["door_cab_open"]
+    self.SoundPositions["door_k35_1_open"] = {800, 1e9, Vector(417, -38, 20), 0.5}
+    self.SoundNames["door_k35_1_close"] = self.SoundNames["door_cab_close"]
+    self.SoundPositions["door_k35_1_close"] = self.SoundPositions["door_k35_1_open"]
+    self.SoundNames["door_k35_2_open"] = self.SoundNames["door_cab_open"]
+    self.SoundPositions["door_k35_2_open"] = {800, 1e9, Vector(411, -31, 14), 0.5}
+    self.SoundNames["door_k35_2_close"] = self.SoundNames["door_cab_close"]
+    self.SoundPositions["door_k35_2_close"] = self.SoundPositions["door_k35_2_open"]
+    self.SoundNames["door_bay_2_open"] = self.SoundNames["door_cab_open"]
+    self.SoundPositions["door_bay_2_open"] = {800, 1e9, Vector(416, 17, 0), 0.5}
+    self.SoundNames["door_bay_2_close"] = self.SoundNames["door_cab_close"]
+    self.SoundPositions["door_bay_2_close"] = self.SoundPositions["door_bay_2_open"]
+    self.SoundNames["door_bay_3_open"] = self.SoundNames["door_cab_open"]
+    self.SoundPositions["door_bay_3_open"] = {800, 1e9, Vector(416, 46, -23), 0.5}
+    self.SoundNames["door_bay_3_close"] = self.SoundNames["door_cab_close"]
+    self.SoundPositions["door_bay_3_close"] = self.SoundPositions["door_bay_3_open"]
+
     self.SoundNames["bkpu"] = {"subway_trains/760/vb_on.wav"}
     self.SoundPositions["bkpu"] = {800, 1e9, Vector(410.2, 59, 1), 0.5}
 
@@ -649,7 +660,11 @@ end
 
 
 ENT.SpawnerCustom = {
-    model = {"models/metrostroi_train/81-765_v1/765/hull.mdl", "models/metrostroi_train/81-765_v1/765/salon.mdl", "models/metrostroi_train/81-765_v1/765/underwag_h.mdl", "models/metrostroi_train/81-765_v1/765/cab.mdl", "models/metrostroi_train/81-765_v1/765/headlights_moscow/headlights_moscow.mdl"},
+    model = {
+        "models/metrostroi_train/81-765_v1/765/hull.mdl", "models/metrostroi_train/81-765_v1/765/salon.mdl", "models/metrostroi_train/81-765_v1/765/underwag_h.mdl",
+        "models/metrostroi_train/81-765_v1/765/cab.mdl", "models/metrostroi_train/81-765_v1/765/headlights_moscow/headlights_moscow.mdl",
+        "models/metrostroi_train/81-765_v1/765/pmv_early.mdl"
+    },
     postfunc = function(trains, WagNum)
         if #trains ~= WagNum then return end
         local wag1 = trains[1]:GetWagonNumber()

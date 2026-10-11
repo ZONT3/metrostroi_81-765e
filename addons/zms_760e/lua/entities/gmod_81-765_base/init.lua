@@ -109,9 +109,6 @@ function ENT:Initialize()
         },
     }
 
-    self.CouchCapL = false
-    self.CouchCapR = false
-    self.DoorK31 = false
     self.InteractionZones = self.InteractionZones or {}
     for k, tbl in ipairs({self.LeftDoorPositions or {}, self.RightDoorPositions or {}}) do
         for i, pos in ipairs(tbl) do
@@ -126,6 +123,15 @@ function ENT:Initialize()
 
     if self.IsTrailer then
         self.NormalMass = 19000
+    end
+
+    self.BayPuvVal = false
+    self.BayBsVal = false
+    self.BayCondVal = false
+    for idx = 1, 8 do
+        if self.IsIntermediate or idx ~= 5 then
+            self["BayCoverBudVal" .. idx] = false
+        end
     end
 
     self:CreateDoorTriggers()
@@ -342,10 +348,6 @@ function ENT:Think()
         self:SetPackedRatio("IVO", 0.5 + self.BUV.IVO / 150)
     end
 
-    self:SetPackedBool("CouchCapR", self.CouchCapR)
-    self:SetPackedBool("CouchCapL", self.CouchCapL)
-    self:SetPackedBool("DoorK31", self.DoorK31)
-
     self:SetPackedRatio("LV", Panel.LV / 150)
     if self.IsIntermediate then
         self:SetPackedRatio("HV", self.Electric.Main750V / 1000)
@@ -411,6 +413,15 @@ function ENT:Think()
         -- if not self.RearCoupledBogey and self.CoupleCenteringR.Value == 0 and not self.RearCouple.Centered and self:GetNW2Bool("CoupleSprings", false) then
         --     self:SetSprings(false)
         -- end
+    end
+
+    self:SetPackedBool("BayPuvVal", self.BayPuvVal)
+    self:SetPackedBool("BayBsVal", self.BayBsVal)
+    self:SetPackedBool("BayCondVal", self.BayCondVal)
+    for idx = 1, 8 do
+        if self.IsIntermediate or idx ~= 5 then
+            self:SetPackedBool("BayCoverBudVal" .. idx, self["BayCoverBudVal" .. idx])
+        end
     end
 
     self:SetNW2Bool("LvCritical", self.Electric.Emer80V < 54.8)
@@ -495,17 +506,28 @@ function ENT:OnDecouple(isfront)
 end
 
 function ENT:OnButtonPress(button, ply)
-    if string.find(button, "PneumaticBrakeSet") then
-        self.Pneumatic:TriggerInput("BrakeSet", tonumber(button:sub(-1, -1)))
-        return
-    end
-
-    if button == "CouchCapL" then self.CouchCapL = not self.CouchCapL end
-    if button == "CouchCapR" then self.CouchCapR = not self.CouchCapR end
-    if button == "K31Cap" then self.DoorK31 = not self.DoorK31 end
     if string.StartsWith(button, "SalonDoor") then
         local idx = tonumber(string.sub(button, 10))
         if idx and IsValid(ply) and self.BUD then self.BUD:OpenDoorMenu(ply, idx) end
+        return
+    end
+
+    if button == "BayCoverPuv" then
+        self.BayPuvVal = not self.BayPuvVal
+        return
+    end
+    if button == "BayCoverBs" then
+        self.BayBsVal = not self.BayBsVal
+        return
+    end
+    if button == "BayCoverCond" then
+        self.BayCondVal = not self.BayCondVal
+        return
+    end
+    if string.StartsWith(button, "BayCoverBud") then
+        local idx = tonumber(string.sub(button, 12))
+        self["BayCoverBudVal" .. idx] = not self["BayCoverBudVal" .. idx]
+        return
     end
 end
 

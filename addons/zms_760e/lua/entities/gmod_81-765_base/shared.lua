@@ -255,6 +255,31 @@ function ENT:InitializeSounds()
     self.SoundNames["door_alarm"] = {"subway_trains/765/rumble/door_alarm_fast.mp3"}
     self.SoundPositions["door_alarm"] = {800, 1e9, Vector(0, 0, 0), 0.5}
 
+    self.SoundNames["door_puv_open"] = {"subway_trains/720/door/door_torec_open.mp3", "subway_trains/720/door/door_torec_open2.mp3"}
+    self.SoundPositions["door_puv_open"] = {800, 1e9, Vector(-457.99, 35.88, -4), 0.5}
+    self.SoundNames["door_puv_close"] = {"subway_trains/720/door/door_torec_close.mp3", "subway_trains/720/door/door_torec_close2.mp3"}
+    self.SoundPositions["door_puv_close"] = self.SoundPositions["door_puv_open"]
+    self.SoundNames["door_bs_open"] = self.SoundNames["door_puv_open"]
+    self.SoundPositions["door_bs_open"] = {800, 1e9, Vector(-452, -36, -12), 0.5}
+    self.SoundNames["door_bs_close"] = self.SoundNames["door_puv_close"]
+    self.SoundPositions["door_bs_close"] = self.SoundPositions["door_bs_open"]
+    self.SoundNames["door_cond_open"] = self.SoundNames["door_puv_open"]
+    self.SoundPositions["door_cond_open"] = {800, 1e9, Vector(43, -43, 52), 0.5}
+    self.SoundNames["door_cond_close"] = self.SoundNames["door_puv_close"]
+    self.SoundPositions["door_cond_close"] = self.SoundPositions["door_cond_open"]
+
+    for idx = 1, 8 do
+        if self.IsIntermediate or idx ~= 5 then
+            local k = "bud_" .. idx
+            local k_op = k .. "_open"
+            local k_cl = k .. "_close"
+            self.SoundNames[k_op] = self.SoundNames["door_puv_open"]
+            self.SoundPositions[k_op] = {800, 1e9, Vector((idx > 4 and 415.5 or 283.8) - (idx - (idx > 4 and 5 or 1)) * 235.5, idx > 4 and -43 or 43, 52), 0.5}
+            self.SoundNames[k_cl] = self.SoundNames["door_puv_close"]
+            self.SoundPositions[k_cl] = self.SoundPositions[k_op]
+        end
+    end
+
     self.SoundNames["sf_on"] = "subway_trains/722/switches/sf_on.mp3"
     self.SoundNames["sf_off"] = "subway_trains/722/switches/sf_off.mp3"
     self.SoundNames["batt_on"] = "subway_trains/720/batt_on.mp3"
@@ -351,53 +376,53 @@ local function pvzToggle(name, tooltip, x, y, idx)
 end
 
 ENT.PvzToggles = {
-    pvzToggle("SF23F12", "23F12: Счётчик", 0, 0),
-    pvzToggle("SF70F4", "70F4: USB", 0, 0),
-    pvzToggle("SF22F1", "22F1: БУФТ", 0, 0),
+    pvzToggle("SF23F12", "23F12: Счётчик", 0, 2),
+    pvzToggle("SF70F4", "70F4: USB", 0, 2),
+    pvzToggle("SF22F1", "22F1: БУФТ", 0, 2),
 
-    pvzToggle("SF23F11", "23F11: БУВ-S", 0, 50),
-    pvzToggle("SF23F9", "23F9: Резерв", 0, 50),
-    pvzToggle("SF90F2", "90F2: АСОТП", 0, 50),
-    pvzToggle("SF23F10", "23F10: Противоюз", 0, 50),
-    pvzToggle("SF45F5", "45F5: Видео 1", 0, 50),
-    pvzToggle("SF45F6", "45F6: Видео 2", 0, 50),
-    pvzToggle("SF45F7", "45F7: БНТ-ИК (Л)", 0, 50),
-    pvzToggle("SF45F8", "45F8: БНТ-ИК (П)", 0, 50),
-    pvzToggle("SF52F3", "52F3: Аварийное освещение", 0, 50),
-    pvzToggle("SF61F3", "61F3: Включение кондиционера", 0, 50),
+    pvzToggle("SF23F11", "23F11: БУВ-S", 0, 160),
+    pvzToggle("SF23F9", "23F9: Резерв", 0, 160),
+    pvzToggle("SF90F2", "90F2: АСОТП", 0, 160),
+    pvzToggle("SF23F10", "23F10: Противоюз", 0, 160),
+    pvzToggle("SF45F5", "45F5: Видео 1", 0, 160),
+    pvzToggle("SF45F6", "45F6: Видео 2", 0, 160),
+    pvzToggle("SF45F7", "45F7: БНТ-ИК (Л)", 0, 160),
+    pvzToggle("SF45F8", "45F8: БНТ-ИК (П)", 0, 160),
+    pvzToggle("SF52F3", "52F3: Аварийное освещение", 0, 160),
+    pvzToggle("SF61F3", "61F3: Включение кондиционера", 0, 160),
 
-    pvzToggle("SF45F2", "45F2: Питание БВМ", 0, 100),
-    pvzToggle("SF61F4", "61F4: Питание преобразователя", 0, 100),
-    pvzToggle("SF23F4", "23F4: Инвертор", 0, 100),
-    pvzToggle("SF45F4", "45F4: Питание БУТ", 0, 100),
-    pvzToggle("SF30F4", "30F4: ПСН", 0, 100),
-    pvzToggle("SF45F3", "45F3: Питание ESM", 0, 100),
-    pvzToggle("SF30F3", "30F3: Осушитель", 0, 100),
-    pvzToggle("SF21F1", "21F1: Токоприемники, осушитель, БККЗ, ДПБТ", 0, 100),
-    pvzToggle("SF52F5", "52F5: Подсветка двери левой", 0, 100),
-    pvzToggle("SF52F4", "52F4: Подсветка дверей", 0, 100),
+    pvzToggle("SF45F2", "45F2: Питание БВМ", 0, 320),
+    pvzToggle("SF61F4", "61F4: Питание преобразователя", 0, 320),
+    pvzToggle("SF23F4", "23F4: Инвертор", 0, 320),
+    pvzToggle("SF45F4", "45F4: Питание БУТ", 0, 320),
+    pvzToggle("SF30F4", "30F4: ПСН", 0, 320),
+    pvzToggle("SF45F3", "45F3: Питание ESM", 0, 320),
+    pvzToggle("SF30F3", "30F3: Осушитель", 0, 320),
+    pvzToggle("SF21F1", "21F1: Токоприемники, осушитель, БККЗ, ДПБТ", 0, 320),
+    pvzToggle("SF52F5", "52F5: Подсветка двери левой", 0, 320),
+    pvzToggle("SF52F4", "52F4: Подсветка дверей", 0, 320),
 
-    pvzToggle("SF80F2", "80F2: Контроль дверей салона", 0, 150),
-    pvzToggle("SF80F13", "80F13: Двери питание 2, 7", 0, 150),
-    pvzToggle("SF80F14", "80F14: Двери питание 1, 4, 5", 0, 150),
-    pvzToggle("SF80F12", "80F12: Двери питание 3, 6, 8", 0, 150),
-    pvzToggle("SF80F8", "80F8: Двери закрытие", 0, 150),
-    pvzToggle("SF80F11", "80F11: Двери выбор правые", 0, 150),
-    pvzToggle("SF80F10", "80F10: Двери выбор левые", 0, 150),
-    pvzToggle("SF80F7", "80F7: Двери открытие левые", 0, 150),
-    pvzToggle("SF80F6", "80F6: Двери открытие правые", 0, 150),
-    pvzToggle("SF80F9", "80F9: Скорость 0", 0, 150),
+    pvzToggle("SF80F2", "80F2: Контроль дверей салона", 0, 479),
+    pvzToggle("SF80F13", "80F13: Двери питание 2, 7", 0, 479),
+    pvzToggle("SF80F14", "80F14: Двери питание 1, 4, 5", 0, 479),
+    pvzToggle("SF80F12", "80F12: Двери питание 3, 6, 8", 0, 479),
+    pvzToggle("SF80F8", "80F8: Двери закрытие", 0, 479),
+    pvzToggle("SF80F11", "80F11: Двери выбор правые", 0, 479),
+    pvzToggle("SF80F10", "80F10: Двери выбор левые", 0, 479),
+    pvzToggle("SF80F7", "80F7: Двери открытие левые", 0, 479),
+    pvzToggle("SF80F6", "80F6: Двери открытие правые", 0, 479),
+    pvzToggle("SF80F9", "80F9: Скорость 0", 0, 479),
 
-    pvzToggle("SF30F2", "30F2: БС Управлене", 0, 200),
-    pvzToggle("SF23F5", "23F5: Управление основное", 0, 200),
-    pvzToggle("SF23F6", "23F6: Управление резервное", 0, 200),
-    pvzToggle("SF30F7", "30F7: Питание ЦУ 1", 0, 200),
-    pvzToggle("SF30F9", "30F9: Питание ЦУ 2", 0, 200),
-    pvzToggle("SF30F6", "30F6: Питание ЦУ 3", 0, 200),
-    pvzToggle("SF30F8", "30F8: Питание ЦУ 4", 0, 200),
-    pvzToggle("SF52F2", "52F2: Освещение основное", 0, 200),
-    pvzToggle("SF61F1", "61F1: Питание УПВВ 1", 0, 200),
-    pvzToggle("SF61F9", "61F9: Питание УПВВ 2", 0, 200),
+    pvzToggle("SF30F2", "30F2: БС Управлене", 0, 810),
+    pvzToggle("SF23F5", "23F5: Управление основное", 0, 810),
+    pvzToggle("SF23F6", "23F6: Управление резервное", 0, 810),
+    pvzToggle("SF30F7", "30F7: Питание ЦУ 1", 0, 810),
+    pvzToggle("SF30F9", "30F9: Питание ЦУ 2", 0, 810),
+    pvzToggle("SF30F6", "30F6: Питание ЦУ 3", 0, 810),
+    pvzToggle("SF30F8", "30F8: Питание ЦУ 4", 0, 810),
+    pvzToggle("SF52F2", "52F2: Освещение основное", 0, 810),
+    pvzToggle("SF61F1", "61F1: Питание УПВВ 1", 0, 810),
+    pvzToggle("SF61F9", "61F9: Питание УПВВ 2", 0, 810),
 }
 
 

@@ -14,8 +14,8 @@ ENT.ScreenHelpersHide = {}
 ENT.ClientPropsInitialized = false
 
 ENT.ButtonMap["PVZ"] = {
-    pos = Vector(450.75, 53.75, 17.8),
-    ang = Angle(0, -90, 90),
+    pos = Vector(-473.39, 44.09, 8.03),
+    ang = Angle(0.000, 0.000, 90.000),
     width = 305,
     height = 425,
     scale = 0.05,
@@ -25,8 +25,8 @@ ENT.ButtonMap["PVZ"] = {
 table.Add(ENT.ButtonMap["PVZ"].buttons, ENT.PvzToggles)
 
 ENT.ButtonMap["Power"] = {
-    pos = Vector(448.7, 43.2, -6.3),
-    ang = Angle(0, -90, 90),
+    pos = Vector(-461.84, -38.08, -8.98),
+    ang = Angle(0.000, 180.000, 90.000),
     width = 100,
     height = 50,
     scale = 0.0625,
@@ -34,42 +34,26 @@ ENT.ButtonMap["Power"] = {
     buttons = {
         {
             ID = "PowerOnSet",
-            x = 17,
-            y = 25,
-            radius = 20,
             tooltip = "Бортсеть вкл",
+            x = 37, y = 28, radius = 20,
             model = {
-                model = "models/metrostroi_train/81-760/81_760_button_green.mdl",
-                z = -0.5,
                 var = "PowerOn",
-                speed = 12,
-                vmin = 0,
-                vmax = 0.5,
-                sndvol = 0.3,
+                model = "models/metrostroi_train/81-760/81_760_button_green.mdl",
+                z = -0.5, speed = 12, vmin = 0, vmax = 0.5, sndvol = 0.3,
                 snd = function(val) return val and "button_square_on" or "button_square_off" end,
-                sndmin = 80,
-                sndmax = 1e3 / 3,
-                sndang = Angle(-90, 0, 0),
+                sndmin = 80, sndmax = 1e3 / 3, sndang = Angle(-90, 0, 0),
             }
         },
         {
             ID = "PowerOffSet",
-            x = 51,
-            y = 25,
-            radius = 20,
             tooltip = "Бортсеть выкл",
+            x = 79, y = 28, radius = 20,
             model = {
-                model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
-                z = -0.5,
                 var = "PowerOff",
-                speed = 12,
-                vmin = 0,
-                vmax = 0.5,
-                sndvol = 0.3,
+                model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
+                z = -0.5, speed = 12, vmin = 0, vmax = 0.5, sndvol = 0.3,
                 snd = function(val) return val and "button_square_on" or "button_square_off" end,
-                sndmin = 80,
-                sndmax = 1e3 / 3,
-                sndang = Angle(-90, 0, 0),
+                sndmin = 80, sndmax = 1e3 / 3, sndang = Angle(-90, 0, 0),
             }
         },
     }
@@ -209,129 +193,92 @@ ENT.ButtonMap["CoupleCenteringR"] = {
     }
 }
 
-ENT.ButtonMap["ClosetCapL"] = {
-    pos = Vector(445.5, 63, 26),
-    ang = Angle(0, -90, 90),
-    width = 600,
-    height = 1200,
-    scale = 0.0625,
-    hide = 0.8,
-    buttons = {
-        {
-            ID = "CouchCapL",
-            x = 0,
-            y = 0,
-            w = 600,
-            h = 1200,
-            tooltip = "Шкаф"
-        }
-    }
+local bays = {
+    {
+        names = {"BayPuv", "BayCoverPuv"},
+        models = {"models/metrostroi_train/81-765_v1/bays/bay_puv.mdl", "models/metrostroi_train/81-765_v1/common/bay_puv_cover.mdl"},
+        tooltip = "Отсек ПУВ (ПВЗ)",
+        pos = Vector(-477.35, 37.91, 42.57), ang = Angle(0.000, 8.331, 90.000),
+        pos_cl = Vector(-448.96, 42.07, 42.57), ang_cl = Angle(0.000, -62.094, 90.000),
+        w = 575, h = 1935, scale = 0.05, close2 = true
+    }, {
+        names = {"BayBs", "BayCoverBs"},
+        models = {"models/metrostroi_train/81-765_v1/bays/bay_bs.mdl", "models/metrostroi_train/81-765_v1/common/bay_bs_cover.mdl"},
+        tooltip = "Отсек БС",
+        pos = Vector(-448.96, -41.86, 1.35), ang = Angle(0.000, 166.170, 90.000),
+        pos_cl = Vector(-448.43, -43.01, 1.35), ang_cl = Angle(0.000, 77.516, 90.000),
+        w = 575, h = 900, scale = 0.05, close2 = true
+    }, {
+        names = {nil, "BayCoverCond"},
+        models = {nil, "models/metrostroi_train/81-765_v1/common/bay_cond_cover.mdl"},
+        tooltip = "Отсек защиты кондиционеров",
+        pos = Vector(43, -43.60, 55.72), ang = Angle(0.000, 180.000, 142.820),
+        pos_cl = Vector(43, -21.03, 52.61), ang_cl = Angle(0.000, 180.000, -172.000),
+        w = 1100, h = 450, scale = 0.05
+    },
 }
 
-ENT.ButtonMap["ClosetCapLop"] = {
-    pos = Vector(264.6, 45.6, 20),
-    ang = Angle(0, 0, 81),
-    width = 600,
-    height = 1200,
-    scale = 0.0625,
-    hide = 0.8,
-    buttons = {
-        {
-            ID = "CouchCapL",
-            x = 0,
-            y = 0,
-            w = 600,
-            h = 1200,
-            tooltip = "Шкаф"
-        }
-    }
-}
+for idx = 1, 4 do
+    table.insert(bays, {
+        names = {nil, "BayCoverBud" .. idx},
+        models = {nil, Format("models/metrostroi_train/81-765_v1/common/bay_bud_cover_%d.mdl", idx)},
+        tooltip = "Отсек БУД №" .. idx,
+        pos = Vector(255.53 - (idx - 1) * 235.5, 43.60, 55.72), ang = Angle(0.000, 0.000, 142.820),
+        pos_cl = Vector(255.53 - (idx - 1) * 235.5, 21.03, 52.61), ang_cl = Angle(0.000, 0.000, -172.000),
+        w = 1100, h = 450, scale = 0.05
+    })
+end
 
-ENT.ButtonMap["ClosetCapR"] = {
-    pos = Vector(445.5, -63, -49),
-    ang = Angle(0, 90, -90),
-    width = 720,
-    height = 950,
-    scale = 0.05,
-    hide = 0.8,
-    buttons = {
-        {
-            ID = "CouchCapR",
-            x = 0,
-            y = 0,
-            w = 720,
-            h = 950,
-            tooltip = "Шкаф"
-        }
-    }
-}
+for idx = 5, 8 do
+    table.insert(bays, {
+        names = {nil, "BayCoverBud" .. idx},
+        models = {nil, Format("models/metrostroi_train/81-765_v1/common/bay_bud_cover_%d.mdl", idx)},
+        tooltip = "Отсек БУД №" .. idx,
+        pos = Vector(444.5 - (idx - 5) * 235.5, -43.60, 55.72), ang = Angle(0.000, 180.000, 142.820),
+        pos_cl = Vector(444.5 - (idx - 5) * 235.5, -21.03, 52.61), ang_cl = Angle(0.000, 180.000, -172.000),
+        w = 1100, h = 450, scale = 0.05
+    })
+end
 
-ENT.ButtonMap["ClosetCapRop"] = {
-    pos = Vector(264.6, -36, -54),
-    ang = Angle(0, 0, -81),
-    width = 720,
-    height = 950,
-    scale = 0.05,
-    hide = 0.8,
-    buttons = {
-        {
-            ID = "CouchCapR",
-            x = 0,
-            y = 0,
-            w = 720,
-            h = 950,
-            tooltip = "Шкаф"
-        }
+for _, bay in ipairs(bays) do
+    ENT.ButtonMap[bay.names[2]] = {
+        pos = bay.pos,
+        ang = bay.ang,
+        width = bay.w, height = bay.h, scale = bay.scale,
+        buttons = {{ ID = bay.names[2], x = 0, y = 0, w = bay.w, h = bay.h, tooltip = bay.tooltip }}
     }
-}
-
-ENT.ButtonMap["BoxR"] = {
-    pos = Vector(450.5, -62, -49),
-    ang = Angle(0, 90, -90),
-    width = 720,
-    height = 950,
-    scale = 0.05,
-    hide = 0.8,
-    buttons = {
-        {
-            ID = "EmergencyBrakeValveToggle",
-            x = 500,
-            y = 250,
-            w = 60,
-            h = 100,
-            tooltip = "EmergencyBrakeValve",
-            model = {
-                var = "EmergencyBrakeValve",
+    ENT.ButtonMap[bay.names[2] .. "_close"] = {
+        pos = bay.pos_cl,
+        ang = bay.ang_cl,
+        width = bay.w, height = bay.h, scale = bay.scale,
+        buttons = {{ ID = bay.names[2], x = 0, y = 0, w = bay.w, h = bay.h, tooltip = "Закрыть" }}
+    }
+    if bay.close2 then
+            local pos = bay.pos_cl + bay.ang_cl:Up() + bay.ang_cl:Forward() * bay.scale * bay.w
+            local ang = Angle(bay.ang_cl)
+            ang:RotateAroundAxis(ang:Right(), 180)
+            ENT.ButtonMap[bay.names[2] .. "_close2"] = {
+                pos = pos,
+                ang = ang,
+                width = bay.w, height = bay.h, scale = bay.scale,
+                buttons = {{ ID = bay.names[2], x = 0, y = 0, w = bay.w, h = bay.h, tooltip = "Закрыть" }}
             }
-        },
+    end
+    ENT.ClientProps[bay.names[2]] = {
+        model = bay.models[2],
+        pos = Vector(0, 0, 0),
+        ang = Angle(0, 0, 0),
+        hide = 2,
     }
-}
-
-ENT.ClientProps["Stopkran"] = {
-    model = "models/metrostroi_train/81-760/81_760_crane_handle_red.mdl",
-    pos = Vector(451.8, -35.4, -32.9),
-    ang = Angle(180, 180, -90),
-    hide = 2,
-}
-ENT.ClientSounds["EmergencyBrakeValve"] = {{"Stopkran", function() return "disconnectvalve" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)}}
-
--- for i = 0, 4 do
---     local name = "TrainNumberL" .. i
---     ENT.ClientProps[name] = {
---         model = "models/metrostroi_train/81-760/numbers/number_0.mdl",
---         pos = Vector(0, 0, 0),
---         ang = Angle(0, 90, 0),
---         hide = 1.5,
---         callback = function(ent) ent.WagonNumber = false end,
---     }
---     ENT.ClientProps[name] = {
---         model = "models/metrostroi_train/81-760/numbers/number_0.mdl",
---         pos = Vector(0, 0, 0),
---         ang = Angle(0, -90, 0),
---         hide = 1.5,
---         callback = function(ent) ent.WagonNumber = false end,
---     }
--- end
+    if bay.models[1] and bay.names[1] then
+        ENT.ClientProps[bay.names[1]] = {
+            model = bay.models[1],
+            pos = Vector(0, 0, 0),
+            ang = Angle(0, 0, 0),
+            hideseat = 2,
+        }
+    end
+end
 
 for i = 1, 4 do
     ENT.ButtonMap["BNTL" .. i] = {
@@ -353,6 +300,13 @@ for i = 1, 4 do
         hide = 1,
     }
 end
+
+ENT.ClientProps["BayTop"] = {
+    model = "models/metrostroi_train/81-765_v1/bays/bay_top.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hideseat = 0.6,
+}
 
 ENT.ClientProps["Bnt"] = {
     model = "models/metrostroi_train/81-765_v1/common/bnt_lcd_mst.mdl",
@@ -934,8 +888,8 @@ function ENT:SetupMezhwag(platform, mezhwag, wag, front, dt)
             end
 
             if mezhwag:GetModel() == "models/metrostroi_train/81-765_v1/common/mezhwag.mdl" then
-                mezhwag.fpos1 = self:LocalToWorld(Vector(front and 471.07 or -477.53, 0, 0))
-                mezhwag.fpos2 = wag:LocalToWorld(Vector(otherFront and 471.07 or -477.53, 0, 0))
+                mezhwag.fpos1 = self:LocalToWorld(Vector(front and 472.681 or -479.354, 0, 0))
+                mezhwag.fpos2 = wag:LocalToWorld(Vector(otherFront and 472.681 or -479.354, 0, 0))
                 mezhwag.fang1 = self:LocalToWorldAngles(Angle(0, front and 0 or 180, 0))
                 mezhwag.fang2 = wag:LocalToWorldAngles(Angle(0, otherFront and 0 or 180, 0))
 
@@ -980,11 +934,11 @@ function ENT:SetupMezhwag(platform, mezhwag, wag, front, dt)
 
         local ang = couple:GetAngles()
         local selfAng = self:GetAngles()
+        if not front then selfAng:RotateAroundAxis(selfAng:Up(), 180) selfAng:Normalize() end
         ang.p = selfAng.p
-        ang.r = selfAng.r * (front and 1 or -1)
+        ang.r = selfAng.r
         couple.AngRotatable = Angle(ang)
         ang.y = selfAng.y
-        if not front then ang.y = ang.y + 180 ang:Normalize() end
         couple.AngStatic = ang
     end
 end
@@ -1063,36 +1017,6 @@ function ENT:Think()
         self:ShowHideSmooth("GvWrench", CurTime() < self.GvWrenchHide and 1 or 0.1)
     end
 
-    -- if not self.IsTrailer then self:Animate("VmBs", self:GetPackedRatio("IVO"), 0, 1, 16, 1) end
-    -- if self.IsIntermediate then
-    --     self:Animate("VmLv", self:GetPackedRatio("LV"), 0, 0.95, 16, 1)
-    --     self:Animate("VmHv", self:GetPackedRatio("HV"), 0, 1, 16, 6)
-    --     self:Animate("MnBl", self:GetPackedRatio("BL"), 0, 0.78, 256, 2)
-    --     self:Animate("MnTl", self:GetPackedRatio("TL"), 0, 0.78, 256, 2)
-    --     self:Animate("MnBc", self:GetPackedRatio("BC"), 0, 0.78, 256, 2)
-    -- end
-    local BoxDoorL = self:Animate("BoxDoorL", self:GetPackedBool("CouchCapL") and 1 or 0, 0, 1, 2, 2)
-    local BoxDoorR = self:Animate("BoxDoorR", self:GetPackedBool("CouchCapR") and 1 or 0, 0, 1, 2, 2)
-    if self.IsIntermediate then
-        self:HidePanel("ClosetCapL", BoxDoorL > 0)
-        self:HidePanel("ClosetCapR", BoxDoorR > 0)
-        self:HidePanel("ClosetCapLop", BoxDoorL < 1)
-        self:HidePanel("ClosetCapRop", BoxDoorR < 1)
-        self:HidePanel("BoxR", BoxDoorR == 0)
-        self:HidePanel("Power", BoxDoorL == 0)
-    end
-    self:HidePanel("PVZ", self.IsIntermediate and BoxDoorL == 0)
-    -- self:ShowHide("BoxIntL", self.IsIntermediate and BoxDoorL > 0)
-    -- self:ShowHide("BoxAdd", self.IsIntermediate and BoxDoorL > 0)
-    -- self:ShowHide("BoxIntR", self.IsIntermediate and BoxDoorR > 0)
-    -- self:ShowHide("VmHv", not self.IsIntermediate or BoxDoorR > 0)
-    -- self:ShowHide("MnBc", not self.IsIntermediate or BoxDoorR > 0)
-    -- self:ShowHide("MnTl", not self.IsIntermediate or BoxDoorR > 0)
-    -- self:ShowHide("MnBl", not self.IsIntermediate or BoxDoorR > 0)
-    -- self:ShowHide("VmLv", not self.IsIntermediate or BoxDoorL > 0)
-    if not self.IsTrailer then self:ShowHide("VmBs", self.IsIntermediate and BoxDoorL > 0) end
-    self:ShowHide("Stopkran", BoxDoorR > 0)
-
     local lights = self.ClientEnts["SalonLights"]
     if IsValid(lights) then
         local half, full = self:GetPackedBool("SalonLighting1"), self:GetPackedBool("SalonLighting2")
@@ -1168,6 +1092,23 @@ function ENT:Think()
     for k, v in ipairs(self.AnnouncerPositions) do
         if self.Sounds["announcer" .. k] and IsValid(self.Sounds["announcer" .. k]) then self.Sounds["announcer" .. k]:SetVolume(work and (v[3] or 1) or 0) end
     end
+
+    local puv = self:HandleDoorState("BayPuvVal", "door_puv", "BayCoverPuv", "BayCoverPuv", 0.05, 0, true)
+    local bs = self:HandleDoorState("BayBsVal", "door_bs", "BayCoverBs", "BayCoverBs", 0.05, 0, true)
+    local cond = self:HandleDoorState("BayCondVal", "door_cond", "BayCoverCond", "BayCoverCond", 0.05, 0)
+    local ceiling = puv or cond
+    local bud_4 = false
+    for idx = 1, 8 do
+        if self.IsIntermediate or idx ~= 5 then
+            local bud = self:HandleDoorState("BayCoverBudVal" .. idx, "bud_" .. idx, "BayCoverBud" .. idx, "BayCoverBud" .. idx, 0.05, 0)
+            ceiling = ceiling or bud
+            if idx == 4 then bud_4 = bud end
+        end
+    end
+    self:ShowHide("BayTop", ceiling)
+    self:ShowHide("BayPuv", puv or bud_4)
+    self:ShowHide("BayBs", bs)
+    self:HidePanel("PVZ", not puv)
 
     if not self.IsIntermediate then
         self:ShowHide("ASHook", ValidfB)
@@ -1251,23 +1192,19 @@ function ENT:Think()
         self:PlayDoorSound(self:Animate("DoorCabM", self:GetPackedBool("PassengerDoor") and 1 or 0, 0, 1, 2, 0.5) > 0.2, "door_cab_m")
         self:PlayDoorSound(DoorCabL > 0.2, "door_cab_l")
         self:PlayDoorSound(DoorCabR > 0.2, "door_cab_r")
-        self:HidePanel("PpzCover", DoorCabL == 0)
-        self:Animate("CabChairAdd", self:GetPackedBool("CabChairAdd") and 1 or 0, 0, 1, 4, 0.5)
-        local Closet1Val = self:Animate("DoorK35_1", self:GetPackedBool("Closet1Val") and 1 or 0, 0, 1, 2, 0.5)
-        local Closet2Val = self:Animate("DoorK35_2", self:GetPackedBool("Closet2Val") and 1 or 0, 0, 1, 2, 0.5)
-        self:PlayDoorSound(Closet1Val > 0, "door_add_1")
-        self:PlayDoorSound(Closet2Val > 0, "door_add_2")
-        self:HidePanel("Closet1", Closet1Val > 0)
-        self:HidePanel("Closet1Op", Closet1Val < 1)
-        -- self:HidePanel("Closet2", Closet2Val > 0)
-        -- self:HidePanel("Closet2Op", Closet2Val < 1)
-
-        self:ShowHide("K35", Closet1Val + Closet2Val > 0)
-        self:HidePanel("K35", Closet1Val + Closet2Val == 0)
-
         self:AnimateCustom("DoorCabL", "window", self:GetPackedBool("CabinWindowLeft") and 1 or 0, 0, 1, 8, 0.5)
         self:AnimateCustom("DoorCabR", "window", self:GetPackedBool("CabinWindowRight") and 1 or 0, 0, 1, 8, 0.5)
 
+        local k35_1 = self:HandleDoorState("K35C1", "door_k35_1", "BayCoverK35_1", "BayCoverK35_1", 0.1, 0.2)
+        local k35_2 = self:HandleDoorState("K35C2", "door_k35_2", "BayCoverK35_2", "BayCoverK35_2", 0.1, 0.2)
+        self:ShowHide("K35", k35_1 or k35_2)
+        self:HidePanel("K35", not k35_1 and not k35_2)
+
+        local bm2 = self:HandleDoorState("BayMain2Val", "door_bay_2", "BayCoverMain2", "BayCoverMain2", 0.1, 0.2)
+        local bm3 = self:HandleDoorState("BayMain3Val", "door_bay_3", "BayCoverMain3", "BayCoverMain3", 0.1, 0.2)
+        self:ShowHide("K35", bm2 or bm3)
+
+        self:Animate("CabChairAdd", self:GetPackedBool("CabChairAdd") and 1 or 0, 0, 1, 4, 0.5)
         self:HidePanel("CoupleCenteringF", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("FrontCoupled", false))
         self:HidePanel("CoupleCenteringR", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("RearCoupled", false))
 
@@ -1552,6 +1489,35 @@ function ENT:PlayDoorSound(bool, door)
     end
 end
 
+function ENT:HandleDoorState(nwvar, snd, panel, prop, open_state, close_state, two_sides)
+    local state = self:GetPackedBool(nwvar)
+    local val = self:Animate(prop, state and 1 or 0, 0, 1, 2, 0.5)
+    local b = self:PlayDoorSound2(snd, val, 0.1, 0.2, state)
+    self:HidePanel(panel, b)
+    self:HidePanel(panel .. "_close", not b)
+    if two_sides then
+        self:HidePanel(panel .. "_close2", not b)
+    end
+    return b
+end
+
+function ENT:PlayDoorSound2(door, state, open_state, close_state, target_state)
+    if not target_state and target_state ~= false then
+        target_state = self[door]
+    end
+    local b = target_state and state > open_state or not target_state and state >= close_state
+    if self[door] ~= b then
+        self[door] = b
+        self:PlayOnce(Format("%s_%s", door, b and "open" or "close"), "", self:IsolateSound(1), 1)
+    end
+    return b
+end
+
+function ENT:IsolateSound(val)
+    -- todo
+    return val
+end
+
 function ENT:ShowScreenHelper(screen, group)
     self.ActiveHelperGroups = self.ActiveHelperGroups or {}
     self.ActiveHelperGroups[screen] = group
@@ -1604,6 +1570,7 @@ function ENT:Draw()
 end
 
 function ENT:DrawPost(special)
+    self.RTMaterial:SetInt("$flags", bit.bor(self.RTMaterial:GetInt("$flags"), 65536))  -- "$decal" flag
     self.RTMaterial:SetTexture("$basetexture", self.LBnt)
     for i = 1, 4 do
         self:DrawOnPanel("BNTL" .. i, function(...)

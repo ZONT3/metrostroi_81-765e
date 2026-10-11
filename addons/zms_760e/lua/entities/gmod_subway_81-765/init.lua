@@ -211,7 +211,7 @@ function ENT:Initialize()
         },
         [10] = {
             "dynamiclight",
-            Vector(449, 0, 45),
+            Vector(449, 0, 31),
             Angle(0, 0, 0),
             Color(255, 255, 255),
             brightness = 0.1,
@@ -280,8 +280,10 @@ function ENT:Initialize()
     self.SpeedTimer = CurTime()
     self.WrenchMode = 0
     self.ALSVal = 0
-    self.Closet1Val = false
-    self.DoorK31 = false
+    self.K35C1 = false
+    self.K35C2 = false
+    self.BayCoverMain2 = false
+    self.BayCoverMain3 = false
 end
 
 function ENT:InitializeSystemsServer()
@@ -436,9 +438,12 @@ function ENT:Think()
     self:SetPackedBool("CabinDoorRight", self.CabinDoorRight)
     self:SetPackedBool("CabinWindowLeft", self.CabinWindowLeft)
     self:SetPackedBool("CabinWindowRight", self.CabinWindowRight)
-    self:SetPackedBool("CabinDoorRightLimit", self.Closet1Val or self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
-    self:SetPackedBool("Closet1Val", self.Closet1Val)
+    self:SetPackedBool("CabinDoorRightLimit", self.K35C1 or self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
     self:SetPackedBool("CabChairAdd", self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
+    self:SetPackedBool("K35C1", self.K35C1)
+    self:SetPackedBool("K35C2", self.K35C2)
+    self:SetPackedBool("BayMain2Val", self.BayMain2Val)
+    self:SetPackedBool("BayMain3Val", self.BayMain3Val)
 
     self:SetPackedRatio("Cran", self.Pneumatic.DriverValvePosition)
 
@@ -492,14 +497,22 @@ function ENT:OnButtonPress(button, ply)
     end
 
     if button == "NotificationPaperBtn" then self.NotificationPaper = not self.NotificationPaper end
-    if button == "K31Cap" then self.DoorK31 = not self.DoorK31 end
     if button == "Chair" and not (self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver())) then self.Chair = not self.Chair end
     if button == "PassengerDoor" then
         self.PassengerDoor = not self.PassengerDoor
     end
 
-    if button == "Closet1" then --[[self:PlayOnce("door_cab_m_"..(self.Closet1Val and "open" or "close"),"")]]
-        self.Closet1Val = not self.Closet1Val
+    if button == "BayCoverK35_1" then
+        self.K35C1 = not self.K35C1
+    end
+    if button == "BayCoverK35_2" then
+        self.K35C2 = not self.K35C2
+    end
+    if button == "BayCoverMain2" then
+        self.BayMain2Val = not self.BayMain2Val
+    end
+    if button == "BayCoverMain3" then
+        self.BayMain3Val = not self.BayMain3Val
     end
 
 
@@ -567,13 +580,11 @@ function ENT:OnButtonPress(button, ply)
         self.Buik_MicBtn:TriggerInput("Set", 1)
     end
 
-    if button == "ALSToggle" then
-        if self.ALS.Value * self.PpzUpi.Value == 1 then
-            if self.ALSVal == 2 then
-                self.ALSVal = 0
-            else
-                self.ALSVal = self.ALSVal + 1
-            end
+    if button == "ALSToggle" and self.ALS.Value * self.PpzUpi.Value == 1 then
+        if self.ALSVal == 2 then
+            self.ALSVal = 0
+        else
+            self.ALSVal = self.ALSVal + 1
         end
     end
 
@@ -581,19 +592,8 @@ function ENT:OnButtonPress(button, ply)
         self:SetPackedRatio("EmerValve", CurTime() + 3.8)
     end
 
-    if button:find("RVS_") then
-        button = button:gsub("RVS_", ""):gsub("Set", "")
-        local num = tonumber(button)
-        if num then self.RVS.RVSVal = self.RVS.RVSVal + 1 end
-    end
-
-    if string.StartsWith(button, "SalonDoor") then
-        local idx = tonumber(string.sub(button, 10))
-        if idx and IsValid(ply) and self.BUD then
-            self.BUD:OpenDoorMenu(ply, idx)
-        end
-    end
-
+    local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
+    BaseClass.OnButtonPress(self, button, ply)
 end
 
 function ENT:OnButtonRelease(button, ply)

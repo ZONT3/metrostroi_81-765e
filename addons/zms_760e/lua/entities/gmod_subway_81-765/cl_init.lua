@@ -1956,31 +1956,6 @@ ENT.ButtonMap["BackPPZ"] = {
 
 table.Add(ENT.ButtonMap["BackPPZ"].buttons, ENT.PpzToggles)
 
-ENT.ButtonMap["PpzCover"] = {
-    pos = Vector(418, 32, 32),
-    ang = Angle(0, 90, 90),
-    width = 510,
-    height = 584,
-    scale = 0.05,
-    hideseat = 0.2,
-    buttons = {}
-}
-
-ENT.ButtonMap["Power"].pos = Vector(402, 10.8, 20)
-ENT.ButtonMap["Power"].ang = Angle(0, 90, 90)
-
-ENT.ButtonMap["PVZ"] = {
-    pos = Vector(402, 10.8, 12.6),
-    ang = Angle(0, 90, 90),
-    width = 305,
-    height = 283,
-    scale = 0.05,
-    hideseat = 0.2,
-    buttons = {}
-}
-table.Add(ENT.ButtonMap["PVZ"].buttons, ENT.PvzToggles)
-
-
 ENT.ButtonMap["Lighting"] = {
     pos = Vector(475.6, 53.19, -21.08),
     ang = Angle(0, -90, 51.39),
@@ -2950,132 +2925,6 @@ ENT.ButtonMap["Chair"] = {
     }
 }
 
--- ENT.ButtonMap["Door_pvz"] = {
---     pos = Vector(411.6, 21, 42), --28
---     ang = Angle(0, 90, 90),
---     width = 235,
---     height = 1840,
---     scale = 0.1 / 2,
---     buttons = {
---         {
---             ID = "Door_pvz",
---             x = 0,
---             y = 0,
---             w = 235,
---             h = 1840,
---             tooltip = "Шкаф",
---             model = {
---                 var = "Door_pvz",
---             }
---         },
---     }
--- }
-
--- ENT.ButtonMap["Door_pvzo"] = {
---     pos = Vector(413.6, -13, 42), --28
---     ang = Angle(0, 180, 90),
---     width = 235,
---     height = 1840,
---     scale = 0.1 / 2,
---     buttons = {
---         {
---             ID = "Door_pvz",
---             x = 0,
---             y = 0,
---             w = 235,
---             h = 1840,
---             tooltip = "Шкаф",
---             model = {
---                 var = "Door_pvz",
---             }
---         },
---     }
--- }
-
-ENT.ButtonMap["Closet1"] = {
-    pos = Vector(417, -57.5, 48),
-    ang = Angle(0, 90, 90),
-    width = 100,
-    height = 230,
-    scale = 0.23,
-    buttons = {
-        {
-            ID = "Closet1",
-            x = 0,
-            y = 0,
-            w = 100,
-            h = 230,
-            tooltip = "Шкаф",
-            model = {
-                var = "Closet1",
-            }
-        },
-    }
-}
-
-ENT.ButtonMap["Closet1Op"] = {
-    pos = Vector(439.1, -50, 47.1),
-    ang = Angle(0, 198.28, 90),
-    width = 100,
-    height = 230,
-    scale = 0.23,
-    buttons = {
-        {
-            ID = "Closet1",
-            x = 0,
-            y = 0,
-            w = 100,
-            h = 230,
-            tooltip = "Шкаф",
-            model = {
-                var = "Closet1",
-            }
-        },
-    }
-}
-
--- ENT.ButtonMap["Door_add_2"] = {
---     pos = Vector(406.5, -30.2, 45.5), --28
---     ang = Angle(0, 180, 90),
---     width = 350,
---     height = 1910,
---     scale = 0.1 / 2,
---     buttons = {
---         {
---             ID = "Door_add_2",
---             x = 0,
---             y = 0,
---             w = 350,
---             h = 1910,
---             tooltip = "Шкаф",
---             model = {
---                 var = "Door_add_2",
---             }
---         },
---     }
--- }
-
--- ENT.ButtonMap["Door_add_2o"] = {
---     pos = Vector(390.5, -30.2, 45.5), --28
---     ang = Angle(0, 90, 90),
---     width = 350,
---     height = 1910,
---     scale = 0.1 / 2,
---     buttons = {
---         {
---             ID = "Door_add_2",
---             x = 0,
---             y = 0,
---             w = 350,
---             h = 1910,
---             tooltip = "Шкаф",
---             model = {
---                 var = "Door_add_2",
---             }
---         },
---     }
--- }
-
 ENT.ButtonMap["CabinDoorL"] = {
     pos = Vector(425, 64.5, 49.2),
     ang = Angle(0, 0, 91),
@@ -3316,36 +3165,89 @@ ENT.ClientProps["DoorCabR"] = {
     end
 }
 
-ENT.ClientProps["DoorK35_1"] = {
-    model = "models/metrostroi_train/81-765_v1/765/bay_k35_door1.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2
+local bays = {
+    {
+        names = {"BayK35_1", "BayCoverK35_1"},
+        models = {nil, "models/metrostroi_train/81-765_v1/765/bay_k35_door1.mdl"},
+        tooltip = "Отсек К35, БУД №5, снаряжения",
+        pos = Vector(417, -57.5, 48), ang = Angle(0, 90, 90),
+        pos_cl = Vector(439.1, -50, 47.1), ang_cl = Angle(0, 198.28, 90),
+        w = 100, h = 230, scale = 0.23
+    }, {
+        names = {"BayK35_2", "BayCoverK35_2"},
+        models = {nil, "models/metrostroi_train/81-765_v1/765/bay_k35_door2.mdl"},
+        tooltip = "Отсек К35, БУД №5, снаряжения",
+        pos = Vector(412.33, -31.89, 48.33), ang = Angle(0.000, -178.650, 90.000),
+        pos_cl = Vector(394.60, -31.91, 48.66), ang_cl = Angle(0.000, 73.170, 90.000),
+        w = 80, h = 375, scale = 0.23
+    }, {
+        names = {"BayMain2", "BayCoverMain2"},
+        models = {nil, "models/metrostroi_train/81-765_v1/765/bay_main_cover2.mdl"},
+        tooltip = "Аппаратный отсек (Шкаф)",
+        pos = Vector(417.08, 15.68, 36.82), ang = Angle(0.000, 90.000, 90.000),
+        pos_cl = Vector(417.41, 30.81, 36.88), ang_cl = Angle(0.000, -9.140, 90.000),
+        w = 70, h = 370, scale = 0.23
+    }, {
+        names = {"BayMain3", "BayCoverMain3"},
+        models = {nil, "models/metrostroi_train/81-765_v1/765/bay_main_cover3.mdl"},
+        tooltip = "Аппаратный отсек (БУП)",
+        pos = Vector(417.08, 32.78, -19.00), ang = Angle(0.000, 90.000, 90.000),
+        pos_cl = Vector(420.98, 32.61, -54.30), ang_cl = Angle(0.000, 90.000, 0.000),
+        w = 115, h = 125, scale = 0.23
+    },
 }
+for _, bay in ipairs(bays) do
+    ENT.ButtonMap[bay.names[2]] = {
+        pos = bay.pos,
+        ang = bay.ang,
+        width = bay.w, height = bay.h, scale = bay.scale,
+        buttons = {{ ID = bay.names[2], x = 0, y = 0, w = bay.w, h = bay.h, tooltip = bay.tooltip }}
+    }
+    ENT.ButtonMap[bay.names[2] .. "_close"] = {
+        pos = bay.pos_cl,
+        ang = bay.ang_cl,
+        width = bay.w, height = bay.h, scale = bay.scale,
+        buttons = {{ ID = bay.names[2], x = 0, y = 0, w = bay.w, h = bay.h, tooltip = "Закрыть" }}
+    }
+    if bay.close2 then
+            local pos = bay.pos_cl + bay.ang_cl:Up() + bay.ang_cl:Forward() * bay.scale * bay.w
+            local ang = Angle(bay.ang_cl)
+            ang:RotateAroundAxis(ang:Right(), 180)
+            ENT.ButtonMap[bay.names[2] .. "_close2"] = {
+                pos = pos,
+                ang = ang,
+                width = bay.w, height = bay.h, scale = bay.scale,
+                buttons = {{ ID = bay.names[2], x = 0, y = 0, w = bay.w, h = bay.h, tooltip = "Закрыть" }}
+            }
+    end
+    ENT.ClientProps[bay.names[2]] = {
+        model = bay.models[2],
+        pos = Vector(0, 0, 0),
+        ang = Angle(0, 0, 0),
+        hide = 2,
+    }
+    if bay.models[1] then
+        ENT.ClientProps[bay.names[1]] = {
+            model = bay.models[1],
+            pos = Vector(0, 0, 0),
+            ang = Angle(0, 0, 0),
+            hide = 2,
+        }
+    end
+end
+ENT.ButtonMap["BayCoverBud5"] = nil
+ENT.ButtonMap["BayCoverBud5_close"] = nil
+ENT.ClientProps["BayCoverBud5"] = nil
 
-ENT.ClientProps["DoorK35_2"] = {
-    model = "models/metrostroi_train/81-765_v1/765/bay_k35_door2.mdl",
+ENT.ClientProps["BayMain"] = {
+    model = "models/metrostroi_train/81-765_v1/bays/bay_main.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
-    hide = 2
+    hideseat = 2,
 }
 
 ENT.ClientProps["DoorBay1"] = {
     model = "models/metrostroi_train/81-765_v1/765/bay_main_cover.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2
-}
-
-ENT.ClientProps["DoorBay2"] = {
-    model = "models/metrostroi_train/81-765_v1/765/bay_main_cover2.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2
-}
-
-ENT.ClientProps["DoorBay3"] = {
-    model = "models/metrostroi_train/81-765_v1/765/bay_main_cover3.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2
@@ -3474,12 +3376,6 @@ ENT.ClientProps["ASHook"] = {
 
 ENT.ClientProps["MezhwagF"] = nil
 ENT.ClientProps["FencePlF"] = nil
-ENT.ClientProps["BoxDoorL"] = nil
-ENT.ClientProps["BoxDoorR"] = nil
-ENT.ButtonMap["ClosetCapL"] = nil
-ENT.ButtonMap["ClosetCapLop"] = nil
-ENT.ButtonMap["ClosetCapR"] = nil
-ENT.ButtonMap["ClosetCapRop"] = nil
 
 ENT.ClientProps["MnBc"] = {
     model = "models/metrostroi_train/81-765_v1/765/arrow_bc.mdl",
