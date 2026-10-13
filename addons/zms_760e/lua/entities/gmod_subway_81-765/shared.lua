@@ -525,6 +525,8 @@ function ENT:InitializeSystems()
     self:LoadSystem("IK", "81_765_IK")
     -- self:LoadSystem("RVS", "81_760A_RVS_1")
     self:LoadSystem("BNT", "81_765_BNT")
+    self:LoadSystem("BNT_MST", "81_765_BNT_MST")
+    self:LoadSystem("BNT_SARMAT", "81_765_BNT_SARMAT")
     self:LoadSystem("BUIK", "81_765_BUIK")
     self:LoadSystem("CAMS", "81_760_CAMS")
     self:LoadSystem("ProstKos", "81_765_ProstKos")
@@ -862,6 +864,7 @@ ENT.SpawnerCustom = {
     { "BMIK:Font", "Шрифт БМТ, БНМ", "List", { "Тип 1 (2017)", "Тип 2 (2019)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "CikColor", "Цвет БМТ, БНМ", "List", { "Метроспецтехника (желтый)", "Сармат (рыжий)", "Ранний (зеленый)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
+    { "BntType", "Тип БНТ", "List", { "Метроспецтехника v1.2 (LCD)", "Сармат v1.1 (LCD)", "Метроспецтехника v1 (LED)", "Сармат v1 (LED)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "BuikType", "БУ-ИК", "List", { "Метроспецтехника (Москва)", "Метроспецтехника (Чура)", "Сармат" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     {
         "ArsMode",
@@ -1076,6 +1079,7 @@ ENT.Spawner = {
     ENT.SpawnerFields["BatteryLevel"],
     {},
     { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
+    ENT.SpawnerFields["BntType"],
     ENT.SpawnerFields["RingType765"],
     ENT.SpawnerFields["NoTrailers"],
     ENT.SpawnerFields["ArsMode"],

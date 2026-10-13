@@ -63,11 +63,12 @@ if SERVER then
         BNT.Stations = self.Stations
         BNT.LastStation = self.LastStation
         BNT.Route = self.Route
+        BNT.Path = self.Path
         BNT.Loop = self.Loop
         BNT.CfgIdx = self.CfgIdx
         BNT.ActiveRoute = self.RouteId
         self.ActiveRoute = self.RouteId
-        BNT:SetStation(1)
+        BNT:Init()
     end
 
     function TRAIN_SYSTEM:RunReset()

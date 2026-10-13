@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- Блок наддверного табло КБ «Метроспецтехника»
+-- Блок наддверного табло ЦИК «Метроспецтехника» v1.2 и «Сармат» v1.1 (LCD дисплей)
 -- Автор - ZONT_ a.k.a. enabled person
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("81_765_BNT")
@@ -36,7 +36,10 @@ if SERVER then
         Wag:SetNW2Bool("BNT:SelectLeft", Wag.BUV.SelectLeft)
         Wag:SetNW2Bool("BNT:SelectRight", Wag.BUV.SelectRight)
         Wag:SetNW2Bool("BNT:Working", self.ActiveRoute and (PowerLeft or PowerRight) and self.Working)
+        Wag:SetNW2Bool("BNT:Path", self.Path)
         Wag:SetNW2Bool("BNT:Terminus", self.Terminus)
+
+        -- if Wag:GetNW2Int("BntType", 1) > 2 then return end
         if not self.Power and Wag:GetNW2String("BNT:RouteId", "") ~= "" then
             self:Reset()
         end
@@ -46,6 +49,11 @@ if SERVER then
         self.Terminus = false
         self.ActiveRoute = nil
         self:SetStation(1)
+    end
+
+    function TRAIN_SYSTEM:Init()
+        self:SetStation(1)
+        self:SetInt("BNT:InitDoneAnim", CurTime() * 10 + 2)
     end
 
     function TRAIN_SYSTEM:SetStation(stIdx)
@@ -98,9 +106,16 @@ else
 
     function TRAIN_SYSTEM:ClientThink()
         local Wag = self.Train
+        self.Working = Wag:GetNW2Bool("BNT:Working", false)
+
+        if self.RouteId ~= (self.Working and Wag:GetNW2String("BNT:RouteId", "") or "Stub") then
+            self:InitializeRoute()
+        end
+
+        if Wag:GetNW2Int("BntType", 1) > 2 then return end
         if self.NextDraw and CurTime() < self.NextDraw then return end
         self.NextDraw = CurTime() + (self.ScreenFt or (1 / 12))
-        self.Working = Wag:GetNW2Bool("BNT:Working", false)
+
         if Wag:ShouldDrawPanel("BNTL") then
             render.PushRenderTarget(self.Train.LBnt, 0, 0, scw, sch)
             render.Clear(0, 0, 0, 0)
@@ -290,10 +305,6 @@ else
             surface.SetDrawColor(2, 2, 2)
             surface.DrawRect(0, 0, scw, sch)
             return
-        end
-
-        if self.RouteId ~= (self.Working and Wag:GetNW2String("BNT:RouteId", "") or "Stub") then
-            self:InitializeRoute()
         end
 
         if poweron then
@@ -602,6 +613,21 @@ else
 
         self.LineColor = cfg.Color or "#6e6e6e"
 
+        local cisLed, asnpLed = false, false
+        if cfg and #cfg > 0 and (cfg.SarmatLed765 or cfg.LED) then
+            self.LED = cfg.SarmatLed765 or cfg.LED
+            cisLed = true
+        elseif fallbackCfg and #fallbackCfg > 0 and fallbackCfg.LED then
+            self.LED = fallbackCfg.LED
+            asnpLed = true
+        end
+        if cfg.Color then
+            local c = self:GetCachedColor(cfg.Color)
+            self.LineColorBright = Color(c.r, c.g, c.b)
+            self.LineColorBright:AddBrightness(1)
+            self.LineColorBright:SetSaturation(math.min(self.LineColorBright:GetSaturation(), 0.6))
+        end
+
         local stations = Wag:GetNW2String("BNT:Stations", "")
         if #stations == 0 then stations = self:GetFallbackStationIds(cfg, fallbackCfg) end
         stations = #stations > 0 and string.Explode(",", stations) or {}
@@ -638,12 +664,15 @@ else
                             ccIdx = isstring(cisCfg[ccIdx + 5]) and ccIdx + 4 or ccIdx + 5
                         end
                     end
-                    self.Stations[idx] = {
+                    local st = {
                         name = cisCfg[2] or "ОШИБКА",
                         nameEng = cisCfg[3] or "",
                         changes = changes
                     }
-                else
+                    self.Stations[idx] = st
+                    if cisLed then st.ledIdx = cisIdx end
+                end
+                if not cisIdx or asnpLed then
                     local asnpIdx = nil
                     for curAsnpIdx, asnpCfg in ipairs(fallbackCfg) do
                         if asnpCfg[1] == index then
@@ -652,23 +681,33 @@ else
                         end
                     end
                     if asnpIdx then
-                        self.Stations[idx] = {
+                        local st = cisIdx and self.Stations[idx] or {
                             name = fallbackCfg[asnpIdx][2] or "ОШИБКА",
                             nameEng = "",
                             changes = {},
                         }
-                    else
+                        if asnpLed then st.ledIdx = asnpIdx end
+                        if not cisIdx then self.Stations[idx] = st end
+                    elseif not cisIdx then
                         self.Stations[idx] = {
                             name = "Неизвестно",
                             nameEng = "Unknown",
                             changes = {},
                         }
+                        self.LED = nil
                     end
                 end
             else
                 self.Stations = {}
                 ErrorNoHalt("Corrupted data from IK", Wag:GetNW2String("BNT:Stations", ""))
                 return
+            end
+        end
+
+        if self.LED then
+            self.LedSum = 0
+            for _, v in ipairs(self.LED) do
+                self.LedSum = self.LedSum + v
             end
         end
     end

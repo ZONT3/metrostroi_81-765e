@@ -32,6 +32,8 @@ function ENT:InitializeSystems()
     self:LoadSystem("Panel", "81_761E_Panel")
     self:LoadSystem("IK", "81_765_IK")
     self:LoadSystem("BNT", "81_765_BNT")
+    self:LoadSystem("BNT_MST", "81_765_BNT_MST")
+    self:LoadSystem("BNT_SARMAT", "81_765_BNT_SARMAT")
 end
 
 ---------------------------------------------------

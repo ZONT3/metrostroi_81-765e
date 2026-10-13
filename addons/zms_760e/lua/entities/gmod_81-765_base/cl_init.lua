@@ -281,7 +281,7 @@ for _, bay in ipairs(bays) do
 end
 
 for i = 1, 4 do
-    ENT.ButtonMap["BNTL" .. i] = {
+    ENT.ButtonMap["BNTR" .. i] = {
         pos = Vector(375.83 - 235.64 * (i - 1), -43.90, 52.27),
         ang = Angle(0.000, 180.000, 111.583),
         width = 3830,
@@ -290,13 +290,31 @@ for i = 1, 4 do
         system = "LBnt",
         hide = 1,
     }
-    ENT.ButtonMap["BNTR" .. i] = {
+    ENT.ButtonMap["BNTL" .. i] = {
         pos = Vector(-382.42 - 235.64 * (i - 4), 43.90, 52.27),
         ang = Angle(0.000, 0.000, 111.583),
         width = 3830,
         height = 620,
         scale = 0.0134,
         system = "RBnt",
+        hide = 1,
+    }
+    ENT.ButtonMap["BNT_SARMAT_R" .. i] = {
+        pos = Vector(376.4 - 235.676 * (i - 1), -44.091, 51.941),
+        ang = Angle(0.000, 180.000, 111.583),
+        width = 2040,
+        height = 280,
+        scale = 0.02576,
+        system = "LBnt_Sarmat",
+        hide = 1,
+    }
+    ENT.ButtonMap["BNT_SARMAT_L" .. i] = {
+        pos = Vector(323.94 - 235.676 * (i - 1), 44.091, 51.941),
+        ang = Angle(0.000, 0.000, 111.583),
+        width = 2040,
+        height = 280,
+        scale = 0.02576,
+        system = "RBnt_Sarmat",
         hide = 1,
     }
 end
@@ -306,13 +324,6 @@ ENT.ClientProps["BayTop"] = {
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hideseat = 0.6,
-}
-
-ENT.ClientProps["Bnt"] = {
-    model = "models/metrostroi_train/81-765_v1/common/bnt_lcd_mst.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2,
 }
 
 ENT.ClientProps["Salon"] = {
@@ -546,6 +557,24 @@ ENT.PakPositions = {
     [6] = 90,
 }
 
+
+local bnt_models = {
+    "models/metrostroi_train/81-765_v1/common/bnt_lcd_mst.mdl",
+    "models/metrostroi_train/81-765_v1/common/bnt_lcd_sarmat.mdl",
+    "models/metrostroi_train/81-765_v1/common/bnt_mst.mdl",
+    "models/metrostroi_train/81-765_v1/common/bnt_sarmat.mdl",
+}
+local function update_bnt(wag, ent)
+    ent:SetModel(bnt_models[wag:GetNW2Int("BntType", 1)])
+end
+ENT.ClientProps["Bnt"] = {
+    model = "models/metrostroi_train/81-765_v1/common/bnt_lcd_mst.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2,
+    callback = update_bnt
+}
+
 --------------------------------------------------------------------------------
 function ENT:Initialize()
     -- FIXME possible lag creation on spawn
@@ -559,6 +588,8 @@ function ENT:Initialize()
     BaseClass.Initialize(self)
     self.LBnt = self:CreateRT("765LBnt", 3830, 620)
     self.RBnt = self:CreateRT("765RBnt", 3830, 620)
+    self.LBnt_Sarmat = self:CreateRT("765LBntSarmat", 2040, 280)
+    self.RBnt_Sarmat = self:CreateRT("765RBntSarmat", 2040, 280)
     self.ReleasedPdT = 0
     self.PreviousCompressorState = false
     self.FrontLeak = 0
@@ -624,6 +655,9 @@ function ENT:UpdateTextures()
             end
         end
     end
+
+    local bnt = self.ClientEnts["Bnt"]
+    if IsValid(bnt) then update_bnt(self, bnt) end
 end
 
 function ENT:ReInitBogeySounds(bogey)
@@ -1110,6 +1144,14 @@ function ENT:Think()
     self:ShowHide("BayBs", bs)
     self:HidePanel("PVZ", not puv)
 
+    for i = 1, 4 do
+        local bnt_type = self:GetNW2Int("BntType", 1)
+        self:HidePanel("BNTL" .. i, bnt_type > 2)
+        self:HidePanel("BNTR" .. i, bnt_type > 2)
+        self:HidePanel("BNT_SARMAT_L" .. i, bnt_type ~= 4)
+        self:HidePanel("BNT_SARMAT_R" .. i, bnt_type ~= 4)
+    end
+
     if not self.IsIntermediate then
         self:ShowHide("ASHook", ValidfB)
         self:Animate("ASHook", self:GetPackedBool("ASHook") and 1 or 0, 0, 1, 8, 0.5)
@@ -1585,6 +1627,22 @@ function ENT:DrawPost(special)
             surface.SetMaterial(self.RTMaterial)
             surface.SetDrawColor(255, 255, 255)
             surface.DrawTexturedRectRotated(1915, 310, 3830, 620, 0)
+        end)
+    end
+    self.RTMaterial:SetTexture("$basetexture", self.LBnt_Sarmat)
+    for i = 1, 4 do
+        self:DrawOnPanel("BNT_SARMAT_L" .. i, function(...)
+            surface.SetMaterial(self.RTMaterial)
+            surface.SetDrawColor(255, 255, 255)
+            surface.DrawTexturedRectRotated(1020, 140, 2040, 280, 0)
+        end)
+    end
+    self.RTMaterial:SetTexture("$basetexture", self.RBnt_Sarmat)
+    for i = 1, 4 do
+        self:DrawOnPanel("BNT_SARMAT_R" .. i, function(...)
+            surface.SetMaterial(self.RTMaterial)
+            surface.SetDrawColor(255, 255, 255)
+            surface.DrawTexturedRectRotated(1020, 140, 2040, 280, 0)
         end)
     end
 end
