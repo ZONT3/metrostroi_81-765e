@@ -134,6 +134,26 @@ timer.Simple(0, function()
     end
 end)
 
+timer.Simple(0, function()
+    if not Metrostroi then MsgC(Color(220, 0, 0), "Metrostroi 81-765 ERROR: No Metrostroi found!") return end
+    Metrostroi.BntSchemes765 = Metrostroi.BntSchemes765 or {}
+    function Metrostroi.AddSchemes765(name, data)
+        if not data then return end
+
+        Metrostroi.BntSchemes765Ver = (Metrostroi.BntSchemes765Ver or 0) + 1
+        data.name = name
+
+        for idx, v in ipairs(Metrostroi.BntSchemes765) do
+            if v.name == name then
+                Metrostroi.BntSchemes765[idx] = data
+                return
+            end
+        end
+
+        table.insert(Metrostroi.BntSchemes765, data)
+    end
+end)
+
 timer.Simple(1, function()
     local swep = weapons.GetStored("train_hammer")
     if not swep then ErrorNoHaltWithStack("No train_hammer SWEP") return end

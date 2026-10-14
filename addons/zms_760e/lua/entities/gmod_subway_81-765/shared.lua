@@ -744,6 +744,19 @@ ENT.SpawnerCustom = {
         end,
         Section = "IkConfig",
     },
+    {
+        "Scheme765",
+        "Наддверные схемы",
+        "List",
+        function()
+            local cfg = {}
+            for k, v in pairs(Metrostroi.BntSchemes765 or {}) do
+                cfg[k] = v.name or k
+            end
+            return cfg
+        end,
+        Section = "IkConfig",
+    },
     {},
     { "KdLongerDelay", "Задержка контроля дверей", "Boolean", false, Section = "Wear" },
     {
@@ -1071,6 +1084,7 @@ ENT.Spawner = {
     {},
     ENT.SpawnerFields["Announcer"],
     ENT.SpawnerFields["CISConfig"],
+    ENT.SpawnerFields["Scheme765"],
     {},
     ENT.SpawnerFields["KdLongerDelay"],
     ENT.SpawnerFields["BreakRedChance"],

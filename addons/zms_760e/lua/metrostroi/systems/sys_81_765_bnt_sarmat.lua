@@ -27,7 +27,6 @@ if not CLIENT then return end
 
 
 local scw, sch = 2040, 280
-local ft = 1 / 120
 local text_speed = 720  -- px/s
 local run_speed = 12  -- led/s
 
@@ -62,18 +61,20 @@ surface.CreateFont("CIK765.BntSarmat", {
     scanlines = false,
 })
 
-function TRAIN_SYSTEM:ClientInitalize()
-    -- self.Text = sanitize_text("АВВАБАБ óα№»πА")
-    -- self.Mode = 1
+function TRAIN_SYSTEM:ClientInitialize()
+    self.Font = "CIK765.BntSarmat"
 end
 
 function TRAIN_SYSTEM:ClientThink()
     local Wag = self.Train
-    if Wag:GetNW2Int("BntType", 1) ~= 4 then return end
-    if self.NextDraw and CurTime() < self.NextDraw then return end
-    self.NextDraw = CurTime() + ft
+
     self.Working = Wag:GetNW2Bool("BNT:Working", false)
-    if Wag:ShouldDrawPanel("BNT_SARMAT_L") then
+    self:UpdateState()
+
+    if Wag:GetNW2Int("BntType", 1) ~= 4 then return end
+
+    local BNT = Wag.BNT
+    if BNT and BNT:ShouldDrawPanel("BNT_SARMAT_L") then
         render.PushRenderTarget(self.Train.LBnt_Sarmat, 0, 0, scw, sch)
         render.Clear(0, 0, 0, 0)
         cam.Start2D()
@@ -81,7 +82,7 @@ function TRAIN_SYSTEM:ClientThink()
         cam.End2D()
         render.PopRenderTarget()
     end
-    if Wag:ShouldDrawPanel("BNT_SARMAT_R") then
+    if BNT and BNT:ShouldDrawPanel("BNT_SARMAT_R") then
         render.PushRenderTarget(self.Train.RBnt_Sarmat, 0, 0, scw, sch)
         render.Clear(0, 0, 0, 0)
         cam.Start2D()
@@ -91,8 +92,30 @@ function TRAIN_SYSTEM:ClientThink()
     end
 end
 
+function TRAIN_SYSTEM:UpdateState()
+    local Wag = self.Train
+    local station_idx = Wag:GetNW2Int("BNT:Station", 0)
+    local terminus = Wag:GetNW2Bool("BNT:Terminus", false)
+    local arrived_time = Wag:GetNW2Int("BNT:ArrivedAnim", 0) / 10
+    local depart_time = Wag:GetNW2Int("BNT:DepartAnim", 0) / 10
+    local init_time = Wag:GetNW2Int("BNT:InitDoneAnim", 0) / 10
+    local init_done = init_time > arrived_time and init_time > depart_time
+    local arrived = not init_done and depart_time < arrived_time
+    arrived = not terminus and arrived or terminus and arrived and CurTime() - arrived_time < 6
+    terminus = terminus and not arrived
+    local depart = self.Working and not init_done and not arrived and not terminus
+
+    self.StationIdx = station_idx
+    self.InitDone = init_done
+    self.Terminus = terminus
+    self.Arrived = arrived
+    self.Depart = depart
+    self.Path = Wag:GetNW2Bool("BNT:Path", false)
+end
+
+
 -- Hardcoded characters that our font supports
-local valid_seq = " АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюяABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzЄєІіЇїЎўҐґ"
+local valid_seq = " .,АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюяABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzЄєІіЇїЎўҐґ"
 local valid_map = {}
 for _, cp in utf8.codes(valid_seq) do
     valid_map[cp] = true
@@ -105,35 +128,24 @@ local function sanitize_text(text)
     return seq
 end
 
-local font = "CIK765.BntSarmat"
-local function cache_text(text, looped)
-    local seq = sanitize_text(text)
-    local x = 0
+local function print_text(char_seq, tx, x0, y0, w, h, font, color)
+    local x = math.Round(tx / led_size) * led_size + x0
+    render.OverrideBlend(
+        true,
+        BLEND_SRC_ALPHA, BLEND_ONE,                 BLENDFUNC_ADD,
+        BLEND_DST_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA, BLENDFUNC_ADD
+    )
+    render.SetScissorRect(x0, 0, x0 + w, h, true)
     surface.SetFont(font)
-    for idx, chr in ipairs(seq) do
-        local w = surface.GetTextSize(chr)
-        x = x + w + 8
-    end
-    return {
-        char_seq = seq,
-        width = math.max(0, x - 8),
-        x = looped and string_w + led_size or 120,
-        delay = looped and 0 or CurTime() + 2.0
-    }
-end
-
-local function print_text(char_seq, x0)
-    local x = math.Round(x0 / led_size) * led_size
-    render.SetScissorRect(0, 0, string_w, string_h, true)
-    surface.SetFont(font)
-    surface.SetTextColor(color_default)
+    surface.SetTextColor(color or color_default)
     for idx, chr in ipairs(char_seq) do
-        surface.SetTextPos(x, 16)
+        surface.SetTextPos(x, y0)
         surface.DrawText(chr)
         local x1 = surface.GetTextPos()
         x = x1 + led_size
     end
     render.SetScissorRect(0, 0, 0, 0, false)
+    render.OverrideBlend(false)
 end
 
 local function draw_station(x, y0)
@@ -143,13 +155,12 @@ local function draw_station(x, y0)
     surface.DrawRect(x + 24, y0 + 8, 8, 16)
 end
 
-local function draw_strip(Wag, depart, station_idx)
+local function draw_strip(Wag, depart, station_idx, path)
     local bnt = Wag.BNT
     local led = bnt and bnt.LED
     if not led or bnt.LedSum < 1 then return end
     local station = bnt.Stations[station_idx]
     if not station or not station.ledIdx then return end
-    local path = Wag:GetNW2Bool("BNT:Path", false)
 
     local k = strip_w / bnt.LedSum
     local x0, x = 0, 0
@@ -206,66 +217,86 @@ local function draw_strip(Wag, depart, station_idx)
     render.OverrideBlend(false)
 end
 
-function TRAIN_SYSTEM:DrawBnt(left)
-    surface.SetDrawColor(255, 255, 255, 255)
-    surface.SetTexture(tex_screen)
-    surface.DrawTexturedRectRotated(1024, 128, 2048, 256, 0)
-    surface.DrawTexturedRectRotated(1024, 128 + sch - 37, 2048, 256, 0)
-
-    local Wag = self.Train
-
-    if left then
-        if not self.LastDraw then self.LastDraw = CurTime() return end
-        self.Ft = CurTime() - self.LastDraw
-        self.LastDraw = CurTime()
-    else
-        if not self.Ft then return end
+function TRAIN_SYSTEM:CacheText(text, looped)
+    local seq = sanitize_text(text)
+    local x = 0
+    surface.SetFont(self.Font)
+    for idx, chr in ipairs(seq) do
+        local w = surface.GetTextSize(chr)
+        x = x + w + 8
     end
+    return {
+        char_seq = seq,
+        width = math.max(0, x - 8),
+        x = looped and string_w + led_size or 120,
+        delay = looped and 0 or CurTime() + 2.0
+    }
+end
 
-    local power = left and Wag:GetNW2Bool("BNT:PowerLeft", false) or not left and Wag:GetNW2Bool("BNT:PowerRight", false)
+function TRAIN_SYSTEM:DrawDisplay(power, primary, text_x0, text_y0, text_w, text_h, screen_tex, tex_x0, tex_y0, w, h)
+    surface.SetDrawColor(255, 255, 255, 255)
+    surface.SetTexture(screen_tex)
+    surface.DrawTexturedRectRotated(tex_x0, tex_y0, w, h, 0)
 
-    local station_idx = Wag:GetNW2Int("BNT:Station", 0)
-    local terminus = Wag:GetNW2Bool("BNT:Terminus", false)
-    local arrived_time = Wag:GetNW2Int("BNT:ArrivedAnim", 0) / 10
-    local depart_time = Wag:GetNW2Int("BNT:DepartAnim", 0) / 10
-    local init_time = Wag:GetNW2Int("BNT:InitDoneAnim", 0) / 10
-    local init_done = init_time > arrived_time and init_time > depart_time
-    local arrived = not init_done and depart_time < arrived_time
-    arrived = not terminus and arrived or terminus and arrived and CurTime() - arrived_time < 6
-    terminus = terminus and not arrived
-    local depart = self.Working and not init_done and not arrived and not terminus
+    if not power then return false end
 
     local text = self.Text
-    if power then
-        if text and text.x >= -text.width and text.x <= string_w then
-            print_text(text.char_seq, text.x)
+    if text and text.x >= -text.width and text.x <= text_w then
+        print_text(text.char_seq, text.x, text_x0, text_y0, text_w, text_h, self.Font, text.color)
+    end
+
+    if not primary then return end
+
+    if not self.LastDraw then self.LastDraw = CurTime() return false end
+    local dT = CurTime() - self.LastDraw
+    self.LastDraw = CurTime()
+
+    local looped = false
+    self.LoopCnt = self.LoopCnt or 0
+
+    if text and text.delay >= 0 and CurTime() >= text.delay then
+        text.x = text.x - text_speed * dT
+        if text.x < -text.width - text_w * 0.2 then
+            text.x = text_w + led_size * 2
+            self.LoopCnt = (self.LoopCnt + 1) % 2
+            looped = true
         end
+    end
+
+    return looped
+end
+
+function TRAIN_SYSTEM:DrawBnt(left)
+    local Wag = self.Train
+    local power = left and Wag:GetNW2Bool("BNT:PowerLeft", false) or not left and Wag:GetNW2Bool("BNT:PowerRight", false)
+
+    local looped = self:DrawDisplay(power, left, 0, 16, string_w, string_h, tex_screen, 1024, 128, 2048, 256)
+
+    surface.SetDrawColor(255, 255, 255, 255)
+    surface.SetTexture(tex_screen)
+    surface.DrawTexturedRectRotated(1024, 128 + sch - 37, 2048, 256, 0)
+
+    local station_idx = self.StationIdx
+    local init_done = self.InitDone
+    local terminus = self.Terminus
+    local arrived = self.Arrived
+    local depart = self.Depart
+
+    if power then
         if arrived then
             local exit_here = Wag:GetNW2Bool(left and "BNT:SelectLeft" or "BNT:SelectRight", false)
             surface.SetDrawColor(exit_here and color_default or color_red)
             surface.SetTexture(exit_here and tex_arrow or tex_x)
             surface.DrawTexturedRectRotated(scw - 80, string_h / 2, 160, 160, 0)
         end
-
         if self.Working and (arrived or depart or terminus) then
-            draw_strip(Wag, depart, station_idx)
+            draw_strip(Wag, depart, station_idx, self.Path)
         end
     end
 
     if not left then return end
 
-    local dT = self.Ft
-    local cache_invalidated = false
-    self.LoopCnt = self.LoopCnt or 0
-
-    if text and text.delay >= 0 and CurTime() >= text.delay then
-        text.x = text.x - text_speed * dT
-        if text.x < -text.width - string_w * 0.2 then
-            text.x = string_w + led_size * 2
-            self.LoopCnt = (self.LoopCnt + 1) % 2
-            cache_invalidated = true
-        end
-    end
+    local cache_invalidated = looped
 
     local cache_state = (
         not self.Working and "w" or
@@ -293,14 +324,14 @@ function TRAIN_SYSTEM:DrawBnt(left)
 
     if not self.Working then
         if cache_invalidated then
-            self.Text = cache_text("Цифpoвoй информaционный кoмплекc HПП \"CAPMAT\" г.Рocтoв-нa-Дoну.", true)
+            self.Text = self:CacheText("Цифpoвoй информaционный кoмплекc HПП \"CAPMAT\" г.Рocтoв-нa-Дoну.", true)
         end
         return
     end
 
     if init_done then
         if cache_invalidated then
-            self.Text = cache_text("Файл загружен")
+            self.Text = self:CacheText("Файл загружен")
             self.Text.x = led_size
             self.Text.delay = -1
         end
@@ -316,7 +347,7 @@ function TRAIN_SYSTEM:DrawBnt(left)
 
     local station = Wag.BNT.Stations[station_idx]
     if not station or not station.name then
-        self.Text = cache_text("Ошибка чтения из файла")
+        self.Text = self:CacheText("Ошибка чтения из файла")
         self.Text.x = led_size
         self.Text.delay = -1
         return
@@ -324,13 +355,13 @@ function TRAIN_SYSTEM:DrawBnt(left)
     local eng = self.LoopCnt % 2 == 1 and station.nameEng
     local ru = not eng
     if terminus then
-        self.Text = cache_text(ru and "Конечная. Поезд дальше не идет. Просьба выйти из вагонов." or "The train terminates here. Please leave the train.")
+        self.Text = self:CacheText(ru and "Конечная. Поезд дальше не идет. Просьба выйти из вагонов." or "The train terminates here. Please leave the train.")
     elseif arrived then
-        self.Text = cache_text(eng and eng .. " station" or "Станция " .. station.name)
+        self.Text = self:CacheText(eng and eng .. " station" or "Станция " .. station.name)
         if self.Text.width <= string_w - 120 and ru then
             self.LoopOverride = CurTime() + 1.8
         end
     else
-        self.Text = cache_text(eng and "Next station is " .. eng or "Следующая станция " .. station.name, true)
+        self.Text = self:CacheText(eng and "Next station is " .. eng or "Следующая станция " .. station.name, true)
     end
 end

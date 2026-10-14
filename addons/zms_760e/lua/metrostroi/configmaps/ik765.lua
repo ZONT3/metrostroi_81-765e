@@ -494,6 +494,30 @@ elseif map:find("crossline_r199h") then
             }
         }
     }})
+elseif map:find("imagine_line") then
+    Metrostroi.AddSchemes765("Imagine Line", {
+        SchemeTex = "models/metrostroi_train/81-765_v1/schemes/scheme_imagine",
+        [1] = {
+            MstLed = {
+                -- x    y
+                { 150,  54,  size = 32 },
+                { 610,  54,  size = 32 },
+                { 1062, 54,  size = 32 },
+                { 1516, 54,  size = 32 },
+                { 1969, 54,  size = 32 },
+                { 2301, 54,  size = 32 },
+                { 2720, 128, size = 48 },  -- Will be merged with below / Будет объединен с аналогичным снизу
+            },
+        },
+        [2] = {
+            MstLed = {
+                { 267,  203,  size = 32 },
+                { 1180, 203,  size = 32 },
+                { 2087, 203,  size = 32 },
+                { 2720, 128,  size = 48 },  -- Will be merged with above / Будет объединен с аналогичным сверху
+            },
+        },
+    })
 
 elseif map:find("tkl") then
     Metrostroi.AddCISConfig("[ИК] Таганский радиус", {{

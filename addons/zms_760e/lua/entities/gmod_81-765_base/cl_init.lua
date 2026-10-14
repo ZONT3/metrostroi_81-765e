@@ -317,6 +317,42 @@ for i = 1, 4 do
         system = "RBnt_Sarmat",
         hide = 1,
     }
+    ENT.ButtonMap["BNT_MST_R" .. i] = {
+        pos = Vector(375.81 - 235.649 * (i - 1), -43.96, 52.23),
+        ang = Angle(0.000, 180.000, 111.583),
+        width = 2080,
+        height = 128,
+        scale = 0.02465,
+        system = "LBnt_MST",
+        hide = 1,
+    }
+    ENT.ButtonMap["BNT_MST_L" .. i] = {
+        pos = Vector(324.51 - 235.649 * (i - 1), 43.96, 52.23),
+        ang = Angle(0.000, 0.000, 111.583),
+        width = 2080,
+        height = 128,
+        scale = 0.02465,
+        system = "RBnt_MST",
+        hide = 1,
+    }
+    ENT.ButtonMap["BNT_MST_STRIP_R" .. i] = {
+        pos = Vector(381.54 - 235.635 * (i - 1), -45.30, 48.72),
+        ang = Angle(0.000, 180.000, 111.583),
+        width = 2875,
+        height = 250,
+        scale = 0.0218,
+        system = "Bnt_MST_Strip",
+        hide = 1,
+    }
+    ENT.ButtonMap["BNT_MST_STRIP_L" .. i] = {
+        pos = Vector(318.80 - 235.635 * (i - 1), 45.30, 48.72),
+        ang = Angle(0.000, 0.000, 111.583),
+        width = 2875,
+        height = 250,
+        scale = 0.0218,
+        system = "Bnt_MST_Strip",
+        hide = 1,
+    }
 end
 
 ENT.ClientProps["BayTop"] = {
@@ -565,7 +601,13 @@ local bnt_models = {
     "models/metrostroi_train/81-765_v1/common/bnt_sarmat.mdl",
 }
 local function update_bnt(wag, ent)
-    ent:SetModel(bnt_models[wag:GetNW2Int("BntType", 1)])
+    local typ = wag:GetNW2Int("BntType", 1)
+    ent:SetModel(bnt_models[typ])
+
+    if typ < 3 then return end
+    local scheme = Metrostroi.BntSchemes765 and Metrostroi.BntSchemes765[wag:GetNW2Int("Scheme765", 1)]
+    scheme = scheme and scheme.SchemeTex
+    if scheme then ent:SetSubMaterial(1, scheme) end
 end
 ENT.ClientProps["Bnt"] = {
     model = "models/metrostroi_train/81-765_v1/common/bnt_lcd_mst.mdl",
@@ -590,6 +632,9 @@ function ENT:Initialize()
     self.RBnt = self:CreateRT("765RBnt", 3830, 620)
     self.LBnt_Sarmat = self:CreateRT("765LBntSarmat", 2040, 280)
     self.RBnt_Sarmat = self:CreateRT("765RBntSarmat", 2040, 280)
+    self.LBnt_MST = self:CreateRT("765LBntMST", 2080, 128)
+    self.RBnt_MST = self:CreateRT("765RBntMST", 2080, 128)
+    self.Bnt_MST_Strip = self:CreateRT("765BntMSTs", 2875, 250)
     self.ReleasedPdT = 0
     self.PreviousCompressorState = false
     self.FrontLeak = 0
@@ -1150,6 +1195,10 @@ function ENT:Think()
         self:HidePanel("BNTR" .. i, bnt_type > 2)
         self:HidePanel("BNT_SARMAT_L" .. i, bnt_type ~= 4)
         self:HidePanel("BNT_SARMAT_R" .. i, bnt_type ~= 4)
+        self:HidePanel("BNT_MST_L" .. i, bnt_type ~= 3)
+        self:HidePanel("BNT_MST_R" .. i, bnt_type ~= 3)
+        self:HidePanel("BNT_MST_STRIP_L" .. i, bnt_type ~= 3)
+        self:HidePanel("BNT_MST_STRIP_R" .. i, bnt_type ~= 3)
     end
 
     if not self.IsIntermediate then
@@ -1643,6 +1692,35 @@ function ENT:DrawPost(special)
             surface.SetMaterial(self.RTMaterial)
             surface.SetDrawColor(255, 255, 255)
             surface.DrawTexturedRectRotated(1020, 140, 2040, 280, 0)
+        end)
+    end
+    self.RTMaterial:SetTexture("$basetexture", self.LBnt_MST)
+    for i = 1, 4 do
+        self:DrawOnPanel("BNT_MST_L" .. i, function(...)
+            surface.SetMaterial(self.RTMaterial)
+            surface.SetDrawColor(255, 255, 255)
+            surface.DrawTexturedRectRotated(1040, 64, 2080, 128, 0)
+        end)
+    end
+    self.RTMaterial:SetTexture("$basetexture", self.RBnt_MST)
+    for i = 1, 4 do
+        self:DrawOnPanel("BNT_MST_R" .. i, function(...)
+            surface.SetMaterial(self.RTMaterial)
+            surface.SetDrawColor(255, 255, 255)
+            surface.DrawTexturedRectRotated(1040, 64, 2080, 128, 0)
+        end)
+    end
+    self.RTMaterial:SetTexture("$basetexture", self.Bnt_MST_Strip)
+    for i = 1, 4 do
+        self:DrawOnPanel("BNT_MST_STRIP_L" .. i, function(...)
+            surface.SetMaterial(self.RTMaterial)
+            surface.SetDrawColor(255, 255, 255)
+            surface.DrawTexturedRectRotated(1437.5, 125, 2875, 250, 0)
+        end)
+        self:DrawOnPanel("BNT_MST_STRIP_R" .. i, function(...)
+            surface.SetMaterial(self.RTMaterial)
+            surface.SetDrawColor(255, 255, 255)
+            surface.DrawTexturedRectRotated(1437.5, 125, 2875, 250, 0)
         end)
     end
 end

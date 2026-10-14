@@ -116,7 +116,7 @@ else
         if self.NextDraw and CurTime() < self.NextDraw then return end
         self.NextDraw = CurTime() + (self.ScreenFt or (1 / 12))
 
-        if Wag:ShouldDrawPanel("BNTL") then
+        if self:ShouldDrawPanel("BNTL") then
             render.PushRenderTarget(self.Train.LBnt, 0, 0, scw, sch)
             render.Clear(0, 0, 0, 0)
             cam.Start2D()
@@ -124,7 +124,7 @@ else
             cam.End2D()
             render.PopRenderTarget()
         end
-        if Wag:ShouldDrawPanel("BNTR") then
+        if self:ShouldDrawPanel("BNTR") then
             render.PushRenderTarget(self.Train.RBnt, 0, 0, scw, sch)
             render.Clear(0, 0, 0, 0)
             cam.Start2D()
@@ -137,6 +137,15 @@ else
     function TRAIN_SYSTEM:ClientInitialize()
         self.colors = {}
         self.Stations = {}
+    end
+
+    function TRAIN_SYSTEM:ShouldDrawPanel(prefix)
+        for idx = 1, 4 do
+            if self.Train:ShouldDrawPanel(prefix .. idx) then
+                return true
+            end
+        end
+        return false
     end
 
     local changeMat = Material("zxc765/bnt/changeNormal.png", "smooth ignorez")
@@ -606,10 +615,11 @@ else
         self.RouteId = self.Working and Wag:GetNW2String("BNT:RouteId", "") or "Stub"
         self.Stations = {}
 
+        local route = Wag:GetNW2Int("BNT:Route", -1)
         local cfg = Metrostroi.CISConfig[Wag:GetNW2Int("CISConfig", 1)]
-        cfg = cfg and cfg[Wag:GetNW2Int("BNT:Route", -1)] or cfg and cfg[1] or {}
+        cfg = cfg and cfg[route] or cfg and cfg[1] or {}
         local fallbackCfg = Metrostroi.ASNPSetup[Wag:GetNW2Int("Announcer", 1)]
-        fallbackCfg = fallbackCfg and fallbackCfg[Wag:GetNW2Int("BNT:Route", -1)] or fallbackCfg and fallbackCfg[1] or {}
+        fallbackCfg = fallbackCfg and fallbackCfg[route] or fallbackCfg and fallbackCfg[1] or {}
 
         self.LineColor = cfg.Color or "#6e6e6e"
 
@@ -626,6 +636,19 @@ else
             self.LineColorBright = Color(c.r, c.g, c.b)
             self.LineColorBright:AddBrightness(1)
             self.LineColorBright:SetSaturation(math.min(self.LineColorBright:GetSaturation(), 0.6))
+        end
+
+        local bntType = Wag:GetNW2Int("BntType", 1)
+        local bntCfg = Metrostroi.BntSchemes765 and Metrostroi.BntSchemes765[Wag:GetNW2Int("Scheme765", 1)]
+        if bntType > 2 and bntCfg and bntCfg[route] then
+            local bntRoute = bntCfg[route]
+            self.LED = bntRoute.SarmatLed or self.LED
+            self.LineColorBright = (
+                bntType == 3 and (bntRoute.MstColor or bntCfg.MstColor) or
+                bntType == 4 and (bntRoute.SarmatColor or bntCfg.SarmatColor) or
+                bntRoute.Color or bntCfg.Color or
+                self.LineColorBright
+            )
         end
 
         local stations = Wag:GetNW2String("BNT:Stations", "")
