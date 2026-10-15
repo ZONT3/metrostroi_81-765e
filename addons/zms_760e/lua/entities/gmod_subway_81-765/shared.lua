@@ -751,7 +751,9 @@ ENT.SpawnerCustom = {
         function()
             local cfg = {}
             for k, v in pairs(Metrostroi.BntSchemes765 or {}) do
-                cfg[k] = v.name or k
+                if v.SchemeTex then
+                    cfg[k] = v.name or k
+                end
             end
             return cfg
         end,

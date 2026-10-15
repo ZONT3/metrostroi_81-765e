@@ -27,7 +27,8 @@ if not CLIENT then return end
 
 
 local scw_display, sch_display = 2080, 128
-local scw_strip, sch_strip = 2875, 250
+local scw_strip, sch_strip = 4096, 364
+local led_offset_x, led_offset_y = 0, -2
 local ft_strip = 0.4
 
 local color_white = Color(255, 255, 255)
@@ -165,10 +166,10 @@ function TRAIN_SYSTEM:DrawStrip()
     if mst_led then
         for idx, cur_led in ipairs(mst_led) do
             local elapsed = cur_idx and (not path and cur_idx >= idx or path and idx >= cur_idx)
-            draw_station(cur_led[1], cur_led[2], idx, cur_led.size, color, elapsed, idx == cur_idx and depart, self.Counter)
+            draw_station(cur_led[1] + led_offset_x, cur_led[2] + led_offset_y, idx, cur_led.size, color, elapsed, idx == cur_idx and depart, self.Counter)
         end
         for idx, cur_led in ipairs(mst_led.other) do
-            draw_station(cur_led[1], cur_led[2], idx + #mst_led, cur_led.size, color, false, false, false)
+            draw_station(cur_led[1] + led_offset_x, cur_led[2] + led_offset_y, idx + #mst_led, cur_led.size, color, false, false, false)
         end
         return
     end
@@ -180,8 +181,8 @@ function TRAIN_SYSTEM:DrawStrip()
     local led = bnt.LED
     if not led or bnt.LedSum < 1 then return end
 
-    local k = scw_strip / bnt.LedSum
-    local x = 0
+    local k = (scw_strip - 64) / bnt.LedSum
+    local x = 32
     local y0 = math.floor(sch_strip * 0.45)
 
     for idx, cur_led in ipairs(led) do
@@ -205,6 +206,7 @@ function TRAIN_SYSTEM:DrawDisplay(left)
 
     local power = left and Wag:GetNW2Bool("BNT:PowerLeft", false) or not left and Wag:GetNW2Bool("BNT:PowerRight", false)
     local looped = sarmat.DrawDisplay(self, power, left, icon_box, 8, string_w, sch_display, tex_screen, 2048, 64, 4096, 128)
+    if not power then return end
 
     local cache_invalidated = looped
     local station_idx = sarmat.StationIdx

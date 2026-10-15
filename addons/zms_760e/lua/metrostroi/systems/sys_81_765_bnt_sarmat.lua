@@ -175,7 +175,11 @@ local function draw_strip(Wag, depart, station_idx, path)
     for idx, cur_led in ipairs(led) do
         local station_draw = not path and cur_idx >= idx or path and idx >= cur_idx
         local path_draw = not path and cur_idx >= idx or path and idx > cur_idx
-        local x1 = math.Round((x + k * cur_led / 2) / led_size) * led_size
+
+        local x1 = math.Clamp(
+            math.Round((x + k * cur_led / (led.alignRight and 1 or 2)) / led_size) * led_size - 2 * led_size,
+            0, scw - 4 * led_size
+        )
 
         if station_draw then draw_station(x1, y0) end
         if path_draw then

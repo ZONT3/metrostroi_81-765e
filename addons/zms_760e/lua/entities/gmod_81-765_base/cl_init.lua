@@ -338,18 +338,18 @@ for i = 1, 4 do
     ENT.ButtonMap["BNT_MST_STRIP_R" .. i] = {
         pos = Vector(381.54 - 235.635 * (i - 1), -45.30, 48.72),
         ang = Angle(0.000, 180.000, 111.583),
-        width = 2875,
-        height = 250,
-        scale = 0.0218,
+        width = 4096,
+        height = 364,
+        scale = 0.01532,
         system = "Bnt_MST_Strip",
         hide = 1,
     }
     ENT.ButtonMap["BNT_MST_STRIP_L" .. i] = {
         pos = Vector(318.80 - 235.635 * (i - 1), 45.30, 48.72),
         ang = Angle(0.000, 0.000, 111.583),
-        width = 2875,
-        height = 250,
-        scale = 0.0218,
+        width = 4096,
+        height = 364,
+        scale = 0.01532,
         system = "Bnt_MST_Strip",
         hide = 1,
     }
@@ -634,7 +634,7 @@ function ENT:Initialize()
     self.RBnt_Sarmat = self:CreateRT("765RBntSarmat", 2040, 280)
     self.LBnt_MST = self:CreateRT("765LBntMST", 2080, 128)
     self.RBnt_MST = self:CreateRT("765RBntMST", 2080, 128)
-    self.Bnt_MST_Strip = self:CreateRT("765BntMSTs", 2875, 250)
+    self.Bnt_MST_Strip = self:CreateRT("765BntMSTs", 4096, 364)
     self.ReleasedPdT = 0
     self.PreviousCompressorState = false
     self.FrontLeak = 0
@@ -1715,12 +1715,12 @@ function ENT:DrawPost(special)
         self:DrawOnPanel("BNT_MST_STRIP_L" .. i, function(...)
             surface.SetMaterial(self.RTMaterial)
             surface.SetDrawColor(255, 255, 255)
-            surface.DrawTexturedRectRotated(1437.5, 125, 2875, 250, 0)
+            surface.DrawTexturedRectRotated(2048, 182, 4096, 364, 0)
         end)
         self:DrawOnPanel("BNT_MST_STRIP_R" .. i, function(...)
             surface.SetMaterial(self.RTMaterial)
             surface.SetDrawColor(255, 255, 255)
-            surface.DrawTexturedRectRotated(1437.5, 125, 2875, 250, 0)
+            surface.DrawTexturedRectRotated(2048, 182, 4096, 364, 0)
         end)
     end
 end

@@ -495,27 +495,51 @@ elseif map:find("crossline_r199h") then
         }
     }})
 elseif map:find("imagine_line") then
+
+    -- Конфигурация схем на БНТ для ЦИК "Сармат v1" и "МСТ v1/v1.1"
     Metrostroi.AddSchemes765("Imagine Line", {
+        -- Текстура схемы на БНТ для ЦИК "Сармат v1" и "МСТ v1/v1.1". Содержит оба варианта.
+        -- Schemes on the top of the doors. For CIK equipment "Sarmat v1" and "MST v1/v1.1"
         SchemeTex = "models/metrostroi_train/81-765_v1/schemes/scheme_imagine",
+
+        -- Первая линия, сопряжено с конфигом ИК/ЦИС и АСНП.
+        -- First line, as in IK/CIS and ASNP configs.
         [1] = {
+            -- Config for MST variant / Конфиг для МСТ
             MstLed = {
+                -- Светодиоды. Координаты примерно соответствуют координатам на текстуре схемы.
+                -- Порядок соответствует порядку в конфиге ИК/ЦИС, как в его поле 'LED'
+                -- LEDs. Coordinates approx. as is on scheme texture.
+                -- Order as in IK/CIS config, same as in its 'LED' field
                 -- x    y
-                { 150,  54,  size = 32 },
-                { 610,  54,  size = 32 },
-                { 1062, 54,  size = 32 },
-                { 1516, 54,  size = 32 },
-                { 1969, 54,  size = 32 },
-                { 2301, 54,  size = 32 },
-                { 2720, 128, size = 48 },  -- Will be merged with below / Будет объединен с аналогичным снизу
+                { 251,  76,  size = 42 },
+                { 912,  76,  size = 42 },
+                { 1490, 76,  size = 42 },
+                { 1992, 76,  size = 42 },
+                { 2456, 76,  size = 42 },
+                { 2879, 76,  size = 42 },
+                { 3941, 184, size = 54 },  -- Will be automatically merged with below / Будет автоматически объединен с аналогичным снизу
             },
+
+            -- Config for Sarmat variant / Конфиг для Сармата
+            -- Конфиг как в поле LED конфигов АСНП или ЦИС, длина полосок измеряется в любых юнитах, относительно суммы всех полосок.
+            -- В этом примере используются расстояния на текстуре в пикселях, но можно использовать любых "попугаев".
+            -- Опция 'alignRight' ставит значки станций по правому краю своих полосок. Без нее - ставятся по центру.
+            -- Config as is in ASNP or CIS configs. The strip length is measured in any units you prefer and calculated against the sum of lenghts.
+            -- In that specific example, we use lengths in pixels of the scheme texture.
+            -- The 'alignRight' option makes the station icons aligned to the right of their strips. Without that option, station icons will be at the center of their strips.
+            SarmatLed = { alignRight = true, 0, 692, 593, 522, 456, 422, 745 },
         },
+
+        -- Second line / Вторая линия
         [2] = {
             MstLed = {
-                { 267,  203,  size = 32 },
-                { 1180, 203,  size = 32 },
-                { 2087, 203,  size = 32 },
-                { 2720, 128,  size = 48 },  -- Will be merged with above / Будет объединен с аналогичным сверху
+                { 420,  290,  size = 42 },
+                { 1731, 290,  size = 42 },
+                { 2745, 290,  size = 42 },
+                { 3941, 184,  size = 54 },  -- Will be automatically merged with above / Будет автоматически объединен с аналогичным сверху
             },
+            SarmatLed = { alignRight = true, 0, 999, 1187, 1244 },
         },
     })
 

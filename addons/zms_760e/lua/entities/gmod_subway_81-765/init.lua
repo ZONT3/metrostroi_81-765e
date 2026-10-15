@@ -177,7 +177,7 @@ function ENT:Initialize()
     self.Lights = {
         [1] = {
             "light",
-            Vector(516, -55, 0),
+            Vector(516, -55, 22),
             Angle(0, 0, 90),
             Color(200, 240, 255),
             brightness = 0.5,
@@ -185,7 +185,7 @@ function ENT:Initialize()
         },
         [2] = {
             "light",
-            Vector(516, -55, 0),
+            Vector(516, 55, 22),
             Angle(0, 0, 90),
             Color(200, 240, 255),
             brightness = 0.5,
@@ -209,6 +209,7 @@ function ENT:Initialize()
             scale = 4,
             texture = "sprites/light_glow02.vmt"
         },
+
         [10] = {
             "dynamiclight",
             Vector(449, 0, 31),
