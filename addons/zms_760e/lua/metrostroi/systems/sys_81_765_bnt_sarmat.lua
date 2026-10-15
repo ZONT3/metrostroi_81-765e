@@ -168,16 +168,17 @@ local function draw_strip(Wag, depart, station_idx, path)
     local y1 = y0 + led_size
     local strh = led_size * 2
     local cur_idx = station.ledIdx
+    local align_right = led.alignRight
 
     render.OverrideBlend(true, BLEND_ONE, BLEND_ONE, BLENDFUNC_ADD, BLEND_ZERO, BLEND_ONE, BLENDFUNC_ADD)
-    surface.SetDrawColor(bnt.LineColorBright or color_default)
+    surface.SetDrawColor(led.Color and bnt:GetCachedColor(led.Color) or bnt.LineColorBright or color_default)
 
     for idx, cur_led in ipairs(led) do
         local station_draw = not path and cur_idx >= idx or path and idx >= cur_idx
         local path_draw = not path and cur_idx >= idx or path and idx > cur_idx
 
         local x1 = math.Clamp(
-            math.Round((x + k * cur_led / (led.alignRight and 1 or 2)) / led_size) * led_size - 2 * led_size,
+            math.Round((x + k * cur_led / (align_right and 1 or 2)) / led_size) * led_size - 2 * led_size,
             0, scw - 4 * led_size
         )
 

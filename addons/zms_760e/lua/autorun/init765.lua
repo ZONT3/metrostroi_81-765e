@@ -135,7 +135,7 @@ timer.Simple(0, function()
 end)
 
 timer.Simple(0, function()
-    if not Metrostroi then MsgC(Color(220, 0, 0), "Metrostroi 81-765 ERROR: No Metrostroi found!") return end
+    if not Metrostroi then MsgC(Color(220, 0, 0), "Metrostroi 81-765 ERROR: No Metrostroi found!\n") return end
     Metrostroi.BntSchemes765 = Metrostroi.BntSchemes765 or {}
     function Metrostroi.AddSchemes765(name, data)
         if not data then return end
@@ -146,11 +146,13 @@ timer.Simple(0, function()
         for idx, v in ipairs(Metrostroi.BntSchemes765) do
             if v.name == name then
                 Metrostroi.BntSchemes765[idx] = data
+                MsgC(Color(141, 223, 10), "[Metrostroi 81-765] Updated BNT config \"" .. name .. "\"\n")
                 return
             end
         end
 
         table.insert(Metrostroi.BntSchemes765, data)
+        MsgC(Color(141, 223, 10), "[Metrostroi 81-765] Registered BNT config \"" .. name .. "\"\n")
     end
 end)
 

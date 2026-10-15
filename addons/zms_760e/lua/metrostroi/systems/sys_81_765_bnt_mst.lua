@@ -28,7 +28,7 @@ if not CLIENT then return end
 
 local scw_display, sch_display = 2080, 128
 local scw_strip, sch_strip = 4096, 364
-local led_offset_x, led_offset_y = 0, -2
+local led_offset_x, led_offset_y = -1, -2
 local ft_strip = 0.4
 
 local color_white = Color(255, 255, 255)
@@ -114,8 +114,8 @@ local function update_cfg(Wag, scheme, route)
     for _, cur_led in ipairs(mstLed) do
         ledMap[Format("%d_%d", cur_led[1], cur_led[2])] = true
     end
-    for idx, otherCfg in ipairs(bntCfg) do
-        local leds = otherCfg.MstLed
+    for idx = 0, #bntCfg do
+        local leds = bntCfg[idx] and bntCfg[idx].MstLed
         if leds and idx ~= route then
             for _, cur_led in ipairs(leds) do
                 if not ledMap[Format("%d_%d", cur_led[1], cur_led[2])] then
@@ -158,7 +158,7 @@ function TRAIN_SYSTEM:DrawStrip()
     local station = bnt.Stations[station_idx]
 
     local power = Wag:GetNW2Bool("BNT:PowerLeft", false) or Wag:GetNW2Bool("BNT:PowerRight", false)
-    local color = bnt.LineColorBright or color_white
+    local color = mst_led and mst_led.Color and bnt:GetCachedColor(mst_led.Color) or bnt.LineColorBright or color_white
     local cur_idx = station and station.ledIdx
     self.Counter = not self.Counter
 
@@ -181,14 +181,14 @@ function TRAIN_SYSTEM:DrawStrip()
     local led = bnt.LED
     if not led or bnt.LedSum < 1 then return end
 
-    local k = (scw_strip - 64) / bnt.LedSum
-    local x = 32
+    local k = (scw_strip - 512) / bnt.LedSum
+    local x = 256
     local y0 = math.floor(sch_strip * 0.45)
 
     for idx, cur_led in ipairs(led) do
         local elapsed = not path and cur_idx >= idx or path and idx >= cur_idx
         local x1 = x + k * cur_led / 2
-        draw_station(x1, y0, idx, 32, color, elapsed, idx == cur_idx and depart, self.Counter)
+        draw_station(x1, y0, idx, 42, color, elapsed, idx == cur_idx and depart, self.Counter)
         x = x + k * cur_led
     end
 end

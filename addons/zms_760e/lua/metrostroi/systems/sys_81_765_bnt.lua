@@ -643,7 +643,7 @@ else
         if bntType > 2 and bntCfg and bntCfg[route] then
             local bntRoute = bntCfg[route]
             self.LED = bntRoute.SarmatLed or self.LED
-            self.LineColorBright = (
+            self.LineColorBright = self:GetCachedColor(
                 bntType == 3 and (bntRoute.MstColor or bntCfg.MstColor) or
                 bntType == 4 and (bntRoute.SarmatColor or bntCfg.SarmatColor) or
                 bntRoute.Color or bntCfg.Color or
@@ -731,6 +731,9 @@ else
             self.LedSum = 0
             for _, v in ipairs(self.LED) do
                 self.LedSum = self.LedSum + v
+            end
+            if self.LED.marginRight then
+                self.LedSum = self.LedSum + self.LED.marginRight
             end
         end
     end
