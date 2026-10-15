@@ -174,84 +174,6 @@ function ENT:Initialize()
     self.KeyMap[KEY_RSHIFT] = self.KeyMap[KEY_LSHIFT]
     self.KeyMap[KEY_RCONTROL] = self.KeyMap[KEY_LCONTROL]
 
-    self.Lights = {
-        [1] = {
-            "light",
-            Vector(516, -55, 22),
-            Angle(0, 0, 90),
-            Color(200, 240, 255),
-            brightness = 0.5,
-            scale = 2.5
-        },
-        [2] = {
-            "light",
-            Vector(516, 55, 22),
-            Angle(0, 0, 90),
-            Color(200, 240, 255),
-            brightness = 0.5,
-            scale = 2.5
-        },
-        [3] = {
-            "light",
-            Vector(516, -55, 22),
-            Angle(0, 0, 90),
-            Color(255, 50, 50),
-            brightness = 0.2,
-            scale = 4,
-            texture = "sprites/light_glow02.vmt"
-        },
-        [4] = {
-            "light",
-            Vector(516, 55, 22),
-            Angle(0, 0, 90),
-            Color(255, 50, 50),
-            brightness = 0.2,
-            scale = 4,
-            texture = "sprites/light_glow02.vmt"
-        },
-
-        [10] = {
-            "dynamiclight",
-            Vector(449, 0, 31),
-            Angle(0, 0, 0),
-            Color(255, 255, 255),
-            brightness = 0.1,
-            distance = 550
-        },
-
-        -- Interior
-        [11] = {
-            "dynamiclight",
-            Vector(190, 0, 10),
-            Angle(0, 0, 0),
-            Color(230, 230, 255),
-            brightness = 2,
-            distance = 630,
-            fov = 180,
-            farz = 128
-        },
-        [12] = {
-            "dynamiclight",
-            Vector(-65, 0, 10),
-            Angle(0, 0, 0),
-            Color(230, 230, 255),
-            brightness = 2,
-            distance = 630,
-            fov = 180,
-            farz = 128
-        },
-        [13] = {
-            "dynamiclight",
-            Vector(-320, 0, 10),
-            Angle(0, 0, 0),
-            Color(230, 230, 255),
-            brightness = 2,
-            distance = 630,
-            fov = 180,
-            farz = 128
-        },
-    }
-
     self.InteractionZones = self.InteractionZones or {}
     table.Add(self.InteractionZones, {
         {
@@ -398,15 +320,11 @@ function ENT:Think()
     self:SetPackedBool("HeadlightsEnabled2", HeadlightsPower > 0.5)
     self:SetPackedBool("HeadlightsEnabled1", HeadlightsPower > 0 and HeadlightsPower < 1)
     self:SetPackedRatio("Headlights", HeadlightsPower)
-    self:SetLightPower(1, HeadlightsPower > 0, HeadlightsPower ^ 0.5)
-    self:SetLightPower(2, HeadlightsPower > 0, HeadlightsPower ^ 0.5)
     self:SetPackedBool("BacklightsEnabled", Panel.RedLights > 0)
-    self:SetLightPower(3, Panel.RedLights > 0, 0.8)
-    self:SetLightPower(4, Panel.RedLights > 0, 0.8)
 
     local cablight = Panel.CabLight == 1 and 0.25 or Panel.CabLight == 2 and 0.8 or 0
     local cabl = cablight > 0
-    self:SetLightPower(10, cabl, cablight)
+    -- self:SetLightPower(10, cabl, cablight)
     self:SetPackedBool("CabinEnabledEmer", cabl)
     self:SetPackedBool("CabinEnabledFull", cablight > 0.25)
 

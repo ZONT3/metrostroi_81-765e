@@ -76,39 +76,6 @@ function ENT:Initialize()
         [38] = 37, -- Doors L<->R
     }
 
-    self.Lights = {
-        [11] = {
-            "dynamiclight",
-            Vector(285, 0, 10),
-            Angle(0, 0, 0),
-            Color(230, 230, 255),
-            brightness = 2,
-            distance = 650,
-            fov = 180,
-            farz = 128
-        },
-        [12] = {
-            "dynamiclight",
-            Vector(-5, 0, 10),
-            Angle(0, 0, 0),
-            Color(230, 230, 255),
-            brightness = 2,
-            distance = 650,
-            fov = 180,
-            farz = 128
-        },
-        [13] = {
-            "dynamiclight",
-            Vector(-295, 0, 10),
-            Angle(0, 0, 0),
-            Color(230, 230, 255),
-            brightness = 2,
-            distance = 650,
-            fov = 180,
-            farz = 128
-        },
-    }
-
     self.InteractionZones = self.InteractionZones or {}
     for k, tbl in ipairs({self.LeftDoorPositions or {}, self.RightDoorPositions or {}}) do
         for i, pos in ipairs(tbl) do
@@ -355,11 +322,11 @@ function ENT:Think()
         self:SetPackedRatio("HV", (self.SF42F2.Value * self.Electric.KM > 0.5 and self.Electric.Main750V or 0) / 1000)
     end
 
-    local passlight = Panel.SalonLighting1 * 0.25 + Panel.SalonLighting2 * 0.75
-    local passl = passlight > 0
-    self:SetLightPower(11, passl, passlight)
-    self:SetLightPower(12, passl, passlight)
-    self:SetLightPower(13, passl, passlight)
+    -- local passlight = Panel.SalonLighting1 * 0.25 + Panel.SalonLighting2 * 0.75
+    -- local passl = passlight > 0
+    -- self:SetLightPower(11, passl, passlight)
+    -- self:SetLightPower(12, passl, passlight)
+    -- self:SetLightPower(13, passl, passlight)
     self:SetPackedBool("SalonLighting1", Panel.SalonLighting1 > 0)
     self:SetPackedBool("SalonLighting2", Panel.SalonLighting2 > 0)
     self:SetPackedBool("AnnPlay", power)

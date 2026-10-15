@@ -3426,74 +3426,53 @@ ENT.ClientProps["VmHv"] = {
     hide = 0.2,
 }
 
-ENT.Lights = {
-    -- Headlight glow 
-    [1] = {
-        "headlight",
-        Vector(520, 0, -12),
-        Angle(0, 0, 90),
-        Color(200, 240, 255),
-        hfov = 80,
-        vfov = 80,
-        farz = 5144,
-        brightness = 8
+
+local LIGHT_HEADLIGHT = 4
+local LIGHT_AREA_WHITE = 5
+local LIGHT_AREA_RED = 6
+local LIGHT_GLOW_WHITE_L = 7
+local LIGHT_GLOW_WHITE_R = 8
+local LIGHT_GLOW_RED_L = 9
+local LIGHT_GLOW_RED_R = 10
+local LIGHT_CAB = 11
+
+table.Merge(ENT.Lights, {
+    [LIGHT_HEADLIGHT] = {
+        "headlight", Vector(520,0,-5.8), Angle(0,0,0), Color(220, 220, 220),
+        farz = 5144, brightness = 8, hfov = 88, vfov = 88, shadows = 1, headlight = true,
     },
-    [2] = {
-        "headlight",
-        Vector(520, 0, -46),
-        Angle(0, 0, 0),
-        Color(255, 0, 0),
-        fov = 170,
-        brightness = 0.1,
-        farz = 250,
+    [LIGHT_AREA_WHITE] = {
+        "headlight", Vector(518, 0, 0), Angle(-10, 0, 0), Color(220, 220, 220),
+        fov = 175, brightness = 0.1, farz = 450, shadows = 0, backlight = true,
         texture = "models/metrostroi_train/equipment/headlight2",
-        shadows = 0,
-        backlight = true
     },
-    [3] = {
-        "headlight",
-        Vector(525, 0, -46),
-        Angle(0, 0, 0),
-        Color(197, 233, 233),
-        fov = 170,
-        brightness = 0.2,
-        farz = 350,
+    [LIGHT_AREA_RED] = {
+        "headlight", Vector(518, 0, 0), Angle(-10, 0, 0), Color(255, 0, 0),
+        fov = 175, brightness = 0.05, farz = 250, shadows = 0, backlight = true,
         texture = "models/metrostroi_train/equipment/headlight2",
-        shadows = 0,
-        backlight = true
     },
-    [11] = {
-        "headlight", --MnBc
-        Vector(498.501, -14.0054, -0.18),
-        Angle(50, -43.3124, 0),
-        Color(235, 165, 60),
-        farz = 6,
-        nearz = 0.2,
-        shadows = 0,
-        brightness = 0.4,
-        fov = 155
+    [LIGHT_GLOW_WHITE_L] = {
+        "light", Vector(520, 57, -5.7), Angle(0, 0, 0), Color(220, 220, 220),
+        brightness = 0.2, scale = 4,
+        texture = "sprites/light_glow02.vmt"
     },
-    [12] = {
-        "headlight", --nm tm
-        Vector(495.881, -14.0065, -7.61),
-        Angle(50, -43.3124, 0),
-        Color(235, 165, 60),
-        farz = 6,
-        nearz = 0.2,
-        shadows = 0,
-        brightness = 0.4,
-        fov = 155
+    [LIGHT_GLOW_WHITE_R] = {
+        "light", Vector(520, -57, -5.7), Angle(0, 0, 0), Color(220, 220, 220),
+        brightness = 0.2, scale = 4,
+        texture = "sprites/light_glow02.vmt"
     },
-    [15] = {
-        "headlight",
-        Vector(407, -49, 52.8),
-        Angle(90, 0, 0),
-        Color(255, 255, 255),
-        brightness = 0.2,
-        fov = 20,
-        farz = 350
+    [LIGHT_GLOW_RED_L] = {
+        "light", Vector(515.55, 55, 22), Angle(0, 0, 0), Color(255, 20, 20),
+        brightness = 0.2, scale = 4,
+        texture = "sprites/light_glow02.vmt"
     },
-}
+    [LIGHT_GLOW_RED_R] = {
+        "light", Vector(515.55, -55, 22), Angle(0, 0, 0), Color(255, 20, 20),
+        brightness = 0.2, scale = 4,
+        texture = "sprites/light_glow02.vmt"
+    },
+    [LIGHT_CAB] = { "dynamiclight", Vector(470, 0, 22), Angle(0,0,0), Color(220, 220, 220), brightness = 0.5, distance = 500 },
+})
 
 ENT.ButtonMap["MFDU"] = {
     pos = Vector(500.71, 4.24, -0.7),
@@ -3527,20 +3506,20 @@ ENT.ButtonMap["CAMS"] = {
 }
 
 ENT.ButtonMap["BMIK"] = {
-    pos = Vector(494.8, -9.4, 58.8),
+    pos = Vector(502.51, -7.86, 51),
     ang = Angle(0, 90, 90),
     width = 1800,
     height = 300,
-    scale = 0.03,
+    scale = 0.0295,
     nohide = true,
 }
 
 ENT.ButtonMap["BNMIK"] = {
-    pos = Vector(519.6, 14.6, -30.61),
-    ang = Angle(0, 90, 84.57),
+    pos = Vector(520.84, 13.1, -36.86),
+    ang = Angle(0.000, 90.000, 89.296),
     width = 600,
     height = 300,
-    scale = 0.03,
+    scale = 0.027,
     nohide = true,
 }
 
@@ -3931,7 +3910,63 @@ end
 
 function ENT:Think(...)
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
-    return BaseClass.Think(self, ...)
+    local retval =  BaseClass.Think(self, ...)
+
+    -- local PanelLighting = self:GetPackedBool("PanelLighting")
+    -- self:SetLightPower(11, PanelLighting)
+    -- self:SetLightPower(12, PanelLighting)
+
+    local col = render.GetLightColor(self:GetPos() + 530 * self:GetForward())
+    local val = math.floor((col.x * 255 + col.y * 255 + col.z * 255) * 5) / 5
+    if self.LightVal ~= val and CurTime() - (self.LightValTimer or 0) > 0 or not self.LightVal then
+        self.LightValTimer = CurTime() + 0.5
+        self.LightVal = val
+    end
+
+    local headl = math.max(0, self:GetPackedRatio("Headlights") + (self.LightVal >= 6 and self:GetPackedRatio("Headlights") == 1 and -0.5 or 0))
+    self:SetLightPower(LIGHT_HEADLIGHT, headl > 0, headl)
+
+    local rl = self:GetPackedBool("BacklightsEnabled")
+    local hl1 = (self:GetPackedBool("HeadLightsEnabled1") or self:GetPackedBool("HeadLightsEnabled2") and self.LightVal >= 6)
+    local hl2 = self:GetPackedBool("HeadLightsEnabled2") and self.LightVal < 6
+    local hl12 = hl1 or hl2
+
+    for idx = 1, 6 do
+        local lightEnt = self.ClientEnts["Headlights" .. idx]
+        if IsValid(lightEnt) then
+            local redOn = rl and (idx < 3 or idx > 4 or not hl12) and not self:GetNW2Bool("RlBroken" .. idx, false)
+            local whiteOn = hl12 and (not rl or idx >= 3 and idx <= 4) and not self:GetNW2Bool("WlBroken" .. idx, false)
+            lightEnt:SetSubMaterial(0,
+                redOn and "models/metrostroi_train/81-765_v1/765/headlights_moscow_red" or
+                whiteOn and "models/metrostroi_train/81-765_v1/765/headlights_moscow_white" or
+                "models/metrostroi_train/81-765_v1/765/headlights_moscow_off"
+            )
+        end
+    end
+
+    local headlEnt = self.GlowingLights[LIGHT_HEADLIGHT]
+    if IsValid(headlEnt) then
+        headlEnt:SetEnableShadows(true)
+        if headl < 1 and headlEnt:GetFarZ() > 5500 then headlEnt:SetFarZ(5500) end
+        if headl == 1 and headlEnt:GetFarZ() < 9000 then headlEnt:SetFarZ(9000) end
+    end
+
+    self:SetLightPower(LIGHT_AREA_WHITE, not rl and hl12, hl12 and 1 or 0)
+    self:SetLightPower(LIGHT_AREA_RED, rl, rl and 1 or 0)
+    self:SetLightPower(LIGHT_GLOW_WHITE_L, hl12, hl12 and 1 or 0)
+    self:SetLightPower(LIGHT_GLOW_WHITE_R, hl12, hl12 and 1 or 0)
+    self:SetLightPower(LIGHT_GLOW_RED_L, rl, rl and 1 or 0)
+    self:SetLightPower(LIGHT_GLOW_RED_R, rl, rl and 1 or 0)
+
+    local cabl_full = self:GetPackedBool("CabinEnabledFull")
+    local cabl_half = self:GetPackedBool("CabinEnabledEmer")
+    cabl_full = self:Animate("CabFull", cabl_full and 1 or 0, 0, 1, 12, false)
+    cabl_half = self:Animate("CabEmer", cabl_half and 1 or 0, 0, 1, 12, false)
+    self:ShowHideSmooth("cab_full", cabl_full)
+    self:ShowHideSmooth("cab_half", cabl_half)
+    self:SetLightPower(LIGHT_CAB, true, cabl_full * 0.8 + cabl_half * 0.2)
+
+    return retval
 end
 
 function ENT:DrawPost(special)

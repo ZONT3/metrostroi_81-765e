@@ -581,7 +581,14 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
     end
 end
 
-ENT.Lights = {}
+local LIGHT_INTER_1 = 1
+local LIGHT_INTER_2 = 2
+local LIGHT_INTER_3 = 3
+ENT.Lights = {
+    [LIGHT_INTER_1] = { "dynamiclight", Vector( 220, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 3, distance = 350 },
+    [LIGHT_INTER_2] = { "dynamiclight", Vector( -80, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 3, distance = 350 },
+    [LIGHT_INTER_3] = { "dynamiclight", Vector( -330, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 3, distance = 350 },
+}
 
 ENT.PakPositions = {
     [0] = 270,
@@ -1201,6 +1208,13 @@ function ENT:Think()
         self:HidePanel("BNT_MST_STRIP_R" .. i, bnt_type ~= 3)
     end
 
+    local interior_emer = self:GetPackedBool("SalonLighting1")
+    local interior_full = self:GetPackedBool("SalonLighting2")
+    local interior_bright = interior_emer and interior_full and 1 or interior_emer and 0.4 or 0
+    self:SetLightPower(LIGHT_INTER_1, interior_bright > 0, interior_bright)
+    self:SetLightPower(LIGHT_INTER_2, interior_bright > 0, interior_bright)
+    self:SetLightPower(LIGHT_INTER_3, interior_bright > 0, interior_bright)
+
     if not self.IsIntermediate then
         self:ShowHide("ASHook", ValidfB)
         self:Animate("ASHook", self:GetPackedBool("ASHook") and 1 or 0, 0, 1, 8, 0.5)
@@ -1212,48 +1226,6 @@ function ENT:Think()
             self:HidePanel("NotificationPaperBtn", true)
             self:ShowHide("NotificationPaper", false)
         end
-
-        local col = render.GetLightColor(self:GetPos() + 530 * self:GetForward())
-        local val = math.floor((col.x * 255 + col.y * 255 + col.z * 255) * 5) / 5
-        if self.LightVal ~= val and CurTime() - (self.LightValTimer or 0) > 0 or not self.LightVal then
-            self.LightValTimer = CurTime() + 0.5
-            self.LightVal = val
-        end
-
-        local headl = math.max(0, self:GetPackedRatio("Headlights") + (self.LightVal >= 6 and self:GetPackedRatio("Headlights") == 1 and -0.5 or 0))
-        self:SetLightPower(1, headl > 0, headl)
-
-        local rl = self:GetPackedBool("BacklightsEnabled")
-        local hl1 = (self:GetPackedBool("HeadLightsEnabled1") or self:GetPackedBool("HeadLightsEnabled2") and self.LightVal >= 6)
-        local hl2 = self:GetPackedBool("HeadLightsEnabled2") and self.LightVal < 6
-        local hl12 = hl1 or hl2
-
-        for idx = 1, 6 do
-            local lightEnt = self.ClientEnts["Headlights" .. idx]
-            if IsValid(lightEnt) then
-                local redOn = rl and (idx < 3 or idx > 4 or not hl12) and not self:GetNW2Bool("RlBroken" .. idx, false)
-                local whiteOn = hl12 and (not rl or idx >= 3 and idx <= 4) and not self:GetNW2Bool("WlBroken" .. idx, false)
-                lightEnt:SetSubMaterial(0,
-                    redOn and "models/metrostroi_train/81-765_v1/765/headlights_moscow_red" or
-                    whiteOn and "models/metrostroi_train/81-765_v1/765/headlights_moscow_white" or
-                    "models/metrostroi_train/81-765_v1/765/headlights_moscow_off"
-                )
-            end
-        end
-
-        local headlEnt = self.GlowingLights[1]
-        if IsValid(headlEnt) then
-            headlEnt:SetEnableShadows(true)
-            if headl < 1 and headlEnt:GetFarZ() > 4096 then headlEnt:SetFarZ(4096) end
-            if headl == 1 and headlEnt:GetFarZ() < 8192 then headlEnt:SetFarZ(8192) end
-        end
-
-        self:SetLightPower(3, not rl and hl12, hl12 and 1 or 0)
-        self:SetLightPower(2, rl, rl and 1 or 0)
-
-        local PanelLighting = self:GetPackedBool("PanelLighting")
-        self:SetLightPower(11, PanelLighting)
-        self:SetLightPower(12, PanelLighting)
 
         self:Animate("MnBl", self:GetPackedRatio("BL"), 0, 1, 256, 2)
         self:Animate("MnTl", self:GetPackedRatio("TL"), 0, 1, 256, 2)
@@ -1270,13 +1242,6 @@ function ENT:Think()
 
         self:Animate("KM013", CranePos[7 - self:GetPackedRatio("Cran")] or 0, 0, 1, 2, false)
         self:Animate("PB", self:GetPackedBool("PB") and 1 or 0, 0, 1, 8, false)
-
-        local cabl_full = self:GetPackedBool("CabinEnabledFull")
-        local cabl_half = self:GetPackedBool("CabinEnabledEmer")
-        cabl_full = self:Animate("CabFull", cabl_full and 1 or 0, 0, 1, 5, false)
-        cabl_half = self:Animate("CabEmer", cabl_half and 1 or 0, 0, 1, 5, false)
-        self:ShowHideSmooth("cab_full", cabl_full)
-        self:ShowHideSmooth("cab_half", cabl_half)
 
         local DoorCabL = self:Animate("DoorCabL", self:GetPackedBool("CabinDoorLeft") and 1 or 0, 0, 1, 2, 0.5)
         local DoorCabR = self:Animate("DoorCabR", self:GetPackedBool("CabinDoorRight") and (self:GetPackedBool("CabinDoorRightLimit") and 0.6 or 1) or 0, 0, 1, 2, 0.5)
@@ -1298,6 +1263,9 @@ function ENT:Think()
         self:Animate("CabChairAdd", self:GetPackedBool("CabChairAdd") and 1 or 0, 0, 1, 4, 0.5)
         self:HidePanel("CoupleCenteringF", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("FrontCoupled", false))
         self:HidePanel("CoupleCenteringR", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("RearCoupled", false))
+
+        -- TODO: BL-IK
+        self:HidePanel("BLIK", true)
 
         local state = self:GetPackedBool("WorkCabVent", false)
         local ventTimer = self:GetPackedRatio("VentTimer", 0)
