@@ -1164,7 +1164,7 @@ function ENT:Think()
     self:SetSoundState("rolling_high2", rol70h * rollings, rol70ph)
 
     if not self.IsTrailer then
-        local asyncType = self:GetNW2Int("VVVFSound", 1)
+        local asyncType = self:GetNW2Int("VVVFSound", 8)
         if asyncType == 1 then
             local asyncState = self:GetPackedRatio("asynccurrent")
             local strength = self:GetPackedRatio("asyncstate") * (1 - math.Clamp((speed - 23) / 23, 0, 1)) * 0.5
@@ -1258,7 +1258,7 @@ function ENT:Think()
 
         local bm2 = self:HandleDoorState("BayMain2Val", "door_bay_2", "BayCoverMain2", "BayCoverMain2", 0.1, 0.2)
         local bm3 = self:HandleDoorState("BayMain3Val", "door_bay_3", "BayCoverMain3", "BayCoverMain3", 0.1, 0.2)
-        self:ShowHide("K35", bm2 or bm3)
+        self:ShowHide("BayMain", bm2 or bm3)
 
         self:Animate("CabChairAdd", self:GetPackedBool("CabChairAdd") and 1 or 0, 0, 1, 4, 0.5)
         self:HidePanel("CoupleCenteringF", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("FrontCoupled", false))
@@ -1453,11 +1453,11 @@ function ENT:ExperimentalAsync(asyncType, rolling_total, speed)
         self:SetSoundState("chopper_hitachi", rolling_total * self:GetPackedRatio("chopper"), 1)
 
     elseif asyncType == 8 then  -- Experimental for 765
-        local state = self:GetPackedRatio("asynccurrent") --^1.5--RealTime()%2.5/2	
-        local strength = self:GetPackedRatio("asyncstate") * math.Clamp((speed - 13) / 1, 0, 1) * (1 - math.Clamp((math.min(52, speed) - 28) / 30, 0, 1)) * 0.4
-        local strengthls = self:GetPackedRatio("asyncstate") * (1 - math.Clamp((speed - 12.9) / 1, 0, 1)) * 1
-        self:SetSoundState("async1", rolling_total * math.Clamp(state / 0.26 + 0.2, 0, 1) * strength, 1) --+math.Clamp(state,0,1)*0.1)
-        self:SetSoundState("KATP_lowspeed", rolling_total * math.Clamp(state / 0.26 + 0.2, 0, 1) * strengthls, 0.85) --+math.Clamp(state,0,1)*0.1)
+        local state = self:GetPackedRatio("asynccurrent")
+        local strength = self:GetPackedRatio("asyncstate") * (1 - math.Clamp((math.min(52, speed) - 28) / 30, 0, 1)) * 0.6
+        local strengthls = (self:GetPackedRatio("asyncstate") > 0 and 1 or 0) * self:GetPackedRatio("VVVF:LowSpeed")
+        self:SetSoundState("async1", rolling_total * math.Clamp(state / 0.26 + 0.2, 0, 1) * strength * (1 - strengthls), 1) --+math.Clamp(state,0,1)*0.1)
+        self:SetSoundState("KATP_lowspeed", rolling_total * math.Clamp(state / 0.26, 0, 1) * strengthls, 0.85) --+math.Clamp(state,0,1)*0.1)
         self:SetSoundState("chopper_katp", rolling_total * self:GetPackedRatio("chopper"), 1)
     end
 end

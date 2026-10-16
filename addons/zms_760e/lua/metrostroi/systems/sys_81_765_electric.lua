@@ -4,9 +4,6 @@
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("81_765_Electric")
 TRAIN_SYSTEM.DontAccelerateSimulation = false
-local function Clamp(val, min, max)
-    return math.max(min, math.min(max, val))
-end
 
 local function Rand(a, b)
     return a + (b - a) * math.random()
@@ -18,9 +15,13 @@ end
 
 function TRAIN_SYSTEM:Initialize()
     -- HV
-    self.Main750V = 0.0
+    -- HV for PSN, MK, AC
     self.Aux750V = 0.0
+    -- HV for VVVF
     self.Power750V = 0.0
+
+    -- Backwards-compat, same as Aux750V
+    self.Main750V = 0.0
 
     -- LV outputs (V)
     -- Battery voltage. Always on when battery is not dead
@@ -36,7 +37,7 @@ function TRAIN_SYSTEM:Initialize()
     -- Main LV power supply voltage. On when the BS is on.
     self.Supply80V = 0.0
 
-    -- Backwards-compat
+    -- Backwards-compat, Emer80V + 6.0
     self.Battery80V = 0.0
 
     -- LV good outputs (1/0)
@@ -49,7 +50,7 @@ function TRAIN_SYSTEM:Initialize()
     -- 30KM1 and 30KM2 power supply good
     self.KM = 0
 
-    -- Reserve PSN active
+    -- PSN in reserve mode
     self.ReservePsn = 0
 
     -- Total energy used by train
@@ -124,21 +125,6 @@ function TRAIN_SYSTEM:Outputs()
         "SD", "EmerXod", "UPIPower", "PowerReserve", "Recurperation", "Iexit", "Itotal", "Chopper", "ElectricEnergyUsed",
         "ElectricEnergyDissipated", "EnergyChange", "BTO", "ZeroSpeed", "DoorsControl",
     }
-end
-
-
-local function _lerp(t, from, to)
-    return from + (to - from) * t
-end
-
-local function GetCurrent(command)
-    if math.abs(command) < 1 then
-        return 0, 0
-    elseif command > 0 then
-        return _lerp((command - 1) / 3, 150, 320), _lerp((command - 1) / 3, 0.67, 0.79)
-    else
-        return _lerp((-command - 1) / 2, 150, 320), _lerp((-command - 1) / 2, 0.55, 0.85)
-    end
 end
 
 function TRAIN_SYSTEM:TriggerInput(name, value)
@@ -227,7 +213,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
     self.Supply80V = Wag.W30KM.Value * self.TrueBattery80V
     self.Emer80V = max(self.Supply80V, self.SharedPsn80V)
 
-    self.Battery80V = self.Emer80V + 2.0  -- Legacy backport
+    self.Battery80V = self.Emer80V + 6.0  -- Legacy backport
 
     -- 57: Train BS total voltage sum
     Wag:WriteTrainWire(57, self.Supply80V)
@@ -483,30 +469,15 @@ function TRAIN_SYSTEM:Think(dT, iter)
     end
 
     Async:TriggerInput("Power", self.KM * (Wag.SF23F4 and Wag.SF23F4.Value or 1) * Wag.GV.Value * Wag.BV.Value)
-    if self.command > 0 then
-        Async:TriggerInput("Drive", self.command)
-        Async:TriggerInput("Brake", 0)
-    elseif self.command < 0 then
-        Async:TriggerInput("Drive", 0)
-        Async:TriggerInput("Brake", abs(self.command))
-    else
-        Async:TriggerInput("Drive", 0)
-        Async:TriggerInput("Brake", 0)
-    end
+    Async:TriggerInput("Voltage", self.Power750V)
+    Async:TriggerInput("Command", self.command)
+    Async:TriggerInput("WeightLoadRatio", Wag.Pneumatic.WeightLoadRatio)
+    Async:TriggerInput("Slope", self.Slope)
 
-    local targetI, k = GetCurrent(self.command)
-    if self.command > 0 then
-        Async:TriggerInput("TargetCurrent", targetI * (1 + (self.Slope == 1 and 0.1 or Wag.Pneumatic.WeightLoadRatio * 0.1)) * ((1 - k) + k * Clamp((speed - 3) / 16, 0, 1))) --*(0.22+0.78*Clamp((speed-3)/14,0,1)))--*(speed > 50 and 1-(speed-50)/150 or 1) )--*(speed < 20 and 0.23+Clamp(speed/22,0,1)*0.77 or 1))--330
-    elseif self.command < 0 then
-        Async:TriggerInput("TargetCurrent", targetI * (1 + (self.Slope == 1 and 0.1 or Wag.Pneumatic.WeightLoadRatio * 0.1)) * ((1 - k) + k * Clamp((speed - 3) / 22, 0, 1))) --*Clamp((speed-2)/18,0,1))--*(Clamp(speed/30,0,1)+(speed < 10 and 0.035 or 0) ))--330
-    else
-        Async:TriggerInput("TargetCurrent", 0)
-    end
-
-    self.EnergyChange = Async.Mode > 0 and (Async.Current ^ 2) * 2.2 or 0
+    self.EnergyChange = Async.Assembly > 0 and (Async.Current ^ 2) * 2.2 or 0
     self.Itotal = Async.Current
 
-    if Async.Mode < 0 and Async.State > 0 then
+    if Async.Assembly < 0 and Async.State > 0 then
         self.Recurperation = C(self.Main750V > 749 and self.Main750V < 921) * BUV.Recurperation
         self.Iexit = self.Iexit + (-Async.Current * 2 * self.Recurperation - self.Iexit) * dT * 2
 

@@ -215,6 +215,8 @@ function TRAIN_SYSTEM:Think(dT)
 
         self.Scheme = (Train.Speed < 0.4 and 0 or Train.Electric.Brake) + drive > 0
         self:CState("Strength", self.Strength)
+
+        -- TODO get that from VVVF
         if HasEngine then
             self:CState("Scheme", ((Train.Speed < 6.5 and 0 or brake) + drive > 0 and (drive > 0 and (Train.Pneumatic.BrakeCylinderPressure < 0.7 or self.Slope1 or Train:ReadTrainWire(19) + Train:ReadTrainWire(45) > 0) or brake > 0 and Train.Pneumatic.BrakeCylinderPressure < 1.7 + Train.Pneumatic.WeightLoadRatio * 0.5 + Train.Pneumatic.BrakeCylinderRegulationError)) and SchemeWork > 0.5)
         else
@@ -440,6 +442,14 @@ function TRAIN_SYSTEM:Think(dT)
 
     local strength = not self:Get("PVU5") and (self.Slope1 and true or brakeCondition or driveCondition and (not self.StartDelay or CurTime() >= self.StartDelay)) and self:Get("DriveStrength") or 0
     if not self:Get("PVU5") and brake == 0 and Train.Pneumatic.BrakeCylinderPressure < 0.2 then self.DriveTimer = CurTime() end
+
+    local drive = math.min(1, (1 - brake) * strength)
+    if strength == 0 then
+        brake = 0
+        drive = 0
+    end
+
+    if self.TargetStrength > 0 and self.SchemeSlope then self.TargetStrength = 4 strength = 4 end
     if brake == 0 and not self:Get("PVU5") then
         if Train:ReadTrainWire(45) == 1 then
             strength = 4
@@ -450,19 +460,11 @@ function TRAIN_SYSTEM:Think(dT)
         end
     end
 
-    local drive = math.min(1, (1 - brake) * strength)
-    if strength == 0 then
-        brake = 0
-        drive = 0
-    end
-
-    if self.TargetStrength > 0 and self.SchemeSlope then self.TargetStrength = 4 strength = 4 end
-
     self.Brake = brake
     self.Drive = drive
     self.Strength = (self.Brake == 1 and -1 or 1) * strength * SchemeWork
     if HasEngine then Train.Electric:TriggerInput("Slope", self.SchemeSlope) end
-    self.TargetStrength = (self:Get("Brake") == 1 and -1 or 1) * (self:Get("DriveStrength") or 0) + ((Train:ReadTrainWire(45) == 1 and 4 or Train:ReadTrainWire(19) == 1 and 2) or 0)
+    self.TargetStrength = (self:Get("Brake") == 1 and -1 or 1) * (self:Get("DriveStrength") or 0) + (Train:ReadTrainWire(45) == 1 and 4 or Train:ReadTrainWire(19) == 1 and 2 or 0)
 
     local strongerBrake
     if HasEngine then

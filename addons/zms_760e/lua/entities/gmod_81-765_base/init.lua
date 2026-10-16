@@ -309,6 +309,7 @@ function ENT:Think()
         local state = math.abs(self.AsyncInverter.InverterFrequency / (11 + self.AsyncInverter.State * 5))
         self:SetPackedRatio("asynccurrent", math.Clamp(state * (state + self.AsyncInverter.State / 1), 0, 1) * math.Clamp(self.Speed / 6, 0, 1))
         self:SetPackedRatio("asyncstate", math.Clamp(self.AsyncInverter.State / 0.2 * math.abs(self.AsyncInverter.Current) / 100, 0, 1))
+        self:SetPackedRatio("VVVF:LowSpeed", self.AsyncInverter.LowSpeedMode)
         self:SetPackedRatio("chopper", math.Clamp(self.Electric.Chopper > 0 and self.Electric.Iexit / 100 or 0, 0, 1))
         self:SetPackedBool("CompressorWork", self.Pneumatic.Compressor and CurTime() - self.Pneumatic.Compressor > 0)
 
@@ -395,13 +396,14 @@ function ENT:Think()
 
     self:SetPackedRatio("Speed", self.Speed)
 
-    if not self.IsTrailer then
-        self.AsyncInverter:TriggerInput("Speed", self.Speed)
+    local VVVF = self.AsyncInverter
+    if VVVF then
+        VVVF:TriggerInput("Speed", self.Speed)
     end
 
     if fbValid and rbValid and not self.IgnoreEngine then
-        if not self.IsTrailer then
-            local A = self.AsyncInverter.Torque
+        if VVVF then
+            local A = VVVF.Torque
             local add = 1
             if math.abs(self:GetAngles().pitch) > 4 then add = math.min((math.abs(self:GetAngles().pitch) - 4) / 2, 1) end
             bogeyF.MotorForce = (40000 + 5000 * (A < 0 and 1 or 0)) * add
