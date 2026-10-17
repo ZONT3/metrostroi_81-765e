@@ -1743,17 +1743,17 @@ ENT.ButtonMap["ASNP"] = {
 --     }
 -- }
 
-ENT.ButtonMap["IGLA"] = {
+ENT.ButtonMap["PPUP"] = {
     pos = Vector(416.9, 47.42, 24.80),
     ang = Angle(0, 90, 90),
     width = 512,
     height = 93,
     scale = 0.018,
     hideseat = 0.2,
-    system = "IGLA",
+    system = "PPUP",
 }
 
-ENT.ButtonMap["IGLAButtons"] = {
+ENT.ButtonMap["PPUPButtons"] = {
     pos = Vector(417.1, 47.83, 26.54),
     ang = Angle(0, 90, 90),
     width = 133,
@@ -1762,15 +1762,15 @@ ENT.ButtonMap["IGLAButtons"] = {
     hideseat = 0.2,
     buttons = {
         {
-            ID = "IGLA1Set",
-            tooltip = "ИГЛА: Первая кнопка\nIGLA: First button",
+            ID = "PPUP1Set",
+            tooltip = "ППУ-П: Первая кнопка\nНедоступно в альфа-версии",
             x = 0, y = 60, w = 20, h = 15,
             model = {
-                var = "IGLA1",
+                var = "PPUP1",
                 model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_rect_green.mdl",
-                    var = "IGLA:ButtonL1",
+                    var = "PPUP:ButtonL1",
                     speed = 16,
                     ang = Angle(62, 0, 0),
                     color = Color(187, 255, 91),
@@ -1784,15 +1784,15 @@ ENT.ButtonMap["IGLAButtons"] = {
             }
         },
         {
-            ID = "IGLA2Set",
-            tooltip = "ИГЛА: Вторая кнопка\nIGLA: Second button",
+            ID = "PPUP2Set",
+            tooltip = "ППУ-П: Вторая кнопка\nНедоступно в альфа-версии",
             x = 36, y = 60, w = 20, h = 15,
             model = {
-                var = "IGLA2",
+                var = "PPUP2",
                 model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_rect_green.mdl",
-                    var = "IGLA:ButtonL2",
+                    var = "PPUP:ButtonL2",
                     speed = 16,
                     ang = Angle(62, 0, 0),
                     color = Color(187, 255, 91),
@@ -1806,20 +1806,20 @@ ENT.ButtonMap["IGLAButtons"] = {
             }
         },
         {
-            ID = "IGLA23",
+            ID = "PPUP23",
             x = 64, y = 67, radius = 10,
-            tooltip = "ИГЛА: Вторая и третья кнопка"
+            tooltip = "ППУ-П: Вторая и третья кнопка\nНедоступно в альфа-версии"
         },
         {
-            ID = "IGLA3Set",
-            tooltip = "ИГЛА: Третья кнопка\nIGLA: Third button",
+            ID = "PPUP3Set",
+            tooltip = "ППУ-П: Третья кнопка\nНедоступно в альфа-версии",
             x = 72, y = 60, w = 20, h = 15,
             model = {
                 model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
-                var = "IGLA3",
+                var = "PPUP3",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_rect_green.mdl",
-                    var = "IGLA:ButtonL3",
+                    var = "PPUP:ButtonL3",
                     speed = 16,
                     ang = Angle(62, 0, 0),
                     color = Color(187, 255, 91),
@@ -1833,15 +1833,15 @@ ENT.ButtonMap["IGLAButtons"] = {
             }
         },
         {
-            ID = "IGLA4Set",
-            tooltip = "ИГЛА: Четвёртая кнопка\nIGLA: Fourth button",
+            ID = "PPUP4Set",
+            tooltip = "ППУ-П: Четвёртая кнопка\nНедоступно в альфа-версии",
             x = 108, y = 60, w = 20, h = 15,
             model = {
                 model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
-                var = "IGLA4",
+                var = "PPUP4",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_rect_green.mdl",
-                    var = "IGLA:ButtonL4",
+                    var = "PPUP:ButtonL4",
                     speed = 16,
                     ang = Angle(62, 0, 0),
                     color = Color(187, 255, 91),
@@ -1855,17 +1855,17 @@ ENT.ButtonMap["IGLAButtons"] = {
             }
         },
         {
-            ID = "!IGLAFire",
-            tooltip = "ИГЛА: Пожар!",
+            ID = "!PPUPFire",
+            tooltip = "ППУ-П: Пожар!",
             x = 0, y = 0, w = 20, h = 15,
             model = {
                 model = "models/metrostroi_train/81-760/81_760_rect_button_red.mdl",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_rect_red.mdl",
-                    var = "IGLA:Fire",
-                    speed = 16,
+                    var = "PPUP:Fire",
+                    anim = true,
                     ang = Angle(62, 0, 0),
-                    x = 0, y = 0, z = 0.5, scale = 1.05,
+                    z = 0.5
                 },
                 x = 0.5, z = -1.4, scale = 1.05,
                 ang = Angle(0, -62, 90),
@@ -1875,16 +1875,17 @@ ENT.ButtonMap["IGLAButtons"] = {
             }
         },
         {
-            ID = "!IGLAErr",
-            tooltip = "ИГЛА: Сообщение",
+            ID = "!PPUPMsg",
+            tooltip = "ППУ-П: Сообщение",
             x = 108, y = 0, w = 20, h = 15,
             model = {
                 model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_rect_green.mdl",
-                    var = "IGLA:Error",
+                    var = "PPUP:Msg",
                     speed = 16,
                     ang = Angle(62, 0, 0),
+                    color = Color(187, 255, 91),
                     x = 0, y = 0, z = 0.5, scale = 1.05,
                 },
                 z = -0.8, scale = 1.05,
@@ -3901,7 +3902,7 @@ function ENT:Initialize()
     self.BUIKscr = self:CreateRT("765BUIK", 2716, 496)
     self.CAMS = self:CreateRT("760CAMS", 1024, 768)
     self.ASNP = self:CreateRT("760ASNP", 512, 128)
-    self.IGLA = self:CreateRT("760IGLA", 512, 128)
+    self.PPUP = self:CreateRT("765PPUP", 512, 128)
     -- self.RVSScr = self:CreateRT("760RVS", 256, 256)
     self.BMIK = self:CreateRT("765BMIK", 1380, 230)
     self.BNMIK = self:CreateRT("765BNMIK", 380, 190)
@@ -3987,8 +3988,8 @@ function ENT:DrawPost(special)
         surface.DrawTexturedRectRotated(256 * 1.35, 64 * 1.35, 512 * 1.35, 128 * 1.35, 0)
     end)
 
-    self.RTMaterial:SetTexture("$basetexture", self.IGLA)
-    self:DrawOnPanel("IGLA", function(...)
+    self.RTMaterial:SetTexture("$basetexture", self.PPUP)
+    self:DrawOnPanel("PPUP", function(...)
         surface.SetMaterial(self.RTMaterial)
         surface.SetDrawColor(255, 255, 255)
         surface.DrawTexturedRectRotated(256, 74, 512, 150, 0)

@@ -34,7 +34,6 @@ function ENT:InitializeSystems()
     self:LoadSystem("BNT", "81_765_BNT")
     self:LoadSystem("BNT_MST", "81_765_BNT_MST")
     self:LoadSystem("BNT_SARMAT", "81_765_BNT_SARMAT")
-    self:LoadSystem("IGLA_PCBK", "81_760_IGLA_PCBK")
 end
 
 ---------------------------------------------------

@@ -18,7 +18,7 @@ table.Add(ENT.SyncTable, {
     "MfduF6", "MfduF7", "MfduF8", "MfduF9", "K29", "UAVA", "K9", "EmerX1", "EmerX2", "EmerCloseDoors", "EmergencyDoors",
     "R_ASNPMenu", "R_ASNPUp", "R_ASNPDown", "R_ASNPOn", "VentHeatMode", "PowerOff", "PB",
     "CAMS1", "CAMS2", "CAMS3", "CAMS4", "CAMS5", "CAMS6", "CAMS7", "CAMS8", "CAMS9", "CAMS10",
-    "IGLA1", "IGLA2", "IGLA3", "IGLA4",
+    "PPUP1", "PPUP2", "PPUP3", "PPUP4",
     "MfduHelp", "MfduKontr", "MfduTv", "MfduTv1", "MfduTv2",
     "Buik_EMsg1", "Buik_EMsg2", "Buik_Unused1", "Buik_Mode", "Buik_Path", "Buik_Return", "Buik_Down", "Buik_Up", "Buik_MicLine", "Buik_MicBtn", "Buik_Asotp", "Buik_Ik",
     "BatteryCharge", "MasterTrainPowerOn", "MasterTrainPowerOff"
@@ -298,17 +298,6 @@ function ENT:Think()
         self.VentTimer = nil
     end
 
-    if not self.IglaStarted and self.IGLA_CBKI.State == 2 then
-        self.IglaStarted = CurTime() + 7
-    end
-    if self.IglaStarted and self.IGLA_CBKI.State < 2 then
-        self.IglaStarted = nil
-    end
-    if isnumber(self.IglaStarted) and CurTime() > self.IglaStarted then
-        self:PlayOnce("igla_started", "cabin", nil, 1)
-        self.IglaStarted = true
-    end
-
     self:SetPackedRatio("VentTimer", self.VentTimer or 0)
     self:SetPackedBool("BUKPRing", not self:GetNW2Bool("SingleRing", false) and (powerUpi and self.BUKP.State == 5 and self.BUKP.ErrorRinging) or false)
     self:SetPackedBool("CallRing", powerUpi and self.BUKP.State == 5 and self.BUKP.CallRing)
@@ -410,9 +399,9 @@ function ENT:OnButtonPress(button, ply)
         end
     end
 
-    if button == "IGLA23" then
-        self.IGLA2:TriggerInput("Set", 1)
-        self.IGLA3:TriggerInput("Set", 1)
+    if button == "PPUP23" then
+        self.PPUP2:TriggerInput("Set", 1)
+        self.PPUP3:TriggerInput("Set", 1)
     end
 
     if button == "NotificationPaperBtn" then self.NotificationPaper = not self.NotificationPaper end

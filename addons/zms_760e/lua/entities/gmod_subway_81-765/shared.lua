@@ -159,22 +159,10 @@ function ENT:InitializeSounds()
     self.SoundNames["multiswitch_panel_mid"] = {"subway_trains/722/switches/multi_switch_panel_mid.mp3","subway_trains/722/switches/multi_switch_panel_mid2.mp3"}
     self.SoundNames["multiswitch_panel_min"] = "subway_trains/722/switches/multi_switch_panel_min.mp3"
 
-    self.SoundNames["igla_on"] = "subway_trains/common/other/igla/igla_on1.mp3"
-    self.SoundNames["igla_off"] = "subway_trains/common/other/igla/igla_off2.mp3"
-    self.SoundNames["igla_start1"] = "subway_trains/common/other/igla/igla_start.mp3"
-    self.SoundNames["igla_start2"] = "subway_trains/common/other/igla/igla_start2.mp3"
-    self.SoundNames["igla_started"] = "subway_trains/760e/igla/igla_started.mp3"
-    self.SoundNames["igla_alarm1"] = "subway_trains/common/other/igla/igla_alarm1.mp3"
-    self.SoundNames["igla_alarm2"] = "subway_trains/common/other/igla/igla_alarm2.mp3"
-    self.SoundNames["igla_alarm3"] = "subway_trains/common/other/igla/igla_alarm3.mp3"
-    self.SoundPositions["igla_on"] = {50, 1e9, Vector(410.56, 48.32, 12.62), 0.3}
-    self.SoundPositions["igla_off"] = {50, 1e9, Vector(410.56, 48.32, 12.62), 0.3}
-    self.SoundPositions["igla_start1"] = {50, 1e9, Vector(410.56, 48.32, 12.62), 0.5}
-    self.SoundPositions["igla_start2"] = {50, 1e9, Vector(410.56, 48.32, 12.62), 0.3}
-    self.SoundPositions["igla_started"] = {50, 1e9, Vector(410.56, 48.32, 12.62), 1}
-    self.SoundPositions["igla_alarm1"] = {50, 1e9, Vector(410.56, 48.32, 12.62), 0.5}
-    self.SoundPositions["igla_alarm2"] = {50, 1e9, Vector(410.56, 48.32, 12.62), 0.5}
-    self.SoundPositions["igla_alarm3"] = {50, 1e9, Vector(410.56, 48.32, 12.62), 0.5}
+    self.SoundNames["ppup_start"] = "subway_trains/765/ppup/start.wav"
+    self.SoundPositions["ppup_start"] = {50, 1e9, Vector(417, 45, 24.29), 0.65}
+    self.SoundNames["ppup_started"] = "subway_trains/760e/igla/igla_started.mp3"
+    self.SoundPositions["ppup_started"] = self.SoundPositions["ppup_start"]
 
     self.SoundNames["rvtb_leak"] = {
         loop = true,
@@ -517,13 +505,11 @@ function ENT:InitializeSystems()
     self:LoadSystem("Pneumatic", "81_760E_Pneumatic")
     self:LoadSystem("Horn", "81_765_Horn")
     self:LoadSystem("Panel", "81_760E_Panel")
+    self:LoadSystem("PPUP", "81_765_PPUP")
 
     self:LoadSystem("ASNP", "81_760_ASNP")
     self:LoadSystem("ASNP_VV", "81_760_ASNP_VV")
-    self:LoadSystem("IGLA_CBKI", "81_760_IGLA_CBKI1")
-    self:LoadSystem("IGLA_PCBK", "81_760_IGLA_PCBK")
     self:LoadSystem("IK", "81_765_IK")
-    -- self:LoadSystem("RVS", "81_760A_RVS_1")
     self:LoadSystem("BNT", "81_765_BNT")
     self:LoadSystem("BNT_MST", "81_765_BNT_MST")
     self:LoadSystem("BNT_SARMAT", "81_765_BNT_SARMAT")

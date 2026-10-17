@@ -108,6 +108,7 @@ function TRAIN_SYSTEM:Initialize()
     self.commandTimer = 0
     self.EmerXod = 0
     self.UPIPower = 0
+    self.UPI2Power = 0
     self.PowerReserve = 0
     self.ZeroSpeed = 0
     self.DoorsControl = 0
@@ -122,8 +123,8 @@ function TRAIN_SYSTEM:Outputs()
         "TrueBattery80V", "Shared80V", "Psn80V", "SharedPsn80V", "Emer80V", "Supply80V",
         "AKB", "PSN", "EmerSupply", "KM", "Battery80V", "ReservePsn",
         "Brake", "Drive", "V2", "V1", "Main750V", "Power750V", "Aux750V", "BTB", "MK",
-        "SD", "EmerXod", "UPIPower", "PowerReserve", "Recurperation", "Iexit", "Itotal", "Chopper", "ElectricEnergyUsed",
-        "ElectricEnergyDissipated", "EnergyChange", "BTO", "ZeroSpeed", "DoorsControl",
+        "SD", "EmerXod", "PowerReserve", "Recurperation", "Iexit", "Itotal", "Chopper", "ElectricEnergyUsed",
+        "ElectricEnergyDissipated", "EnergyChange", "BTO", "ZeroSpeed", "DoorsControl", "UPIPower", "UPI2Power",
     }
 end
 
@@ -295,6 +296,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         S.PpzBtbu = Wag.SF22F2.Value
 
         self.UPIPower = S.SharedLv * Wag.SF23F8.Value
+        self.UPI2Power = self.EmerSupply
         self.PowerReserve = self.EmerSupply * min(1, (1 - Wag.SF23F8.Value) * abs(RV.KRRPosition) + Wag.SF23F8.Value)
         Wag:WriteTrainWire(20, self.EmerSupply)
         Wag:WriteTrainWire(36, Wag.SF23F1.Value * Wag.EmergencyControls.Value)
