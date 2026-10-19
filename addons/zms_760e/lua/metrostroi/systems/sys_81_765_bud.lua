@@ -25,6 +25,7 @@ function TRAIN_SYSTEM:Initialize()
     self.DoorCommandDelay = {}
     self.DoorReverseMalfunc = {}
     self.CloseDelay = {}
+    self.Unlock = {}
     self.DoorsDelayMax = 0.5
     for idx = 1, 8 do self.DoorCommand[idx] = false end
 
@@ -56,7 +57,7 @@ function TRAIN_SYSTEM:Initialize()
     for idx = 1, 8 do
         self.Train:LoadSystem("DoorManualBlock" .. idx, "Relay", "Switch", { bass = true })
         self.Train:LoadSystem("DoorManualOpenLever" .. idx, "Relay", "Switch", { bass = true })
-        self.Train:LoadSystem("DoorManualOpenLeverPl" .. idx, "Relay", "Switch", { bass = true })
+        self.Train:LoadSystem("DoorManualOpenLeverCap" .. idx, "Relay", "Switch", { bass = true, normally_closed = true })
         self.Train:LoadSystem("DoorManualOpenPush" .. idx, "Relay", "Switch", { bass = true })
         self.Train:LoadSystem("DoorManualOpenPull" .. idx, "Relay", "Switch", { bass = true })
         self.Train:LoadSystem("DoorAddressButton" .. idx, "Relay", "Switch", { bass = true })
@@ -224,10 +225,20 @@ if SERVER then
                 self.Load = self.Load + 20.42
             end
 
-            local manual = Wag["DoorManualOpenLever" .. idx].Value * Wag["DoorManualOpenLeverPl" .. idx].Value == 1
+            local manual = Wag["DoorManualOpenLever" .. idx].Value == 1
             local block = Wag["DoorManualBlock" .. idx].Value == 1
             Wag:SetNW2Bool("DoorManualOpenLever" .. idx, manual)
             Wag:SetNW2Bool("DoorManualBlock" .. idx, block)
+
+            if not self.Unlock[idx] and block then
+                self.Unlock[idx] = 0
+            elseif self.Unlock[idx] and not block then
+                if self.Unlock[idx] > 0 and CurTime() > self.Unlock[idx] then
+                    self.Unlock[idx] = nil
+                elseif self.Unlock[idx] == 0 then
+                    self.Unlock[idx] = CurTime() + 0.42
+                end
+            end
 
             local left = idx < 5
             local i = left and idx or (9 - idx)
@@ -326,7 +337,7 @@ if SERVER then
 
             local announceState = "Unpowered"
             if manual and not block then
-                announceState = poweron and "Closing" or announceState
+                announceState = poweron and "Aod" or announceState
                 if not self.WasManual[idx] then
                     dir[i] = dir[i] + 0.1
                     self.WasManual[idx] = true
@@ -354,6 +365,7 @@ if SERVER then
                 self.Load = self.Load + (poweron and not zeroSpeed and dir[i] ~= 0 and 145 or 0)
 
                 self.OpenButton[idx] = false
+                self.CloseDelay[idx] = CurTime() + 1.8
 
             elseif poweron then
                 local commandOpen = self.DoorCommand[idx]
@@ -375,6 +387,7 @@ if SERVER then
                 end
 
                 announceState = (
+                    self.Unlock[idx] and self.Unlock[idx] > 0 and (self.Unlock[idx] - CurTime() < 0.21) and "Unlock" or
                     not working and "Closing" or
                     self.BupChanging and "Moving" or
                     not commandOpen and not isclosed and "Closing" or
@@ -581,30 +594,32 @@ if SERVER then
     end
 
     function TRAIN_SYSTEM:OpenDoorMenu(ply, idx)
-        local block = self.Train["DoorManualBlock" .. idx]
-        local lever = self.Train["DoorManualOpenLever" .. idx]
-        local leverPl = self.Train["DoorManualOpenLeverPl" .. idx]
-        if block and lever and leverPl then
-            net.Start("BUD765.DoorMenu")
-                net.WriteEntity(self.Train)
-                net.WriteUInt(idx, 8)
-                net.WriteBool(block.Value == 1)
-                net.WriteBool(lever.Value == 1)
-                net.WriteBool(leverPl.Value == 1)
-            net.Send(ply)
-        end
+        -- TODO: здесь будет концевик АОД
+
+        -- local block = self.Train["DoorManualBlock" .. idx]
+        -- local lever = self.Train["DoorManualOpenLever" .. idx]
+        -- local leverPl = self.Train["DoorManualOpenLeverPl" .. idx]
+        -- if block and lever and leverPl then
+        --     net.Start("BUD765.DoorMenu")
+        --         net.WriteEntity(self.Train)
+        --         net.WriteUInt(idx, 8)
+        --         net.WriteBool(block.Value == 1)
+        --         net.WriteBool(lever.Value == 1)
+        --         net.WriteBool(leverPl.Value == 1)
+        --     net.Send(ply)
+        -- end
     end
 
-    util.AddNetworkString("BUD765.DoorMenu")
-    net.Receive("BUD765.DoorMenu", function(_, ply)
-        local wagon = net.ReadEntity()
-        local switch = net.ReadString()
-        if not IsValid(wagon) then return end
-        switch = wagon[switch] or nil
-        if wagon.BUD and switch and switch.TriggerInput then
-            switch:TriggerInput("Set", switch.Value == 0 and 1 or 0)
-        end
-    end)
+    -- util.AddNetworkString("BUD765.DoorMenu")
+    -- net.Receive("BUD765.DoorMenu", function(_, ply)
+    --     local wagon = net.ReadEntity()
+    --     local switch = net.ReadString()
+    --     if not IsValid(wagon) then return end
+    --     switch = wagon[switch] or nil
+    --     if wagon.BUD and switch and switch.TriggerInput then
+    --         switch:TriggerInput("Set", switch.Value == 0 and 1 or 0)
+    --     end
+    -- end)
 else
     local mat_off = "models/metrostroi_train/81-765_v1/lights/strips_doors_off"
     local mat_red = "models/metrostroi_train/81-765_v1/lights/strips_doors_red"
@@ -638,7 +653,7 @@ else
 
         for idx = 1, 8 do
             local announceState = Wag:GetNW2String("DoorAnnounceState" .. idx, "Closed")
-            local buzzer = announceState == "Closing" and not (idx < 5 and leftSideBuzzer or idx >= 5 and rightSideBuzzer)
+            local buzzer = (announceState == "Closing" or announceState == "Unlock") and not (idx < 5 and leftSideBuzzer or idx >= 5 and rightSideBuzzer)
             Wag:SetSoundState("door_alarm_" .. idx, buzzer and 1 or 0, buzzer and 1 or 0)
 
             local outer, inter
@@ -656,7 +671,7 @@ else
             if announceState == "Moving" then
                 outer = mat_off
                 inter = mat_strip_white
-            elseif announceState == "Closed" then
+            elseif announceState == "Closed" or announceState == "Unlock" then
                 outer = mat_red
                 inter = mat_strip_red
             elseif announceState == "Closing" or announceState == "ClosingAwaiting" then
@@ -669,7 +684,7 @@ else
                 self.WasOpen[idx] = true
                 outer = mat_green
                 inter = mat_strip_green
-            elseif announceState == "Opening" or announceState == "OpeningAddr" then
+            elseif announceState == "Opening" or announceState == "OpeningAddr" or announceState == "Aod" then
                 outer = announceState == "OpeningAddr" and mat_green or blink1 and mat_off or mat_red
                 inter = blink2 and mat_strip_off or mat_strip_red
             else  -- Unpowered
@@ -773,83 +788,83 @@ else
         end
     end
 
-    local panel = nil
+    -- local panel = nil
 
-    local function addButton(parent, stext, state, scolor, btext, benabled, switchName)
-        local bpanel = vgui.Create("DPanel")
-        bpanel:Dock( TOP )
-        bpanel:DockMargin( 5, 0, 5, 5 )
-        bpanel:DockPadding( 5, 5, 5, 5 )
-        if benabled then
-            local button = vgui.Create("DButton",bpanel)
-            button:Dock(RIGHT)
-            button:SetText(btext)
-            button:DockPadding( 5, 5, 5, 5 )
-            button:SizeToContents()
-            button:SetContentAlignment(5)
-            button:SetEnabled(benabled)
-            button.DoClick = function()
-                if not panel or not IsValid(panel.wagon) then return end
-                net.Start("BUD765.DoorMenu")
-                    net.WriteEntity(panel.wagon)
-                    net.WriteString(switchName .. panel.doorIdx)
-                net.SendToServer()
-                panel:Close()
-            end
-        end
+    -- local function addButton(parent, stext, state, scolor, btext, benabled, switchName)
+    --     local bpanel = vgui.Create("DPanel")
+    --     bpanel:Dock( TOP )
+    --     bpanel:DockMargin( 5, 0, 5, 5 )
+    --     bpanel:DockPadding( 5, 5, 5, 5 )
+    --     if benabled then
+    --         local button = vgui.Create("DButton",bpanel)
+    --         button:Dock(RIGHT)
+    --         button:SetText(btext)
+    --         button:DockPadding( 5, 5, 5, 5 )
+    --         button:SizeToContents()
+    --         button:SetContentAlignment(5)
+    --         button:SetEnabled(benabled)
+    --         button.DoClick = function()
+    --             if not panel or not IsValid(panel.wagon) then return end
+    --             net.Start("BUD765.DoorMenu")
+    --                 net.WriteEntity(panel.wagon)
+    --                 net.WriteString(switchName .. panel.doorIdx)
+    --             net.SendToServer()
+    --             panel:Close()
+    --         end
+    --     end
 
-        vgui.MetrostroiDrawCutText(bpanel, stext, false, "DermaDefaultBold")
-        vgui.MetrostroiDrawCutText(bpanel, state, scolor, "DermaDefaultBold")
+    --     vgui.MetrostroiDrawCutText(bpanel, stext, false, "DermaDefaultBold")
+    --     vgui.MetrostroiDrawCutText(bpanel, state, scolor, "DermaDefaultBold")
 
-        bpanel:InvalidateLayout( true )
-        bpanel:SizeToChildren(true,true )
-        parent:AddItem(bpanel)
-    end
+    --     bpanel:InvalidateLayout( true )
+    --     bpanel:SizeToChildren(true,true )
+    --     parent:AddItem(bpanel)
+    -- end
 
-    net.Receive("BUD765.DoorMenu", function()
-        local wagon = net.ReadEntity()
-        local idx = net.ReadUInt(8)
-        local block = net.ReadBool()
-        local lever = net.ReadBool()
-        local leverPl = net.ReadBool()
+    -- net.Receive("BUD765.DoorMenu", function()
+    --     local wagon = net.ReadEntity()
+    --     local idx = net.ReadUInt(8)
+    --     local block = net.ReadBool()
+    --     local lever = net.ReadBool()
+    --     local leverPl = net.ReadBool()
 
-        if IsValid(panel) then panel:Close() end
-        panel = vgui.Create("DFrame")
-        panel:SetDeleteOnClose(true)
-        panel:SetTitle("Дверной проем №" .. idx)
-        panel:SetSize(0, 0)
-        panel:SetDraggable(true)
-        panel:SetSizable(false)
-        panel:MakePopup()
+    --     if IsValid(panel) then panel:Close() end
+    --     panel = vgui.Create("DFrame")
+    --     panel:SetDeleteOnClose(true)
+    --     panel:SetTitle("Дверной проем №" .. idx)
+    --     panel:SetSize(0, 0)
+    --     panel:SetDraggable(true)
+    --     panel:SetSizable(false)
+    --     panel:MakePopup()
 
-        panel.wagon = wagon
-        panel.doorIdx = idx
+    --     panel.wagon = wagon
+    --     panel.doorIdx = idx
 
-        local scrollPanel = vgui.Create("DScrollPanel", panel)
+    --     local scrollPanel = vgui.Create("DScrollPanel", panel)
 
-        addButton(scrollPanel, "Ручная блокировка",
-            block and "Заблокировано" or "Разблокировано",
-            block and Color(150,50,0) or Color(0,150,0),
-            block and "Разблокировать" or "Блокировать", true,
-            "DoorManualBlock")
-        addButton(scrollPanel, "Переключатель ручного открытия",
-            not leverPl and "Опломбирован" or not lever and "Распломбирован, выключен" or "Включен",
-            not leverPl and Color(0,150,0) or not lever and Color(150,150,0) or Color(150,50,0),
-            not leverPl and "Распломбировать" or lever and "Выключить" or "Включить", true,
-            not leverPl and "DoorManualOpenLeverPl" or "DoorManualOpenLever")
+    --     addButton(scrollPanel, "Ручная блокировка",
+    --         block and "Заблокировано" or "Разблокировано",
+    --         block and Color(150,50,0) or Color(0,150,0),
+    --         block and "Разблокировать" or "Блокировать", true,
+    --         "DoorManualBlock")
+    --     addButton(scrollPanel, "Переключатель ручного открытия",
+    --         leverPl and "Опломбирован" or not lever and "Распломбирован, выключен" or "Включен",
+    --         leverPl and Color(0,150,0) or not lever and Color(150,150,0) or Color(150,50,0),
+    --         leverPl and "Распломбировать" or lever and "Выключить" or "Включить", true,
+    --         leverPl and "DoorManualOpenLeverPl" or "DoorManualOpenLever")
 
-        scrollPanel:Dock( FILL )
-        scrollPanel:InvalidateLayout( true )
-        scrollPanel:SizeToChildren(false,true)
-        local spPefromLayout = scrollPanel.PerformLayout
-        function scrollPanel:PerformLayout()
-            spPefromLayout(self)
-            if not self.First then self.First = true return end
-            local _, y = scrollPanel:ChildrenSize()
-            if self.Centered then return end
-            self.Centered = true
-            panel:SetSize(512,math.min(350, y) + 35)
-            panel:Center()
-        end
-    end)
+    --     scrollPanel:Dock( FILL )
+    --     scrollPanel:InvalidateLayout( true )
+    --     scrollPanel:SizeToChildren(false,true)
+    --     local spPefromLayout = scrollPanel.PerformLayout
+    --     function scrollPanel:PerformLayout()
+    --         spPefromLayout(self)
+    --         if not self.First then self.First = true return end
+    --         local _, y = scrollPanel:ChildrenSize()
+    --         if self.Centered then return end
+    --         self.Centered = true
+    --         panel:SetSize(512,math.min(350, y) + 35)
+    --         panel:Center()
+    --     end
+    -- end)
 end

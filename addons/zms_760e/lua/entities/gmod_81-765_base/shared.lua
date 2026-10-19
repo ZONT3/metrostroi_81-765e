@@ -24,8 +24,8 @@ ENT.IkVersion = "765-dev"
 ENT.LeftDoorPositions = {}
 ENT.RightDoorPositions = {}
 for i = 0, 3 do
-    table.insert(ENT.LeftDoorPositions, Vector(350.14 - i * 235.617, 64.63, 14.4))
-    table.insert(ENT.RightDoorPositions, Vector(350.14 - i * 235.617, -64.63, 14.4))
+    table.insert(ENT.LeftDoorPositions, Vector(350.14 - i * 235.617, 64.63, -3.6))
+    table.insert(ENT.RightDoorPositions, Vector(350.14 - i * 235.617, -64.63, -3.6))
 end
 -- Workshop version backport
 ENT.LeftDoorPositionsBAK = ENT.LeftDoorPositions

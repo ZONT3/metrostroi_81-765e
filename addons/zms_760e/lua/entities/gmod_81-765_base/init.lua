@@ -18,6 +18,8 @@ end
 
 for idx = 1, 8 do
     table.insert(ENT.SyncTable, "DoorManualBlock" .. idx)
+    table.insert(ENT.SyncTable, "DoorManualOpenLever" .. idx)
+    table.insert(ENT.SyncTable, "DoorManualOpenLeverCap" .. idx)
 end
 
 --------------------------------------------------------------------------------
@@ -65,6 +67,13 @@ function ENT:Initialize()
         [KEY_PAD_6] = "PneumaticBrakeSet6",
         [KEY_PAD_7] = "PneumaticBrakeSet7",
     }
+
+    self.Plombs = { Init = true, }
+    for idx = 1, 8 do
+        local cap = "DoorManualOpenLeverCap" .. idx
+        self.Plombs["DoorManualOpenLever" .. idx] = { true, cap }
+        self.Plombs[cap] = true
+    end
 
     self.LeftDoorPositions = self.LeftDoorPositionsBAK
     self.RightDoorPositions = self.RightDoorPositionsBAK

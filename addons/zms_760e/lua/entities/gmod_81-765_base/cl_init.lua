@@ -17,7 +17,7 @@ ENT.ButtonMap["PVZ"] = {
     pos = Vector(-473.39, 44.09, 8.03),
     ang = Angle(0.000, 0.000, 90.000),
     width = 305,
-    height = 425,
+    height = 900,
     scale = 0.05,
     hideseat = 0.2,
     buttons = {}
@@ -448,23 +448,21 @@ for i = 1, 4 do
 end
 
 for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}) do
+    local left = k == 1
     for i, pos in ipairs(tbl) do
         local idx = (k - 1) * 4 + i
+        local offset_x = left and idx - 1 or idx - 5
         ENT.ClientProps["Door" .. idx] = {
             model = string.format("models/metrostroi_train/81-765_v1/common/door%d.mdl", idx),
-            pos = Vector(0, 0, 0),
-            ang = Angle(0, 0, 0),
-            hide = 2,
+            pos = Vector(0, 0, 0), ang = Angle(0, 0, 0), hide = 2,
         }
         ENT.ClientProps["Strip" .. idx] = {
             model = string.format("models/metrostroi_train/81-765_v1/lights/strips_salon_%d.mdl", idx),
-            pos = Vector(0, 0, 0),
-            ang = Angle(0, 0, 0),
-            hide = 2,
+            pos = Vector(0, 0, 0), ang = Angle(0, 0, 0), hide = 2,
         }
         ENT.ButtonMap["DoorAddressOpen" .. idx] = {
-            pos = pos + Vector(k == 1 and -250 - 10 or 250 + 10, 0, 170) * 0.05,
-            ang = Angle(0, k == 1 and 0 or -180, 90),
+            pos = pos + Vector(left and -250 - 10 or 250 + 10, 0, 170) * 0.05,
+            ang = Angle(0, left and 0 or -180, 90),
             width = 50, height = 50, scale = 0.05,
             buttons = {
                 {
@@ -475,8 +473,8 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
             }
         }
         ENT.ButtonMap["DoorAddressOpenOutside" .. idx] = {
-            pos = pos + Vector(k == 1 and -200 - 10 or 200 + 10, k == 1 and 24 or -24, 170) * 0.05,
-            ang = Angle(0, k == 1 and 180 or 0, 90),
+            pos = pos + Vector(left and -200 - 10 or 200 + 10, left and 24 or -24, 170) * 0.05,
+            ang = Angle(0, left and 180 or 0, 90),
             width = 50, height = 50, scale = 0.05,
             buttons = {
                 {
@@ -488,13 +486,66 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
         }
         ENT.ClientProps["DoorArrdessButton" .. idx] = {
             model = "models/metrostroi_train/81-765/door_button.mdl",
-            pos = k == 1 and pos - tbl[1] or tbl[1] - pos * Vector(-1, 1, 1),
-            ang = Angle(0, k == 1 and 0 or -180, 0),
+            pos = left and pos - tbl[1] or tbl[1] - pos * Vector(-1, 1, 1),
+            ang = Angle(0, left and 0 or -180, 0),
             hide = 2,
         }
+
+        ENT.ButtonMap["DoorManualOpenLever" .. idx] = {
+            pos = Vector(
+                (left and 312.23 or 388.13) - offset_x * 235.662,
+                left and 54.477 or -54.477,
+                26.54 + 50 * 0.10
+            ),
+            ang = left and Angle(0.000, 64.259, 90.000) or Angle(0.000, -115.737, 90.000),
+            width = 50, height = 110, scale = 0.10,
+            buttons = {
+                {
+                    ID = "DoorManualOpenLever" .. idx .. "Toggle",
+                    tooltip = "Аварийное открывание дверного проёма №" .. idx,
+                    x = 0, y = 50, w = 50, h = 50,
+                    model = {
+                        var = "DoorManualOpenLever" .. idx,
+                        model = "models/metrostroi_train/81-765_v1/common/aod.mdl",
+                        speed = 4, vmin = 0, vmax = 1, sndvol = 0.8, scale = 1,
+                        snd = function(val) return val and "pak_on" or "pak_off" end,
+                        sndmin = 80, sndmax = 1e3 / 3, sndang = Angle(0, 0, 0),
+                    }
+                },
+                {
+                    ID = "DoorManualOpenLeverCap" .. idx .. "Toggle",
+                    tooltip = "Крышка",
+                    x = 0, y = 100, w = 50, h = 10,
+                    model = {
+                        var = "DoorManualOpenLeverCap" .. idx,
+                        disable = "DoorManualOpenLever" .. idx .. "Toggle",
+                        model = "models/metrostroi_train/81-765_v1/common/aod_cover.mdl",
+                        x = 0, y = -30, z = 0, speed = 4, min = 1, max = 0, scale = 1,
+                        plomb = {
+                            model = "models/metrostroi_train/81/plomb.mdl",
+                            x = 0, y = 30, z = -5,
+                            var = "DoorManualOpenLever" .. idx .. "Pl", ID = "DoorManualOpenLever" .. idx .. "Pl",
+                        }
+                    }
+                },
+                {
+                    ID = "DoorManualOpenLeverCap" .. idx .. "Toggle",
+                    tooltip = "Крышка",
+                    x = 0, y = 0, w = 50, h = 50,
+                    model = {
+                        var = "DoorManualOpenLeverCap" .. idx,
+                    }
+                }
+            }
+        }
+
         ENT.ButtonMap["DoorManualBlock" .. idx] = {
-            pos = pos + Vector(k == 1 and 488 or -488, k == 1 and -18 or 18, -715) * 0.05,
-            ang = Angle(0, k == 1 and 0 or -180, 90),
+            pos = Vector(
+                (left and 376.8 or 323.2) - offset_x * 235.54,
+                left and 65.53 or -65.53,
+                -36.8
+            ),
+            ang = Angle(0, left and 0 or -180, 90),
             width = 50,
             height = 50,
             scale = 0.05,
@@ -517,8 +568,8 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
             }
         }
         ENT.ButtonMap["DoorManual" .. idx] = {
-            pos = pos - Vector(1200 * (k == 1 and 1 or -1), 0, -2030) * 0.05 / 2,
-            ang = Angle(0, k == 1 and 0 or -180, 90),
+            pos = pos - Vector(1200 * (left and 1 or -1), 0, -2030) * 0.05 / 2,
+            ang = Angle(0, left and 0 or -180, 90),
             width = 1200,
             height = 2030,
             scale = 0.05,
@@ -548,8 +599,8 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
             }
         }
         ENT.ButtonMap["DoorManualOutside" .. idx] = {
-            pos = pos + Vector(1600 * (k == 1 and 1 or -1), k == 1 and 20 or -20, 2030) * 0.05 / 2,
-            ang = Angle(0, k == 1 and 180 or 0, 90),
+            pos = pos + Vector(1600 * (left and 1 or -1), left and 20 or -20, 2030) * 0.05 / 2,
+            ang = Angle(0, left and 180 or 0, 90),
             width = 1600,
             height = 2030,
             scale = 0.05,
@@ -580,6 +631,7 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
         }
     end
 end
+
 
 local LIGHT_INTER_1 = 1
 local LIGHT_INTER_2 = 2

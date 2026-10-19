@@ -48,7 +48,7 @@ end
 function ENT:Initialize()
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.Initialize(self)
-    self.Plombs = {
+    table.Merge(self.Plombs, {
         ABESD = {true, "ABESDk"},
         ABESDk = true,
         SD = {true, "SDk"},
@@ -58,8 +58,7 @@ function ENT:Initialize()
         K9 = true,
         UAVA = true,
         R_ASNPOn = true,
-        Init = true,
-    }
+    })
 
     -- Create seat entities
     self.DriverSeat = self:CreateSeat("driver", Vector(468, 15, -27)) --Vector(427,17.5,-35))--  -- +Vector(21,7,-10)) 447.8   455            Vector(455,18.1,-35)
