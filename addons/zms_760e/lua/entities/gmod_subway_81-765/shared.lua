@@ -224,6 +224,10 @@ function ENT:InitializeSounds()
     self.SoundPositions["door_k35_2_open"] = {800, 1e9, Vector(411, -31, 14), 0.5}
     self.SoundNames["door_k35_2_close"] = self.SoundNames["door_cab_close"]
     self.SoundPositions["door_k35_2_close"] = self.SoundPositions["door_k35_2_open"]
+    self.SoundNames["door_bay_1_open"] = self.SoundNames["door_cab_open"]
+    self.SoundPositions["door_bay_1_open"] = {800, 1e9, Vector(396, 14, -6), 0.5}
+    self.SoundNames["door_bay_1_close"] = self.SoundNames["door_cab_close"]
+    self.SoundPositions["door_bay_1_close"] = self.SoundPositions["door_bay_1_open"]
     self.SoundNames["door_bay_2_open"] = self.SoundNames["door_cab_open"]
     self.SoundPositions["door_bay_2_open"] = {800, 1e9, Vector(416, 17, 0), 0.5}
     self.SoundNames["door_bay_2_close"] = self.SoundNames["door_cab_close"]

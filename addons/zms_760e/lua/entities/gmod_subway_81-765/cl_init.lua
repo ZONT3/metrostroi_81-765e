@@ -2861,7 +2861,7 @@ ENT.ButtonMap["CoupleCenteringF"] = {
 }
 
 ENT.ButtonMap["PassengerDoor"] = {
-    pos = Vector(400, -28.5, 40),
+    pos = Vector(389, -28.5, 40),
     ang = Angle(0, 90, 90),
     width = 730,
     height = 2000,
@@ -2888,7 +2888,7 @@ ENT.ButtonMap["PassengerDoor"] = {
 }
 
 ENT.ButtonMap["PassengerDoor2"] = {
-    pos = Vector(398, 8, 40),
+    pos = Vector(387, 8, 40),
     ang = Angle(0, -90, 90),
     width = 730,
     height = 2000,
@@ -3229,13 +3229,25 @@ for _, bay in ipairs(bays) do
             model = bay.models[1],
             pos = Vector(0, 0, 0),
             ang = Angle(0, 0, 0),
-            hide = 2,
+            hideseat = 2,
         }
     end
 end
 ENT.ButtonMap["BayCoverBud5"] = nil
 ENT.ButtonMap["BayCoverBud5_close"] = nil
 ENT.ClientProps["BayCoverBud5"] = nil
+
+ENT.ButtonMap["DoorBay1_close"] = {
+    pos = Vector(354.5, 50.5, 38.6), ang = Angle(0, 0, 90),
+    width = 37, height = 86, scale = 1,
+    buttons = {{ ID = "DoorBay1_close", tooltip = "Закрыть", x = 0, y = 0, w = 37, h = 86 }}
+}
+
+ENT.ButtonMap["BayHandle"] = {
+    pos = Vector(394.5, 9.2, -3.4), ang = Angle(0, 0, 90),
+    width = 250, height = 110, scale = 0.05,
+    buttons = {{ ID = "BayHandle", tooltip = "Открыть аппаратный отсек", x = 0, y = 0, w = 250, h = 110, }}
+}
 
 ENT.ClientProps["BayMain"] = {
     model = "models/metrostroi_train/81-765_v1/bays/bay_main.mdl",
@@ -3249,6 +3261,13 @@ ENT.ClientProps["DoorBay1"] = {
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hide = 2
+}
+
+ENT.ClientProps["BayHandle"] = {
+    model = "models/metrostroi_train/81-765_v1/765/bay_main_handle.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hideseat = 0.5
 }
 
 ENT.ClientProps["PMV"] = {
@@ -3963,6 +3982,17 @@ function ENT:Think(...)
     self:ShowHideSmooth("cab_full", cabl_full)
     self:ShowHideSmooth("cab_half", cabl_half)
     self:SetLightPower(LIGHT_CAB, true, cabl_full * 0.8 + cabl_half * 0.2)
+
+    local k35_1 = self:HandleDoorState("K35C1", "door_k35_1", "BayCoverK35_1", "BayCoverK35_1", 0.1, 0.2)
+    local k35_2 = self:HandleDoorState("K35C2", "door_k35_2", "BayCoverK35_2", "BayCoverK35_2", 0.1, 0.2)
+    self:ShowHide("K35", k35_1 or k35_2)
+    self:HidePanel("K35", not k35_1 and not k35_2)
+
+    self:Animate("BayHandle", self:GetPackedBool("BayHandle") and 1 or 0, 0, 1, 1.5, false)
+    local bm1 = self:HandleDoorState("BayMain1Val", "door_bay_1", "DoorBay1", "DoorBay1", 0, 0, false, true)
+    local bm2 = self:HandleDoorState("BayMain2Val", "door_bay_2", "BayCoverMain2", "BayCoverMain2", 0.1, 0.2)
+    local bm3 = self:HandleDoorState("BayMain3Val", "door_bay_3", "BayCoverMain3", "BayCoverMain3", 0.1, 0.2)
+    self:ShowHide("BayMain", bm1 or bm2 or bm3)
 
     return retval
 end

@@ -1303,15 +1303,6 @@ function ENT:Think()
         self:AnimateCustom("DoorCabL", "window", self:GetPackedBool("CabinWindowLeft") and 1 or 0, 0, 1, 8, 0.5)
         self:AnimateCustom("DoorCabR", "window", self:GetPackedBool("CabinWindowRight") and 1 or 0, 0, 1, 8, 0.5)
 
-        local k35_1 = self:HandleDoorState("K35C1", "door_k35_1", "BayCoverK35_1", "BayCoverK35_1", 0.1, 0.2)
-        local k35_2 = self:HandleDoorState("K35C2", "door_k35_2", "BayCoverK35_2", "BayCoverK35_2", 0.1, 0.2)
-        self:ShowHide("K35", k35_1 or k35_2)
-        self:HidePanel("K35", not k35_1 and not k35_2)
-
-        local bm2 = self:HandleDoorState("BayMain2Val", "door_bay_2", "BayCoverMain2", "BayCoverMain2", 0.1, 0.2)
-        local bm3 = self:HandleDoorState("BayMain3Val", "door_bay_3", "BayCoverMain3", "BayCoverMain3", 0.1, 0.2)
-        self:ShowHide("BayMain", bm2 or bm3)
-
         self:Animate("CabChairAdd", self:GetPackedBool("CabChairAdd") and 1 or 0, 0, 1, 4, 0.5)
         self:HidePanel("CoupleCenteringF", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("FrontCoupled", false))
         self:HidePanel("CoupleCenteringR", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("RearCoupled", false))
@@ -1600,11 +1591,13 @@ function ENT:PlayDoorSound(bool, door)
     end
 end
 
-function ENT:HandleDoorState(nwvar, snd, panel, prop, open_state, close_state, two_sides)
+function ENT:HandleDoorState(nwvar, snd, panel, prop, open_state, close_state, two_sides, no_open)
     local state = self:GetPackedBool(nwvar)
     local val = self:Animate(prop, state and 1 or 0, 0, 1, 2, 0.5)
     local b = self:PlayDoorSound2(snd, val, 0.1, 0.2, state)
-    self:HidePanel(panel, b)
+    if not no_open then
+        self:HidePanel(panel, b)
+    end
     self:HidePanel(panel .. "_close", not b)
     if two_sides then
         self:HidePanel(panel .. "_close2", not b)

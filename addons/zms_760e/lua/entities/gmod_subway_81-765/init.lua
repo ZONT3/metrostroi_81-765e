@@ -204,8 +204,6 @@ function ENT:Initialize()
     self.ALSVal = 0
     self.K35C1 = false
     self.K35C2 = false
-    self.BayCoverMain2 = false
-    self.BayCoverMain3 = false
 end
 
 function ENT:InitializeSystemsServer()
@@ -349,8 +347,10 @@ function ENT:Think()
     self:SetPackedBool("CabChairAdd", self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
     self:SetPackedBool("K35C1", self.K35C1)
     self:SetPackedBool("K35C2", self.K35C2)
+    self:SetPackedBool("BayMain1Val", self.BayMain1Val)
     self:SetPackedBool("BayMain2Val", self.BayMain2Val)
     self:SetPackedBool("BayMain3Val", self.BayMain3Val)
+    self:SetPackedBool("BayHandle", self.BayHandle)
 
     self:SetPackedRatio("Cran", self.Pneumatic.DriverValvePosition)
 
@@ -420,6 +420,13 @@ function ENT:OnButtonPress(button, ply)
     end
     if button == "BayCoverMain3" then
         self.BayMain3Val = not self.BayMain3Val
+    end
+    if button == "BayHandle" then
+        self.BayHandle = not self.BayHandle
+        self.BayMain1Val = true
+    end
+    if button == "DoorBay1_close" then
+        self.BayMain1Val = false
     end
 
 

@@ -125,7 +125,7 @@ function TRAIN_SYSTEM:Initialize()
     self.Train:LoadSystem("EmerCloseDoors", "Relay", "Switch", { bass = true })
     self.Train:LoadSystem("EmergencyDoors", "Relay", "Switch", { bass = true })
 
-    self.Train:LoadSystem("CabinLight","Relay","Switch",{ maxvalue = 2, defaultvalue = 0, bass = true})
+    self.Train:LoadSystem("CabinLight", "Relay", "Switch", { maxvalue = 2, defaultvalue = 0, bass = true})
 
     for k, cfg in pairs(PakToggles or {}) do
         self.Train:LoadSystem(k, "Relay", "Switch", {
