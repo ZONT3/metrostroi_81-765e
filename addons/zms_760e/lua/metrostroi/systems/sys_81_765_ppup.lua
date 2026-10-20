@@ -36,7 +36,8 @@ function TRAIN_SYSTEM:Think(dT)
                 self.L3 = true
                 self.L4 = true
                 self.FireL = true
-                self.MsgL = true
+                self.MsgL = false
+                self.WarnL = true
                 self.NextState = CurTime() + 0.01
             elseif self.State == -2 then
                 self.L1 = false
@@ -44,11 +45,13 @@ function TRAIN_SYSTEM:Think(dT)
                 self.L3 = false
                 self.L4 = false
                 self.FireL = true
-                self.MsgL = true
+                self.MsgL = false
+                self.WarnL = true
                 self.NextState = CurTime() + 2
             elseif self.State == -1 then
                 self.FireL = false
                 self.MsgL = true
+                self.WarnL = false
                 self.NextState = CurTime() + 8
             elseif self.State == 0 then
                 self.State = 1
@@ -64,6 +67,7 @@ function TRAIN_SYSTEM:Think(dT)
 
         if self.State == 1 then
             self.MsgL = true
+            self.WarnL = false
             self.L3 = true
             self.L4 = true
 
@@ -84,6 +88,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.L4 = false
         self.FireL = false
         self.MsgL = false
+        self.WarnL = false
         self.ReadyMessage = nil
     end
 
@@ -94,6 +99,7 @@ function TRAIN_SYSTEM:Think(dT)
     Wag:SetNW2Bool("PPUP:ButtonL4", self.L4)
     Wag:SetNW2Bool("PPUP:Fire", self.FireL)
     Wag:SetNW2Bool("PPUP:Msg", self.MsgL)
+    Wag:SetNW2Bool("PPUP:Warn", self.WarnL)
 end
 
 
@@ -111,6 +117,9 @@ end
 
 function TRAIN_SYSTEM:ClientThink()
     local Wag = self.Train
+    local warn = Wag:GetNW2Bool("PPUP:Msg", false) and Wag:GetNW2Bool("PPUP:Warn", false)
+    Wag:HideButton("!PPUPWarn", not warn)
+    Wag:HideButton("!PPUPMsg", warn)
     if Wag:ShouldDrawPanel("PPUP") then
         render.PushRenderTarget(Wag.PPUP, 0, 0, scw, sch)
         render.Clear(0, 0, 0, 0)

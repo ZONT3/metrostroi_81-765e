@@ -1841,14 +1841,10 @@ ENT.ButtonMap["PPUPButtons"] = {
                 var = "PPUP4",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_rect_green.mdl",
-                    var = "PPUP:ButtonL4",
-                    speed = 16,
-                    ang = Angle(62, 0, 0),
-                    color = Color(187, 255, 91),
-                    x = 0, y = 0, z = 0.5, scale = 1.05,
+                    var = "PPUP:ButtonL4", ang = Angle(62, 0, 0),
+                    speed = 16, x = 0, y = 0, z = 0.5, scale = 1.05,
                 },
-                z = -0.6, scale = 1.05,
-                ang = Angle(0, -62, 90),
+                z = -0.6, scale = 1.05, ang = Angle(0, -62, 90),
                 speed = 12, vmin = 0, vmax = 1, sndvol = 0.3,
                 snd = function(val) return val and "button_square_press" or "button_square_release" end,
                 sndmin = 80, sndmax = 1e3 / 3, sndang = Angle(-90, 0, 0),
@@ -1859,40 +1855,41 @@ ENT.ButtonMap["PPUPButtons"] = {
             tooltip = "ППУ-П: Пожар!",
             x = 0, y = 0, w = 20, h = 15,
             model = {
-                model = "models/metrostroi_train/81-760/81_760_rect_button_red.mdl",
+                model = "models/metrostroi_train/81-760/81_760_rect_button_yellow.mdl",
                 lamp = {
-                    model = "models/metrostroi_train/81-760/81_760_lamp_rect_red.mdl",
-                    var = "PPUP:Fire",
-                    anim = true,
-                    ang = Angle(62, 0, 0),
-                    z = 0.5
+                    model = "models/metrostroi_train/81-760/81_760_lamp_rect_yellow.mdl",
+                    var = "PPUP:Fire", ang = Angle(62, 0, 0),
+                    speed = 16, x = 0, y = 0, z = 1, scale = 1.05,
                 },
-                x = 0.5, z = -1.4, scale = 1.05,
-                ang = Angle(0, -62, 90),
-                speed = 12, vmin = 0, vmax = 1, sndvol = 0.3,
-                snd = function(val) return val and "button_square_press" or "button_square_release" end,
-                sndmin = 80, sndmax = 1e3 / 3, sndang = Angle(-90, 0, 0),
+                z = -2, scale = 1.05, ang = Angle(0, -62, 90),
             }
         },
         {
             ID = "!PPUPMsg",
-            tooltip = "ППУ-П: Сообщение",
+            tooltip = "ППУ-П: Работа",
             x = 108, y = 0, w = 20, h = 15,
             model = {
                 model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
                 lamp = {
                     model = "models/metrostroi_train/81-760/81_760_lamp_rect_green.mdl",
-                    var = "PPUP:Msg",
-                    speed = 16,
-                    ang = Angle(62, 0, 0),
-                    color = Color(187, 255, 91),
-                    x = 0, y = 0, z = 0.5, scale = 1.05,
+                    var = "PPUP:Msg", ang = Angle(62, 0, 0),
+                    speed = 16, x = 0, y = 0, z = 0.5, scale = 1.05,
                 },
-                z = -0.8, scale = 1.05,
-                ang = Angle(0, -62, 90),
-                speed = 12, vmin = 0, vmax = 1, sndvol = 0.3,
-                snd = function(val) return val and "button_square_press" or "button_square_release" end,
-                sndmin = 80, sndmax = 1e3 / 3, sndang = Angle(-90, 0, 0),
+                z = -0.6, scale = 1.05, ang = Angle(0, -62, 90),
+            }
+        },
+        {
+            ID = "!PPUPWarn",
+            tooltip = "ППУ-П: Сообщение",
+            x = 108, y = 0, w = 20, h = 15,
+            model = {
+                model = "models/metrostroi_train/81-760/81_760_rect_button_green.mdl",
+                lamp = {
+                    model = "models/metrostroi_train/81-760/81_760_lamp_rect_red.mdl",
+                    var = "PPUP:Warn", ang = Angle(62, 0, 0),
+                    speed = 16, x = 0, y = 0, z = 0.5, scale = 1.05,
+                },
+                z = -0.6, scale = 1.05, ang = Angle(0, -62, 90),
             }
         }
     }
