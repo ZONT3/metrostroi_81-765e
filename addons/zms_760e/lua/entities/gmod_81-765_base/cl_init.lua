@@ -193,6 +193,40 @@ ENT.ButtonMap["CoupleCenteringR"] = {
     }
 }
 
+ENT.ButtonMap["BUV"] = {
+    pos = Vector(-474.68, 41.83, 34.29), ang = Angle(0.000, 0.000, 90.000),
+    width = 1737, height = 2049, scale = 0.01, hideseat = 1,
+    buttons = {
+        {
+            model = { lamp = {
+                var = "BUV:Power", color = Color(83, 235, 53)
+            } }
+        }, {
+            model = { lamp = {
+                var = "BUV:Work", color = Color(226, 25, 11)
+            } }
+        }, {
+            model = { lamp = {
+                var = "BUV:Work", color = Color(83, 235, 53)
+            } }
+        }, {
+            model = { lamp = {
+                var = "BUV:Power", color = Color(226, 25, 11),
+                getfunc = function(ent) return ent:GetNW2Bool("BUV:Power", false) and not ent:GetNW2Bool("BUV:Work", false) and 1 or 0 end
+            } }
+        }
+    }
+}
+for idx, b in ipairs(ENT.ButtonMap.BUV.buttons) do
+    b.ID = "!BuvLedGroup" .. idx
+    b.tooltip = "БУВ-S"
+    b.x, b.y = 0, 0
+    b.w = ENT.ButtonMap.BUV.width
+    b.h = ENT.ButtonMap.BUV.height
+    b.model.lamp.model = Format("models/metrostroi_train/81-765_v1/lights/led_buv_%d.mdl", idx)
+    b.model.lamp.ang = 0
+end
+
 local bays = {
     {
         names = {"BayPuv", "BayCoverPuv"},
@@ -1247,6 +1281,7 @@ function ENT:Think()
     self:ShowHide("BayPuv", puv or bud_4)
     self:ShowHide("BayBs", bs)
     self:HidePanel("PVZ", not puv)
+    self:HidePanel("BUV", not puv)
 
     for i = 1, 4 do
         local bnt_type = self:GetNW2Int("BntType", 1)

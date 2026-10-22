@@ -337,7 +337,7 @@ if SERVER then
 
             local announceState = "Unpowered"
             if manual and not block then
-                announceState = poweron and "Aod" or announceState
+                announceState = poweron and (not zeroSpeed and "Closing" or "Aod") or announceState
                 if not self.WasManual[idx] then
                     dir[i] = dir[i] + 0.1
                     self.WasManual[idx] = true

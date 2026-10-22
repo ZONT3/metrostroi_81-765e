@@ -1,4 +1,4 @@
--- 81-765 VVVF motor equipment KATP-3 / KATP-4 (sort of)
+-- 81-765 VVVF async invertor equipment KATP-3 / KATP-4 (sort of)
 Metrostroi.DefineSystem("81_765_VVVF")
 TRAIN_SYSTEM.DontAccelerateSimulation = false
 

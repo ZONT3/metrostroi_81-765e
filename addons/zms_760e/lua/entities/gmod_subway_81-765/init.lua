@@ -165,7 +165,7 @@ function ENT:Initialize()
         [KEY_PAD_MULTIPLY] = "EmerX2Set",
         [KEY_PAD_8] = "EmergencyCompressor2Set",
         [KEY_PAD_9] = "EmerBrakeToggle",
-        [KEY_BACKSPACE] = {"EmergencyBrakeToggle", helper="EmergencyBrakeValveToggle"},
+        [KEY_BACKSPACE] = { "EmergencyBrakeToggle", helper = "EmergencyBrakeValveToggle" },
         [KEY_L] = "HornEngage",
     }
 

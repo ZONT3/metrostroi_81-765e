@@ -3163,6 +3163,31 @@ ENT.ClientProps["DoorCabR"] = {
     end
 }
 
+ENT.ButtonMap["BayMainAbs"] = {
+    pos = Vector(404.75, 29.245, 36.51), ang = Angle(0.000, -90.000, 90.000),
+    width = 1176, height = 1896, scale = 0.01, hideseat = 1,
+    buttons = {
+        {
+            model = { lamp = {
+                var = "ABS:Power", color = Color(83, 235, 53)
+            } }
+        }, {
+            model = { lamp = {
+                var = "ABS:Power", color = Color(226, 25, 11)
+            } }
+        }
+    }
+}
+for idx, b in ipairs(ENT.ButtonMap.BayMainAbs.buttons) do
+    b.ID = "!AbsLedGroup" .. idx
+    b.tooltip = "БУПЮ"
+    b.x, b.y = 0, 0
+    b.w = ENT.ButtonMap.BayMainAbs.width
+    b.h = ENT.ButtonMap.BayMainAbs.height
+    b.model.lamp.model = Format("models/metrostroi_train/81-765_v1/lights/led_abs_%d.mdl", idx)
+    b.model.lamp.ang = 90
+end
+
 local bays = {
     {
         names = {"BayK35_1", "BayCoverK35_1"},
@@ -3992,7 +4017,9 @@ function ENT:Think(...)
     local bm1 = self:HandleDoorState("BayMain1Val", "door_bay_1", "DoorBay1", "DoorBay1", 0, 0, false, true)
     local bm2 = self:HandleDoorState("BayMain2Val", "door_bay_2", "BayCoverMain2", "BayCoverMain2", 0.1, 0.2)
     local bm3 = self:HandleDoorState("BayMain3Val", "door_bay_3", "BayCoverMain3", "BayCoverMain3", 0.1, 0.2)
-    self:ShowHide("BayMain", bm1 or bm2 or bm3)
+    local bm = bm1 or bm2 or bm3
+    self:ShowHide("BayMain", bm)
+    self:HidePanel("BayMainAbs", not bm)
 
     return retval
 end

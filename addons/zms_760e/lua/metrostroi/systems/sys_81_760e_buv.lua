@@ -49,7 +49,6 @@ function TRAIN_SYSTEM:Initialize()
     self.FirstHalf = false
     self.Strength = 0
     self.TargetStrength = 0
-    self.AKBVoltage = 0
     self.PrevBV = 0
     self.SchemeSlope = false
     self.Recurperation = 1
@@ -78,7 +77,7 @@ end
 function TRAIN_SYSTEM:Outputs()
     return {
         "Brake", "Drive", "DriveStrength", "Disassembly", "PSN", "MK", "Vent1", "Vent2", "Cond1", "Cond2", "Strength", "Recurperation",
-        "Slope", "Slope1", "AKBVoltage", "SchemeSlope", "MainLights", "Power", "ZeroSpeed", "Load"}
+        "Slope", "Slope1", "SchemeSlope", "MainLights", "Power", "ZeroSpeed", "Load"}
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -149,10 +148,6 @@ local SFTbl = {
     "SF22F1", -- БУФТ
 }
 
-local function CheckVoltage(Train)
-    return 80
-end
-
 function TRAIN_SYSTEM:Think(dT)
     if CurTime() - self.CurTime < 0.1 then return end
     self.CurTime = CurTime()
@@ -162,9 +157,14 @@ function TRAIN_SYSTEM:Think(dT)
     local HasEngine = not not Train.AsyncInverter
     local P = HasEngine and Train.Electric.Power750V or Train.Electric.Main750V
 
-    self.AKBVoltage = CheckVoltage(Train)
-    self.Power = Train.Electric.EmerSupply
-    self.State = self.Power > 0
+    self.Power = Train.Electric.EmerSupply * Train.SF23F11.Value
+    if self.Power < 1 and self.Work then self.Work = nil end
+    if not self.State and self.Power > 0 and not self.Work then self.Work = CurTime() + math.Rand(0.4, 0.68) end
+    self.State = self.Power > 0 and self.Work and CurTime() >= self.Work
+
+    Train:SetNW2Bool("BUV:Power", self.Power > 0)
+    Train:SetNW2Bool("BUV:Work", self.State)
+
     self.ADUVWork = (Train.Electric.EmerSupply * Train.SF21F1.Value > 0) or self.States.BCPressure == nil
     self.ADUTWork = (Train.Electric.BTO > 0) or self.States.BCPressure == nil
     self.BUDWork = Train.Electric.KM * (Train.SF80F13.Value + Train.SF80F14.Value + Train.SF80F12.Value) > 0
@@ -174,13 +174,14 @@ function TRAIN_SYSTEM:Think(dT)
     ) and 1 or (not HasEngine and 1 or 0)
 
     self.PuWork = self.State and Train.SF23F10.Value > 0
+    Train:SetNW2Bool("ABS:Power", self.PuWork)
 
     local WheelsF = IsValid(Train.FrontBogey) and Train.FrontBogey.Wheels
     local WheelsR = IsValid(Train.RearBogey) and Train.RearBogey.Wheels
 
-    self.Load = self.Power * 160 + (self.PuWork and 46 or 0) + (self.ADUVWork and self.ADUTWork and 140 or 0) + Train.BUD.Load + Train.IK.Load
+    self.Load = self.Power * 60 + (self.State and 100 or 0) + (self.PuWork and 46 or 0) + (self.ADUVWork and self.ADUTWork and 140 or 0) + Train.BUD.Load + Train.IK.Load
 
-    if self.State and Train.SF23F11.Value > 0.5 then
+    if self.State then
         self.Load = self.Load + 100
         if not self.States.BUVWork then self.Train:CANWrite("BUV", Train:GetWagonNumber(), "BUKP", nil, "Get", 1) end
         for i = 1, 4 do

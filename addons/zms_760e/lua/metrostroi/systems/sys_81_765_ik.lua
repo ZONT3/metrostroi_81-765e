@@ -39,7 +39,7 @@ if SERVER then
 
     function TRAIN_SYSTEM:Think(dT)
         local Wag = self.Train
-        self.Power = Wag.Electric.KM > 0 and Wag.BUV.Power * (Wag.SF45F7.Value + Wag.SF45F8.Value) > 0
+        self.Power = Wag.Electric.KM > 0 and Wag.Electric.EmerSupply * (Wag.SF45F7.Value + Wag.SF45F8.Value) > 0
         local poweron = self.Power and not self.Train.BNT.Power
         self.Train.BNT.Power = self.Power
         Wag:SetNW2Bool("DoorAlarmState", self.Power and self.DoorAlarm or false)
@@ -55,7 +55,7 @@ if SERVER then
             end
         end
 
-        self.Load = (Wag.BUV.Power * (Wag.SF45F7.Value + Wag.SF45F8.Value) * 130 + (self.Power and 74 or 0)) * (Wag:GetNW2Int("BNT:ScreenFps", 12) > 25 and 1.8 or 1)
+        self.Load = (Wag.Electric.EmerSupply * (Wag.SF45F7.Value + Wag.SF45F8.Value) * 130 + (self.Power and 74 or 0)) * (Wag:GetNW2Int("BNT:ScreenFps", 12) > 25 and 1.8 or 1)
     end
 
     function TRAIN_SYSTEM:RunInit()
