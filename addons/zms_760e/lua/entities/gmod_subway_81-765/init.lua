@@ -45,6 +45,13 @@ end
 -- local BaseClass = baseclass.Get("gmod_81-765_base")
 -- ENT.Base = "gmod_subway_base"  -- TODO Implement 765_base instead when (if) moving to metrostroi 2025+
 
+
+local LIGHT_GLOW_WHITE_L = 7
+local LIGHT_GLOW_WHITE_R = 8
+local LIGHT_GLOW_RED_L = 9
+local LIGHT_GLOW_RED_R = 10
+local LIGHT_CAB = 11
+
 function ENT:Initialize()
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     BaseClass.Initialize(self)
@@ -204,6 +211,33 @@ function ENT:Initialize()
     self.ALSVal = 0
     self.K35C1 = false
     self.K35C2 = false
+
+    if Metrostroi.Version <= 1537278077 then
+        self.Lights = self.Lights or {}
+        table.Merge(self.Lights, {
+            [LIGHT_GLOW_WHITE_L] = {
+                "light", Vector(520, 57, -5.7), Angle(0, 0, 0), Color(220, 220, 220),
+                brightness = 0.2, scale = 4,
+                texture = "sprites/light_glow02.vmt"
+            },
+            [LIGHT_GLOW_WHITE_R] = {
+                "light", Vector(520, -57, -5.7), Angle(0, 0, 0), Color(220, 220, 220),
+                brightness = 0.2, scale = 4,
+                texture = "sprites/light_glow02.vmt"
+            },
+            [LIGHT_GLOW_RED_L] = {
+                "light", Vector(515.55, 55, 22), Angle(0, 0, 0), Color(255, 20, 20),
+                brightness = 0.2, scale = 4,
+                texture = "sprites/light_glow02.vmt"
+            },
+            [LIGHT_GLOW_RED_R] = {
+                "light", Vector(515.55, -55, 22), Angle(0, 0, 0), Color(255, 20, 20),
+                brightness = 0.2, scale = 4,
+                texture = "sprites/light_glow02.vmt"
+            },
+            [LIGHT_CAB] = { "dynamiclight", Vector(470, 0, 22), Angle(0,0,0), Color(220, 220, 220), brightness = 0.5, distance = 500 },
+        })
+    end
 end
 
 function ENT:InitializeSystemsServer()
@@ -308,9 +342,14 @@ function ENT:Think()
     self:SetPackedRatio("Headlights", HeadlightsPower)
     self:SetPackedBool("BacklightsEnabled", Panel.RedLights > 0)
 
+
     local cablight = Panel.CabLight == 1 and 0.25 or Panel.CabLight == 2 and 0.8 or 0
     local cabl = cablight > 0
-    -- self:SetLightPower(10, cabl, cablight)
+    if Metrostroi.Version <= 1537278077 then
+        local cabl_full = cabl and 1 or 0
+        local cabl_half = cablight > 0.25 and 1 or 0
+        self:SetLightPower(LIGHT_CAB, true, cabl_full * 0.8 + cabl_half * 0.2)
+    end
     self:SetPackedBool("CabinEnabledEmer", cabl)
     self:SetPackedBool("CabinEnabledFull", cablight > 0.25)
 

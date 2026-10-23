@@ -18,6 +18,13 @@ table.insert(ENT.ClientProps, {
     hide = 2,
 })
 
+ENT.ClientProps["Factory"] = {
+    model = "models/metrostroi_train/81-765_v1/767/factory_767.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2,
+}
+
 function ENT:ReInitBogeySounds(bogey)
     if not IsValid(bogey) then return end
     bogey.EngineSNDConfig = bogey.EngineSNDConfig or {}

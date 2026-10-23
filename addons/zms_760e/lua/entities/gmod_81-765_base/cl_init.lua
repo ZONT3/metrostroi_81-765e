@@ -314,6 +314,20 @@ for _, bay in ipairs(bays) do
     end
 end
 
+-- TODO openable
+ENT.ClientProps["BayCoverPneumo"] = {
+    model = "models/metrostroi_train/81-765_v1/common/bay_pneum_cover.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2,
+}
+ENT.ClientProps["BayCoverAbs"] = {
+    model = "models/metrostroi_train/81-765_v1/common/bay_abs_cover.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2,
+}
+
 for i = 1, 4 do
     ENT.ButtonMap["BNTR" .. i] = {
         pos = Vector(375.83 - 235.64 * (i - 1), -43.90, 52.27),
@@ -1295,12 +1309,14 @@ function ENT:Think()
         self:HidePanel("BNT_MST_STRIP_R" .. i, bnt_type ~= 3)
     end
 
-    local interior_emer = self:GetPackedBool("SalonLighting1")
-    local interior_full = self:GetPackedBool("SalonLighting2")
-    local interior_bright = interior_emer and interior_full and 1 or interior_emer and 0.4 or 0
-    self:SetLightPower(LIGHT_INTER_1, interior_bright > 0, interior_bright)
-    self:SetLightPower(LIGHT_INTER_2, interior_bright > 0, interior_bright)
-    self:SetLightPower(LIGHT_INTER_3, interior_bright > 0, interior_bright)
+    if Metrostroi.Version > 1537278077 then
+        local interior_emer = self:GetPackedBool("SalonLighting1")
+        local interior_full = self:GetPackedBool("SalonLighting2")
+        local interior_bright = interior_emer and interior_full and 1 or interior_emer and 0.4 or 0
+        self:SetLightPower(LIGHT_INTER_1, interior_bright > 0, interior_bright)
+        self:SetLightPower(LIGHT_INTER_2, interior_bright > 0, interior_bright)
+        self:SetLightPower(LIGHT_INTER_3, interior_bright > 0, interior_bright)
+    end
 
     if not self.IsIntermediate then
         self:ShowHide("ASHook", ValidfB)

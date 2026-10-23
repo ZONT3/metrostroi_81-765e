@@ -24,6 +24,9 @@ end
 
 --------------------------------------------------------------------------------
 
+local LIGHT_INTER_1 = 1
+local LIGHT_INTER_2 = 2
+local LIGHT_INTER_3 = 3
 function ENT:Initialize()
     -- Set model and initialize
     self:SetModel(self.Model)
@@ -108,6 +111,14 @@ function ENT:Initialize()
         if self.IsIntermediate or idx ~= 5 then
             self["BayCoverBudVal" .. idx] = false
         end
+    end
+
+    if Metrostroi.Version <= 1537278077 then
+        self.Lights = {
+            [LIGHT_INTER_1] = { "dynamiclight", Vector( 220, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 3, distance = 350 },
+            [LIGHT_INTER_2] = { "dynamiclight", Vector( -80, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 3, distance = 350 },
+            [LIGHT_INTER_3] = { "dynamiclight", Vector( -330, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 3, distance = 350 },
+        }
     end
 
     self:CreateDoorTriggers()
@@ -307,13 +318,17 @@ function ENT:Think()
         self:SetPackedRatio("HV", (self.SF42F2.Value * self.Electric.KM > 0.5 and self.Electric.Main750V or 0) / 1000)
     end
 
-    -- local passlight = Panel.SalonLighting1 * 0.25 + Panel.SalonLighting2 * 0.75
-    -- local passl = passlight > 0
-    -- self:SetLightPower(11, passl, passlight)
-    -- self:SetLightPower(12, passl, passlight)
-    -- self:SetLightPower(13, passl, passlight)
-    self:SetPackedBool("SalonLighting1", Panel.SalonLighting1 > 0)
-    self:SetPackedBool("SalonLighting2", Panel.SalonLighting2 > 0)
+    local interior_emer = Panel.SalonLighting1 > 0
+    local interior_full = Panel.SalonLighting2 > 0
+    if Metrostroi.Version <= 1537278077 then
+        local interior_bright = interior_emer and interior_full and 1 or interior_emer and 0.4 or 0
+        self:SetLightPower(LIGHT_INTER_1, interior_bright > 0, interior_bright)
+        self:SetLightPower(LIGHT_INTER_2, interior_bright > 0, interior_bright)
+        self:SetLightPower(LIGHT_INTER_3, interior_bright > 0, interior_bright)
+    end
+    self:SetPackedBool("SalonLighting1", interior_emer)
+    self:SetPackedBool("SalonLighting2", interior_full)
+
     self:SetPackedBool("AnnPlay", power)
     self:SetPackedRatio("BL", self.Pneumatic.BrakeLinePressure / 16.0)
     self:SetPackedRatio("TL", self.Pneumatic.TrainLinePressure / 16.0)

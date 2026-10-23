@@ -66,6 +66,13 @@ ENT.ClientProps["GvWrench"] = {
     hide = 0.5,
 }
 
+ENT.ClientProps["Factory"] = {
+    model = "models/metrostroi_train/81-765_v1/766/factory_766.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2,
+}
+
 function ENT:Initialize(...)
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     return BaseClass.Initialize(self, ...)

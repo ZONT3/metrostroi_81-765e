@@ -3261,6 +3261,15 @@ end
 ENT.ButtonMap["BayCoverBud5"] = nil
 ENT.ButtonMap["BayCoverBud5_close"] = nil
 ENT.ClientProps["BayCoverBud5"] = nil
+ENT.ClientProps["BayCoverPneumo"] = nil
+ENT.ClientProps["BayCoverAbs"] = nil
+
+ENT.ClientProps["Factory"] = {
+    model = "models/metrostroi_train/81-765_v1/765/factory_765.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2,
+}
 
 ENT.ButtonMap["DoorBay1_close"] = {
     pos = Vector(354.5, 50.5, 38.6), ang = Angle(0, 0, 90),
@@ -4006,7 +4015,9 @@ function ENT:Think(...)
     cabl_half = self:Animate("CabEmer", cabl_half and 1 or 0, 0, 1, 12, false)
     self:ShowHideSmooth("cab_full", cabl_full)
     self:ShowHideSmooth("cab_half", cabl_half)
-    self:SetLightPower(LIGHT_CAB, true, cabl_full * 0.8 + cabl_half * 0.2)
+    if Metrostroi.Version > 1537278077 then
+        self:SetLightPower(LIGHT_CAB, true, cabl_full * 0.8 + cabl_half * 0.2)
+    end
 
     local k35_1 = self:HandleDoorState("K35C1", "door_k35_1", "BayCoverK35_1", "BayCoverK35_1", 0.1, 0.2)
     local k35_2 = self:HandleDoorState("K35C2", "door_k35_2", "BayCoverK35_2", "BayCoverK35_2", 0.1, 0.2)
