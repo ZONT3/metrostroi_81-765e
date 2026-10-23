@@ -2,17 +2,11 @@
 -- AddCSLuaFile()
 
 return [[
-#81-760E
-
 [ru]
 
-Entities.gmod_subway_81-765e.Name = 81-760Э (Чура головной)
-Entities.gmod_subway_81-766e.Name = 81-761Э (Чура промежуточный моторный)
-Entities.gmod_subway_81-767e.Name = 81-763Э (Чура промежуточный немоторный)
-
-#Cameras:
-
-#Autobreakers
+Entities.gmod_subway_81-765e.Name = 81-765Э (Чура головной)
+Entities.gmod_subway_81-766e.Name = 81-766Э (Чура промежуточный моторный)
+Entities.gmod_subway_81-767e.Name = 81-767Э (Чура промежуточный немоторный)
 
 #Spawner:
 Entities.gmod_subway_81-765e.Spawner.Texture.Name            = @[Common.Spawner.Texture]
@@ -40,7 +34,6 @@ Entities.gmod_subway_81-765e.Spawner.VVVFSound.6             = @[Common.720.VVVF
 Entities.gmod_subway_81-765e.Spawner.VVVFSound.7             = @[Common.720.VVVFSound.6]  # Hitachi VFI-HD1420F
 Entities.gmod_subway_81-765e.Spawner.VVVFSound.8             = КАТП-3 Экспериментальный
 
-#760E
 Entities.gmod_subway_81-765e.Buttons.PVZ.SF31Toggle          = @[Common.760.SF31]
 Entities.gmod_subway_81-765e.Buttons.PVZ.SF32Toggle          = @[Common.760.SF32]
 Entities.gmod_subway_81-765e.Buttons.PVZ.SF33Toggle          = @[Common.760.SF33]
@@ -173,7 +166,6 @@ Entities.gmod_subway_81-765e.Buttons.K31Cap.K31Cap                   = @[Common.
 
 Entities.gmod_subway_81-765e.Buttons.StopKran.EmergencyBrakeValveToggle          = @[Common.ALL.EmergencyBrakeValve]
 
-#766e
 Entities.gmod_subway_81-766e.Buttons.Battery.BatteryToggle   = @[Common.ALL.VB]
 
 Entities.gmod_subway_81-766e.Buttons.BoxR.EmergencyBrakeValveToggle      = @[Common.ALL.EmergencyBrakeValve]
@@ -213,7 +205,6 @@ Entities.gmod_subway_81-766e.Buttons.ClosetCapLop.CouchCapL        = @[Common.76
 Entities.gmod_subway_81-766e.Buttons.ClosetCapR.CouchCapR          = @[Common.760.Cabinet]
 Entities.gmod_subway_81-766e.Buttons.ClosetCapRop.CouchCapR        = @[Common.760.Cabinet]
 
-#767e
 Entities.gmod_subway_81-767e.Buttons.Battery.BatteryToggle   = @[Common.ALL.VB]
 
 Entities.gmod_subway_81-767e.Buttons.BoxR.EmergencyBrakeValveToggle      = @[Common.ALL.EmergencyBrakeValve]

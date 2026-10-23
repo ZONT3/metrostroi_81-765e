@@ -42,6 +42,7 @@ TODO
     - [x] Early, half-baked variant
       - [x] Basic
       - [ ] Lights for devices in bays, salon
+      - [ ] BTO bays, cranes props
       - [ ] Pneumo bay on 766/767
       - [ ] K35 bay
       - [ ] Rooftop details

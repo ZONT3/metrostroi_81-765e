@@ -1,5 +1,4 @@
 return [[
-# 81-765
 
 [ru]
 Entities.gmod_subway_81-765.Name = 81-765 (Москва головной)

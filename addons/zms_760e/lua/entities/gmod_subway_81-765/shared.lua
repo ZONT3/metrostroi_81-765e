@@ -661,37 +661,38 @@ ENT.SpawnerCustom = {
         if #trains ~= WagNum then return end
         local wag1 = trains[1]:GetWagonNumber()
         for i = 1, #trains do
-            local ent = trains[i]
-            if ent._SpawnerStarted <= 2 then
-                ent.BUV.OrientateBUP = wag1
-                ent.BUV.LastOrientate = wag1
-                ent.BUV.FirstHalf = i % 2 > 0
-                ent.BUV.Reset = CurTime()
+            local wag = trains[i]
+
+            if wag._SpawnerStarted <= 2 then
+                wag.BUV.OrientateBUP = wag1
+                wag.BUV.LastOrientate = wag1
+                wag.BUV.FirstHalf = i % 2 > 0
+                wag.BUV.Reset = CurTime()
             end
 
-            if not ent.BUKP then continue end
+            if not wag.BUKP then continue end
             local wagn = math.min(8, WagNum)
-            ent.BUKP.WagNum = wagn
-            ent.BUKP.Trains = {}
+            wag.BUKP.WagNum = wagn
+            wag.BUKP.Trains = {}
             for j = 1, wagn do
                 local tent = trains[i == 1 and j or #trains - j + 1]
-                local oldNum = ent.BUKP.Trains[j]
-                local data = oldNum and ent.BUKP.Trains[oldNum]
-                if oldNum then ent.BUKP.Trains[oldNum] = nil end
-                ent.BUKP.Trains[j] = tent:GetWagonNumber()
-                ent.BUKP.Trains[tent:GetWagonNumber()] = data or {}
+                local oldNum = wag.BUKP.Trains[j]
+                local data = oldNum and wag.BUKP.Trains[oldNum]
+                if oldNum then wag.BUKP.Trains[oldNum] = nil end
+                wag.BUKP.Trains[j] = tent:GetWagonNumber()
+                wag.BUKP.Trains[tent:GetWagonNumber()] = data or {}
             end
             for j = wagn + 1, 8 do
-                local oldNum = ent.BUKP.Trains[j]
-                if oldNum then ent.BUKP.Trains[oldNum] = nil end
-                ent.BUKP.Trains[j] = nil
+                local oldNum = wag.BUKP.Trains[j]
+                if oldNum then wag.BUKP.Trains[oldNum] = nil end
+                wag.BUKP.Trains[j] = nil
             end
 
-            ent:SetNW2Int("CAMSWagNum", wagn)
-            ent.CAMS.Inv = ent:GetWagonNumber() > trains[i == 1 and wagn or 1]:GetWagonNumber()
-            ent:SetNW2Bool("CAMSInv", ent:GetWagonNumber() > trains[i == 1 and wagn or 1]:GetWagonNumber())
-            ent:SetNW2Bool("CAMSLast", trains[wagn]:GetWagonNumber() > 37000)
-            ent.ASNP.Path = i ~= 1
+            wag:SetNW2Int("CAMSWagNum", wagn)
+            wag.CAMS.Inv = wag:GetWagonNumber() > trains[i == 1 and wagn or 1]:GetWagonNumber()
+            wag:SetNW2Bool("CAMSInv", wag:GetWagonNumber() > trains[i == 1 and wagn or 1]:GetWagonNumber())
+            wag:SetNW2Bool("CAMSLast", trains[wagn]:GetWagonNumber() > 65000)
+            wag.ASNP.Path = i ~= 1
         end
     end,
     skins,
@@ -834,7 +835,8 @@ ENT.SpawnerCustom = {
     { "ElectricHornType", "Тифон (ЭП)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
     { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3, Section = "Settings", Subsection = "Sounds" },
     {},
-    { "AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
+    -- TODO: bring it back
+    -- { "AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
     { "ForgivefulBars", "БАРС прощает ошибки", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
     { "BtbuSd", "Автомат ППЗ БТБУ", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
     { "CoupleSprings", "Центровка автосцепок", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
@@ -866,11 +868,11 @@ ENT.SpawnerCustom = {
         Section = "Settings", Subsection = "FunctionalSettings"
     },
     {},
-    { "BMIK:Font", "Шрифт БМТ, БНМ", "List", { "Тип 1 (2017)", "Тип 2 (2019)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
+    { "BMIK:Font", "Шрифт БМТ, БНМ", "List", { "Тип 1", "Тип 2" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "CikColor", "Цвет БМТ, БНМ", "List", { "Метроспецтехника (желтый)", "Сармат (рыжий)", "Ранний (зеленый)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "BntType", "Тип БНТ", "List", { "Метроспецтехника v1.2 (LCD)", "Сармат v1.1 (LCD)", "Метроспецтехника v1 (LED)", "Сармат v1 (LED)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
-    { "BuikType", "БУ-ИК", "List", { "Метроспецтехника (Москва)", "Метроспецтехника (Чура)", "Сармат" }, 1, Section = "Settings", Subsection = "VisualSettings" },
+    { "BuikType", "БУ-ИК", "List", { "Метроспецтехника v1-v1.2", "Метроспецтехника v2", "Сармат" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     {
         "ArsMode",
         "Режим для АБ",
@@ -935,27 +937,27 @@ ENT.SpawnerCustom = {
         "List",
         {"Spawner.Common.SpawnMode.Full", "Spawner.Common.SpawnMode.Deadlock", "Spawner.Common.SpawnMode.NightDeadlock", "Spawner.Common.SpawnMode.Depot"},
         nil,
-        function(ent, val, rot, i, wagnum, rclk)
+        function(wag, val, rot, i, wagnum, rclk)
             if rclk then return end
-            if ent._SpawnerStarted ~= val then
-                ent.Pneumatic:TriggerInput("Spawned", true)
+            if wag._SpawnerStarted ~= val then
+                wag.Pneumatic:TriggerInput("Spawned", true)
                 if val <= 2 then
-                    ent.Electric:TriggerInput("Power", true)
+                    wag.Electric:TriggerInput("Power", true)
                 end
                 local first = i == 1 or _LastSpawner ~= CurTime()
                 if first then
-                    if IsValid(ent.Owner) and ent.Owner.GetUTimeTotalTime then
-                        _Odometer = math.floor(ent.Owner:GetUTimeTotalTime() * 1000 / 3600 * 1000)
+                    if IsValid(wag.Owner) and wag.Owner.GetUTimeTotalTime then
+                        _Odometer = math.floor(wag.Owner:GetUTimeTotalTime() * 1000 / 3600 * 1000)
                     else
                         _Odometer = math.random(0, 999999)
                     end
                     _DoorsDelay = math.Rand(0.42, 0.57)
                 end
-                if _Odometer then ent.Odometer = _Odometer end
-                if _DoorsDelay then ent.BUD.DoorsDelayMax = _DoorsDelay end
-                if ent.SA1 then
+                if _Odometer then wag.Odometer = _Odometer end
+                if _DoorsDelay then wag.BUD.DoorsDelayMax = _DoorsDelay end
+                if wag.SA1 then
                     local leaveOff = {
-                        SF22F4 = not ent:GetNW2Bool("BtbuSd", false),
+                        SF22F4 = not wag:GetNW2Bool("BtbuSd", false),
                         SF70F2 = true,  -- PpzWindshieldHeat
                         SF43F3 = true,  -- PpzSmartdrive
                         SF51F2 = val ~= 3,  -- PpzBattLights
@@ -963,90 +965,90 @@ ENT.SpawnerCustom = {
                         SF62F4 = val > 1,  -- PpzCabinEpra
                         SF70F4 = val > 2,  -- PpzAuxCabin
                     }
-                    for _, cfg in ipairs(ent.PpzToggles or {}) do
-                        local r = ent[cfg.relayName]
+                    for _, cfg in ipairs(wag.PpzToggles or {}) do
+                        local r = wag[cfg.relayName]
                         if r and r.TriggerInput then
                             r:TriggerInput("Set", leaveOff[cfg.relayName] and 0 or 1)
                         end
                     end
 
                     if MetrostroiAdvanced and MetrostroiAdvanced.TwoToSixMap then
-                        ent.PmvFreq:TriggerInput("Set", 1)
+                        wag.PmvFreq:TriggerInput("Set", 1)
                     end
 
-                    ent.HeadlightsSwitch:TriggerInput("Set", 2)
-                    ent.DoorClose:TriggerInput("Set", first and val == 1 and 1 or 0)
-                    ent.R_ASNPOn:TriggerInput("Set", 1)
-                    ent.CabinLight:TriggerInput("Set", 1)
+                    wag.HeadlightsSwitch:TriggerInput("Set", 2)
+                    wag.DoorClose:TriggerInput("Set", first and val == 1 and 1 or 0)
+                    wag.R_ASNPOn:TriggerInput("Set", 1)
+                    wag.CabinLight:TriggerInput("Set", 1)
 
                     -- Without that, sometimes they remain turned off in turbostroi, but turning on on main thread
                     timer.Simple(1, function()
-                        ent.PmvAddressDoors:TriggerInput("Set", ent:GetNW2Bool("AddressDoors", false) and 0 or 1)
-                        ent.PmvParkingBrake:TriggerInput("Set", val == 3 and 1 or 0)
-                        ent.PmvLights:TriggerInput("Set", val <= 1 and 0 or 1)
-                        ent.PmvCond:TriggerInput("Set", val <= 1 and 0 or 1)
+                        wag.PmvAddressDoors:TriggerInput("Set", wag:GetNW2Bool("AddressDoors", false) and 0 or 1)
+                        wag.PmvParkingBrake:TriggerInput("Set", val == 3 and 1 or 0)
+                        wag.PmvLights:TriggerInput("Set", val <= 1 and 0 or 1)
+                        wag.PmvCond:TriggerInput("Set", val <= 1 and 0 or 1)
                     end)
 
                     local yd = os.date("!*t").yday
-                    ent.BUKP.CondLeto = yd > 115 and yd < 300
+                    wag.BUKP.CondLeto = yd > 115 and yd < 275
 
                     _LastSpawner = CurTime()
-                    ent.CabinDoorLeft = val == 4 and first
-                    ent.CabinDoorRight = val == 4 and first
-                    ent.PassengerDoor = val == 4
-                    ent.RearDoor = val == 4
+                    wag.CabinDoorLeft = val == 4 and first
+                    wag.CabinDoorRight = val == 4 and first
+                    wag.PassengerDoor = val == 4
+                    wag.RearDoor = val == 4
                 else
-                    ent.FrontDoor = val == 4
-                    ent.RearDoor = val == 4
+                    wag.FrontDoor = val == 4
+                    wag.RearDoor = val == 4
                 end
 
-                for idx = 1, 8 do ent.BUD.DoorCommand[idx] = val == 4 end
+                for idx = 1, 8 do wag.BUD.DoorCommand[idx] = val == 4 end
 
-                ent.GV:TriggerInput("Set", val < 4 and 1 or 0)
+                wag.GV:TriggerInput("Set", val < 4 and 1 or 0)
 
                 if val <= 2 then
                     timer.Simple(2, function()
-                        if not IsValid(ent) then return end
-                        ent.BUV.ZeroSpeed = 1
-                        if ent.SA1 then
-                            ent.BUKP.State = 5
-                            ent.BUKP.State2 = 0
-                            ent.BUIK.State = 4
+                        if not IsValid(wag) then return end
+                        wag.BUV.ZeroSpeed = 1
+                        if wag.SA1 then
+                            wag.BUKP.State = 5
+                            wag.BUKP.State2 = 0
+                            wag.BUIK.State = 4
                             for idx = 1, 8 do
-                                ent:SetNW2String("BUIK:WagErr" .. idx, false)
+                                wag:SetNW2String("BUIK:WagErr" .. idx, false)
                                 for di = 1, 8 do
-                                    ent:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), true)
+                                    wag:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), true)
                                 end
                             end
                         end
                     end)
 
                     timer.Simple(7, function()
-                        if not IsValid(ent) then return end
-                        ent.BUV.PassLight = val == 1
-                        ent.BUV.PSNSignal = true
-                        if ent.ASNP and isnumber(ent.ASNP.RouteNumber) then
-                            if val <= 2 and math.floor(ent.ASNP.RouteNumber * 10) % 10 ~= 0 then
-                                ent.ASNP.RouteNumber = math.floor(ent.ASNP.RouteNumber * 10)
+                        if not IsValid(wag) then return end
+                        wag.BUV.PassLight = val == 1
+                        wag.BUV.PSNSignal = true
+                        if wag.ASNP and isnumber(wag.ASNP.RouteNumber) then
+                            if val <= 2 and math.floor(wag.ASNP.RouteNumber * 10) % 10 ~= 0 then
+                                wag.ASNP.RouteNumber = math.floor(wag.ASNP.RouteNumber * 10)
                             end
-                            ent.BUIK.RouteNumber = val <= 2 and ent.ASNP.RouteNumber or 0
-                            ent.BUKP.RouteNumber = val <= 2 and ent.ASNP.RouteNumber or 0
+                            wag.BUIK.RouteNumber = val <= 2 and wag.ASNP.RouteNumber or 0
+                            wag.BUKP.RouteNumber = val <= 2 and wag.ASNP.RouteNumber or 0
                         end
                     end)
 
                     timer.Simple(3, function()
-                        if not IsValid(ent) then return end
-                        ent.BV:TriggerInput("Set", 1)
+                        if not IsValid(wag) then return end
+                        wag.BV:TriggerInput("Set", 1)
                     end)
 
-                    ent.Pneumatic.BrakeLinePressure = 2.25 + math.random() * 0.15
+                    wag.Pneumatic.BrakeLinePressure = 2.25 + math.random() * 0.15
                 end
 
-                ent.Pneumatic.TrainLinePressure = val == 3 and 5 + math.random() or val == 2 and 6.6 + math.random() * 1.4 or 7.6 + math.random() * 0.5
-                if not ent.SA1 then ent.Pneumatic.TLPressure = ent.Pneumatic.TrainLinePressure end
-                ent.Pneumatic.ParkingBrakePressure = val == 3 and 0 or ent.Pneumatic.TrainLinePressure
-                ent.Pneumatic.ParkingBrake = val == 3
-                ent._SpawnerStarted = val
+                wag.Pneumatic.TrainLinePressure = val == 3 and 5 + math.random() or val == 2 and 6.6 + math.random() * 1.4 or 7.6 + math.random() * 0.5
+                if not wag.SA1 then wag.Pneumatic.TLPressure = wag.Pneumatic.TrainLinePressure end
+                wag.Pneumatic.ParkingBrakePressure = val == 3 and 0 or wag.Pneumatic.TrainLinePressure
+                wag.Pneumatic.ParkingBrake = val == 3
+                wag._SpawnerStarted = val
             end
         end,
         function(self, spawnerList)
@@ -1084,8 +1086,27 @@ ENT.Spawner = {
     ENT.SpawnerFields["BatteryWear"],
     ENT.SpawnerFields["BatteryLevel"],
     {},
-    { "CikType", "ЦИК", "List", { "Метроспецтехника", "Сармат", "Метроспецтехника (ранний)" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
-    ENT.SpawnerFields["BntType"],
+    {
+        "CikType", "ЦИК", "List",
+        { "Метроспецтехника v1", "Метроспецтехника v1.1", "Метроспецтехника v1.2", "Сармат v1", "Сармат v1.1" }, 1,
+        function(wag, cik_type)
+            local mst = cik_type < 4
+            wag:SetNW2Int("CikColor", mst and 1 or 2)
+            wag:SetNW2Int("BMIK:Font", mst and 1 or 2)
+            wag:SetNW2Int("BntType", cik_type < 3 and 3 or cik_type == 3 and 1 or cik_type == 4 and 4 or 2)
+            wag:SetNW2Int("BntFps", mst and 1 or 2)
+            wag:SetNW2Int("BuikType", mst and 1 or 3)
+            wag:SetNW2Bool("SarmatBeep", not mst)
+            -- TODO BL-IK
+
+            wag:SetNW2Int("VVVFSound", 8)
+            wag:SetNW2Int("HornType", 5)
+            wag:SetNW2Int("KvType", 3)
+            wag:SetNW2Bool("BtbuSd", true)
+            wag:SetNW2Bool("SingleRing", true)
+        end,
+        Section = "Settings", Subsection = "FunctionalSettings"
+    },
     ENT.SpawnerFields["RingType765"],
     ENT.SpawnerFields["NoTrailers"],
     ENT.SpawnerFields["ArsMode"],
@@ -1102,6 +1123,7 @@ ENT.SharedFields = {
     "Version",
     "IkVersion",
     "Spawner",
+    "SpawnerFields",
     "SpawnerCustom",
     "SpawnerSkins",
     "SpawnerLogos",
