@@ -314,6 +314,87 @@ for _, bay in ipairs(bays) do
     end
 end
 
+local buds = {
+    Vector( 269.20,  59.56, 46.32),
+    Vector(  33.85,  59.56, 46.32),
+    Vector(-202.30,  59.56, 46.32),
+    Vector(-439.75,  59.56, 46.32),
+    Vector( 430.91, -59.56, 46.32),
+    Vector( 195.84, -59.56, 46.32),
+    Vector( -40.48, -59.56, 46.32),
+    Vector(-275.76, -59.56, 46.32),
+}
+for idx, pos in ipairs(buds) do
+    local id = "Bud" .. idx
+    ENT.ButtonMap[id] = {
+        pos = pos,
+        ang = idx < 5 and Angle(0, 0, 180) or Angle(0, 180, 180),
+        width = 1480, height = 138, scale = 0.01,
+        buttons = {
+            {
+                ID = id .. "PowerToggle", x = 80, y = 69, radius = 64,
+                tooltip = "Питание БУД №" .. idx,
+                model = {
+                    var = id .. "Power",
+                    model = "models/metrostroi_train/81-760/81_760_switch_emergency.mdl",
+                    z = 45, speed = 12, vmin = 0, vmax = 1, sndvol = 0.5,
+                    snd = function(val) return val and "switch_on" or "switch_off" end,
+                    sndmin = 80, sndmax = 1e3 / 3
+                }
+            }, {
+                ID = Format("!%sSel", id), x = 1255, y = 32, radius = 8,
+                tooltip = "БУД: Select",
+                model = { lamp = {
+                    var = id .. "Sel", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1.8,
+                    model = "models/metrostroi_train/81-765_v1/lights/led_tiny.mdl",
+                    getfunc = function(wag) return wag:GetBudState(idx, 0) end
+                } }
+            }, {
+                ID = Format("!%sCanv", id), x = 1300, y = 32, radius = 8,
+                tooltip = "БУД: Canv",
+                model = { lamp = {
+                    var = id .. "Canv", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1.8,
+                    model = "models/metrostroi_train/81-765_v1/lights/led_tiny.mdl",
+                    getfunc = function(wag) return wag:GetBudState(idx, 1) end
+                } }
+            }, {
+                ID = Format("!%sWork", id), x = 1343, y = 32, radius = 8,
+                tooltip = "БУД: Work",
+                model = { lamp = {
+                    var = id .. "Work", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1.8,
+                    model = "models/metrostroi_train/81-765_v1/lights/led_tiny.mdl",
+                    getfunc = function(wag) return wag:GetBudState(idx, 2) end
+                } }
+            }, {
+                ID = Format("!%sPower", id), x = 1383, y = 32, radius = 8,
+                tooltip = "БУД: Power",
+                model = { lamp = {
+                    var = id .. "Power", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1.8,
+                    model = "models/metrostroi_train/81-765_v1/lights/led_tiny.mdl",
+                    getfunc = function(wag) return wag:GetBudState(idx, 3) end
+                } }
+            }, {
+                ID = Format("!%sReset", id), x = 1447, y = 32, radius = 8,
+                tooltip = "БУД: Reset"
+            }
+        }
+    }
+end
+
+ENT.ClientProps["BayTop"] = {
+    model = "models/metrostroi_train/81-765_v1/bays/bay_top.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hideseat = 0.6,
+}
+
+ENT.ClientProps["BayBud5"] = {
+    model = "models/metrostroi_train/81-765_v1/bays/bay_bud_5.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hideseat = 0.6,
+}
+
 -- TODO openable
 ENT.ClientProps["BayCoverPneumo"] = {
     model = "models/metrostroi_train/81-765_v1/common/bay_pneum_cover.mdl",
@@ -402,13 +483,6 @@ for i = 1, 4 do
         hide = 1,
     }
 end
-
-ENT.ClientProps["BayTop"] = {
-    model = "models/metrostroi_train/81-765_v1/bays/bay_top.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hideseat = 0.6,
-}
 
 ENT.ClientProps["Salon"] = {
     model = "models/metrostroi_train/81-765_v1/766/salon_p.mdl",
@@ -1283,13 +1357,18 @@ function ENT:Think()
     local bs = self:HandleDoorState("BayBsVal", "door_bs", "BayCoverBs", "BayCoverBs", 0.05, 0, true)
     local cond = self:HandleDoorState("BayCondVal", "door_cond", "BayCoverCond", "BayCoverCond", 0.05, 0)
     local ceiling = puv or cond
-    local bud_4 = false
+    local bud_4, bud_5 = false, false
     for idx = 1, 8 do
         if self.IsIntermediate or idx ~= 5 then
             local bud = self:HandleDoorState("BayCoverBudVal" .. idx, "bud_" .. idx, "BayCoverBud" .. idx, "BayCoverBud" .. idx, 0.05, 0)
             ceiling = ceiling or bud
-            if idx == 4 then bud_4 = bud end
+            if idx == 4 then bud_4 = bud
+            elseif idx == 5 then bud_5 = bud end
+            self:HidePanel("Bud" .. idx, not bud and not (idx == 7 and cond))
         end
+    end
+    if self.IsIntermediate then
+        self:ShowHide("BayBud5", bud_5)
     end
     self:ShowHide("BayTop", ceiling)
     self:ShowHide("BayPuv", puv or bud_4)
@@ -1719,6 +1798,16 @@ function ENT:ShowHideSceenHelperElement(val, screen, group, helper, name)
     end
 end
 
+function ENT:GetBudState(bud_idx, idx)
+    local val = self:GetNW2Int("BudState", 0)
+    local mask = bit.lshift(1, (bud_idx - 1) * 4 + idx)
+    return bit.band(val, mask) ~= 0 and 1 or 0
+end
+
+function ENT:GetBit(nwvar, idx)
+    return bit.band(self:GetNW2Int(nwvar, 0), bit.lshift(1, idx)) ~= 0 and 1 or 0
+end
+
 function ENT:Draw()
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.Draw(self)
@@ -1810,7 +1899,7 @@ for id, panel in pairs(ENT.ButtonMap) do
     if not panel.buttons then continue end
     for k, v in pairs(panel.buttons) do
         if v.model then
-            local cdist = dist[id] or 150
+            local cdist = dist[id] or 1
             if v.model.model then
                 v.model.hideseat = cdist
             elseif v.model.lamp then

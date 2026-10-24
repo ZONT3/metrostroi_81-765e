@@ -20,6 +20,7 @@ for idx = 1, 8 do
     table.insert(ENT.SyncTable, "DoorManualBlock" .. idx)
     table.insert(ENT.SyncTable, "DoorManualOpenLever" .. idx)
     table.insert(ENT.SyncTable, "DoorManualOpenLeverCap" .. idx)
+    table.insert(ENT.SyncTable, "Bud" .. idx .. "Power")
 end
 
 --------------------------------------------------------------------------------

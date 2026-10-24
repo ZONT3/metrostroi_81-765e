@@ -3258,6 +3258,9 @@ for _, bay in ipairs(bays) do
         }
     end
 end
+
+ENT.ButtonMap["Bud5"] = nil  -- TODO
+
 ENT.ButtonMap["BayCoverBud5"] = nil
 ENT.ButtonMap["BayCoverBud5_close"] = nil
 ENT.ClientProps["BayCoverBud5"] = nil

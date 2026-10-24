@@ -464,7 +464,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.Brake = brake
     self.Drive = drive
     self.Strength = (self.Brake == 1 and -1 or 1) * strength * SchemeWork
-    if HasEngine then Train.Electric:TriggerInput("Slope", self.SchemeSlope) end
+    if HasEngine then Train.Electric:TriggerInput("Slope", self.SchemeSlope and 1 or 0) end
     self.TargetStrength = (self:Get("Brake") == 1 and -1 or 1) * (self:Get("DriveStrength") or 0) + (Train:ReadTrainWire(45) == 1 and 4 or Train:ReadTrainWire(19) == 1 and 2 or 0)
 
     local strongerBrake

@@ -55,6 +55,7 @@ function TRAIN_SYSTEM:Initialize()
     end
 
     for idx = 1, 8 do
+        self.Train:LoadSystem("Bud" .. idx .. "Power", "Relay", "Switch", { bass = true, normally_closed = true })
         self.Train:LoadSystem("DoorManualBlock" .. idx, "Relay", "Switch", { bass = true })
         self.Train:LoadSystem("DoorManualOpenLever" .. idx, "Relay", "Switch", { bass = true })
         self.Train:LoadSystem("DoorManualOpenLeverCap" .. idx, "Relay", "Switch", { bass = true, normally_closed = true })
@@ -98,6 +99,10 @@ if SERVER then
         "SF80F14", "SF80F13", "SF80F12", "SF80F14",
         "SF80F14", "SF80F12", "SF80F13", "SF80F12"
     }
+
+    local function set_bit(base, bud_idx, idx, val)
+        return val and base + bit.lshift(1, (bud_idx - 1) * 4 + idx) or base
+    end
 
     function TRAIN_SYSTEM:Think(dT)
         local Wag = self.Train
@@ -209,15 +214,22 @@ if SERVER then
 
         local anyClosingLeft, anyClosingRight = false, false
 
+        local bit_state = 0
+
         for idx = 1, 8 do
             local sf = Wag[DoorSFs[idx]]
-            local poweron = masterPower and sf and sf.Value > 0
-            local working = masterWorking and sf and sf.Value > 0
+            local power_sw = Wag["Bud" .. idx .. "Power"]
+            local poweron = masterPower and sf and sf.Value > 0 and power_sw and power_sw.Value > 0
+            local working = masterWorking and poweron
+            bit_state = set_bit(bit_state, idx, 3, poweron)
+
             if not working then self.Working[idx] = false self.Starting[idx] = false end
             if working and not self.Working[idx] and not self.Starting[idx] then self.Starting[idx] = CurTime() + 5 end
             if self.Starting[idx] and CurTime() >= self.Starting[idx] then self.Starting[idx] = false self.Working[idx] = true end
             working = self.Working[idx]
             poweron = poweron and (working or self.Starting[idx] and self.Starting[idx] - CurTime() < 0.3)
+            bit_state = set_bit(bit_state, idx, 2, poweron)
+            bit_state = set_bit(bit_state, idx, 1, working)
 
             if not working then
                 self.DoorCommand[idx] = false
@@ -250,6 +262,8 @@ if SERVER then
             local selected = left and selectLeft or not left and selectRight
             local readyToOpen = addrMode and wagCommandOpen
             local curForceOpen = addrForceOpen or left and reserveLeft or not left and reserveRight
+
+            bit_state = set_bit(bit_state, idx, 0, working and selected)
 
             self.DoorOpen[idx] = state[i] >= 1
             self.DoorClosed[idx] = state[i] <= 0
@@ -525,6 +539,7 @@ if SERVER then
             self.Load = self.Load + (dir[i] ~= 0 and 62.1 or 0)
         end
 
+        Wag:SetNW2Int("BudState", bit_state)
         Wag:SetPackedBool("DoorL", self.DoorLeft)
         Wag:SetPackedBool("DoorR", self.DoorRight)
         Wag.LeftDoorsOpening = self.DoorLeft
