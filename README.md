@@ -1,6 +1,6 @@
 # Metrostroi 81-765/766/767
 
-Codebase for 81-765-derived trains.
+Codebase for 81-765 derived trains.
 
 README is currently in WIP state until closed alpha-test.
 
@@ -37,6 +37,7 @@ TODO
         - [ ] HV per-pant
         - [ ] UKKZ per-pant
     - [ ] Brake squeal remake
+    - [ ] I personally dislike current state of CIK code, so maybe rewrite it from scratch (3700 lines of code 💀)
 - [ ] Beta
   - [ ] Models
     - [x] Early, half-baked variant
@@ -66,7 +67,7 @@ TODO
 - [ ] Alpha
   - [ ] KL3
   - [ ] Fix various clientside multiplayer-related issues
-  - [ ] LED-based BNT loop routes and bugfixes
+  - [x] LED-based BNT loop routes and bugfixes
   - [ ] AO disappearing should clear ARS brake signal when Vdop > 0 and V==0
     - [ ] KVT on AO shouldn't mute ARS ring and thus wont save from RVTB poweroff
     - [ ] Remove "Forgiveful BARS"

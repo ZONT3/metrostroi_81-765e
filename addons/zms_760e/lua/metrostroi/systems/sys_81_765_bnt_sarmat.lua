@@ -29,6 +29,8 @@ if not CLIENT then return end
 local scw, sch = 2040, 280
 local text_speed = 720  -- px/s
 local run_speed = 12  -- led/s
+local tex2scr = scw / 3430
+local tex2scr_offset = 46
 
 local led_size = 8
 local icon_size = 20 * led_size
@@ -105,12 +107,18 @@ function TRAIN_SYSTEM:UpdateState()
     terminus = terminus and not arrived
     local depart = self.Working and not init_done and not arrived and not terminus
 
+    local stations = Wag.BNT and Wag.BNT.Stations
+    local loop = Wag:GetNW2Int("BNT:Loop", 0) > 0
+    local stlen = loop and #stations
+
     self.StationIdx = station_idx
+    self.Station = stations and stations[stlen and station_idx > stlen and (station_idx % stlen) or station_idx]
     self.InitDone = init_done
     self.Terminus = terminus
     self.Arrived = arrived
     self.Depart = depart
     self.Path = Wag:GetNW2Bool("BNT:Path", false)
+    self.Loop = loop
 end
 
 
@@ -148,44 +156,60 @@ local function print_text(char_seq, tx, x0, y0, w, h, font, color)
     render.OverrideBlend(false)
 end
 
-local function draw_station(x, y0)
+local function draw_station(x, y0, top, bot)
     surface.DrawRect(x, y0 + 8, 8, 16)
-    surface.DrawRect(x + 8, y0, 16, 8)
-    surface.DrawRect(x + 8, y0 + 24, 16, 8)
+    if top then surface.DrawRect(x + 8, y0, 16, 8) end
+    if bot then surface.DrawRect(x + 8, y0 + 24, 16, 8) end
     surface.DrawRect(x + 24, y0 + 8, 8, 16)
 end
 
-local function draw_strip(Wag, depart, station_idx, path)
+local empty_table = {}
+local function draw_strip(Wag, depart, station, path)
     local bnt = Wag.BNT
     local led = bnt and bnt.LED
     if not led or bnt.LedSum < 1 then return end
-    local station = bnt.Stations[station_idx]
-    if not station or not station.ledIdx then return end
+    if not station or not (station.ledIdx or station.ledIdxSarmat) then return end
 
     local k = strip_w / bnt.LedSum
     local x0, x = 0, 0
     local y0 = sch - strip_h - 5
     local y1 = y0 + led_size
     local strh = led_size * 2
-    local cur_idx = station.ledIdx
-    local align_right = led.alignRight
+    local cur_idx = station.ledIdxSarmat or station.ledIdx
+    local absolute = led.absolute
+    local align_right = not absolute and led.alignRight
 
     render.OverrideBlend(true, BLEND_ONE, BLEND_ONE, BLENDFUNC_ADD, BLEND_ZERO, BLEND_ONE, BLENDFUNC_ADD)
     surface.SetDrawColor(led.Color and bnt:GetCachedColor(led.Color) or bnt.LineColorBright or color_default)
 
-    for idx, cur_led in ipairs(led) do
+    local ledlen = #led
+    for idx = 1, ledlen + 1 do
+        local extra = idx > ledlen
+        local cur_led = idx > ledlen and strip_w or led[idx]
+        local d = empty_table
+        if istable(cur_led) then d = cur_led; cur_led = d[1] end
+
         local station_draw = not path and cur_idx >= idx or path and idx >= cur_idx
         local path_draw = not path and cur_idx >= idx or path and idx > cur_idx
 
-        local x1 = math.Clamp(
-            math.Round((x + k * cur_led / (align_right and 1 or 2)) / led_size) * led_size - 2 * led_size,
-            0, scw - 4 * led_size
-        )
+        local x1
+        if not extra then
+            x1 = absolute and ((cur_led - tex2scr_offset) * tex2scr) or (x + k * cur_led / (align_right and 1 or 2))
+            x1 = math.Clamp(
+                math.Round(x1 / led_size) * led_size - 2 * led_size,
+                0, scw - 4 * led_size
+            )
+        else
+            x1 = cur_led
+        end
 
-        if station_draw then draw_station(x1, y0) end
+        local in_progress = path_draw and depart and (not path and idx == cur_idx or path and idx == cur_idx + 1)
+        local both = idx == cur_idx or not d.top and not d.bot
+        if station_draw and not extra then draw_station(x1, y0, both or d.top, both or d.bot) end
+
         if path_draw then
             local distance = x1 - x0
-            if depart and (not path and idx == cur_idx or path and idx == cur_idx + 1) then
+            if in_progress then
                 local led_distance = math.ceil(distance / led_size) - 1
                 local run_time = (led_distance + 7) / run_speed
                 local progress = math.floor((led_distance + 7) * (CurTime() % run_time) / run_time) - 1
@@ -207,16 +231,12 @@ local function draw_strip(Wag, depart, station_idx, path)
             end
         end
 
-        if station_draw and (path_draw or path and cur_idx == 1 and idx == 1 and not depart) then
+        if station_draw and (not depart or path_draw) then
             surface.DrawRect(x1 + led_size, y1, strh, strh)
         end
 
-        x = x + k * cur_led
+        if not absolute and not extra then x = x + k * cur_led end
         x0 = x1 + 4 * led_size
-    end
-    if path then
-        x1 = strip_w
-        surface.DrawRect(x0, y1, x1 - x0, strh)
     end
 
     render.OverrideBlend(false)
@@ -282,6 +302,7 @@ function TRAIN_SYSTEM:DrawBnt(left)
     surface.DrawTexturedRectRotated(1024, 128 + sch - 37, 2048, 256, 0)
 
     local station_idx = self.StationIdx
+    local station = self.Station
     local init_done = self.InitDone
     local terminus = self.Terminus
     local arrived = self.Arrived
@@ -295,7 +316,7 @@ function TRAIN_SYSTEM:DrawBnt(left)
             surface.DrawTexturedRectRotated(scw - 80, string_h / 2, 160, 160, 0)
         end
         if self.Working and (arrived or depart or terminus) then
-            draw_strip(Wag, depart, station_idx, self.Path)
+            draw_strip(Wag, depart, station, self.Path)
         end
     end
 
@@ -350,7 +371,6 @@ function TRAIN_SYSTEM:DrawBnt(left)
         return
     end
 
-    local station = Wag.BNT.Stations[station_idx]
     if not station or not station.name then
         self.Text = self:CacheText("Ошибка чтения из файла")
         self.Text.x = led_size

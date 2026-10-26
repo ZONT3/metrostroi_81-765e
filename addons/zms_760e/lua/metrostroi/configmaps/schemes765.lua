@@ -16,8 +16,11 @@ if map:find("imagine_line") then
             MstLed = {
                 -- Светодиоды. Координаты примерно соответствуют координатам на текстуре схемы.
                 -- Порядок соответствует порядку в конфиге ИК/ЦИС, как в его поле 'LED'
+                -- Если задан id станции, то порядок не имеет значения.
+                -- Рекомендуется его задавать всегда, особенно на картах, у которых бывает разное кол-во станций в зависимости от выбранного информатора.
                 -- LEDs. Coordinates approx. as is on scheme texture.
-                -- Order as in IK/CIS config, same as in its 'LED' field
+                -- Order as in IK/CIS config, same as in its 'LED' field.
+                -- If 'id' is defined, the order no matters then.
                 -- x    y
                 { 251,  76,  size = 42 },
                 { 912,  76,  size = 42 },
@@ -29,13 +32,18 @@ if map:find("imagine_line") then
             },
 
             -- Config for Sarmat variant / Конфиг для Сармата
-            -- Конфиг как в поле LED конфигов АСНП или ЦИС, длина полосок измеряется в любых юнитах, относительно суммы всех полосок.
-            -- В этом примере используются расстояния на текстуре в пикселях, но можно использовать любых "попугаев".
-            -- Опция 'alignRight' ставит значки станций по правому краю своих полосок. Без нее - ставятся по центру.
-            -- Config as is in ASNP or CIS configs. The strip length is measured in any units you prefer and calculated against the sum of lenghts.
-            -- In that specific example, we use lengths in pixels of the scheme texture.
-            -- The 'alignRight' option makes the station icons aligned to the right of their strips. Without that option, station icons will be at the center of their strips.
-            SarmatLed = { alignRight = true, 0, 692, 593, 522, 456, 422, 745 },
+            -- Опция 'absolute' ставит значки станций по координате Y текстуры схемы. Без нее - работает как поле LED в конфигах АСНП и ЦИС.
+            -- The 'absolute' option makes use of Y coordinate of the scheme texture.
+            SarmatLed = {
+                absolute = true,
+                { 46,   id = 700, },
+                { 740,  id = 701, top = true },
+                { 1333, id = 702, top = true },
+                { 1839, id = 703, top = true },
+                { 2301, id = 704, top = true },
+                { 2730, id = 705, top = true },
+                { 3490, id = 706, },
+            },
 
             -- Можно задать цвет светодиодов для линии. Если не задать - используется цвет из конфига ИК с увеличенной яркостью и уменьшенной сатурацией.
             -- Optionally set the LEDs color for the line. If not set, the IK config's color is used, with increased brightness and reduced saturation.
@@ -50,7 +58,13 @@ if map:find("imagine_line") then
                 { 2745, 290,  size = 42 },
                 { 3941, 184,  size = 54 },  -- Will be automatically merged with above / Будет автоматически объединен с аналогичным сверху
             },
-            SarmatLed = { alignRight = true, 0, 999, 1187, 1244 },
+            SarmatLed = {
+                absolute = true,
+                { 46,   id = 804, },
+                { 1034, id = 803, bot = true },
+                { 2229, id = 802, bot = true },
+                { 3490, id = 801, },
+            },
         },
     })
 
@@ -62,19 +76,30 @@ elseif map:find("crossline_r199h") then
         },
         [1] = {
             MstLed = {
-                { 78,   164, size = 42 },
-                { 406,  164, size = 42 },
-                { 729,  164, size = 42 },
-                { 1076, 164, size = 42 },
-                { 1431, 164, size = 42 },
-                { 1997, 164, size = 42 },
-                { 2616, 164, size = 42 },
-                { 2990, 164, size = 42 },
-                { 3332, 164, size = 42 },
-                { 3995, 164, size = 42 },
+                { 78,   164, id = 101, size = 42 },
+                { 406,  164, id = 102, size = 42 },
+                { 729,  164, id = 103, size = 42 },
+                { 1076, 164, id = 104, size = 42 },
+                { 1431, 164, id = 105, size = 42 },
+                { 1997, 164, id = 106, size = 42 },
+                { 2616, 164, id = 107, size = 42 },
+                { 2990, 164, id = 108, size = 42 },
+                { 3332, 164, id = 109, size = 42 },
+                { 3995, 164, id = 110, size = 42 },
             },
-            -- marginRight делает отступ справа от последней станции. Нужно при использовании alignRight, если последняя станция находится не с краю.
-            SarmatLed = { alignRight = true, marginRight = 100, 107, 236, 251, 303, 219, 530, 632, 266, 274, 522 },
+            SarmatLed = {
+                absolute = true,
+                { 149,  id = 101, },
+                { 388,  id = 102, top = true },
+                { 642,  id = 103, bot = true },
+                { 951,  id = 104, top = true },
+                { 1159, id = 105, bot = true },
+                { 1689, id = 106, bot = true },
+                { 2317, id = 107, bot = true },
+                { 2595, id = 108, top = true },
+                { 2861, id = 109, bot = true },
+                { 3394, id = 110, },
+            },
         },
     })
 

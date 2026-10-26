@@ -36,7 +36,6 @@ if SERVER then
         Wag:SetNW2Bool("BNT:SelectLeft", Wag.BUV.SelectLeft)
         Wag:SetNW2Bool("BNT:SelectRight", Wag.BUV.SelectRight)
         Wag:SetNW2Bool("BNT:Working", self.ActiveRoute and (PowerLeft or PowerRight) and self.Working)
-        Wag:SetNW2Bool("BNT:Path", self.Path)
         Wag:SetNW2Bool("BNT:Terminus", self.Terminus)
 
         -- if Wag:GetNW2Int("BntType", 1) > 2 then return end
@@ -61,6 +60,7 @@ if SERVER then
         self:SetString("BNT:Stations", self.Stations)
         self:SetInt("BNT:Station", stIdx, 1)
         self:SetInt("BNT:LastStation", self.LastStation)
+        self.Train:SetNW2Bool("BNT:Path", self.Path)
         self:SetString("BNT:RouteId", self.ActiveRoute or "")
         self:SetInt("BNT:Route", self.Route, -1)
         self:SetInt("BNT:Loop", self.Loop and 1 or 0)
@@ -108,8 +108,12 @@ else
         local Wag = self.Train
         self.Working = Wag:GetNW2Bool("BNT:Working", false)
 
-        if self.RouteId ~= (self.Working and Wag:GetNW2String("BNT:RouteId", "") or "Stub") then
+        if
+            self.RouteId ~= (self.Working and Wag:GetNW2String("BNT:RouteId", "") or "Stub") or
+            self.SchemeVer ~= Metrostroi.BntSchemes765Ver
+        then
             self:InitializeRoute()
+            self.SchemeVer = Metrostroi.BntSchemes765Ver
         end
 
         if Wag:GetNW2Int("BntType", 1) > 2 then return end
@@ -688,6 +692,7 @@ else
                         end
                     end
                     local st = {
+                        id = index,
                         name = cisCfg[2] or "ОШИБКА",
                         nameEng = cisCfg[3] or "",
                         changes = changes
@@ -705,6 +710,7 @@ else
                     end
                     if asnpIdx then
                         local st = cisIdx and self.Stations[idx] or {
+                            id = index,
                             name = fallbackCfg[asnpIdx][2] or "ОШИБКА",
                             nameEng = "",
                             changes = {},
@@ -713,6 +719,7 @@ else
                         if not cisIdx then self.Stations[idx] = st end
                     elseif not cisIdx then
                         self.Stations[idx] = {
+                            id = index,
                             name = "Неизвестно",
                             nameEng = "Unknown",
                             changes = {},
@@ -728,14 +735,88 @@ else
         end
 
         if self.LED then
-            self.LedSum = 0
-            for _, v in ipairs(self.LED) do
-                self.LedSum = self.LedSum + v
-            end
-            if self.LED.marginRight then
-                self.LedSum = self.LedSum + self.LED.marginRight
+            local path = Wag:GetNW2Bool("BNT:Path", false)
+            self:InitializeSarmat(path)
+            self:InitializeMst(path, bntCfg, route)
+        end
+    end
+
+    function TRAIN_SYSTEM:InitializeSarmat(path)
+        local led = self.LED
+        local id2led = {}
+        for idx, v in ipairs(led) do
+            if istable(v) and v.id and v[1] then
+                id2led[v.id] = idx
             end
         end
+
+        self.LED = {
+            alignRight = led.alignRight,
+            marginRight = led.marginRight,
+            absolute = led.absolute,
+        }
+
+        for idx, st in ipairs(not path and self.Stations or table.Reverse(self.Stations)) do
+            if id2led[st.id] then
+                st.ledIdxSarmat = table.insert(self.LED, led[id2led[st.id]])
+            end
+        end
+
+        for idx, v in ipairs(led) do
+            if isnumber(v) or istable(v) and not v.id and v[1] then
+                table.insert(self.LED, v)
+            end
+        end
+
+        self.LedSum = 0
+        for _, v in ipairs(self.LED) do
+            self.LedSum = self.LedSum + (istable(v) and v[1] or v)
+        end
+        if self.LED.marginRight and not self.LED.absolute then
+            self.LedSum = self.LedSum + self.LED.marginRight
+        end
+    end
+
+    function TRAIN_SYSTEM:InitializeMst(path, bnt_cfg, route)
+        if not bnt_cfg then self.MstLed = nil return end
+        local mst_led = bnt_cfg and bnt_cfg[route] and bnt_cfg[route].MstLed
+        if not mst_led then mst_led = {} end
+
+        local other_leds = {}
+        local led_map = {}
+        local id2led = {}
+        for _, cur_led in ipairs(mst_led) do
+            led_map[Format("%d_%d", cur_led[1], cur_led[2])] = true
+            if cur_led.id then
+                id2led[cur_led.id] = cur_led
+            end
+        end
+
+        local leds_result = {}
+        for _, st in ipairs(not path and self.Stations or table.Reverse(self.Stations)) do
+            if id2led[st.id] then
+                st.ledIdxMst = table.insert(leds_result, id2led[st.id])
+            end
+        end
+        for _, v in ipairs(mst_led) do
+            if not v.id then
+                table.insert(leds_result, v)
+            end
+        end
+
+        for idx = 0, #bnt_cfg do
+            local leds = bnt_cfg[idx] and bnt_cfg[idx].MstLed
+            if leds and idx ~= route then
+                for _, cur_led in ipairs(leds) do
+                    if not led_map[Format("%d_%d", cur_led[1], cur_led[2])] then
+                        table.insert(other_leds, cur_led)
+                    end
+                end
+            end
+        end
+        leds_result.other = other_leds
+        leds_result.Color = mst_led.Color
+        self.MstLed = leds_result
     end
 
     function TRAIN_SYSTEM:GetFallbackStationIds(cisCfg, asnpCfg)

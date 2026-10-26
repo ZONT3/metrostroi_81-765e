@@ -126,3 +126,43 @@ for cfgidx, cfgx in ipairs(cfg) do
 end
 
 Metrostroi.AddCISConfig("[ИК] Loopline Remastered", cfg)
+
+
+-- То же самое для схем БНТ
+cfg = {
+    SchemeTex = "models/metrostroi_train/81-765_v1/schemes/scheme_blank",
+    [1] = {
+        MstLed = {
+            { 78,   164, id = 351, size = 42 },
+            { 406,  164, id = 352, size = 42 },
+            { 729,  164, id = 353, size = 42 },
+            { 1076, 164, id = 354, size = 42 },
+            { 1600, 164, id = 355, size = 42 },
+            { 1997, 164, id = 356, size = 42 },
+        },
+        SarmatLed = {
+            absolute = true,
+            { 149,  id = 351, },
+            { 642,  id = 352, bot = true },
+            { 1159, id = 353, top = true },
+            { 2100, id = 354, bot = true },
+            { 2595, id = 355, top = true },
+            { 3394, id = 356, },
+        },
+    },
+}
+
+-- Добавить станции со старыми ID
+for idx = 1, 6 do
+    local e = table.Copy(cfg[1].MstLed[idx])
+    e.id = e.id + 300
+    table.insert(cfg[1].MstLed, e)
+
+    e = table.Copy(cfg[1].SarmatLed[idx])
+    e.id = e.id + 300
+    table.insert(cfg[1].SarmatLed, e)
+end
+-- Продублировать тот же конфиг для остальных записей, как в ЦИС и АСНП
+for idx = 2, 6 do cfg[idx] = cfg[1] end
+
+Metrostroi.AddSchemes765("Loopline Remastered", cfg)

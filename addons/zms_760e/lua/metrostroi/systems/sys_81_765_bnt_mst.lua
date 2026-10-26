@@ -103,31 +103,6 @@ function TRAIN_SYSTEM:ClientThink()
 end
 
 
-local function update_cfg(Wag, scheme, route)
-    local bntCfg = Metrostroi.BntSchemes765 and Metrostroi.BntSchemes765[scheme]
-    if not bntCfg then return end
-    local mstLed = bntCfg and bntCfg[route] and bntCfg[route].MstLed
-    if not mstLed then mstLed = {} end
-
-    local otherLeds = {}
-    local ledMap = {}
-    for _, cur_led in ipairs(mstLed) do
-        ledMap[Format("%d_%d", cur_led[1], cur_led[2])] = true
-    end
-    for idx = 0, #bntCfg do
-        local leds = bntCfg[idx] and bntCfg[idx].MstLed
-        if leds and idx ~= route then
-            for _, cur_led in ipairs(leds) do
-                if not ledMap[Format("%d_%d", cur_led[1], cur_led[2])] then
-                    table.insert(otherLeds, cur_led)
-                end
-            end
-        end
-    end
-    mstLed.other = otherLeds
-    return mstLed
-end
-
 local function draw_station(x, y, idx, size, color, elapsed, enroute, counter)
     surface.SetDrawColor(enroute and (counter and color_green or color_off) or elapsed and color or color_off)
     surface.SetTexture((enroute and counter or not enroute and elapsed) and tex_led_on or tex_led_off)
@@ -141,25 +116,14 @@ function TRAIN_SYSTEM:DrawStrip()
     local sarmat = Wag.BNT_SARMAT
     if not sarmat or not bnt then return end
 
-    local route = Wag:GetNW2Int("BNT:Route", 1)
-    local scheme = Wag:GetNW2Int("Scheme765", 1)
-    if self.BntCfgVer ~= Metrostroi.BntSchemes765Ver or self.Route ~= route or self.Scheme ~= scheme then
-        self.BntCfgVer = Metrostroi.BntSchemes765Ver
-        self.Route = route
-        self.Scheme = scheme
-        self.MstLed = update_cfg(Wag, scheme, route)
-    end
-    local mst_led = self.MstLed
-
-    local station_idx = sarmat.StationIdx
     local path = sarmat.Path
     local depart = sarmat.Depart
-
-    local station = bnt.Stations[station_idx]
+    local station = sarmat.Station
+    local mst_led = bnt.MstLed
 
     local power = Wag:GetNW2Bool("BNT:PowerLeft", false) or Wag:GetNW2Bool("BNT:PowerRight", false)
     local color = mst_led and mst_led.Color and bnt:GetCachedColor(mst_led.Color) or bnt.LineColorBright or color_white
-    local cur_idx = station and station.ledIdx
+    local cur_idx = station and (station.ledIdxMst or station.ledIdx)
     self.Counter = not self.Counter
 
     -- MST config
@@ -174,10 +138,10 @@ function TRAIN_SYSTEM:DrawStrip()
         return
     end
 
+    -- Fallback
     if not cur_idx then return end
     if not power then return end
 
-    -- Fallback
     local led = bnt.LED
     if not led or bnt.LedSum < 1 then return end
 
@@ -210,6 +174,7 @@ function TRAIN_SYSTEM:DrawDisplay(left)
 
     local cache_invalidated = looped
     local station_idx = sarmat.StationIdx
+    local station = sarmat.Station
     local terminus = sarmat.Terminus
     local arrived = sarmat.Arrived or sarmat.InitDone
     local depart = sarmat.Depart
@@ -246,8 +211,6 @@ function TRAIN_SYSTEM:DrawDisplay(left)
     end
 
     if not cache_invalidated then return end
-
-    local station = bnt.Stations and bnt.Stations[station_idx]
 
     if station then
         local eng = self.LoopCnt % 2 == 1 and station.nameEng
