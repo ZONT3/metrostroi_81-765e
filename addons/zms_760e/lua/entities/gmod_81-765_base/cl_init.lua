@@ -25,17 +25,17 @@ ENT.ButtonMap["PVZ"] = {
 table.Add(ENT.ButtonMap["PVZ"].buttons, ENT.PvzToggles)
 
 ENT.ButtonMap["Power"] = {
-    pos = Vector(-461.84, -38.08, -8.98),
+    pos = Vector(-461.84, -38.08, -5.85),
     ang = Angle(0.000, 180.000, 90.000),
     width = 100,
-    height = 50,
+    height = 100,
     scale = 0.0625,
     hideseat = 0.2,
     buttons = {
         {
             ID = "PowerOnSet",
             tooltip = "Бортсеть вкл",
-            x = 37, y = 28, radius = 20,
+            x = 37, y = 78, radius = 20,
             model = {
                 var = "PowerOn",
                 model = "models/metrostroi_train/81-760/81_760_button_green.mdl",
@@ -47,13 +47,31 @@ ENT.ButtonMap["Power"] = {
         {
             ID = "PowerOffSet",
             tooltip = "Бортсеть выкл",
-            x = 79, y = 28, radius = 20,
+            x = 79, y = 78, radius = 20,
             model = {
                 var = "PowerOff",
                 model = "models/metrostroi_train/81-760/81_760_button_red.mdl",
                 z = -0.5, speed = 12, vmin = 0, vmax = 0.5, sndvol = 0.3,
                 snd = function(val) return val and "button_square_on" or "button_square_off" end,
                 sndmin = 80, sndmax = 1e3 / 3, sndang = Angle(-90, 0, 0),
+            }
+        },
+        {
+            ID = "!BsVoltage1", tooltip = "Напряжение БС",
+            x = 58 - 13, y = 9, w = 32, h = 40,
+            model = {
+                model = "models/metrostroi_train/81-765_v1/common/seven_segment.mdl",
+                z = 0.3, scale = 1, var = "BsVoltage", color = Color(188, 230, 20),
+                tooltipFunc = function(wag) return Format("%d В", math.floor(wag:GetPackedRatio("BsVoltage"))) end
+            }
+        },
+        {
+            ID = "!BsVoltage2", tooltip = "Напряжение БС",
+            x = 40 - 18, y = 9, w = 32, h = 40,
+            model = {
+                model = "models/metrostroi_train/81-765_v1/common/seven_segment.mdl",
+                z = 0.3, scale = 1, var = "BsVoltage", color = Color(188, 230, 20),
+                tooltipFunc = function(wag) return Format("%d В", math.floor(wag:GetPackedRatio("BsVoltage"))) end
             }
         },
     }
@@ -1395,6 +1413,18 @@ function ENT:Think()
         self:SetLightPower(LIGHT_INTER_1, interior_bright > 0, interior_bright)
         self:SetLightPower(LIGHT_INTER_2, interior_bright > 0, interior_bright)
         self:SetLightPower(LIGHT_INTER_3, interior_bright > 0, interior_bright)
+    end
+
+    local ubs = self:GetPackedRatio("BsVoltage")
+    local bs_off = ubs < 10
+    for idx = 1, 2 do
+        local k = "!BsVoltage" .. idx
+        local e = self.ClientEnts[k]
+        self:HideButton(k, bs_off)
+        self:ShowHide(k, not bs_off)
+        if not bs_off and IsValid(e) then
+            e:SetSkin(math.floor(ubs / math.pow(10, idx - 1) % 10))
+        end
     end
 
     if not self.IsIntermediate then

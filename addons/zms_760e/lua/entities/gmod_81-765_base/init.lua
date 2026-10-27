@@ -297,26 +297,29 @@ function ENT:Think()
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     local retVal = BaseClass.Think(self)
     local Panel = self.Panel
-    local power = self.Electric.KM > 0
+    local Electric = self.Electric
+    local VVVF = self.AsyncInverter
+    local power = Electric.KM > 0
     self:SetPackedBool("WorkBeep", power)
     self:SetPackedBool("WorkFan", (Panel.WorkFan or 0) > 0)
 
     if not self.IsTrailer then
-        local state = math.abs(self.AsyncInverter.InverterFrequency / (11 + self.AsyncInverter.State * 5))
-        self:SetPackedRatio("asynccurrent", math.Clamp(state * (state + self.AsyncInverter.State / 1), 0, 1) * math.Clamp(self.Speed / 6, 0, 1))
-        self:SetPackedRatio("asyncstate", math.Clamp(self.AsyncInverter.State / 0.2 * math.abs(self.AsyncInverter.Current) / 100, 0, 1))
-        self:SetPackedRatio("VVVF:LowSpeed", self.AsyncInverter.LowSpeedMode)
-        self:SetPackedRatio("chopper", math.Clamp(self.Electric.Chopper > 0 and self.Electric.Iexit / 100 or 0, 0, 1))
+        local state = math.abs(VVVF.InverterFrequency / (11 + VVVF.State * 5))
+        self:SetPackedRatio("asynccurrent", math.Clamp(state * (state + VVVF.State / 1), 0, 1) * math.Clamp(self.Speed / 6, 0, 1))
+        self:SetPackedRatio("asyncstate", math.Clamp(VVVF.State / 0.2 * math.abs(VVVF.Current) / 100, 0, 1))
+        self:SetPackedRatio("VVVF:LowSpeed", VVVF.LowSpeedMode)
+        self:SetPackedRatio("chopper", math.Clamp(Electric.Chopper > 0 and Electric.Iexit / 100 or 0, 0, 1))
         self:SetPackedBool("CompressorWork", self.Pneumatic.Compressor and CurTime() - self.Pneumatic.Compressor > 0)
 
         self:SetPackedRatio("IVO", 0.5 + self.BUV.IVO / 150)
     end
 
+    self:SetPackedRatio("BsVoltage", Electric.TrueBattery80V * Electric.KM)
     self:SetPackedRatio("LV", Panel.LV / 150)
     if self.IsIntermediate then
-        self:SetPackedRatio("HV", self.Electric.Main750V / 1000)
+        self:SetPackedRatio("HV", Electric.Main750V / 1000)
     else
-        self:SetPackedRatio("HV", (self.SF42F2.Value * self.Electric.KM > 0.5 and self.Electric.Main750V or 0) / 1000)
+        self:SetPackedRatio("HV", (self.SF42F2.Value * Electric.KM > 0.5 and Electric.Main750V or 0) / 1000)
     end
 
     local interior_emer = Panel.SalonLighting1 > 0
@@ -392,11 +395,10 @@ function ENT:Think()
         end
     end
 
-    self:SetNW2Bool("LvCritical", self.Electric.Emer80V < 54.8)
+    self:SetNW2Bool("LvCritical", Electric.Emer80V < 54.8)
 
     self:SetPackedRatio("Speed", self.Speed)
 
-    local VVVF = self.AsyncInverter
     if VVVF then
         VVVF:TriggerInput("Speed", self.Speed)
     end
