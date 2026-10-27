@@ -22,13 +22,13 @@ if map:find("imagine_line") then
                 -- Order as in IK/CIS config, same as in its 'LED' field.
                 -- If 'id' is defined, the order no matters then.
                 -- x    y
-                { 251,  76,  size = 42 },
-                { 912,  76,  size = 42 },
-                { 1490, 76,  size = 42 },
-                { 1992, 76,  size = 42 },
-                { 2456, 76,  size = 42 },
-                { 2879, 76,  size = 42 },
-                { 3941, 184, size = 54 },  -- Will be automatically merged with below / Будет автоматически объединен с аналогичным снизу
+                { 251,  76,  id = 700, size = 42 },
+                { 912,  76,  id = 701, size = 42 },
+                { 1490, 76,  id = 702, size = 42 },
+                { 1992, 76,  id = 703, size = 42 },
+                { 2456, 76,  id = 704, size = 42 },
+                { 2879, 76,  id = 705, size = 42 },
+                { 3941, 184, id = 706, size = 54 },  -- Will be automatically merged with below / Будет автоматически объединен с аналогичным снизу
             },
 
             -- Config for Sarmat variant / Конфиг для Сармата
@@ -53,10 +53,10 @@ if map:find("imagine_line") then
         -- Second line / Вторая линия
         [2] = {
             MstLed = {
-                { 420,  290,  size = 42 },
-                { 1731, 290,  size = 42 },
-                { 2745, 290,  size = 42 },
-                { 3941, 184,  size = 54 },  -- Will be automatically merged with above / Будет автоматически объединен с аналогичным сверху
+                { 420,  290, id = 804, size = 42 },
+                { 1731, 290, id = 803, size = 42 },
+                { 2745, 290, id = 802, size = 42 },
+                { 3941, 184, id = 801, size = 54 },  -- Will be automatically merged with above / Будет автоматически объединен с аналогичным сверху
             },
             SarmatLed = {
                 absolute = true,
