@@ -172,7 +172,7 @@ local function draw_strip(Wag, depart, station, path)
 
     local k = strip_w / bnt.LedSum
     local x0, x = 0, 0
-    local y0 = sch - strip_h - 5
+    local y0 = sch - strip_h
     local y1 = y0 + led_size
     local strh = led_size * 2
     local cur_idx = station.ledIdxSarmat or station.ledIdx
