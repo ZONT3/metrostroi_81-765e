@@ -26,7 +26,7 @@ end
 if not CLIENT then return end
 
 
-local scw, sch = 2040, 280
+local scw, sch = 2040, 274
 local text_speed = 720  -- px/s
 local run_speed = 12  -- led/s
 local tex2scr = scw / 3430
@@ -299,7 +299,7 @@ function TRAIN_SYSTEM:DrawBnt(left)
 
     surface.SetDrawColor(255, 255, 255, 255)
     surface.SetTexture(tex_screen)
-    surface.DrawTexturedRectRotated(1024, 128 + sch - 37, 2048, 256, 0)
+    surface.DrawTexturedRectRotated(1024, 128 + sch - led_size * 4 + 1, 2048, 256, 0)
 
     local station_idx = self.StationIdx
     local station = self.Station

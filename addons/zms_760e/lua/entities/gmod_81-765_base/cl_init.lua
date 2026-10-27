@@ -429,19 +429,19 @@ for i = 1, 4 do
         hide = 1,
     }
     ENT.ButtonMap["BNT_SARMAT_R" .. i] = {
-        pos = Vector(376.4 - 235.676 * (i - 1), -44.091, 51.941),
+        pos = Vector(376.4 - 235.64 * (i - 1), -44.091, 51.941),
         ang = Angle(0.000, 180.000, 111.583),
         width = 2040,
-        height = 280,
+        height = 274,
         scale = 0.02576,
         system = "LBnt_Sarmat",
         hide = 1,
     }
     ENT.ButtonMap["BNT_SARMAT_L" .. i] = {
-        pos = Vector(323.94 - 235.676 * (i - 1), 44.091, 51.941),
+        pos = Vector(323.94 - 235.64 * (i - 1), 44.091, 51.941),
         ang = Angle(0.000, 0.000, 111.583),
         width = 2040,
-        height = 280,
+        height = 274,
         scale = 0.02576,
         system = "RBnt_Sarmat",
         hide = 1,
@@ -811,8 +811,8 @@ function ENT:Initialize()
     BaseClass.Initialize(self)
     self.LBnt = self:CreateRT("765LBnt", 3830, 620)
     self.RBnt = self:CreateRT("765RBnt", 3830, 620)
-    self.LBnt_Sarmat = self:CreateRT("765LBntSarmat", 2040, 280)
-    self.RBnt_Sarmat = self:CreateRT("765RBntSarmat", 2040, 280)
+    self.LBnt_Sarmat = self:CreateRT("765LBntSarmat", 2040, 274)
+    self.RBnt_Sarmat = self:CreateRT("765RBntSarmat", 2040, 274)
     self.LBnt_MST = self:CreateRT("765LBntMST", 2080, 128)
     self.RBnt_MST = self:CreateRT("765RBntMST", 2080, 128)
     self.Bnt_MST_Strip = self:CreateRT("765BntMSTs", 4096, 364)
@@ -1836,7 +1836,7 @@ function ENT:DrawPost(special)
         self:DrawOnPanel("BNT_SARMAT_L" .. i, function(...)
             surface.SetMaterial(self.RTMaterial)
             surface.SetDrawColor(255, 255, 255)
-            surface.DrawTexturedRectRotated(1020, 140, 2040, 280, 0)
+            surface.DrawTexturedRectRotated(1020, 137, 2040, 274, 0)
         end)
     end
     self.RTMaterial:SetTexture("$basetexture", self.RBnt_Sarmat)
@@ -1844,7 +1844,7 @@ function ENT:DrawPost(special)
         self:DrawOnPanel("BNT_SARMAT_R" .. i, function(...)
             surface.SetMaterial(self.RTMaterial)
             surface.SetDrawColor(255, 255, 255)
-            surface.DrawTexturedRectRotated(1020, 140, 2040, 280, 0)
+            surface.DrawTexturedRectRotated(1020, 137, 2040, 274, 0)
         end)
     end
     self.RTMaterial:SetTexture("$basetexture", self.LBnt_MST)
