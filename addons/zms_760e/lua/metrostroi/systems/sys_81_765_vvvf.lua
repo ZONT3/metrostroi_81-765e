@@ -126,7 +126,7 @@ function TRAIN_SYSTEM:Think(dT)
     local command = self.Command
     local slope = self.Slope
 
-    if self.LastSpeed then
+    if self.LastSpeed and dT > 0 then
         local dV = (v_a / 3.6 - self.LastSpeed / 3.6) / dT
         self.DeltaSpeed = dV + (self.DeltaSpeed - dV) * exp(-2 * dT)
     end
@@ -222,7 +222,9 @@ if CLIENT then
         if not IsValid(wag) then return end
 
         local text = Format(
-            "S=% 05.2f I=% 07.2fA I_t=% 07.2fA f=% 06.2fHz T=% 06.2fm/s²\nV=% 06.2fkm/h U=% 07.2fV Cmd=% 05.2f Cmd_s=%01d k_m=% 05.2f\ndV=% 06.2fm/s² k_L=% 05.2f k_LS=%04.2f",
+            "S=% 05.2f I=% 07.2fA I_t=% 07.2fA f=% 06.2fHz T=% 06.2fm/s²\n" ..
+            "V=% 06.2fkm/h U=% 07.2fV Cmd=% 05.2f Cmd_s=%01d k_m=% 05.2f\n" ..
+            "dV=% 06.2fm/s² k_L=% 05.2f k_LS=%04.2f",
             wag:GetNW2Int("VVVF:State", -1) / 100,
             wag:GetNW2Int("VVVF:Current", -1) / 100,
             wag:GetNW2Int("VVVF:TargetCurrent", -1) / 100,
