@@ -1102,8 +1102,10 @@ ENT.Spawner = {
             wag:SetNW2Int("VVVFSound", 8)
             wag:SetNW2Int("HornType", 5)
             wag:SetNW2Int("KvType", 3)
+            wag:SetNW2Int("DoorReverseMode", 2)
             wag:SetNW2Bool("BtbuSd", true)
             wag:SetNW2Bool("SingleRing", true)
+            wag:SetNW2Bool("CoupleSprings", true)
         end,
         Section = "Settings", Subsection = "FunctionalSettings"
     },
