@@ -171,7 +171,7 @@ function TRAIN_SYSTEM:Think(dT)
     local I_target, k = 0, 0
     if assembly == TargetMode and TargetMode ~= 0 and self.Disassembled == 0 then
         I_target, k = GetTargetCurrent(command)
-        local k_r = 1 - Clamp(0.77 * Clamp((v - 41) / 20, 0, 1) * (1 - abs(command) / (command < 0 and 1.75 or 4.4)), 0, 1)
+        local k_r = 1 - Clamp(0.77 * Clamp((v - 41) / 31, 0, 1) * math.pow(1 - abs(command) / (command < 0 and 1.75 or 3.6), 3), 0, 1)
         local k_w = 1 + (slope == 1 and 0.1 or self.WeightLoadRatio * 0.1)
         if command > 0 then
             k = (1 - k) + k * Clamp((v - 3) / (16 * ls_k), 0, 1)
