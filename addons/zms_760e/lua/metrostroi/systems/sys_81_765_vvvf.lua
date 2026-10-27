@@ -212,6 +212,8 @@ end
 
 -- debug
 if TURBOSTROI then return end
+local CV_debug = GetConVar("765_debug")
+if not CV_debug:GetBool() then return end
 
 if CLIENT then
     local color = Color(255, 255, 255)
