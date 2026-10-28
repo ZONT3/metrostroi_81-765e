@@ -15,6 +15,8 @@ local function pmvToggle(name, positions, default)
     }
 end
 
+pmvToggle("PakUnused", {0, 2, 4, 6}, 0)
+pmvToggle("NoDcDrive", {0, 3}, 0)
 pmvToggle("PmvAddressDoors", {0, 3}, 1)
 pmvToggle("PmvRpdp", {0, 3})
 pmvToggle("PmvPant", {0, 2, 4, 6}, 3)

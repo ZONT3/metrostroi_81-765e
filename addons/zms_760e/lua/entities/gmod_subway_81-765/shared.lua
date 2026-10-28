@@ -335,7 +335,13 @@ local function pmvToggle(name, tooltip, x, y, idx, positions, states, default)
     }
 end
 
-pmvToggle("PmvAddressDoors", "Индивидуальное открытие дверей", 34, 84, 0, {0, 3}, {
+pmvToggle("PakUnused", "Не используется", 34, 84, 0, {0, 2, 4, 6}, {
+    "1", "2", "3", "4"
+}, 3)
+pmvToggle("NoDcDrive", "Движение без контроля дверей", 34, 84, 0, {0, 3}, {
+    "Common.765.Buttons.IOff", "Common.765.Buttons.IOn"
+}, 1)
+pmvToggle("PmvAddressDoors", "Индивидуальное открытие дверей\nНедоступно в альфа-версии", 34, 84, 0, {0, 3}, {
     "Common.765.Buttons.IOn", "Common.765.Buttons.IOff"
 }, 1)
 pmvToggle("PmvRpdp", "Питание РПДП", 34, 84, 1, {0, 3}, {
@@ -695,11 +701,11 @@ ENT.SpawnerCustom = {
             wag.ASNP.Path = i ~= 1
         end
     end,
-    skins,
+    -- skins,
     -- Metrostroi.Skins.GetTable("PassTexture","Spawner.PassTexture",PassTexture,"pass"),
     -- Metrostroi.Skins.GetTable("CabTexture","Spawner.CabTexture",CabTexture,"cab"),
-    ENT.SpawnerLogos(),
-    { "BLIK:Anim", "Анимация БЛ-ИК", "Boolean", Section = "Branding" },
+    -- ENT.SpawnerLogos(),
+    -- { "BLIK:Anim", "Анимация БЛ-ИК", "Boolean", Section = "Branding" },
     {},
     {
         "Announcer",
@@ -839,6 +845,8 @@ ENT.SpawnerCustom = {
     -- { "AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
     { "ForgivefulBars", "БАРС прощает ошибки", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
     { "BtbuSd", "Автомат ППЗ БТБУ", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "PmvType", "Тип ПМВ", "List", { "Ранний .0", "Поздний .0", "81-765.2" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
+    { "WcPakType", "Тип 1-го пакетника", "List", { "Не используется", "Движение без КД", "ИОД" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
     { "CoupleSprings", "Центровка автосцепок", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
     { "NerfKpDsHull", "Нерф КП/ДС/Кузов", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
     { "DoorReverseMode", "Противозажатие", "List", { "1 авто, ∞ ручн.", "1 авто, 1 ручн.", "3 авто, ∞ ручн." }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
@@ -1072,9 +1080,59 @@ ENT.Spawner = {
     model = ENT.SpawnerCustom.model,
     spawnfunc = ENT.SpawnerSpawnFnc("gmod_subway_81-765", "gmod_subway_81-766", "gmod_subway_81-767"),
     postfunc = ENT.SpawnerCustom.postfunc,
-    ENT.SpawnerSkins("765", "760e.Moscow"),
-    ENT.SpawnerLogos("MosMetro", "MosBrend", "MosBrend3D"),
-    ENT.SpawnerFields["BLIK:Anim"],
+    -- TODO
+    -- ENT.SpawnerSkins("765", "760e.Moscow"),
+    -- ENT.SpawnerLogos("MosMetro", "MosBrend", "MosBrend3D"),
+    -- ENT.SpawnerFields["BLIK:Anim"],
+    {},
+    {
+        "MoscowVariant", "Версия", "List",
+        { "Ранний", "Поздний" }, 1,
+        function(wag, variant)
+            wag:SetNW2Bool("BtbuSd", variant == 2)
+            wag:SetNW2Int("PmvType", variant)
+            wag:SetNW2Int("WcPakType", variant)
+            wag:SetNW2Int("DoorReverseMode", variant == 1 and 2 or 1)
+
+            wag:SetNW2Int("VVVFSound", 8)
+            wag:SetNW2Int("HornType", 5)
+            wag:SetNW2Int("KvType", 3)
+            wag:SetNW2Bool("SingleRing", true)
+            wag:SetNW2Bool("CoupleSprings", true)
+        end,
+        function(self, spawnerList)
+            local cik_cb = spawnerList.CikType
+            local variant = self:GetSelectedID()
+            local cik_type = cik_cb:GetSelectedID()
+            if variant == 1 and cik_type == 3 then cik_cb:ChooseOptionID(1) end
+            if variant == 1 and cik_type == 5 then cik_cb:ChooseOptionID(4) end
+            if variant == 2 and cik_type == 1 then cik_cb:ChooseOptionID(2) end
+        end,
+        Section = "Settings", Subsection = "FunctionalSettings"
+    },
+    {
+        "CikType", "ЦИК", "List",
+        { "МСТ v1", "МСТ v1.1", "МСТ v1.2", "Сармат v1", "Сармат v1.1" }, 1,
+        function(wag, cik_type)
+            local mst = cik_type < 4
+            wag:SetNW2Int("CikColor", mst and 1 or 2)
+            wag:SetNW2Int("BMIK:Font", mst and 1 or 2)
+            wag:SetNW2Int("BntType", cik_type < 3 and 3 or cik_type == 3 and 1 or cik_type == 4 and 4 or 2)
+            wag:SetNW2Int("BntFps", mst and 1 or 2)
+            wag:SetNW2Int("BuikType", mst and 1 or 3)
+            wag:SetNW2Bool("SarmatBeep", not mst)
+            -- TODO BL-IK
+        end,
+        function(self, spawnerList)
+            local variant_cb = spawnerList.MoscowVariant
+            local variant = variant_cb:GetSelectedID()
+            local cik_type = self:GetSelectedID()
+            if variant == 1 and cik_type == 3 then variant_cb:ChooseOptionID(2) end
+            if variant == 1 and cik_type == 5 then variant_cb:ChooseOptionID(2) end
+            if variant == 2 and cik_type == 1 then variant_cb:ChooseOptionID(1) end
+        end,
+        Section = "Settings", Subsection = "FunctionalSettings"
+    },
     {},
     ENT.SpawnerFields["Announcer"],
     ENT.SpawnerFields["CISConfig"],
@@ -1086,29 +1144,6 @@ ENT.Spawner = {
     ENT.SpawnerFields["BatteryWear"],
     ENT.SpawnerFields["BatteryLevel"],
     {},
-    {
-        "CikType", "ЦИК", "List",
-        { "Метроспецтехника v1", "Метроспецтехника v1.1", "Метроспецтехника v1.2", "Сармат v1", "Сармат v1.1" }, 1,
-        function(wag, cik_type)
-            local mst = cik_type < 4
-            wag:SetNW2Int("CikColor", mst and 1 or 2)
-            wag:SetNW2Int("BMIK:Font", mst and 1 or 2)
-            wag:SetNW2Int("BntType", cik_type < 3 and 3 or cik_type == 3 and 1 or cik_type == 4 and 4 or 2)
-            wag:SetNW2Int("BntFps", mst and 1 or 2)
-            wag:SetNW2Int("BuikType", mst and 1 or 3)
-            wag:SetNW2Bool("SarmatBeep", not mst)
-            -- TODO BL-IK
-
-            wag:SetNW2Int("VVVFSound", 8)
-            wag:SetNW2Int("HornType", 5)
-            wag:SetNW2Int("KvType", 3)
-            wag:SetNW2Int("DoorReverseMode", 2)
-            wag:SetNW2Bool("BtbuSd", true)
-            wag:SetNW2Bool("SingleRing", true)
-            wag:SetNW2Bool("CoupleSprings", true)
-        end,
-        Section = "Settings", Subsection = "FunctionalSettings"
-    },
     ENT.SpawnerFields["RingType765"],
     ENT.SpawnerFields["NoTrailers"],
     ENT.SpawnerFields["ArsMode"],

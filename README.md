@@ -77,7 +77,7 @@ TODO
   - [ ] Glass in cabin, on doors, windows, devices
   - [ ] Cabin models: buttons, controller variants, console textures
   - [ ] DVORNIK mazafaka
-  - [ ] Spawner options justifications according to the following TODO, skis setups, etc.
+  - [ ] Spawner options justifications according to the following TODO, skins setups, etc.
 
 ## TODO
 

@@ -948,23 +948,6 @@ function ENT:UpdateTextures()
     if not IsValid(self.RearBogey) then self.RearBogey = self:GetNW2Entity("RearBogey") end
     if not IsValid(self.FrontBogey) then self.FrontBogey = self:GetNW2Entity("FrontBogey") end
 
-    if not self.IsIntermediate then
-        self:ShowHide("BtbuSdLabel", self:GetNW2Bool("BtbuSd", false))
-
-        local foundOther = false
-        for _, btn in ipairs(self.ButtonMap["BackPPZ"].buttons) do
-            if btn.ID == "SF22F4Toggle" then
-                btn.tooltip = self:GetNW2Bool("BtbuSd", false) and "22F4: КМ" or "Не используется"
-                if foundOther then break end
-                foundOther = true
-            elseif btn.ID == "SF22F2Toggle" then
-                btn.tooltip = self:GetNW2Bool("BtbuSd", false) and "22F2: БТБУ, СД" or "22F2: КМ, БТБУ, СД"
-                if foundOther then break end
-                foundOther = true
-            end
-        end
-    end
-
     local bnt = self.ClientEnts["Bnt"]
     if IsValid(bnt) then update_bnt(self, bnt) end
 end

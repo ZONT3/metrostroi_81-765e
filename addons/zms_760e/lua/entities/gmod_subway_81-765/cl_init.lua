@@ -3263,6 +3263,30 @@ ENT.ClientProps["BayCoverBud5"] = nil
 ENT.ClientProps["BayCoverPneumo"] = nil
 ENT.ClientProps["BayCoverAbs"] = nil
 
+local pmv_models = {
+    "models/metrostroi_train/81-765_v1/765/pmv_early.mdl",
+    "models/metrostroi_train/81-765_v1/765/pmv_late.mdl",
+    "models/metrostroi_train/81-765_v1/765/pmv_m2.mdl",
+}
+local function update_pmv(wag, ent)
+    local typ = wag:GetNW2Int("PmvType", 1)
+    ent:SetModel(pmv_models[typ])
+end
+ENT.ClientProps["PMV"] = {
+    model = "models/metrostroi_train/81-765_v1/765/pmv_early.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2,
+    callback = update_pmv
+}
+
+ENT.ClientProps["BtbuSdLabel"] = {
+    model = "models/metrostroi_train/81-765_v1/765/pmv_btbu_sd.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hideseat = 0.5,
+}
+
 ENT.ClientProps["Factory"] = {
     model = "models/metrostroi_train/81-765_v1/765/factory_765.mdl",
     pos = Vector(0, 0, 0),
@@ -3301,20 +3325,6 @@ ENT.ClientProps["BayHandle"] = {
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
     hideseat = 0.5
-}
-
-ENT.ClientProps["PMV"] = {
-    model = "models/metrostroi_train/81-765_v1/765/pmv_early.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hide = 2,
-}
-
-ENT.ClientProps["BtbuSdLabel"] = {
-    model = "models/metrostroi_train/81-765_v1/765/pmv_btbu_sd.mdl",
-    pos = Vector(0, 0, 0),
-    ang = Angle(0, 0, 0),
-    hideseat = 0.5,
 }
 
 ENT.ClientProps["CabChairAdd"] = {
@@ -3958,6 +3968,27 @@ function ENT:Initialize()
     self.BLIK = self:CreateRT("765BLIK", 380, 380)
 end
 
+function ENT:UpdateTextures()
+    local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
+    if isfunction(BaseClass.UpdateTextures) then BaseClass.UpdateTextures(self) end
+    local pmv = self.ClientEnts["PMV"]
+    if IsValid(pmv) then update_pmv(self, pmv) end
+
+    local btbuSd = self:GetNW2Bool("BtbuSd", false)
+    local foundOther = false
+    for _, btn in ipairs(self.ButtonMap["BackPPZ"].buttons) do
+        if btn.ID == "SF22F4Toggle" then
+            btn.tooltip = btbuSd and "22F4: КМ" or "Не используется"
+            if foundOther then break end
+            foundOther = true
+        elseif btn.ID == "SF22F2Toggle" then
+            btn.tooltip = btbuSd and "22F2: БТБУ, СД" or "22F2: КМ, БТБУ, СД"
+            if foundOther then break end
+            foundOther = true
+        end
+    end
+end
+
 function ENT:Think(...)
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     local retval =  BaseClass.Think(self, ...)
@@ -4032,7 +4063,21 @@ function ENT:Think(...)
     self:HidePanel("BayMainAbs", not bm)
     self:HidePanel("LmAsotp_BayMain", not bm)
 
+    local pak_type = self:GetNW2Bool("AddressDoors", false) and 3 or self:GetNW2Int("WcPakType", 1)
+    self:ShowHidePak("PakUnused", pak_type == 1)
+    self:ShowHidePak("NoDcDrive", pak_type == 2)
+    self:ShowHidePak("PmvAddressDoors", pak_type == 3)
+    self:ShowHide("BtbuSdLabel", self:GetNW2Bool("BtbuSd", false))
+
     return retval
+end
+
+function ENT:ShowHidePak(id, show)
+    local toggle = id .. "Toggle"
+    self:ShowHide(toggle, show)
+    self:HideButton(toggle, not show)
+    self:HideButton("PakUp" .. id, not show)
+    self:HideButton("PakDn" .. id, not show)
 end
 
 function ENT:DrawPost(special)
