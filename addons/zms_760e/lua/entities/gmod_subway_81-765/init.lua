@@ -393,6 +393,8 @@ function ENT:Think()
 
     self:SetPackedRatio("Cran", self.Pneumatic.DriverValvePosition)
 
+    self:LmAsotp("BayMain", self.BayMain1Val)
+
     if (self.RV.KRRPosition ~= 0) ~= (self.EmergencyControls.Value > 0) then
         self.EmergencyControls:TriggerInput("Set", (self.RV.KRRPosition ~= 0) and 1 or 0)
     end

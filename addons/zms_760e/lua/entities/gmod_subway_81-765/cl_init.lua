@@ -3189,7 +3189,73 @@ for _, bay in ipairs(bays) do
     end
 end
 
+ENT.ButtonMap["LmAsotp_BayMain"] = {
+    pos = Vector(415.71, 40.76, 44.56),
+    ang = Angle(0.000, -90.000, 90.000),
+    width = 170, height = 20, scale = 0.02,
+    buttons = {
+        {
+            ID = "!LmAsotp_BayMain_UPT", x = 10, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Клапан устройства пожаротушения",
+            model = { lamp = {
+                var = "LmAsotp_BayMain_UPT", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetBit("LmAsotp_BayMain", 0) end
+            } }
+        }, {
+            ID = "!LmAsotp_BayMain_DD", x = 38, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Датчик давления",
+            model = { lamp = {
+                var = "LmAsotp_BayMain_DD", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetLmAsotpBlink("LmAsotp_BayMain", 1, 1.21, 0.15) end
+            } }
+        }, {
+            ID = "!LmAsotp_BayMain_DZD1", x = 64, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Датчик закрытия дверей",
+            model = { lamp = {
+                var = "LmAsotp_BayMain_DZD1", color = Color(241, 179, 33), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetBit("LmAsotp_BayMain", 5) * (1 - wag:GetBit("LmAsotp_BayMain", 2)) end
+            } }
+        }, {
+            ID = "!LmAsotp_BayMain_DZD2", x = 64, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Датчик закрытия дверей",
+            model = { lamp = {
+                var = "LmAsotp_BayMain_DZD2", color = Color(83, 235, 53), z = 1, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetBit("LmAsotp_BayMain", 5) * wag:GetBit("LmAsotp_BayMain", 2) end
+            } }
+        }, {
+            ID = "!LmAsotp_BayMain_UPD", x = 92, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Универсальный пожарный датчик",
+            model = { lamp = {
+                var = "LmAsotp_BayMain_UPD", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetLmAsotpBlink("LmAsotp_BayMain", 3, 3.13, 0.3) end
+            } }
+        }, {
+            ID = "!LmAsotp_BayMain_CAN", x = 119, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: CAN",
+            model = { lamp = {
+                var = "LmAsotp_BayMain_CAN", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetBit("LmAsotp_BayMain", 4) end
+            } }
+        }, {
+            ID = "!LmAsotp_BayMain_Power", x = 158, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Питание",
+            model = { lamp = {
+                var = "LmAsotp_BayMain_Power", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetBit("LmAsotp_BayMain", 5) end
+            } }
+        },
+    }
+}
+
 ENT.ButtonMap["Bud5"] = nil  -- TODO
+ENT.ClientProps["BayBud5"] = nil
 
 ENT.ButtonMap["BayCoverBud5"] = nil
 ENT.ButtonMap["BayCoverBud5_close"] = nil
@@ -3964,6 +4030,7 @@ function ENT:Think(...)
     local bm = bm1 or bm2 or bm3
     self:ShowHide("BayMain", bm)
     self:HidePanel("BayMainAbs", not bm)
+    self:HidePanel("LmAsotp_BayMain", not bm)
 
     return retval
 end

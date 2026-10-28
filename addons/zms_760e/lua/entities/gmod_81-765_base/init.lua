@@ -395,6 +395,8 @@ function ENT:Think()
         end
     end
 
+    self:LmAsotp("PUV", self.BayPuvVal)
+
     self:SetNW2Bool("LvCritical", Electric.Emer80V < 54.8)
 
     self:SetPackedRatio("Speed", self.Speed)
@@ -444,6 +446,22 @@ function ENT:Think()
         bogeyR.DisableContacts = self.BUV.Pant
     end
     return retVal
+end
+
+function ENT:LmAsotp(id, cover_val)
+    local k = "LmAsotp_" .. id
+    local power = self.SF90F2.Value * self.Electric.EmerSupply > 0 and 1 or 0
+    local closed = power * (cover_val and 0 or 1)
+    local val = (
+        power  * bit.lshift(1, 5) +
+        power  * bit.lshift(1, 4) +
+        power  * bit.lshift(1, 3) +
+        closed * bit.lshift(1, 2) +
+        power  * bit.lshift(1, 1) +
+        power
+    )
+    self[k] = val
+    self:SetNW2Int(k, val)
 end
 
 function ENT:OnCouple(couple, isfront)

@@ -399,6 +399,71 @@ for idx, pos in ipairs(buds) do
     }
 end
 
+ENT.ButtonMap["LmAsotp_PUV"] = {
+    pos = Vector(-460.56, 43.24, -45.82),
+    ang = Angle(0, 0, 0),
+    width = 170, height = 20, scale = 0.02,
+    buttons = {
+        {
+            ID = "!LmAsotp_PUV_UPT", x = 10, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Клапан устройства пожаротушения",
+            model = { lamp = {
+                var = "LmAsotp_PUV_UPT", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetBit("LmAsotp_PUV", 0) end
+            } }
+        }, {
+            ID = "!LmAsotp_PUV_DD", x = 38, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Датчик давления",
+            model = { lamp = {
+                var = "LmAsotp_PUV_DD", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetLmAsotpBlink("LmAsotp_PUV", 1, 1.21, 0.15) end
+            } }
+        }, {
+            ID = "!LmAsotp_PUV_DZD1", x = 64, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Датчик закрытия дверей",
+            model = { lamp = {
+                var = "LmAsotp_PUV_DZD1", color = Color(241, 179, 33), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetBit("LmAsotp_PUV", 5) * (1 - wag:GetBit("LmAsotp_PUV", 2)) end
+            } }
+        }, {
+            ID = "!LmAsotp_PUV_DZD2", x = 64, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Датчик закрытия дверей",
+            model = { lamp = {
+                var = "LmAsotp_PUV_DZD2", color = Color(83, 235, 53), z = 1, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetBit("LmAsotp_PUV", 5) * wag:GetBit("LmAsotp_PUV", 2) end
+            } }
+        }, {
+            ID = "!LmAsotp_PUV_UPD", x = 92, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Универсальный пожарный датчик",
+            model = { lamp = {
+                var = "LmAsotp_PUV_UPD", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetLmAsotpBlink("LmAsotp_PUV", 3, 3.13, 0.3) end
+            } }
+        }, {
+            ID = "!LmAsotp_PUV_CAN", x = 119, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: CAN",
+            model = { lamp = {
+                var = "LmAsotp_PUV_CAN", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetBit("LmAsotp_PUV", 4) end
+            } }
+        }, {
+            ID = "!LmAsotp_PUV_Power", x = 158, y = 10, radius = 10,
+            tooltip = "ЛМ-АСОТП: Питание",
+            model = { lamp = {
+                var = "LmAsotp_PUV_Power", color = Color(83, 235, 53), z = 0, ang = 0, scale = 1,
+                model = "models/metrostroi_train/81-765_v1/lights/led_tiny_square.mdl",
+                getfunc = function(wag) return wag:GetBit("LmAsotp_PUV", 5) end
+            } }
+        },
+    }
+}
+
 ENT.ClientProps["BayTop"] = {
     model = "models/metrostroi_train/81-765_v1/bays/bay_top.mdl",
     pos = Vector(0, 0, 0),
@@ -1393,6 +1458,7 @@ function ENT:Think()
     self:ShowHide("BayBs", bs)
     self:HidePanel("PVZ", not puv)
     self:HidePanel("BUV", not puv)
+    self:HidePanel("LmAsotp_PUV", not puv)
 
     for i = 1, 4 do
         local bnt_type = self:GetNW2Int("BntType", 1)
@@ -1832,6 +1898,10 @@ function ENT:GetBudState(bud_idx, idx)
     local val = self:GetNW2Int("BudState", 0)
     local mask = bit.lshift(1, (bud_idx - 1) * 4 + idx)
     return bit.band(val, mask) ~= 0 and 1 or 0
+end
+
+function ENT:GetLmAsotpBlink(nwvar, idx, a, b)
+    return self:GetBit(nwvar, idx) * (CurTime() % a > b and 1 or 0)
 end
 
 function ENT:GetBit(nwvar, idx)
