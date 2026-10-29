@@ -746,7 +746,8 @@ else
         local id2led = {}
         for idx, v in ipairs(led) do
             if istable(v) and v.id and v[1] then
-                id2led[v.id] = idx
+                if not id2led[v.id] then id2led[v.id] = {} end
+                table.insert(id2led[v.id], idx)
             end
         end
 
@@ -758,7 +759,9 @@ else
 
         for idx, st in ipairs(not path and self.Stations or table.Reverse(self.Stations)) do
             if id2led[st.id] then
-                st.ledIdxSarmat = table.insert(self.LED, led[id2led[st.id]])
+                local ledx = id2led[st.id][1]
+                if #id2led[st.id] > 1 then table.remove(id2led[st.id], 1) end
+                st.ledIdxSarmat = table.insert(self.LED, led[ledx])
             end
         end
 
@@ -788,14 +791,17 @@ else
         for _, cur_led in ipairs(mst_led) do
             led_map[Format("%d_%d", cur_led[1], cur_led[2])] = true
             if cur_led.id then
-                id2led[cur_led.id] = cur_led
+                if not id2led[cur_led.id] then id2led[cur_led.id] = {} end
+                table.insert(id2led[cur_led.id], cur_led)
             end
         end
 
         local leds_result = {}
         for _, st in ipairs(not path and self.Stations or table.Reverse(self.Stations)) do
             if id2led[st.id] then
-                st.ledIdxMst = table.insert(leds_result, id2led[st.id])
+                local led = id2led[st.id][1]
+                if #id2led[st.id] > 1 then table.remove(id2led[st.id], 1) end
+                st.ledIdxMst = table.insert(leds_result, led)
             end
         end
         for _, v in ipairs(mst_led) do

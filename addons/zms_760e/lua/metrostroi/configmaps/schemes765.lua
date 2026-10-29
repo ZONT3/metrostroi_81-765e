@@ -103,4 +103,58 @@ elseif map:find("crossline_r199h") then
         },
     })
 
+elseif map:find("gm_mus_orange") and map:find("_h") then
+    Metrostroi.AddSchemes765("Orange H", {
+        SchemeTex = "models/metrostroi_train/81-765_v1/schemes/scheme_orange_h",
+        [1] = {  -- Оранжевая
+            MstLed = {
+                { 146,  272, id = 401, size = 42 },
+                { 523,  272, id = 402, size = 42 },
+                { 853,  272, id = 403, size = 42 },
+                { 1325, 272, id = 404, size = 42 },
+                { 1863, 259, id = 405, size = 42 },
+                { 2049, 259, id = 406, size = 42 },
+                { 2284, 259, id = 407, size = 42 },
+                { 2518, 259, id = 408, size = 42 },
+                { 2779, 259, id = 407, size = 42 },
+                { 3036, 259, id = 406, size = 42 },
+                { 3294, 259, id = 405, size = 42 },
+                { 3507, 272, id = 404, size = 42 },
+                { 3660, 272, id = 403, size = 42 },
+                { 3812, 272, id = 402, size = 42 },
+                { 4035, 272, id = 401, size = 42 },
+            },
+            -- SarmatLed = {
+            --     absolute = true,
+            -- },
+        },
+        [2] = {  -- Малиновая
+            MstLed = {
+                { 146,  223, id = 501, size = 42 },
+                { 523,  26,  id = 502, size = 42 },
+                { 853,  223, id = 503, size = 42 },
+                { 1184, 25,  id = 504, size = 42 },
+            },
+            -- SarmatLed = {
+            --     absolute = true,
+            -- },
+        },
+        [3] = {  -- Бирюзовая
+            MstLed = {
+                { 1499, 47,  id = 601, size = 42 },
+                { 1863, 259, id = 405, size = 42 },
+                { 2049, 259, id = 406, size = 42 },
+                { 2284, 259, id = 407, size = 42 },
+                { 2518, 259, id = 408, size = 42 },
+                { 2779, 259, id = 407, size = 42 },
+                { 3036, 259, id = 406, size = 42 },
+                { 3294, 259, id = 405, size = 42 },
+                { 3765, 47,  id = 601, size = 42 },
+            },
+            -- SarmatLed = {
+            --     absolute = true,
+            -- },
+        },
+    })
+
 end
