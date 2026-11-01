@@ -386,16 +386,16 @@ function ENT:Think()
         -- end
     end
 
-    self:SetPackedBool("BayPuvVal", self.BayPuvVal)
-    self:SetPackedBool("BayBsVal", self.BayBsVal)
-    self:SetPackedBool("BayCondVal", self.BayCondVal)
+    self:DoorState("BayPuv", 0, 1.0)
+    self:DoorState("BayBs", 0, 1.0)
+    self:DoorState("BayCond", 0, 1.0)
     for idx = 1, 8 do
         if self.IsIntermediate or idx ~= 5 then
-            self:SetPackedBool("BayCoverBudVal" .. idx, self["BayCoverBudVal" .. idx])
+            self:DoorState("BayCoverBud" .. idx, 0, 1.0)
         end
     end
 
-    self:LmAsotp("PUV", self.BayPuvVal)
+    self:LmAsotp("PUV", self.BayPuvOpen)
 
     self:SetNW2Bool("LvCritical", Electric.Emer80V < 54.8)
 
@@ -446,6 +446,26 @@ function ENT:Think()
         bogeyR.DisableContacts = self.BUV.Pant
     end
     return retVal
+end
+
+function ENT:DoorState(k, open_delay, close_delay)
+    local val_k = k .. "Val"
+    local val = not not self[val_k]
+    self:SetPackedBool(val_k, val)
+
+    local open_k = k .. "Open"
+    local delay_k = k .. "Delay"
+    local delay = self[delay_k]
+    if delay and CurTime() >= math.abs(delay) then
+        self[open_k] = val
+        self[delay_k] = nil
+        delay = nil
+    end
+
+    local open = not not self[open_k]
+    if not delay and open ~= val or delay and (delay > 0 and not val or delay < 0 and val) then
+        self[delay_k] = (CurTime() + (val and open_delay or close_delay)) * (val and 1 or -1)
+    end
 end
 
 function ENT:LmAsotp(id, cover_val)
@@ -514,8 +534,8 @@ function ENT:OnButtonPress(button, ply)
         return
     end
     if string.StartsWith(button, "BayCoverBud") then
-        local idx = tonumber(string.sub(button, 12))
-        self["BayCoverBudVal" .. idx] = not self["BayCoverBudVal" .. idx]
+        local k = Format("BayCoverBud%dVal", tonumber(string.sub(button, 12)))
+        self[k] = not self[k]
         return
     end
 end

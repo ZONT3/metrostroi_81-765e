@@ -52,6 +52,7 @@ TODO
     - [ ] Elements from .2 for Chura
   - [ ] MFDU 2nd page auto-opening should not hide voltages on bottom-left panel
   - [ ] FIX: Doors close delay reset logic
+  - [ ] Metro system logo on displays customization
   - [ ] Electric-side doors closed signal ~~*Not found on any schematics*~~ *finally found one*
   - [ ] CIK justifications
     - [ ] LED-based BNT modes

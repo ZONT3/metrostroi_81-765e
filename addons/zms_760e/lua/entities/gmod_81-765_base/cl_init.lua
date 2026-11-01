@@ -1426,7 +1426,7 @@ function ENT:Think()
     local bud_4, bud_5 = false, false
     for idx = 1, 8 do
         if self.IsIntermediate or idx ~= 5 then
-            local bud = self:HandleDoorState("BayCoverBudVal" .. idx, "bud_" .. idx, "BayCoverBud" .. idx, "BayCoverBud" .. idx, 0.05, 0)
+            local bud = self:HandleDoorState(Format("BayCoverBud%dVal", idx), "bud_" .. idx, "BayCoverBud" .. idx, "BayCoverBud" .. idx, 0.05, 0)
             ceiling = ceiling or bud
             if idx == 4 then bud_4 = bud
             elseif idx == 5 then bud_5 = bud end

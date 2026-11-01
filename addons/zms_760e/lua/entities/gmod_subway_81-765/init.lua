@@ -209,8 +209,6 @@ function ENT:Initialize()
     self.SpeedTimer = CurTime()
     self.WrenchMode = 0
     self.ALSVal = 0
-    self.K35C1 = false
-    self.K35C2 = false
 
     if Metrostroi.Version <= 1537278077 then
         self.Lights = self.Lights or {}
@@ -382,18 +380,19 @@ function ENT:Think()
     self:SetPackedBool("CabinDoorRight", self.CabinDoorRight)
     self:SetPackedBool("CabinWindowLeft", self.CabinWindowLeft)
     self:SetPackedBool("CabinWindowRight", self.CabinWindowRight)
-    self:SetPackedBool("CabinDoorRightLimit", self.K35C1 or self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
+    self:SetPackedBool("CabinDoorRightLimit", self.K35C1Val or self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
     self:SetPackedBool("CabChairAdd", self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
-    self:SetPackedBool("K35C1", self.K35C1)
-    self:SetPackedBool("K35C2", self.K35C2)
-    self:SetPackedBool("BayMain1Val", self.BayMain1Val)
-    self:SetPackedBool("BayMain2Val", self.BayMain2Val)
-    self:SetPackedBool("BayMain3Val", self.BayMain3Val)
-    self:SetPackedBool("BayHandle", self.BayHandle)
 
     self:SetPackedRatio("Cran", self.Pneumatic.DriverValvePosition)
 
-    self:LmAsotp("BayMain", self.BayMain1Val)
+    self:SetPackedBool("BayHandle", self.BayHandle)
+    self:DoorState("BayMain1", 0, 1.0)
+    self:DoorState("BayMain2", 0, 1.0)
+    self:DoorState("BayMain3", 0, 1.0)
+    self:DoorState("K35C1", 0, 1.0)
+    self:DoorState("K35C2", 0, 1.0)
+
+    self:LmAsotp("BayMain", self.BayMain1Open)
 
     if (self.RV.KRRPosition ~= 0) ~= (self.EmergencyControls.Value > 0) then
         self.EmergencyControls:TriggerInput("Set", (self.RV.KRRPosition ~= 0) and 1 or 0)
@@ -451,10 +450,10 @@ function ENT:OnButtonPress(button, ply)
     end
 
     if button == "BayCoverK35_1" then
-        self.K35C1 = not self.K35C1
+        self.K35C1Val = not self.K35C1Val
     end
     if button == "BayCoverK35_2" then
-        self.K35C2 = not self.K35C2
+        self.K35C2Val = not self.K35C2Val
     end
     if button == "BayCoverMain2" then
         self.BayMain2Val = not self.BayMain2Val

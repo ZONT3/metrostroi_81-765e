@@ -4049,8 +4049,8 @@ function ENT:Think(...)
         self:SetLightPower(LIGHT_CAB, true, cabl_full * 0.8 + cabl_half * 0.2)
     end
 
-    local k35_1 = self:HandleDoorState("K35C1", "door_k35_1", "BayCoverK35_1", "BayCoverK35_1", 0.1, 0.2)
-    local k35_2 = self:HandleDoorState("K35C2", "door_k35_2", "BayCoverK35_2", "BayCoverK35_2", 0.1, 0.2)
+    local k35_1 = self:HandleDoorState("K35C1Val", "door_k35_1", "BayCoverK35_1", "BayCoverK35_1", 0.1, 0.2)
+    local k35_2 = self:HandleDoorState("K35C2Val", "door_k35_2", "BayCoverK35_2", "BayCoverK35_2", 0.1, 0.2)
     self:ShowHide("K35", k35_1 or k35_2)
     self:HidePanel("K35", not k35_1 and not k35_2)
 
