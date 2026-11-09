@@ -21,6 +21,8 @@ table.Add(ENT.SyncTable, {
     "PPUP1", "PPUP2", "PPUP3", "PPUP4",
     "MfduHelp", "MfduKontr", "MfduTv", "MfduTv1", "MfduTv2",
     "Buik_EMsg1", "Buik_EMsg2", "Buik_Unused1", "Buik_Mode", "Buik_Path", "Buik_Return", "Buik_Down", "Buik_Up", "Buik_MicLine", "Buik_MicBtn", "Buik_Asotp", "Buik_Ik",
+    "Buik_EMsg1Lamp", "Buik_EMsg2Lamp", "Buik_Unused1Lamp", "Buik_ModeLamp", "Buik_PathLamp","Buik_ReturnLamp",
+    "Buik_DownLamp", "Buik_UpLamp", "Buik_MicLineLamp", "Buik_MicBtnLamp", "Buik_AsotpLamp", "Buik_IkLamp",
     "BatteryCharge", "MasterTrainPowerOn", "MasterTrainPowerOff"
 })
 

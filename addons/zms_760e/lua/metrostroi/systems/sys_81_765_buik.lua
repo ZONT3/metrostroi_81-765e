@@ -8,6 +8,11 @@ TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 local dbg = false
 
+local feedback_btns = {
+    "Buik_EMsg1", "Buik_EMsg2", "Buik_Unused1", "Buik_Mode", "Buik_Return",
+    "Buik_Down", "Buik_Up", "Buik_MicBtn", "Buik_Asotp", "Buik_Ik",
+}
+
 function TRAIN_SYSTEM:Initialize()
     self:InitTrigger("Buik_EMsg1")  -- Экстр. Сообщение 1
     self:InitTrigger("Buik_EMsg2")  -- Экстр. Сообщение 2
@@ -24,6 +29,12 @@ function TRAIN_SYSTEM:Initialize()
     self:InitTrigger("Buik_Ik")  -- ИК (штатный режим)
     self:AddTrigger("R_Program1")
     self:AddTrigger("R_Program11", "R_Program1")
+
+    for _, btn in ipairs(feedback_btns) do
+        self.Train:LoadSystem(btn .. "Lamp", "Relay", "Switch")
+    end
+    self.Train:LoadSystem("Buik_PathLamp", "Relay", "Switch")
+    self.Train:LoadSystem("Buik_MicLineLamp", "Relay", "Switch")
 
     self.Load = 0
     self.State = 0
@@ -182,6 +193,13 @@ if SERVER then
 
         self.Load = (power and (self.State == STATE_NORMAL and 56 or 37) or 0) * (sarmat and 1.6 or 1)
 
+        local lamps = Wag.Electric.UPIPower * Wag.SF45F11.Value * Wag.SF70F3.Value
+        Wag.Buik_PathLamp:TriggerInput("Set", Wag.Buik_Path.Value * lamps)
+        Wag.Buik_MicLineLamp:TriggerInput("Set", Wag.Buik_MicLine.Value * lamps)
+        for _, btn in ipairs(feedback_btns) do
+            Wag[btn .. "Lamp"]:TriggerInput("Set", Wag[btn].Value * lamps)
+        end
+
         if CurTime() < self.NextThink then return end
         self.NextThink = CurTime() + 0.26
 
@@ -199,9 +217,6 @@ if SERVER then
         elseif self.State == STATE_POWEROFF then
             self.State = STATE_BOOTING
         end
-
-        Wag:SetNW2Bool("Buik_PathLamp", battery and Wag.Buik_Path.Value * Wag.SF70F3.Value * Wag.Electric.UPIPower > 0)
-        Wag:SetNW2Bool("Buik_MicLineLamp", battery and Wag.Buik_MicLine.Value * Wag.SF70F3.Value * Wag.Electric.UPIPower > 0)
 
         if not power and self:IsCurrentlyPlaying() then
             self:StopMessage()
