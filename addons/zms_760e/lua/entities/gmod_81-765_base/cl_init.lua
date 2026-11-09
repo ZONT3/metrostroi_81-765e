@@ -858,6 +858,39 @@ ENT.PakPositions = {
 }
 
 
+ENT.ClientProps["Triang1"] = {
+    model = "models/metrostroi_train/81-765_v1/common/triang.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hideseat = 2,
+}
+ENT.ClientProps["Triang2"] = ENT.ClientProps["Triang1"]
+
+ENT.TriangActions = {}
+ENT.TriangActions["BayPuv"] = {
+    { pos = Vector(-470.08, 36.84, 11.33), ang = Angle(88.500, 90.000, 180.000) },
+    { pos = Vector(-470.08, 33.66, -27.53), ang = Angle(78.870, -90.000, 0.000) },
+}
+ENT.TriangActions["BayBs"] = {
+    { pos = Vector(-470.12, -36.22, -08.54), ang = Angle(84.930, 90.000, 0.000) },
+    { pos = Vector(-470.12, -33.60, -28.90), ang = Angle(78.870, 90.000, 0.000) },
+}
+for idx = 1, 8 do
+    local left = idx < 5
+    local i = left and idx - 1 or idx - 5
+    local offset = 235.7 * i
+    ENT.TriangActions["BayCoverBud" .. idx] = {
+        {
+            pos = Vector((left and 301.75 or 435.98) - offset, left and 58.88 or -58.88, 42.04),
+            ang = Angle(0.000, left and 90.000 or -90.000, -180.000)
+        }, {
+            pos = Vector((left and 263.98 or 398.23) - offset, left and 58.88 or -58.88, 42.04),
+            ang = Angle(0.000, left and 90.000 or -90.000, -180.000)
+        },
+    }
+end
+
+
 local bnt_models = {
     "models/metrostroi_train/81-765_v1/common/bnt_lcd_mst.mdl",
     "models/metrostroi_train/81-765_v1/common/bnt_lcd_sarmat.mdl",
@@ -1476,6 +1509,37 @@ function ENT:Think()
         end
     end
 
+    local triang_cur = self:GetNW2String("TriangId", "")
+    local triang_shown1 = false
+    local triang_shown2 = false
+    for k, v in pairs(self.TriangActions) do
+        local cur = triang_cur == k
+        local anim_k = "Triang" .. k
+        local val
+        if not v.k then
+            val = self:Animate(anim_k, cur and 1 or 0, 0, 1, 16, 0.5)
+        else
+            val = self:Animate(anim_k, self:GetPackedBool(v.k) and 1 or 0, 0, 1, 16, 0.5)
+        end
+        if cur then
+            for idx = 1, 2 do
+                local vi = v[idx]
+                if vi then
+                    if idx == 1 then triang_shown1 = true else triang_shown2 = true end
+                    local ent_k = "Triang" .. idx
+                    local ent = self.ClientEnts[ent_k]
+                    if IsValid(ent) then
+                        ent:SetPos(self:LocalToWorld(vi.pos))
+                        ent:SetAngles(self:LocalToWorldAngles(vi.ang))
+                        ent:SetPoseParameter("position", val)
+                    end
+                end
+            end
+        end
+    end
+    self:ShowHide("Triang1", triang_shown1)
+    self:ShowHide("Triang2", triang_shown2)
+
     if not self.IsIntermediate then
         self:ShowHide("ASHook", ValidfB)
         self:Animate("ASHook", self:GetPackedBool("ASHook") and 1 or 0, 0, 1, 8, 0.5)
@@ -1996,6 +2060,7 @@ end
 ENT:ExportFields(
     "ClientProps",
     "ButtonMap",
+    "TriangActions",
     "ScreenHelpers",
     "ScreenHelpersHide",
     "ClientSounds",

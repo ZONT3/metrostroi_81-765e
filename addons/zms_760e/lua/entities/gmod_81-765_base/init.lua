@@ -397,6 +397,15 @@ function ENT:Think()
 
     self:LmAsotp("PUV", self.BayPuvOpen)
 
+    if self.TriangDelay and CurTime() >= self.TriangDelay then
+        if self.TriangAfter then
+            self.TriangAfter()
+            self.TriangAfter = nil
+        end
+        self.TriangDelay = nil
+        self:SetNW2String("TriangId", "")
+    end
+
     self:SetNW2Bool("LvCritical", Electric.Emer80V < 54.8)
 
     self:SetPackedRatio("Speed", self.Speed)
@@ -484,6 +493,26 @@ function ENT:LmAsotp(id, cover_val)
     self:SetNW2Int(k, val)
 end
 
+function ENT:TriangCover(id)
+    local val_k = id .. "Val"
+    local val = self[val_k]
+    if val then
+        self[val_k] = false
+    elseif not val and self[id .. "Open"] then
+        self[val_k] = true
+    else
+        local cur_id = self:GetNW2String("TriangId", "")
+        if cur_id == id then return end
+        self:TriangAction(id, function() self[val_k] = true end)
+    end
+end
+
+function ENT:TriangAction(id, after)
+    self:SetNW2String("TriangId", id)
+    self.TriangAfter = after
+    self.TriangDelay = CurTime() + 0.4
+end
+
 function ENT:OnCouple(couple, isfront)
     if isfront and self.FrontAutoCouple then
         self.FrontBrakeLineIsolation:TriggerInput("Open", 1.0)
@@ -522,20 +551,19 @@ function ENT:OnButtonPress(button, ply)
     end
 
     if button == "BayCoverPuv" then
-        self.BayPuvVal = not self.BayPuvVal
+        self:TriangCover("BayPuv")
         return
     end
     if button == "BayCoverBs" then
-        self.BayBsVal = not self.BayBsVal
+        self:TriangCover("BayBs")
         return
     end
     if button == "BayCoverCond" then
-        self.BayCondVal = not self.BayCondVal
+        self:TriangCover("BayCond")
         return
     end
     if string.StartsWith(button, "BayCoverBud") then
-        local k = Format("BayCoverBud%dVal", tonumber(string.sub(button, 12)))
-        self[k] = not self[k]
+        self:TriangCover("BayCoverBud" .. tonumber(string.sub(button, 12)))
         return
     end
 end
