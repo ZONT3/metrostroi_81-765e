@@ -665,6 +665,10 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
             model = string.format("models/metrostroi_train/81-765_v1/lights/strips_salon_%d.mdl", idx),
             pos = Vector(0, 0, 0), ang = Angle(0, 0, 0), hide = 2,
         }
+        ENT.ClientProps["StripSprite" .. idx] = {
+            model = string.format("models/metrostroi_train/81-765_v1/lights/strips_salon_sprite_%d.mdl", idx),
+            pos = Vector(0, 0, 0), ang = Angle(0, 0, 0), hide = 2,
+        }
         ENT.ButtonMap["DoorAddressOpen" .. idx] = {
             pos = pos + Vector(left and -250 - 10 or 250 + 10, 0, 170) * 0.05,
             ang = Angle(0, left and 0 or -180, 90),

@@ -643,6 +643,12 @@ else
     local mat_strip_red = "models/metrostroi_train/81-765_v1/lights/strips_salon_red"
     local mat_strip_green = "models/metrostroi_train/81-765_v1/lights/strips_salon_green"
     local mat_strip_white = "models/metrostroi_train/81-765_v1/lights/strips_salon_white"
+    local color_black = Color(0, 0, 0)
+    local strip2color = {
+        [mat_strip_red] = Color(99, 7, 4),
+        [mat_strip_green] = Color(2, 43, 6),
+        [mat_strip_white] = Color(39, 38, 35),
+    }
 
     function TRAIN_SYSTEM:ClientInitialize()
         self.WasOpen = {}
@@ -710,11 +716,15 @@ else
             local doorEnt = Wag.ClientEnts["Door" .. idx]
             if IsValid(doorEnt) then
                 doorEnt:SetSubMaterial(1, outer)
-                -- doorEnt:SetSubMaterial(4, inter)
             end
             local strip = Wag.ClientEnts["Strip" .. idx]
             if IsValid(strip) then
                 strip:SetSubMaterial(0, inter)
+            end
+
+            local sprite = Wag.ClientEnts["StripSprite" .. idx]
+            if IsValid(sprite) then
+                sprite:SetColor(strip2color[inter] or color_black)
             end
 
             local state = Wag:GetPackedRatio("Door" .. idx)
