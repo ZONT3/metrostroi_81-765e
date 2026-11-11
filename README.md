@@ -46,14 +46,15 @@ TODO
       - [ ] BTO bays, cranes props
       - [ ] Pneumo bay on 766/767
       - [ ] K35 bay
-      - [ ] Rooftop details
       - [ ] Underwagon
-    - [ ] Final materials/textures variant
+      - [ ] Rooftop details
+    - [ ] Final materials/textures
     - [ ] Elements from .2 for Chura
   - [ ] MFDU 2nd page auto-opening should not hide voltages on bottom-left panel
   - [ ] FIX: Doors close delay reset logic
   - [ ] Metro system logo on displays customization
-  - [ ] Electric-side doors closed signal ~~*Not found on any schematics*~~ *finally found one*
+  - [ ] Glass on doors, windows, devices
+  - [ ] KL3 Sounds
   - [ ] CIK justifications
     - [ ] LED-based BNT modes
     - [ ] BL-IK re-implementation
@@ -70,14 +71,18 @@ TODO
   - [ ] Fix various clientside multiplayer-related issues
   - [x] LED-based BNT loop routes and bugfixes
   - [ ] AO disappearing should clear ARS brake signal when Vdop > 0 and V==0
-    - [ ] KVT on AO shouldn't mute ARS ring and thus wont save from RVTB poweroff
+    - [ ] KVT on AO should mute ARS ring but not clear brake signal and thus wont save from RVTB poweroff
     - [ ] Remove "Forgiveful BARS"
   - [ ] Doors buttonmaps
   - [ ] Tryokhgranka animations
-  - [ ] HV circuits rework
-  - [ ] Glass in cabin, on doors, windows, devices
-  - [ ] Cabin models: buttons, controller variants, console textures
+  - [x] HV circuits rework
+  - [x] Glass in cabin
+  - [x] Cabin models: buttons
+  - [ ] Cabin models: controller variants
   - [ ] DVORNIK mazafaka
+  - [ ] Skins justification
+  - [ ] Move w/o KD mode
+    - [ ] Electric-side doors closed signal ~~*Not found on any schematics*~~ *finally found one*
   - [ ] Spawner options justifications according to the following TODO, skins setups, etc.
 
 ## TODO
