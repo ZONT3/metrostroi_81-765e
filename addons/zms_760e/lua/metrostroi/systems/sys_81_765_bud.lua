@@ -645,9 +645,9 @@ else
     local mat_strip_white = "models/metrostroi_train/81-765_v1/lights/strips_salon_white"
     local color_black = Color(0, 0, 0)
     local strip2color = {
-        [mat_strip_red] = Color(99, 7, 4),
-        [mat_strip_green] = Color(2, 43, 6),
-        [mat_strip_white] = Color(39, 38, 35),
+        [mat_strip_red] = Color(122, 9, 5),
+        [mat_strip_green] = Color(3, 58, 9),
+        [mat_strip_white] = Color(48, 46, 43),
     }
 
     function TRAIN_SYSTEM:ClientInitialize()
