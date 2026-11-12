@@ -349,7 +349,8 @@ if SERVER then
                 self.DoorCommand[idx] = zeroSpeed
             end
 
-            local announceState = "Unpowered"
+            local announceState = Wag:GetNW2String("DoorAnnounceState" .. idx, "Unpowered")
+            if announceState == "Closing" or announceState == "Aod" then announceState = "Closed" end
             if manual and not block then
                 announceState = poweron and (not zeroSpeed and "Closing" or "Aod") or announceState
                 if not self.WasManual[idx] then
