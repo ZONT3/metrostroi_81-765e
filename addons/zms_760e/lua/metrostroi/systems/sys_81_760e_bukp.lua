@@ -570,7 +570,7 @@ function TRAIN_SYSTEM:CommitError()
         if ((ring or ErrRingContinuous[str[1]]) and (str[1] ~= "Doors" or self.Train.Speed >= 1.8) and str[1] ~= "RvErr") then
             self.ErrorRing = CurTime()
         end
-        if (str[1] == "DisableDrive" or str[1] == "ProstDisableDrive") and (self.Train:GetNW2Bool("SingleRing", false) or self.Train.KV765.Position <= 0) then
+        if (str[1] == "DisableDrive" or str[1] == "ProstDisableDrive") and self.Train.KV765.Position <= 0 then
             self.ErrorRing = nil
         end
 

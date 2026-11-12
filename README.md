@@ -71,11 +71,11 @@ TODO
   - [ ] Fix various clientside multiplayer-related issues
   - [x] LED-based BNT loop routes and bugfixes
   - [ ] AO disappearing should clear ARS brake signal when Vdop > 0 and V==0
-    - [ ] KVT on AO should mute ARS ring but not clear brake signal and thus wont save from RVTB poweroff
+    - [ ] KVT on AO should mute ARS ring but wont save from RVTB poweroff
     - [ ] Remove "Forgiveful BARS"
   - [ ] Doors buttonmaps
   - [ ] Tryokhgranka animations
-  - [x] HV circuits rework
+  - [ ] HV circuits rework
   - [x] Glass in cabin
   - [x] Cabin models: buttons
   - [ ] Cabin models: controller variants

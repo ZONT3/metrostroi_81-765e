@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- БАРС для 81-765
+-- Логика АРС в составе САУ «Скиф-М» для 81-765
 -- Автор - ZONT_ a.k.a. enabled person
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("81_760E_BARS")
@@ -183,8 +183,6 @@ function TRAIN_SYSTEM:Think(dT)
         self.NextLimit = 0
     end
 
-    local forgiveful = Wag:GetNW2Bool("ForgivefulBars", true)
-
     local Backward = Emer and Wag.RV["KRR13-14"] > 0 or Wag.RV["KRO15-16"] > 0
     local Speed = self.Speed * Wag.SpeedSign * (Backward and -1 or 1)
     local SelfZs = Emer or Wag.BUKP.State ~= 5 or Wag.BUKP.InitTimer and CurTime() < Wag.BUKP.InitTimer
@@ -217,10 +215,16 @@ function TRAIN_SYSTEM:Think(dT)
         if Active and not UOS then
             SpeedLimit = self.KB and not AO and 20 or SpeedLimit
 
+            if self.AO > 0 and Ring and not AO and ZeroSpeed then
+                Ring = false
+            elseif self.AO == 0 and AO and not Ring then
+                Ring = true
+            end
+
             if Speed > SpeedLimit then
                 if not Brake then
                     Ring = SpeedLimit > self.SpeedLimit - 0.5
-                    self.PN1Timer = CurTime() + 1.6
+                    self.PN1Timer = CurTime() + 0.8
                 end
                 Brake = true
             elseif Brake and not Ring and not KmCur then
@@ -229,92 +233,82 @@ function TRAIN_SYSTEM:Think(dT)
             end
 
             if Ring and Drive and not self.KvtTimer then
-                self.KvtTimer = CurTime() + 3.5
+                self:RvtbSetTimer("KvtTimer", 3.5)
             end
             if Ring and self.KVT --[[or ZeroSpeed]] then
                 Ring = false
             end
-            RVTB = RVTB and self:RvtbTimer("KvtTimer", not (Ring or KmCur or not forgiveful and AO))
+            RVTB = RVTB and self:RvtbCheck("KvtTimer", not (Ring or KmCur or AO))
 
             if Speed > SpeedLimit - 1.3 and KmCur then
                 if not Drive then
                     if not self.TryDriveTimer then
-                        self.TryDriveTimer = CurTime() + 3.2
+                        self:RvtbSetTimer("TryDriveTimer", 3.2)
                     end
-                elseif not DisableDrive and Speed <= SpeedLimit and not Brake then
+                elseif Drive and not DisableDrive then
                     DisableDrive = true
-                    self.ControllerInDrive = true
+                    self.ControllerInDrive = self.Brake == 0
                 end
             end
-            RVTB = RVTB and self:RvtbTimer("TryDriveTimer", not KmCur or Speed <= SpeedLimit - 1.3)
+            RVTB = RVTB and self:RvtbCheck("TryDriveTimer", not KmCur or Speed <= SpeedLimit - 1.3)
 
             if self.TryDriveTimer or Brake and Speed < 7 then
                 PN3 = true
             end
 
-            if Brake and DisableDrive then
+            if DisableDrive and not KmCur and (ZeroSpeed or Speed < SpeedLimit - 3.1) then
                 DisableDrive = false
                 self.ControllerInDrive = false
             end
-
-            if DisableDrive and not KmCur and (SpeedLimit < 19 or Speed < SpeedLimit - 3.1) then
-                DisableDrive = false
-                self.ControllerInDrive = false
-            elseif self.ControllerInDrive and not KmCur then
+            if self.ControllerInDrive and not KmCur then
                 self.ControllerInDrive = false
             end
-            if KmCur and DisableDrive and not self.ControllerInDrive then
-                if not forgiveful then
-                    self:RvtbNow("DisableDriveAttempt")
-                else
-                    Brake = true
-                end
+            if KmCur and Brake and not self.ControllerInDrive then
+                self:RvtbNow("DisableDriveAttempt")
                 Ring = true
             end
-            RVTB = RVTB and self:RvtbTimer("DisableDriveAttempt", not KmCur)
+            RVTB = RVTB and self:RvtbCheck("DisableDriveAttempt", not KmCur)
 
-            if AO and Drive then
-                Brake = true
-            end
-            if AO then
-                if Wag.AttentionBrake.Value > 0.5 then self.RingingAO = false end
-                Ring = Ring or self.RingingAO
-            else
-                self.RingingAO = true
-            end
+            -- if AO and Drive then
+            --     Brake = true
+            -- end
+            -- if AO then
+            --     if Wag.AttentionBrake.Value > 0.5 then self.RingingAO = false end
+            --     Ring = Ring or self.RingingAO
+            -- else
+            --     self.RingingAO = true
+            -- end
 
             local AntiRoll = not Drive and math.abs(Speed) > 0.6 or Speed < -0.5
             if AntiRoll then
                 if not self.AntirollTimer then
-                    self.AntirollTimer = CurTime() + 0.4
-                elseif CurTime() > self.AntirollTimer then
+                    self:RvtbSetTimer("AntirollTimer", 0.4)
+                elseif CurTime() >= self.AntirollTimer then
                     if self.RVTB == 1 then
                         Ring = true
                         Brake = true
                     end
                 end
             end
-            RVTB = RVTB and self:RvtbTimer("AntirollTimer", not AntiRoll)
+            RVTB = RVTB and self:RvtbCheck("AntirollTimer", not AntiRoll)
 
             if not self.NoFreq and KmCur and Speed < 0.8 and not self.NoSpeedTimer then
-                self.NoSpeedTimer = CurTime() + (Emer and 6.2 or 4.8)
+                self:RvtbSetTimer("NoSpeedTimer", Emer and 6.2 or 4.8)
             end
-            RVTB = RVTB and self:RvtbTimer("NoSpeedTimer", self.NoFreq or not KmCur or Speed >= 1.4)
+            RVTB = RVTB and self:RvtbCheck("NoSpeedTimer", self.NoFreq or not KmCur or Speed >= 1.8)
 
-            if not forgiveful then
-                if ZeroSpeed and self.SpeedGained then
-                    self.SpeedGained = false
-                end
-                if self.NoFreq or KmCur and not self.SpeedGained and Speed > 2.3 then
-                    self.SpeedGained = true
-                end
-                local condition = not self.NoFreq and not KmCur and not ZeroSpeed and not self.SpeedGained
-                if condition and not self.NoSpeedGained then
-                    self.NoSpeedGained = CurTime() + 0.35
-                end
-                if condition and self.NoSpeedGained and CurTime() >= self.NoSpeedGained then Ring = true end
-                RVTB = RVTB and self:RvtbTimer("NoSpeedGained", not condition)
+            if ZeroSpeed and self.SpeedGained then
+                self.SpeedGained = false
             end
+            if self.NoFreq or KmCur and not self.SpeedGained and Speed > 2.3 then
+                self.SpeedGained = true
+            end
+            local condition = not self.NoFreq and not KmCur and not ZeroSpeed and not self.SpeedGained
+            if condition and not self.NoSpeedGained then
+                self:RvtbSetTimer("NoSpeedGained", 0.35)
+            end
+            if condition and self.NoSpeedGained and CurTime() >= self.NoSpeedGained then Ring = true end
+            RVTB = RVTB and self:RvtbCheck("NoSpeedGained", not condition)
 
             if self.PrevSpeed and self.PrevDvMeasure then
                 self.dV = (Speed - self.PrevSpeed) / (CurTime() - self.PrevDvMeasure)
@@ -325,10 +319,10 @@ function TRAIN_SYSTEM:Think(dT)
 
             local BrakeEff = Brake and self.dV > -3.0 and not ZeroSpeed
             if BrakeEff and not self.BrakeEff then
-                self.BrakeEff = CurTime() + 3
+                self:RvtbSetTimer("BrakeEff", 3)
                 if CV_debug:GetBool() then print("Start dV", self.dV) end
             end
-            RVTB = RVTB and self:RvtbTimer("BrakeEff", not BrakeEff)
+            RVTB = RVTB and self:RvtbCheck("BrakeEff", not BrakeEff)
 
             self.BUKPErr = Wag.BUKP.BupDisableDrive > 0
             local EmerGood = Emer and not Wag.BUKP.Errors.RvErr
@@ -368,20 +362,19 @@ function TRAIN_SYSTEM:Think(dT)
                 if not Emer then BTB = false end
             end
             if Emer and Speed > SpeedLimit then
-                self.UosLimitTimer = CurTime() - 1
-                RVTB = false
+                self:RvtbNow("UosLimitTimer")
             end
             self.UosPn3 = not Emer and (PN3 or not BTB) and 1 or 0
             PN3 = false
         end
-        RVTB = RVTB and self:RvtbTimer("UosLimitTimer", true, ZeroSpeed)
+        RVTB = RVTB and self:RvtbCheck("UosLimitTimer", true, ZeroSpeed)
 
         if Emer then
             local EmerCondition = not UOS and Drive and not (Brake and SpeedLimit > 21) and self.Emer == 1 or UOS and self.KB
             if not EmerCondition and not self.EmerTimer then
                 self:RvtbNow("EmerTimer")
             end
-            RVTB = RVTB and self:RvtbTimer("EmerTimer", EmerCondition, not UOS and ZeroSpeed and AllowStart and KmCur or UOS and self.KB)
+            RVTB = RVTB and self:RvtbCheck("EmerTimer", EmerCondition, not UOS and ZeroSpeed and AllowStart and KmCur or UOS and self.KB)
         end
 
         if UOS then BTB = RVTB end
@@ -509,7 +502,7 @@ function TRAIN_SYSTEM:WhenStops(delay)
     return self.SbTimer and CurTime() - self.SbTimer > (delay or 0.65) or false
 end
 
-function TRAIN_SYSTEM:RvtbTimer(name, restore, bypass)
+function TRAIN_SYSTEM:RvtbCheck(name, restore, bypass)
     if self[name] then
         if CurTime() >= self[name] then
             local val = restore and (bypass or self:WhenStops() and self.Ring == 0)
@@ -526,6 +519,10 @@ function TRAIN_SYSTEM:RvtbTimer(name, restore, bypass)
         end
     end
     return true
+end
+
+function TRAIN_SYSTEM:RvtbSetTimer(name, delay)
+    self[name] = CurTime() + delay
 end
 
 function TRAIN_SYSTEM:RvtbNow(name)
