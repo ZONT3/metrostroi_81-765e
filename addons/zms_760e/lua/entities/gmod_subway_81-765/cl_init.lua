@@ -3483,12 +3483,13 @@ function ENT:Think(...)
         self.LightVal = val
     end
 
-    local headl = math.max(0, self:GetPackedRatio("Headlights") + (self.LightVal >= 6 and self:GetPackedRatio("Headlights") == 1 and -0.5 or 0))
-    self:SetLightPower(LIGHT_HEADLIGHT, headl > 0, headl)
+    local dim = self.LightVal >= 6
+    local headl = self:GetPackedRatio("Headlights")
+    self:SetLightPower(LIGHT_HEADLIGHT, headl > 0, (dim and 0.32 or 1) * headl)
 
     local rl = self:GetPackedBool("BacklightsEnabled")
-    local hl1 = (self:GetPackedBool("HeadLightsEnabled1") or self:GetPackedBool("HeadLightsEnabled2") and self.LightVal >= 6)
-    local hl2 = self:GetPackedBool("HeadLightsEnabled2") and self.LightVal < 6
+    local hl1 = (self:GetPackedBool("HeadLightsEnabled1") or self:GetPackedBool("HeadLightsEnabled2") and dim)
+    local hl2 = self:GetPackedBool("HeadLightsEnabled2") and not dim
     local hl12 = hl1 or hl2
 
     for idx = 1, 6 do
@@ -3507,8 +3508,9 @@ function ENT:Think(...)
     local headlEnt = self.GlowingLights[LIGHT_HEADLIGHT]
     if IsValid(headlEnt) then
         headlEnt:SetEnableShadows(true)
-        if headl < 1 and headlEnt:GetFarZ() > 5500 then headlEnt:SetFarZ(5500) end
-        if headl == 1 and headlEnt:GetFarZ() < 9000 then headlEnt:SetFarZ(9000) end
+        if dim and headl > 0 and headlEnt:GetFarZ() ~= 1200 + 600 * headl then headlEnt:SetFarZ(1200 + 600 * headl) end
+        if not dim and headl < 1 and headlEnt:GetFarZ() ~= 6500 then headlEnt:SetFarZ(6500) end
+        if not dim and headl == 1 and headlEnt:GetFarZ() ~= 9000 then headlEnt:SetFarZ(9000) end
     end
 
     self:SetLightPower(LIGHT_AREA_WHITE, not rl and hl12, hl12 and 1 or 0)
