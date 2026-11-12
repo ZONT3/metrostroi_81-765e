@@ -987,6 +987,10 @@ function ENT:UpdateTextures()
 
     local bnt = self.ClientEnts["Bnt"]
     if IsValid(bnt) then update_bnt(self, bnt) end
+
+    for id, idx in pairs(self.VariadicSounds or {}) do
+        self:SetSoundState(id .. idx, 0, 1)
+    end
     self.VariadicSounds = {}
 end
 

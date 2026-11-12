@@ -83,6 +83,7 @@ TODO
   - [ ] Skins justification
   - [ ] Move w/o KD mode
     - [ ] Electric-side doors closed signal ~~*Not found on any schematics*~~ *finally found one*
+    - [ ] CU Power logic
   - [ ] Spawner options justifications according to the following TODO, skins setups, etc.
 
 ## TODO

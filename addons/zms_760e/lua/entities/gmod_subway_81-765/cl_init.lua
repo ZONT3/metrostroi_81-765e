@@ -942,7 +942,7 @@ ENT.ButtonMap["VoltHelper1"] = {
             x = 0, y = 100,
             w = 150, h = 100,
             tooltip = "Киловольтметр высокого напряжения\n(контактный рельс)",
-            tooltipFunc = function(ent) return Format(Metrostroi.GetPhrase("Train.Buttons.HighVoltage"), ent:GetPackedRatio("HV") * 1000) end
+            tooltipFunc = function(ent) return Format(Metrostroi.GetPhrase("Train.Buttons.HighVoltage"), ent:GetPackedRatio("HV") * 1500) end
         },
     }
 }
@@ -3550,9 +3550,9 @@ function ENT:Think(...)
     self:ShowHidePak("PmvAddressDoors", pak_type == 3)
     self:ShowHide("BtbuSdLabel", self:GetNW2Bool("BtbuSd", false))
 
-    self:SetVariadicSoundState("ring", self:GetNW2Int("ArsRingType", 1), 3, self:GetPackedBool("ArsRing", false) and 1 or 0, 1)
-    self:SetVariadicSoundState("ring_ppz", self:GetNW2Int("BupRingType", 1), 3, self:GetPackedBool("MsgRing", false) and 1.6 or 0, 1)
-    self:SetVariadicSoundState("ring_call", self:GetNW2Int("CallRingType", 1), 3, self:GetPackedBool("CallRing", false) and 1.0 or 0, 1)
+    self:SetVariadicSoundState("ring", self:GetNW2Int("ArsRingType", 1), 6, self:GetPackedBool("ArsRing", false) and 1 or 0, 1)
+    self:SetVariadicSoundState("ring_ppz", self:GetNW2Int("BupRingType", 1), 6, self:GetPackedBool("MsgRing", false) and 1.6 or 0, 1)
+    self:SetVariadicSoundState("ring_call", self:GetNW2Int("CallRingType", 1), 6, self:GetPackedBool("CallRing", false) and 1.0 or 0, 1)
 
     return retval
 end

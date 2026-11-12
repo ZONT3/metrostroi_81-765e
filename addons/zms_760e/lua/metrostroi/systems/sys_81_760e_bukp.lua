@@ -546,15 +546,26 @@ function TRAIN_SYSTEM:CommitError()
     local errId = 0
     local category = nil
     local start = 1
+    local cur_start = 1
+    local bplus = false
     for catIdx, cat in ipairs(ErrorsCat) do
-        for idx = start, #cat + start - 1 do
+        local found = false
+        for idx = cur_start, #cat + cur_start - 1 do
             if self.Errors[idx] then
-                errId = idx
+                if errId == 0 then
+                    errId = idx
+                    category = catIdx
+                    start = cur_start
+                end
+                found = true
                 break
             end
         end
-        if errId > 0 then category = catIdx break end
-        start = start + #cat
+        if found and catIdx > 1 then
+            bplus = true
+            break
+        end
+        cur_start = cur_start + #cat
     end
 
     local param = errId > 0 and self.ErrorParams[errId] or false
@@ -565,7 +576,7 @@ function TRAIN_SYSTEM:CommitError()
     else
         local str = ErrorsCat[category][errId - start + 1]
         local changed = self.Error ~= errId or self.ErrorParams[0] ~= param
-        local ring = self.Error ~= errId or self.ErrorParams[0] ~= param and param == true
+        local ring = bplus or (self.ZeroSpeed == 0 or self.Train.KV765.Position > 0) and (self.Error ~= errId or self.ErrorParams[0] ~= param and param == true)
 
         if ((ring or ErrRingContinuous[str[1]]) and (str[1] ~= "Doors" or self.Train.Speed >= 1.8) and str[1] ~= "RvErr") then
             self.ErrorRing = CurTime()
@@ -835,7 +846,7 @@ function TRAIN_SYSTEM:Think(dT)
                 self.Errors = {}
                 self.Prost = true
                 self.Kos = true
-                self.BErrorsTimer = CurTime() + 3
+                self.BErrorsTimer = CurTime() + 0.1
                 self.InitTimer = CurTime() + 1
                 self:CheckError("SF", true, nil, true)
             else
@@ -1382,7 +1393,7 @@ function TRAIN_SYSTEM:Think(dT)
                 self.EmergencyBrake = 0
                 self.BupDisableDrive = 0
                 self.BTB = 0
-                self.BErrorsTimer = CurTime() + 3
+                self.BErrorsTimer = CurTime() + 0.1
                 if self.PTEnabled then self.PTEnabled = nil end
                 self.BLTimer = nil
                 self:ClearErrors()

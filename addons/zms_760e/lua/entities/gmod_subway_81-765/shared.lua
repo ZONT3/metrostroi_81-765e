@@ -28,7 +28,10 @@ end
 
 local rings = {
     "subway_trains/765/rumble/ring_vityaz.wav",
-    "subway_trains/765/ring_msg.wav",
+    "subway_trains/765/ring_ars.wav",
+    "subway_trains/765/ring_msg1.wav",
+    "subway_trains/765/ring_msg2.wav",
+    "subway_trains/765/ring_msg3.wav",
     "subway_trains/760/new/ring_ars.wav",
 }
 
@@ -645,6 +648,12 @@ ENT.SpawnerSpawnFnc = function(mg, mp, pp)
 end
 
 
+local ring_types = {
+    "Случайный",
+    "1Т Тип 1", "1Т Тип 2",
+    "2Т Тип 1", "2Т Тип 2", "2Т Тип 3", "2Т Тип 4"
+}
+
 ENT.SpawnerCustom = {
     model = {
         "models/metrostroi_train/81-765_v1/765/hull.mdl", "models/metrostroi_train/81-765_v1/765/salon.mdl", "models/metrostroi_train/81-765_v1/765/underwag_h.mdl",
@@ -807,9 +816,9 @@ ENT.SpawnerCustom = {
     {},
     { "SarmatBeep", "Звук теста аппаратуры от \"Сармат\"", "Boolean", Section = "Settings", Subsection = "AudioEvents", },
     { "AnnouncerClicks", "Звук клика в оповещениях", "Boolean", Section = "Settings", Subsection = "AudioEvents" },
-    { "ArsRingType", "Тип звонка превышения", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
-    { "BupRingType", "Тип звонка сообщения", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
-    { "CallRingType", "Тип зв. передачи упр.", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 4, Section = "Settings", Subsection = "AudioEvents" },
+    { "ArsRingType", "Тип звонка превышения", "List", ring_types, 1, Section = "Settings", Subsection = "AudioEvents" },
+    { "BupRingType", "Тип звонка сообщения", "List", ring_types, 1, Section = "Settings", Subsection = "AudioEvents" },
+    { "CallRingType", "Тип зв. передачи упр.", "List", ring_types, 4, Section = "Settings", Subsection = "AudioEvents" },
     { "HornType", "Тифон (механич.)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
     { "ElectricHornType", "Тифон (ЭП)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
     { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3, Section = "Settings", Subsection = "Sounds" },
@@ -1067,10 +1076,6 @@ ENT.Spawner = {
             wag:SetNW2Int("WcPakType", variant)
             wag:SetNW2Int("DoorReverseMode", variant == 1 and 2 or 1)
 
-            wag:SetNW2Int("ArsRingType", 3)
-            wag:SetNW2Int("BupRingType", 4)
-            wag:SetNW2Int("CallRingType", 2)
-
             wag:SetNW2Int("VVVFSound", 8)
             wag:SetNW2Int("HornType", 5)
             wag:SetNW2Int("KvType", 3)
@@ -1106,6 +1111,18 @@ ENT.Spawner = {
             if variant == 1 and cik_type == 3 then variant_cb:ChooseOptionID(2) end
             if variant == 1 and cik_type == 5 then variant_cb:ChooseOptionID(2) end
             if variant == 2 and cik_type == 1 then variant_cb:ChooseOptionID(1) end
+        end,
+        Section = "Settings", Subsection = "FunctionalSettings"
+    },
+    {
+        "RingsType765", "Тип звонков", "List",
+        { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1,
+        function(wag, typ)
+            if typ == 1 then typ = math.floor(CurTime()) % 3 + 2 end
+            typ = typ - 1
+            wag:SetNW2Int("ArsRingType", typ < 3 and 3 or 2)
+            wag:SetNW2Int("BupRingType", typ + 3)
+            wag:SetNW2Int("CallRingType", 7)
         end,
         Section = "Settings", Subsection = "FunctionalSettings"
     },

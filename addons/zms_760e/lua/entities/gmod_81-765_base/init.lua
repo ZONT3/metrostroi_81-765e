@@ -317,9 +317,9 @@ function ENT:Think()
     self:SetPackedRatio("BsVoltage", Electric.TrueBattery80V * Electric.KM)
     self:SetPackedRatio("LV", Panel.LV / 150)
     if self.IsIntermediate then
-        self:SetPackedRatio("HV", Electric.Main750V / 1000)
+        self:SetPackedRatio("HV", Electric.Main750V / 1500)
     else
-        self:SetPackedRatio("HV", (self.SF42F2.Value * Electric.KM > 0.5 and Electric.Main750V or 0) / 1000)
+        self:SetPackedRatio("HV", (self.SF42F2.Value * Electric.KM > 0.5 and Electric.Main750V or 0) / 1500)
     end
 
     local interior_emer = Panel.SalonLighting1 > 0
