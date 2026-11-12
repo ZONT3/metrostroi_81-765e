@@ -330,9 +330,9 @@ function ENT:Think()
     end
 
     self:SetPackedRatio("VentTimer", self.VentTimer or 0)
-    self:SetPackedBool("BUKPRing", not self:GetNW2Bool("SingleRing", false) and (powerUpi and self.BUKP.State == 5 and self.BUKP.ErrorRinging) or false)
-    self:SetPackedBool("CallRing", powerUpi and self.BUKP.State == 5 and self.BUKP.CallRing)
-    self:SetPackedBool("RingEnabled", powerUpi and (self.BUKP.Ring or self:GetNW2Bool("SingleRing", false) and self.BUKP.ErrorRinging))
+    self:SetPackedBool("MsgRing", powerUpi and self.BUKP.State == 5 and self.BUKP.ErrorRinging or false)
+    self:SetPackedBool("CallRing", powerUpi and self.BUKP.State == 5 and self.BUKP.CallRing or false)
+    self:SetPackedBool("ArsRing", powerUpi and self.BUKP.Ring or false)
     self:SetPackedBool("PanelLighting", Panel.PanelLights > 0)
 
     local HeadlightsPower = Panel.HeadlightsFull > 0 and 1 or Panel.HeadlightsHalf > 0 and 0.5 or 0

@@ -3550,6 +3550,10 @@ function ENT:Think(...)
     self:ShowHidePak("PmvAddressDoors", pak_type == 3)
     self:ShowHide("BtbuSdLabel", self:GetNW2Bool("BtbuSd", false))
 
+    self:SetVariadicSoundState("ring", self:GetNW2Int("ArsRingType", 1), 3, self:GetPackedBool("ArsRing", false) and 1 or 0, 1)
+    self:SetVariadicSoundState("ring_ppz", self:GetNW2Int("BupRingType", 1), 3, self:GetPackedBool("MsgRing", false) and 1.6 or 0, 1)
+    self:SetVariadicSoundState("ring_call", self:GetNW2Int("CallRingType", 1), 3, self:GetPackedBool("CallRing", false) and 1.0 or 0, 1)
+
     return retval
 end
 

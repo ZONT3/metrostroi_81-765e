@@ -987,6 +987,7 @@ function ENT:UpdateTextures()
 
     local bnt = self.ClientEnts["Bnt"]
     if IsValid(bnt) then update_bnt(self, bnt) end
+    self.VariadicSounds = {}
 end
 
 function ENT:ReInitBogeySounds(bogey)
@@ -1620,8 +1621,6 @@ function ENT:Think()
         end
 
         self:HideButton("KAHToggle", self:GetPackedBool("ALSk"))
-        self:SetSoundState("ring_ppz", self:GetPackedBool("BUKPRing", false) and 1.6 or 0, 1)
-        self:SetSoundState("ring_call", self:GetPackedBool("CallRing", false) and 1.0 or 0, 1)
         self:Animate("VmLv", self:GetPackedRatio("LV"), 0, 1, 16, 1)
         self:Animate("VmHv", self:GetPackedRatio("HV"), 0, 1, 16, 6)
 
@@ -1669,7 +1668,6 @@ function ENT:Think()
         local emervalve_open = self:GetPackedRatio("EmerValveAutost", 0) - CurTime()
         self:SetSoundState("emer_brake_open", self.EmergencyValveRamp > 0.0001 and emervalve_open > 0 and Lerp(math.min(1.0, emervalve_open / 1.5), self.EmergencyValveRamp, 1) or 0, 1.0)
         self:SetSoundState("emer_brake", emervalve_open <= 0 and self.EmergencyValveRamp or 0, 1.0)
-        self:SetSoundState("ring", self:GetPackedBool("RingEnabled") and 1 or 0, 1)
 
         if self.ClientEnts then
             for k, cfg in pairs(self.PakToggles or {}) do
@@ -1897,6 +1895,21 @@ end
 function ENT:IsolateSound(val)
     -- todo
     return val
+end
+
+function ENT:SetVariadicSoundState(id, idx, has_random, ...)
+    if not self.VariadicSounds then self.VariadicSounds = {} end
+    if has_random then idx = idx - 1 end
+    local stored_idx = self.VariadicSounds[id]
+    if not stored_idx then
+        if has_random and idx == 0 then idx = math.random(has_random) end
+        self.VariadicSounds[id] = idx
+    end
+    if stored_idx and stored_idx ~= idx and not (has_random and idx == 0) then
+        self:SetSoundState(id .. stored_idx, 0, 1)
+        self.VariadicSounds[id] = idx
+    end
+    self:SetSoundState(id .. idx, ...)
 end
 
 function ENT:ShowScreenHelper(screen, group)

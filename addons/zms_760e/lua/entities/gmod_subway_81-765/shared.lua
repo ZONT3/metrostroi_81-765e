@@ -26,18 +26,11 @@ function ENT:GetStandingArea()
     return Vector(-450, -30, -53), Vector(360, 30, -53)
 end
 
-local function getRing(ring)
-    if ring == 1 then
-        ring = math.random(2, 4)
-    end
-    if ring == 3 then
-        return "subway_trains/765/ring_msg.wav"
-    elseif ring == 4 then
-        return "subway_trains/760/new/ring_ars.wav"
-    else
-        return "subway_trains/765/rumble/ring_vityaz.wav"
-    end
-end
+local rings = {
+    "subway_trains/765/rumble/ring_vityaz.wav",
+    "subway_trains/765/ring_msg.wav",
+    "subway_trains/760/new/ring_ars.wav",
+}
 
 function ENT:InitializeSounds()
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
@@ -240,14 +233,14 @@ function ENT:InitializeSounds()
     self.SoundNames["bkpu"] = {"subway_trains/760/vb_on.wav"}
     self.SoundPositions["bkpu"] = {800, 1e9, Vector(410.2, 59, 1), 0.5}
 
-    local ring = self:GetNW2Bool("SingleRing", false) and self:GetNW2Int("RingType765", 1) or nil
-    if ring then ring = getRing(ring) end
-    self.SoundNames["ring_call"] = { loop = true, getRing(ring and self:GetNW2Int("CallRingType", 2) or 2) }
-    self.SoundPositions["ring_call"] = {800, 1e9, Vector(490, 21.6, -9.2), 0.5}
-    self.SoundNames["ring_ppz"] = { loop = true, ring or "subway_trains/765/rumble/ring_vityaz.wav" }
-    self.SoundPositions["ring_ppz"] = {800, 1e9, Vector(417, 36, 31.3), 0.5}
-    self.SoundNames["ring"] = { loop = true, ring or "subway_trains/760/new/ring_ars.wav" }
-    self.SoundPositions["ring"] = {100, 1e9, Vector(417, 36, 31.3)}
+    for idx, ring in ipairs(rings) do
+        self.SoundNames["ring_call" .. idx] = { loop = true, ring }
+        self.SoundPositions["ring_call" .. idx] = {800, 1e9, Vector(490, 21.6, -9.2), 0.5}
+        self.SoundNames["ring_ppz" .. idx] = { loop = true, ring }
+        self.SoundPositions["ring_ppz" .. idx] = {800, 1e9, Vector(417, 36, 31.3), 0.5}
+        self.SoundNames["ring" .. idx] = { loop = true, ring }
+        self.SoundPositions["ring" .. idx] = {100, 1e9, Vector(417, 36, 31.3)}
+    end
 
     self.SoundNames["powerreserve"] = {"subway_trains/760/vb_on.wav"}
     self.SoundPositions["powerreserve"] = {800, 1e9, Vector(410.2, 55, 1), 0.5}
@@ -258,10 +251,10 @@ function ENT:InitializeSounds()
     for i = 1, 10 do
         local id1 = Format("b1tunnel_%d", i)
         local id2 = Format("b2tunnel_%d", i)
-        self.SoundNames[id1.."a"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st"..i.."a.wav"}
-        self.SoundNames[id1.."b"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st"..i.."b.wav"}
-        self.SoundNames[id2.."a"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st"..i.."a.wav"}
-        self.SoundNames[id2.."b"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st"..i.."b.wav"}
+        self.SoundNames[id1 .. "a"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st" .. i .. "a.wav"}
+        self.SoundNames[id1 .. "b"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st" .. i .. "b.wav"}
+        self.SoundNames[id2 .. "a"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st" .. i .. "a.wav"}
+        self.SoundNames[id2 .. "b"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st" .. i .. "b.wav"}
         self.SoundPositions[id1 .. "a"] = {700 * 0.75, 1e9, Vector(317 - 5, 0, -84), 1 * 0.5}
         self.SoundPositions[id1 .. "b"] = self.SoundPositions[id1 .. "a"]
         self.SoundPositions[id2 .. "a"] = {700 * 0.75, 1e9, Vector(-317 + 0, 0, -84), 1 * 0.5}
@@ -271,10 +264,10 @@ function ENT:InitializeSounds()
     for i = 1, 14 do
         local id1 = Format("b1street_%d", i)
         local id2 = Format("b2street_%d", i)
-        self.SoundNames[id1.."a"] = {"subway_trains/765/rumble/rolling/wheels/street/street_"..i.."a.mp3"}
-        self.SoundNames[id1.."b"] = {"subway_trains/765/rumble/rolling/wheels/street/street_"..i.."b.mp3"}
-        self.SoundNames[id2.."a"] = {"subway_trains/765/rumble/rolling/wheels/street/street_"..i.."a.mp3"}
-        self.SoundNames[id2.."b"] = {"subway_trains/765/rumble/rolling/wheels/street/street_"..i.."b.mp3"}
+        self.SoundNames[id1 .. "a"] = {"subway_trains/765/rumble/rolling/wheels/street/street_" .. i .. "a.mp3"}
+        self.SoundNames[id1 .. "b"] = {"subway_trains/765/rumble/rolling/wheels/street/street_" .. i .. "b.mp3"}
+        self.SoundNames[id2 .. "a"] = {"subway_trains/765/rumble/rolling/wheels/street/street_" .. i .. "a.mp3"}
+        self.SoundNames[id2 .. "b"] = {"subway_trains/765/rumble/rolling/wheels/street/street_" .. i .. "b.mp3"}
         self.SoundPositions[id1 .. "a"] = {700, 1e9, Vector(317 - 5, 0, -84), 1.5 * 0.5}
         self.SoundPositions[id1 .. "b"] = self.SoundPositions[id1 .. "a"]
         self.SoundPositions[id2 .. "a"] = {700, 1e9, Vector(-317 + 0, 0, -84), 1.5 * 0.5}
@@ -282,12 +275,7 @@ function ENT:InitializeSounds()
     end
 
 
-    self.SoundNames["horn"] = {
-        loop = 0.6,
-        "subway_trains/common/pneumatic/horn/horn3_start.wav",
-        "subway_trains/common/pneumatic/horn/horn3_loop.wav",
-        "subway_trains/common/pneumatic/horn/horn3_end.wav"
-    }
+    self.SoundNames["horn"] = { loop = 0.6, "subway_trains/common/pneumatic/horn/horn3_start.wav", "subway_trains/common/pneumatic/horn/horn3_loop.wav", "subway_trains/common/pneumatic/horn/horn3_end.wav" }
     self.SoundPositions["horn"] = {1100, 1e9, Vector(500, -25, -64)}
     self.SoundNames["horn1"] = { loop = 0.6, "subway_trains/common/pneumatic/horn/horn1_start.wav","subway_trains/common/pneumatic/horn/horn1_loop.wav", "subway_trains/common/pneumatic/horn/horn1_end.mp3" }
     self.SoundPositions["horn1"] = {1100,1e9,Vector(450,0,-55),1}
@@ -819,23 +807,8 @@ ENT.SpawnerCustom = {
     {},
     { "SarmatBeep", "Звук теста аппаратуры от \"Сармат\"", "Boolean", Section = "Settings", Subsection = "AudioEvents", },
     { "AnnouncerClicks", "Звук клика в оповещениях", "Boolean", Section = "Settings", Subsection = "AudioEvents" },
-    {
-        "SingleRing",
-        "Звонки 81-765",
-        "Boolean",
-        false,
-        nil,
-        function(self, sl)
-            if sl.RingType765 then
-                sl.RingType765:SetDisabled(not self:GetChecked())
-            end
-            if sl.CallRingType then
-                sl.CallRingType:SetDisabled(not self:GetChecked())
-            end
-        end,
-        Section = "Settings", Subsection = "AudioEvents"
-    },
-    { "RingType765", "Тип звонка", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
+    { "ArsRingType", "Тип звонка превышения", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
+    { "BupRingType", "Тип звонка сообщения", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1, Section = "Settings", Subsection = "AudioEvents" },
     { "CallRingType", "Тип зв. передачи упр.", "List", { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 4, Section = "Settings", Subsection = "AudioEvents" },
     { "HornType", "Тифон (механич.)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
     { "ElectricHornType", "Тифон (ЭП)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
@@ -1094,10 +1067,13 @@ ENT.Spawner = {
             wag:SetNW2Int("WcPakType", variant)
             wag:SetNW2Int("DoorReverseMode", variant == 1 and 2 or 1)
 
+            wag:SetNW2Int("ArsRingType", 3)
+            wag:SetNW2Int("BupRingType", 4)
+            wag:SetNW2Int("CallRingType", 2)
+
             wag:SetNW2Int("VVVFSound", 8)
             wag:SetNW2Int("HornType", 5)
             wag:SetNW2Int("KvType", 3)
-            wag:SetNW2Bool("SingleRing", true)
             wag:SetNW2Bool("CoupleSprings", true)
         end,
         function(self, spawnerList)
@@ -1144,7 +1120,6 @@ ENT.Spawner = {
     ENT.SpawnerFields["BatteryWear"],
     ENT.SpawnerFields["BatteryLevel"],
     {},
-    ENT.SpawnerFields["RingType765"],
     ENT.SpawnerFields["NoTrailers"],
     ENT.SpawnerFields["ArsMode"],
     {},
