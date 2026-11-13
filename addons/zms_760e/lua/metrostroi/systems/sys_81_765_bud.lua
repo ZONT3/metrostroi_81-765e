@@ -547,7 +547,9 @@ if SERVER then
         Wag.RightDoorsOpening = self.DoorRight
 
         for idx = 1, 8 do
-            local ledWork = Wag.SF52F4.Value > 0 and (idx > 4 or Wag.SF52F5.Value > 0)
+            local sf = Wag[DoorSFs[idx]]
+            local poweron = masterPower and sf and sf.Value > 0
+            local ledWork = poweron and Wag.SF52F4.Value > 0 and (idx > 4 or Wag.SF52F5.Value > 0)
             local announceState = self.AnnounceStates[idx]
             if ledWork then
                 local selected = idx < 5 and selectLeft or idx >= 5 and selectRight
