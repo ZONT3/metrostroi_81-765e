@@ -885,7 +885,7 @@ function TRAIN_SYSTEM:Think(dT)
             end
             self.MotorWagc, self.TrailerWagc = motor, trailer
 
-            local doorsNotClosed = Train.PpzActiveCabin.Value < 1 or Train.PpzDoorsSignal.Value < 1
+            local doors_not_closed = false
 
             local TwoRV = Back and RvWork and self.ActiveCabin < 1
             if RvWork and not TwoRV then Back = false end
@@ -977,7 +977,7 @@ function TRAIN_SYSTEM:Think(dT)
                     self:CheckWagError(i, "EncoderFail", working and not (train.EncoderF and train.EncoderR))
                     self:CheckWagError(i, "HullFail", working and not train.HullOk)
 
-                    doorsNotClosed = doorsNotClosed or not doorclose
+                    doors_not_closed = doors_not_closed or not doorclose
                     if working then
                         ptApplied = not ptApplied and train.PTEnabled and i or ptApplied and train.PTEnabled and true or ptApplied
                         if train.BVEnabled then bvEnabled = bvEnabled + 1 end
@@ -993,13 +993,14 @@ function TRAIN_SYSTEM:Think(dT)
                         if train.AsyncInverter and (not train.BVEnabled or not train.EnginesBroken) then tpGood = false end
                         if train.PuWork and not (train.EncoderF and train.EncoderR) then puGood = false end
                     end
-                    local orientGood = working and not train.WagNOrientated and Train.PpzOrient.Value > 0
-                    if not working or not orientGood or not train.PSNEnabled or not train.BUDWork then voGood = false end
+                    local orientGood = working and not train.WagNOrientated and Train.PpzOrient.Value > 0 and Train.PpzActiveCabin.Value > 0
+                    local bud = Train.PpzOrient.Value > 0 and Train.PpzActiveCabin.Value > 0 and train.BUDWork
+                    if not working or not orientGood or not train.PSNEnabled or not bud then voGood = false end
 
                     Train:SetNW2Bool("Skif:Doors" .. i, doorclose)
                     Train:SetNW2Bool("Skif:BV" .. i, train.BVEnabled)
                     Train:SetNW2Bool("Skif:BUVState" .. i, working)
-                    Train:SetNW2Bool("Skif:OrientGood" .. i, orientGood and Train.PpzActiveCabin.Value > 0)
+                    Train:SetNW2Bool("Skif:OrientGood" .. i, orientGood)
                     Train:SetNW2Bool("Skif:WagOr" .. i, orientGood and train.Orientation)
                     Train:SetNW2Bool("Skif:BTBReady" .. i, train.BTBReady)
                     Train:SetNW2Bool("Skif:EPTGood" .. i, train.EmergencyBrakeGood)
@@ -1017,7 +1018,7 @@ function TRAIN_SYSTEM:Think(dT)
                     Train:SetNW2Bool("Skif:BadCombination" .. i, not train.BadCombination)
                     Train:SetNW2Bool("Skif:AsyncInverter" .. i, train.AsyncInverter)
                     Train:SetNW2Bool("Skif:HVGood" .. i, not train.HVBad)
-                    Train:SetNW2Bool("Skif:BUDWork" .. i, Train.PpzOrient.Value > 0 and Train.PpzActiveCabin.Value > 0 and train.BUDWork)
+                    Train:SetNW2Bool("Skif:BUDWork" .. i, bud)
                     local orientation = Train.PpzOrient.Value > 0 and train.Orientation
 
                     self.SchemeEngaged = self.SchemeEngaged or not train.NoAssembly
@@ -1064,29 +1065,18 @@ function TRAIN_SYSTEM:Think(dT)
 
                 local errPT = self.PTEnabled and CurTime() - self.PTEnabled > 2 + (Train.BUV.Slope1 and 1.2 or 0)
 
-                doorsNotClosed = doorsNotClosed or self.DoorsNotClosed and Train.KV765.Position > 0
-                if doorsNotClosed and not self.DoorControlTimer then
-                    self.DoorControlTimer = true
-                end
-                if not doorsNotClosed and self.DoorControlTimer and not isnumber(self.DoorControlTimer) then
-                    self.DoorControlTimer = CurTime() + self.DoorControlDelay + math.Rand(-0.2, 0.2) + (Train:GetNW2Bool("KdLongerDelay", false) and 1.2 or 0)
-                end
-                if not doorsNotClosed and isnumber(self.DoorControlTimer) then
-                    doorsNotClosed = CurTime() < self.DoorControlTimer
-                    if not doorsNotClosed then
-                        self.DoorControlTimer = nil
-                    end
-                end
+                local electric_doors = self.DoorsNotClosed and Train.KV765.Position > 0 or Train.Electric.DoorsClosed == 0
+                if electric_doors and not doors_not_closed then self:CheckError("Doors", true) end
+                doors_not_closed = doors_not_closed or electric_doors
+                self.DoorClosed = not doors_not_closed and 1 or 0
 
-                self.DoorClosed = not doorsNotClosed and 1 or 0
-
-                if self.DoorsNotClosed ~= doorsNotClosed and self.AutoChPage and not doorsNotClosed then
+                if self.DoorsNotClosed ~= doors_not_closed and self.AutoChPage and not doors_not_closed then
                     self.State2 = self.AutoChPage
                     self.Select = false
                 end
-                self.DoorsNotClosed = doorsNotClosed
+                self.DoorsNotClosed = doors_not_closed
 
-                Train:SetNW2Int("Skif:DoorsAll", (Train.PpzOrient.Value < 1 or doorsNotClosed) and 0 or 1)
+                Train:SetNW2Int("Skif:DoorsAll", (Train.PpzOrient.Value < 1 or doors_not_closed) and 0 or 1)
                 Train:SetNW2Int("Skif:ElecAll", hvGood == 0 and 0 or hvBad == 0 and 1 or 2)
                 Train:SetNW2Int("Skif:BvAll", bvEnabled == 0 and 0 or bvDisabled == 0 and 1 or 2)
                 Train:SetNW2Bool("Skif:CondAny", condAny)
@@ -1098,7 +1088,7 @@ function TRAIN_SYSTEM:Think(dT)
                 Train:SetNW2Int("Skif:ALS", Train.ALS.Value * Train.ALSVal == 2 and 1 or -1)
                 Train:SetNW2Int("Skif:BOSD", Train.DoorBlock.Value == 1 and 0 or -1)
 
-                Train:SetNW2Bool("Skif:ShowDoors", doorsNotClosed)
+                Train:SetNW2Bool("Skif:ShowDoors", doors_not_closed)
                 Train:SetNW2Bool("Skif:ShowBV", bvDisabled > 0)
                 Train:SetNW2Bool("Skif:ShowScheme", self.SchemeTimer and self.SchemeTimer < CurTime())
                 Train:SetNW2Bool("Skif:ShowPTApply", errPT)
@@ -1115,10 +1105,12 @@ function TRAIN_SYSTEM:Think(dT)
                 Train:SetNW2Bool("Skif:Prost", self.Prost)
                 Train:SetNW2Bool("Skif:Kos", self.Kos)
 
-                if not self.Errors.NoOrient and Train.DoorSelectL.Value > 0 and Train.DoorSelectR.Value == 0 then selectLeft = true end
-                if not self.Errors.NoOrient and Train.DoorSelectR.Value > 0 and Train.DoorSelectL.Value == 0 then selectRight = true end
-                if selectLeft and Train.Electric.DoorsControl > 0 and Train.DoorLeft.Value > 0 and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1) then doorLeft = true end
-                if selectRight and Train.Electric.DoorsControl > 0 and Train.DoorRight.Value > 0 and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1) then doorRight = true end
+                local wantRight = Train.DoorRight.Value * Train.Electric.DoorsControl * (1 - Train.DoorClose.Value * Train.PpzDoorsSignal.Value) > 0
+                local wantLeft = Train.DoorLeft.Value * Train.Electric.DoorsControl * (1 - Train.DoorClose.Value * Train.PpzDoorsSignal.Value) > 0
+                if (not self.Errors.NoOrient or RvKrr > 0) and Train.DoorSelectR.Value > 0 and Train.DoorSelectL.Value == 0 then selectRight = true end
+                if (not self.Errors.NoOrient or RvKrr > 0) and Train.DoorSelectL.Value > 0 and Train.DoorSelectR.Value == 0 then selectLeft = true end
+                if selectRight and wantRight and (not Train.ProstKos.BlockDoorsR or Train.DoorBlock.Value == 1) then doorRight = true end
+                if selectLeft and wantLeft and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1) then doorLeft = true end
 
                 Train:SetNW2Bool("Skif:Cond", self.CondLeto)
                 Train:SetNW2Bool("Skif:DoorBlockL", self.ZeroSpeedWire and (not Train.ProstKos.BlockDoorsL or Train.DoorBlock.Value == 1))
@@ -1132,8 +1124,14 @@ function TRAIN_SYSTEM:Think(dT)
 
                 self:CheckError("RedLightsAkb", Train.PpzBattLights.Value > 0.5)
 
-                self:CheckError("RightBlock", (not doorRight or Train.DoorClose.Value * Train.Panel.DoorCloseL > 0) and Train.DoorRight.Value * Train.PpzDoorsControl.Value > 0)
-                self:CheckError("LeftBlock", (not doorLeft or Train.DoorClose.Value * Train.Panel.DoorCloseL > 0) and Train.DoorLeft.Value * Train.PpzDoorsControl.Value > 0)
+                self:CheckError("RightBlock", not doorRight and wantRight and Train.PpzOrient.Value > 0)
+                self:CheckError("LeftBlock", not doorLeft and wantLeft and Train.PpzOrient.Value > 0)
+
+                if wantLeft or wantRight then
+                    if not self.AutoChPage then self.AutoChPage = self.State2 end
+                    self.State2 = 21
+                    self.Select = false
+                end
 
                 self:CheckError("BrakeLine", self.BLTimer and CurTime() - self.BLTimer > 0)
                 self:CheckError("RvErr", false)
@@ -1444,12 +1442,6 @@ function TRAIN_SYSTEM:Think(dT)
             self.EnginesStrength = EnginesStrength / self.WagNum
         else
             self.EnginesStrength = 0
-        end
-
-        if (Train.DoorLeft.Value + Train.DoorRight.Value) * Train.PpzDoorsControl.Value > 0 then
-            if not self.AutoChPage then self.AutoChPage = self.State2 end
-            self.State2 = 21
-            self.Select = false
         end
 
         -- Потеря автомата "Управление основное", вариант 1: текущая уставка в БУВ и состояние сбора сх _зависает_

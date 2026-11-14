@@ -63,6 +63,10 @@ function TRAIN_SYSTEM:Initialize()
         self.Train:LoadSystem("DoorManualOpenPull" .. idx, "Relay", "Switch", { bass = true })
         self.Train:LoadSystem("DoorAddressButton" .. idx, "Relay", "Switch", { bass = true })
     end
+
+    -- Relay 80K1: Wagon-wise electric door closed signal
+    -- Used single one instead of per-bud for performance
+    self.Train:LoadSystem("W80K1", "Relay")
 end
 
 function TRAIN_SYSTEM:Outputs()
@@ -87,6 +91,18 @@ end
 if TURBOSTROI then return end
 
 local CV_debug = GetConVar("765_debug")
+
+local function random_gaussian(min, mid, max)
+    local u1 = math.random()
+    local u2 = math.random()
+    local z0 = math.sqrt(-2 * math.log(u1)) * math.cos(2 * math.pi * u2)
+    local mean = mid
+    local sigma = (max - min) / 6
+    local value = mean + z0 * sigma
+    if value < min then value = min end
+    if value > max then value = max end
+    return value
+end
 
 local function debug_print(...)
     if CV_debug:GetBool() then
@@ -212,9 +228,8 @@ if SERVER then
         self.AddressReadyL = false
         self.AddressReadyR = false
 
-        local anyClosingLeft, anyClosingRight = false, false
-
         local bit_state = 0
+        local master_closed = true
 
         for idx = 1, 8 do
             local sf = Wag[DoorSFs[idx]]
@@ -284,6 +299,7 @@ if SERVER then
                 self.AutoReverse[idx] = 1 debug_print(self.Train:GetWagonNumber(), idx, "protivoza4atie") end
             closedState[i] = self.DoorClosed[idx] and (closedState[i] or CurTime() + 0.05)
             local isclosed = closedState[i] and CurTime() >= closedState[i]
+            master_closed = master_closed and poweron and isclosed
 
             if wagCommandOpen and not self.OpenTimer then
                 self.OpenTimer = CurTime() + 2.7
@@ -425,8 +441,14 @@ if SERVER then
                 )
 
                 if announceState == "Closing" and working and bupActive then
-                    if left then anyClosingLeft = true
-                    else anyClosingRight = true end
+                    self.AnyClosingTimer = CurTime() + 5
+                    self.AnyClosingSide = (
+                        (
+                            self.AnyClosingSide == 3 or
+                            left and self.AnyClosingSide == 2 or
+                            not left and self.AnyClosingSide == 1
+                        ) and 3 or left and 1 or 2
+                    )
                 end
 
                 if commandOpen and self.AutoReverse[idx] then
@@ -546,15 +568,34 @@ if SERVER then
         Wag.LeftDoorsOpening = self.DoorLeft
         Wag.RightDoorsOpening = self.DoorRight
 
+        if master_closed and not self.ClosedSignalTimer then
+            if not self.ClosedSignalDelay then self.ClosedSignalDelay = random_gaussian(0.1, 0.3, 1.2) end
+            local delay = self.ClosedSignalDelay + random_gaussian(-0.2, 0, 0.7)
+            self.ClosedSignalTimer = CurTime() + delay
+            -- print("delay", delay)
+        elseif not master_closed and self.ClosedSignalTimer then
+            self.ClosedSignalTimer = nil
+        end
+
+        Wag.W80K1:TriggerInput("Set", self.ClosedSignalTimer and CurTime() >= self.ClosedSignalTimer and 1 or 0)
+        -- Door closed signal loop
+        Wag:WriteTrainWire(95, 1 - Wag.W80K1.Value)
+
+        if self.AnyClosingTimer and (CurTime() >= self.AnyClosingTimer or Wag.W80K1.Value == 1) then
+            self.AnyClosingTimer = nil
+            self.AnyClosingSide = nil
+        end
+
         for idx = 1, 8 do
             local sf = Wag[DoorSFs[idx]]
             local poweron = masterPower and sf and sf.Value > 0
             local ledWork = poweron and Wag.SF52F4.Value > 0 and (idx > 4 or Wag.SF52F5.Value > 0)
             local announceState = self.AnnounceStates[idx]
             if ledWork then
-                local selected = idx < 5 and selectLeft or idx >= 5 and selectRight
+                local left = idx < 5
+                local selected = left and selectLeft or not left and selectRight
                 local openTimer = selected and self.OpenTimer and CurTime() < self.OpenTimer
-                local anyClosing = idx < 5 and anyClosingLeft or idx >= 5 and anyClosingRight
+                local anyClosing = self.AnyClosingTimer and (self.AnyClosingSide == 3 or left and self.AnyClosingSide == 1 or not left and self.AnyClosingSide == 2)
                 if openTimer and announceState == "OpeningAddr" then
                     announceState = "Opening"
                 end
@@ -638,6 +679,7 @@ if SERVER then
     --         switch:TriggerInput("Set", switch.Value == 0 and 1 or 0)
     --     end
     -- end)
+
 else
     local mat_off = "models/metrostroi_train/81-765_v1/lights/strips_doors_off"
     local mat_red = "models/metrostroi_train/81-765_v1/lights/strips_doors_red"

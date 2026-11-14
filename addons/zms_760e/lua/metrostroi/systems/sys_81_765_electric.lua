@@ -112,6 +112,7 @@ function TRAIN_SYSTEM:Initialize()
     self.PowerReserve = 0
     self.ZeroSpeed = 0
     self.DoorsControl = 0
+    self.DoorsClosed = 0
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -122,7 +123,7 @@ function TRAIN_SYSTEM:Outputs()
     return {
         "TrueBattery80V", "Shared80V", "Psn80V", "SharedPsn80V", "Emer80V", "Supply80V",
         "AKB", "PSN", "EmerSupply", "KM", "Battery80V", "ReservePsn",
-        "Brake", "Drive", "V2", "V1", "Main750V", "Power750V", "Aux750V", "BTB", "MK",
+        "Brake", "Drive", "V2", "V1", "Main750V", "Power750V", "Aux750V", "BTB", "MK", "DoorsClosed",
         "SD", "EmerXod", "PowerReserve", "Recurperation", "Iexit", "Itotal", "Chopper", "ElectricEnergyUsed",
         "ElectricEnergyDissipated", "EnergyChange", "BTO", "ZeroSpeed", "DoorsControl", "UPIPower", "UPI2Power",
     }
@@ -300,12 +301,15 @@ function TRAIN_SYSTEM:Think(dT, iter)
         self.PowerReserve = self.EmerSupply * min(1, (1 - Wag.SF23F8.Value) * abs(RV.KRRPosition) + Wag.SF23F8.Value)
         Wag:WriteTrainWire(20, self.EmerSupply)
         Wag:WriteTrainWire(36, Wag.SF23F1.Value * Wag.EmergencyControls.Value)
-        S.Drive = Wag.BARS.Drive * min(Wag.BARS.UOS * BUP.KahDrive + (1 - Wag.BARS.Brake) * (BUP.DoorClosed + Wag.DoorBlock.Value), 1)
+
+        S.KRR = RV["KRR7-8"] * Wag.SF23F1.Value
+        S.RV = self.EmerSupply * (BUP.InitTimer and BUP.InitTimer > 0 and 1 or RV["KRO9-10"] + S.KRR)
+        self.DoorsClosed = self.EmerSupply * S.RV * BUP.Active * Wag.SF80F1.Value * min(1, Wag.SF23F2.Value + S.KRR) * C(Wag:ReadTrainWire(95) == 0)
+        S.Drive = Wag.BARS.Drive * min(Wag.BARS.UOS * BUP.KahDrive + (1 - Wag.BARS.Brake) * (self.DoorsClosed + Wag.DoorBlock.Value), 1)
         S.Orientation = C(Wag.SF23F13.Value * BUP.Active + RV["KRR7-8"] > 0)
         Wag:WriteTrainWire(19, self.PowerReserve * (1 - Wag.SD3.Value) * RV["KRR7-8"] * S.Drive * Wag.EmerX1.Value)
         Wag:WriteTrainWire(45, self.PowerReserve * (1 - Wag.SD3.Value) * RV["KRR7-8"] * S.Drive * Wag.EmerX2.Value)
         self.EmerXod = self.PowerReserve * RV["KRR7-8"] * S.Drive * min(1, Wag.EmerX1.Value + Wag.EmerX2.Value)
-        S.RV = self.EmerSupply * (BUP.InitTimer and BUP.InitTimer > 0 and 1 or RV["KRO9-10"] + RV["KRR7-8"] * Wag.SF23F1.Value)
         Wag:WriteTrainWire(3, S.RV * S.Orientation)
         Wag:WriteTrainWire(4, 0)
         Wag:WriteTrainWire(5, self.EmerSupply * RV["KRR7-8"] * S.Orientation)

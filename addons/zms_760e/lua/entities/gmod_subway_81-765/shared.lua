@@ -754,7 +754,6 @@ ENT.SpawnerCustom = {
         Section = "IkConfig",
     },
     {},
-    { "KdLongerDelay", "Задержка контроля дверей", "Boolean", false, Section = "Wear" },
     {
         "BreakRedChance", "Шанс сломать габ. огни", "Slider", 0, 0, 35, 0,
         function(ent, val, rot, i)
@@ -1131,7 +1130,6 @@ ENT.Spawner = {
     ENT.SpawnerFields["CISConfig"],
     ENT.SpawnerFields["Scheme765"],
     {},
-    ENT.SpawnerFields["KdLongerDelay"],
     ENT.SpawnerFields["BreakRedChance"],
     ENT.SpawnerFields["DoorReverseMalfunc"],
     ENT.SpawnerFields["BatteryWear"],

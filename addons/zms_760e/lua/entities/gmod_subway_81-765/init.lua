@@ -354,7 +354,7 @@ function ENT:Think()
     self:SetPackedBool("CabinEnabledFull", cablight > 0.25)
 
     self:SetNW2Bool("MfduLamp", powerUpi and self.BUKP.State ~= 0)
-    self:SetNW2Bool("DoorsClosed", powerReserve and self.BUKP.DoorClosed > 0)
+    self:SetNW2Bool("DoorsClosed", self.Electric.DoorsClosed > 0)
     self:SetNW2Bool("HVoltage", powerReserve and self.BUKP.HVLamp)
     self:SetNW2Bool("DoorLeftLamp", Panel.DoorLeftL > 0)
     self:SetNW2Bool("DoorRightLamp", Panel.DoorRightL > 0)
