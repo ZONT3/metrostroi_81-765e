@@ -72,7 +72,7 @@ function TRAIN_SYSTEM:Think(dT)
             self.L3 = true
             self.L4 = true
 
-            Wag:SetNW2String("PPUP:TimeDate", os.date("%H:%M:%S  %d.%m.%Y"))
+            Wag:SetNW2String("PPUP:TimeDate", os.date("%H:%M:%S  %d.%m.%Y", Metrostroi.GetSyncTime()))
 
             if self.ReadyMessage and CurTime() >= self.ReadyMessage then
                 Wag:PlayOnce("ppup_started", "cabin")
