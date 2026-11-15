@@ -157,7 +157,7 @@ function TRAIN_SYSTEM:Think(dT)
     local HasEngine = not not Train.AsyncInverter
     local P = HasEngine and Train.Electric.Power750V or Train.Electric.Main750V
 
-    self.Power = Train.Electric.EmerSupply * Train.SF23F11.Value
+    self.Power = Train.Electric.CU * Train.SF23F11.Value
     if self.Power < 1 and self.Work then self.Work = nil end
     if not self.State and self.Power > 0 and not self.Work then self.Work = CurTime() + math.Rand(0.4, 0.68) end
     self.State = self.Power > 0 and self.Work and CurTime() >= self.Work
@@ -167,7 +167,6 @@ function TRAIN_SYSTEM:Think(dT)
 
     self.ADUVWork = (Train.Electric.EmerSupply * Train.SF21F1.Value > 0) or self.States.BCPressure == nil
     self.ADUTWork = (Train.Electric.BTO > 0) or self.States.BCPressure == nil
-    self.BUDWork = Train.Electric.KM * (Train.SF80F13.Value + Train.SF80F14.Value + Train.SF80F12.Value) > 0
     local SchemeWork = HasEngine and (
         Train:ReadTrainWire(6) * Train.SF23F5.Value > 0.5 or
         (Train:ReadTrainWire(14) + Train:ReadTrainWire(15) == 1 and 1 or 0) * Train.SF23F6.Value > 0
@@ -181,17 +180,19 @@ function TRAIN_SYSTEM:Think(dT)
 
     self.Load = self.Power * 60 + (self.State and 100 or 0) + (self.PuWork and 46 or 0) + (self.ADUVWork and self.ADUTWork and 140 or 0) + Train.BUD.Load + Train.IK.Load
 
+    local bud_work = Train.BUD.BUDWork == 1
+
     if self.State then
         self.Load = self.Load + 100
         if not self.States.BUVWork then self.Train:CANWrite("BUV", Train:GetWagonNumber(), "BUKP", nil, "Get", 1) end
         for i = 1, 4 do
-            self:CState("Door" .. i .. "Closed", self.BUDWork and Train.BUD.LeftDoorClosed[i] and CurTime() >= Train.BUD.LeftDoorClosed[i] or not self.BUDWork and Train.Electric.KM > 0 and self.States["Door" .. i .. "Closed"])
-            self:CState("Door" .. (i + 4) .. "Closed", self.BUDWork and Train.BUD.RightDoorClosed[i] and CurTime() >= Train.BUD.RightDoorClosed[i] or not self.BUDWork and Train.Electric.KM > 0 and self.States["Door" .. (i + 4) .. "Closed"])
+            self:CState("Door" .. i .. "Closed", bud_work and Train.BUD.LeftDoorClosed[i] and CurTime() >= Train.BUD.LeftDoorClosed[i] or not bud_work and Train.Electric.KM > 0 and self.States["Door" .. i .. "Closed"])
+            self:CState("Door" .. (i + 4) .. "Closed", bud_work and Train.BUD.RightDoorClosed[i] and CurTime() >= Train.BUD.RightDoorClosed[i] or not bud_work and Train.Electric.KM > 0 and self.States["Door" .. (i + 4) .. "Closed"])
         end
 
-        self:CState("LeftDoorsOpened", self.BUDWork and Train.LeftDoorsOpened or not self.BUDWork and Train.Electric.KM > 0 and self.States.LeftDoorsOpened)
-        self:CState("RightDoorsOpened", self.BUDWork and Train.RightDoorsOpened or not self.BUDWork and Train.Electric.KM > 0 and self.States.RightDoorsOpened)
-        self:CState("BUDWork", self.BUDWork)
+        self:CState("LeftDoorsOpened", bud_work and Train.LeftDoorsOpened or not bud_work and Train.Electric.KM > 0 and self.States.LeftDoorsOpened)
+        self:CState("RightDoorsOpened", bud_work and Train.RightDoorsOpened or not bud_work and Train.Electric.KM > 0 and self.States.RightDoorsOpened)
+        self:CState("BUDWork", bud_work)
         if IsHead then
             self:CState("DoorBack", Train.PassengerDoor or Train.CabinDoorLeft or Train.CabinDoorRight)
             self:CState("CabDoorLeft", not Train.CabinDoorLeft)

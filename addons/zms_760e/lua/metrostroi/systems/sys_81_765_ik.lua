@@ -39,10 +39,9 @@ if SERVER then
 
     function TRAIN_SYSTEM:Think(dT)
         local Wag = self.Train
-        self.Power = Wag.Electric.KM > 0 and Wag.Electric.EmerSupply * (Wag.SF45F7.Value + Wag.SF45F8.Value) > 0
+        self.Power = Wag.Electric.KM * Wag.Electric.CU * (Wag.SF45F7.Value + Wag.SF45F8.Value) > 0
         local poweron = self.Power and not self.Train.BNT.Power
         self.Train.BNT.Power = self.Power
-        Wag:SetNW2Bool("DoorAlarmState", self.Power and self.DoorAlarm or false)
 
         if poweron then self.Reset = true end
 

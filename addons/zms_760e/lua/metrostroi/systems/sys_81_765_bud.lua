@@ -8,6 +8,7 @@ TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
     self.Load = 0
+    self.BUDWork = 0
     self.Depart = false
     self.DoorLeft = false
     self.DoorRight = false
@@ -70,7 +71,7 @@ function TRAIN_SYSTEM:Initialize()
 end
 
 function TRAIN_SYSTEM:Outputs()
-    return {"Load"}
+    return {"Load", "BUDWork"}
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -132,16 +133,9 @@ if SERVER then
 
         self.AnnounceStates = self.AnnounceStates or {}
 
-        local masterPower = Wag.Electric.KM > 0
-        local masterWorking = masterPower and BUV.BUDWork
+        local masterPower = Wag.Electric.KM * Wag.Electric.CU * (Wag.SF80F13.Value + Wag.SF80F14.Value + Wag.SF80F12.Value) > 0
 
-        if masterPower and not masterWorking then
-            self.DoorLeft = false
-            self.DoorRight = false
-            for idx = 1, 8 do self.DoorCommand[idx] = false end
-        end
-
-        self.Load = masterPower and (masterWorking and 89 or 20) or 0
+        self.Load = masterPower and 89 or 0
 
         local stuckEmpty = true
         local zeroSpeed = BUV.ZeroSpeed > 0
@@ -171,15 +165,15 @@ if SERVER then
             self.VisualZeroSpeedTimer = nil
         end
 
-        local workingLeft = masterWorking and BUV.Orientation and (Wag.SF80F10.Value * Wag.SF80F7.Value) > 0 or not BUV.Orientation and (Wag.SF80F10.Value * Wag.SF80F7.Value) > 0
-        local workingRight = masterWorking and BUV.Orientation and (Wag.SF80F11.Value * Wag.SF80F6.Value) > 0 or not BUV.Orientation and (Wag.SF80F11.Value * Wag.SF80F6.Value) > 0
+        local workingLeft = masterPower and BUV.Orientation and (Wag.SF80F10.Value * Wag.SF80F7.Value) > 0 or not BUV.Orientation and (Wag.SF80F10.Value * Wag.SF80F7.Value) > 0
+        local workingRight = masterPower and BUV.Orientation and (Wag.SF80F11.Value * Wag.SF80F6.Value) > 0 or not BUV.Orientation and (Wag.SF80F11.Value * Wag.SF80F6.Value) > 0
         local reserveLeft = Wag:ReadTrainWire(38) > 0
         local reserveRight = Wag:ReadTrainWire(37) > 0
         local selectLeft = workingLeft and BUV.SelectLeft
         local selectRight = workingRight and BUV.SelectRight
         local commandLeft = workingLeft and (selectLeft and BUV.OpenLeft or reserveLeft)
         local commandRight = workingRight and (selectRight and BUV.OpenRight or reserveRight)
-        local commandClose = (masterWorking and BUV.CloseDoors and BUV.Power * Wag.SF80F8.Value > 0 and Wag:ReadTrainWire(40) < 1 or masterPower and Wag:ReadTrainWire(39) > 0)
+        local commandClose = (masterPower and BUV.CloseDoors and BUV.Power * Wag.SF80F8.Value > 0 and Wag:ReadTrainWire(40) < 1 or masterPower and Wag:ReadTrainWire(39) > 0)
 
         if addrMode and (commandLeft or commandRight) then
             if not self.ForceOpenTimer then
@@ -230,12 +224,13 @@ if SERVER then
 
         local bit_state = 0
         local master_closed = true
+        local all_work = true
 
         for idx = 1, 8 do
             local sf = Wag[DoorSFs[idx]]
             local power_sw = Wag["Bud" .. idx .. "Power"]
             local poweron = masterPower and sf and sf.Value > 0 and power_sw and power_sw.Value > 0
-            local working = masterWorking and poweron
+            local working = masterPower and poweron
             bit_state = set_bit(bit_state, idx, 3, poweron)
 
             if not working then self.Working[idx] = false self.Starting[idx] = false end
@@ -245,6 +240,7 @@ if SERVER then
             poweron = poweron and (working or self.Starting[idx] and self.Starting[idx] - CurTime() < 0.3)
             bit_state = set_bit(bit_state, idx, 2, poweron)
             bit_state = set_bit(bit_state, idx, 1, working)
+            all_work = all_work and poweron
 
             if not working then
                 self.DoorCommand[idx] = false
@@ -619,6 +615,8 @@ if SERVER then
             self.StuckPass = {}
         end
         if self.Depart and (not zeroSpeed or commandLeft or commandRight) then self.Depart = false end
+
+        self.BUDWork = all_work and 1 or 0
     end
 
     function TRAIN_SYSTEM:IsReverseOpening(idx)
