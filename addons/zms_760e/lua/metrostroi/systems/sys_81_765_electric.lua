@@ -313,7 +313,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         S.KRR = RV["KRR7-8"] * Wag.SF23F1.Value
         S.RV = self.EmerSupply * (BUP.InitTimer and BUP.InitTimer > 0 and 1 or RV["KRO9-10"] + S.KRR)
         self.DoorsClosed = self.EmerSupply * S.RV * BUP.Active * Wag.SF80F1.Value * IO(Wag.SF23F2.Value + S.KRR) * C(Wag:ReadTrainWire(95) == 0)
-        S.Drive = Wag.BARS.Drive * IO(Wag.BARS.UOS * BUP.KahDrive + (1 - Wag.BARS.Brake) * (self.DoorsClosed + Wag.DoorBlock.Value))
+        S.Drive = Wag.BARS.Drive * IO(Wag.BARS.UOS * BUP.KahDrive + (1 - Wag.BARS.Brake) * (self.DoorsClosed + Wag.DoorBlock.Value + Wag.NoDcDrive.Value))
         S.Orientation = C(Wag.SF23F13.Value * BUP.Active + RV["KRR7-8"] > 0)
         Wag:WriteTrainWire(19, self.PowerReserve * (1 - Wag.SD3.Value) * RV["KRR7-8"] * S.Drive * Wag.EmerX1.Value)
         Wag:WriteTrainWire(45, self.PowerReserve * (1 - Wag.SD3.Value) * RV["KRR7-8"] * S.Drive * Wag.EmerX2.Value)

@@ -396,6 +396,10 @@ function ENT:Think()
 
     self:LmAsotp("BayMain", self.BayMain1Open)
 
+    if self:GetNW2Bool("AddressDoors", false) or self:GetNW2Int("WcPakType", 1) ~= 2 then
+        self.NoDcDrive:TriggerInput("Set", 0)
+    end
+
     if (self.RV.KRRPosition ~= 0) ~= (self.EmergencyControls.Value > 0) then
         self.EmergencyControls:TriggerInput("Set", (self.RV.KRRPosition ~= 0) and 1 or 0)
     end

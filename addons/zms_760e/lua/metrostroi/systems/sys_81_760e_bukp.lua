@@ -1158,7 +1158,7 @@ function TRAIN_SYSTEM:Think(dT)
                 end
 
                 self.BupDisableDrive = BARS.UOS < 1 and (
-                    self.DoorClosed + Train.DoorBlock.Value < 1 or
+                    self.DoorClosed + Train.DoorBlock.Value + Train.NoDcDrive.Value < 1 or
                     self.Errors.NoOrient or
                     self.Errors.BuvDiscon or
                     self.DepotMode

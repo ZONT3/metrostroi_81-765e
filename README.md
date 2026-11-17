@@ -50,6 +50,9 @@ TODO
       - [ ] Rooftop details
     - [ ] Final materials/textures
     - [ ] Elements from .2 for Chura
+  - [ ] Performance optimization
+    - [ ] Client profiling and fix
+    - [ ] Server profiling and fix
   - [ ] MFDU 2nd page auto-opening should not hide voltages on bottom-left panel
   - [ ] FIX: Doors close delay reset logic
   - [ ] Metro system logo on displays customization
@@ -81,9 +84,9 @@ TODO
   - [ ] Cabin models: controller variants
   - [ ] DVORNIK mazafaka
   - [ ] Skins justification
-  - [ ] Move w/o KD mode
+  - [x] Move w/o KD mode
     - [x] Electric-side doors closed signal ~~*Not found on any schematics*~~ *finally found one*
-    - [ ] CU Power logic
+    - [x] CU Power logic
   - [ ] Spawner options justifications according to the following TODO, skins setups, etc.
 
 ## TODO
