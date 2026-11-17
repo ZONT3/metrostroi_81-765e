@@ -18,7 +18,7 @@ table.Add(ENT.SyncTable, {
     "MfduF6", "MfduF7", "MfduF8", "MfduF9", "K29", "UAVA", "K9", "EmerX1", "EmerX2", "EmerCloseDoors", "EmergencyDoors",
     "R_ASNPMenu", "R_ASNPUp", "R_ASNPDown", "R_ASNPOn", "VentHeatMode", "PowerOff", "PB",
     "CAMS1", "CAMS2", "CAMS3", "CAMS4", "CAMS5", "CAMS6", "CAMS7", "CAMS8", "CAMS9", "CAMS10",
-    "PPUP1", "PPUP2", "PPUP3", "PPUP4",
+    "PPUP1", "PPUP2", "PPUP3", "PPUP4", "DoorLockL", "DoorLockR", "DoorLockC",
     "MfduHelp", "MfduKontr", "MfduTv", "MfduTv1", "MfduTv2",
     "Buik_EMsg1", "Buik_EMsg2", "Buik_Unused1", "Buik_Mode", "Buik_Path", "Buik_Return", "Buik_Down", "Buik_Up", "Buik_MicLine", "Buik_MicBtn", "Buik_Asotp", "Buik_Ik",
     "Buik_EMsg1Lamp", "Buik_EMsg2Lamp", "Buik_Unused1Lamp", "Buik_ModeLamp", "Buik_PathLamp","Buik_ReturnLamp",
@@ -385,6 +385,10 @@ function ENT:Think()
     self:SetPackedBool("CabinDoorRightLimit", self.K35C1Val or self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
     self:SetPackedBool("CabChairAdd", self.Chair or self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver()))
 
+    self:SetNW2Bool("DoorLockL", self.DoorLockL.Value > 0)
+    self:SetNW2Bool("DoorLockR", self.DoorLockR.Value > 0)
+    self:SetNW2Bool("DoorLockC", self.DoorLockC.Value > 0)
+
     self:SetPackedRatio("Cran", self.Pneumatic.DriverValvePosition)
 
     self:SetPackedBool("BayHandle", self.BayHandle)
@@ -451,9 +455,6 @@ function ENT:OnButtonPress(button, ply)
 
     if button == "NotificationPaperBtn" then self.NotificationPaper = not self.NotificationPaper end
     if button == "Chair" and not (self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) and IsValid(self.InstructorsSeat3:GetDriver())) then self.Chair = not self.Chair end
-    if button == "PassengerDoor" then
-        self.PassengerDoor = not self.PassengerDoor
-    end
 
     if button == "BayCoverK35_1" then
         self.K35C1Val = not self.K35C1Val
@@ -476,11 +477,29 @@ function ENT:OnButtonPress(button, ply)
     end
 
 
-    if button == "CabinDoorLeft" and (self.CabinDoorLeft or self.SF80F3.Value == 0 or self.Speed < 20) then --[[self:PlayOnce("door_cab_l_"..(self.CabinDoorLeft and "open" or "close"),"")]]
+    if button == "PassengerDoor" then
+        if not self.PassengerDoor then self:SetNW2Int("DoorAttemptC", (CurTime() + 0.4) * 1000) end
+        if not self.PassengerDoor and (self.DoorLockC.Value == 1 or self.SF80F3.Value == 1 and self.Speed >= 20) then
+            self:PlayOnce("door_attempt_c", "")
+            return
+        end
+        self.PassengerDoor = not self.PassengerDoor
+    end
+    if button == "CabinDoorLeft" then
+        if not self.CabinDoorLeft then self:SetNW2Int("DoorAttemptL", (CurTime() + 0.4) * 1000) end
+        if not self.CabinDoorLeft and (self.DoorLockL.Value == 1 or self.SF80F3.Value == 1 and self.Speed >= 20) then
+            self:PlayOnce("door_attempt_l", "")
+            return
+        end
         self.CabinDoorLeft = not self.CabinDoorLeft
     end
 
-    if button == "CabinDoorRight" and (self.CabinDoorRight or (self.SF80F3.Value == 0 or self.Speed < 20)) then
+    if button == "CabinDoorRight" then
+        if not self.CabinDoorRight then self:SetNW2Int("DoorAttemptR", (CurTime() + 0.4) * 1000) end
+        if not self.CabinDoorRight and (self.DoorLockR.Value == 1 or self.SF80F3.Value == 1 and self.Speed >= 20) then
+            self:PlayOnce("door_attempt_r", "")
+            return
+        end
         self.CabinDoorRight = not self.CabinDoorRight
         if self.CabinDoorRight and self.InstructorsSeat3 and IsValid(self.InstructorsSeat3) then
             self.InstructorsSeat3:SetSolid(SOLID_NONE)
@@ -488,6 +507,7 @@ function ENT:OnButtonPress(button, ply)
             self.InstructorsSeat3:SetSolid(SOLID_VPHYSICS)
         end
     end
+
 
     if button == "CabinWindowLeft" then
         self.CabinWindowLeft = not self.CabinWindowLeft

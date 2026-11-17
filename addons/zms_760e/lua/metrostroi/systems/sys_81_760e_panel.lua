@@ -42,95 +42,96 @@ local PvzToggles = {
 }
 
 function TRAIN_SYSTEM:Initialize()
-    self.Train:LoadSystem("Stand", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("ABESD", "Relay", "Switch", { bass = true, normally_closed = true })
-    self.Train:LoadSystem("ABESDk", "Relay", "Switch", { bass = true, normally_closed = true })
-    self.Train:LoadSystem("SD", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("SDk", "Relay", "Switch", { bass = true, normally_closed = true })
-    self.Train:LoadSystem("Ticker", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("KAH", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("KAHk", "Relay", "Switch", { bass = true, normally_closed = true })
-    self.Train:LoadSystem("ALS", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("ALSk", "Relay", "Switch", { bass = true, normally_closed = true })
-    self.Train:LoadSystem("FDepot", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("PassScheme", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EmergencyCompressor", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EmergencyCompressor2", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EnableBV", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EnableBVEmer", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("DisableBV", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Ring", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("R_Program2", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("R_Announcer", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("R_Micro", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("R_Emer", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("R_Program1", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("R_Program11", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Pr", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("OtklR", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("GlassHeating", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Washer", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("SC", "Relay", "Switch", { bass = true })
+    local Wag = self.Train
+    Wag:LoadSystem("Stand", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("ABESD", "Relay", "Switch", { bass = true, normally_closed = true })
+    Wag:LoadSystem("ABESDk", "Relay", "Switch", { bass = true, normally_closed = true })
+    Wag:LoadSystem("SD", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("SDk", "Relay", "Switch", { bass = true, normally_closed = true })
+    Wag:LoadSystem("Ticker", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("KAH", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("KAHk", "Relay", "Switch", { bass = true, normally_closed = true })
+    Wag:LoadSystem("ALS", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("ALSk", "Relay", "Switch", { bass = true, normally_closed = true })
+    Wag:LoadSystem("FDepot", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("PassScheme", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmergencyCompressor", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmergencyCompressor2", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EnableBV", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EnableBVEmer", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("DisableBV", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Ring", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("R_Program2", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("R_Announcer", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("R_Micro", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("R_Emer", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("R_Program1", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("R_Program11", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Pr", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("OtklR", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("GlassHeating", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Washer", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("SC", "Relay", "Switch", { bass = true })
 
-    self.Train:LoadSystem("HeadlightsSwitch", "Relay", "Switch", {
+    Wag:LoadSystem("HeadlightsSwitch", "Relay", "Switch", {
         maxvalue = 2,
         defaultvalue = 0,
         bass = true
     })
 
-    self.Train:LoadSystem("Micro", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EmergencyControls", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EmergencyControlsK", "Relay", "Switch", {
+    Wag:LoadSystem("Micro", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmergencyControls", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmergencyControlsK", "Relay", "Switch", {
         defaultvalue = 1,
         bass = true
     })
 
-    self.Train:LoadSystem("Wiper", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("AutoDrive", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("DoorSelectL", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("DoorSelectR", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("DoorBlock", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("DoorLeft", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("AccelRate", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EmerBrakeAdd", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EmerBrakeRelease", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EmerBrake", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EmergencyBrake", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("DoorRight", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("HornB", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("HornC", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("DoorClose", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("AttentionMessage", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Attention", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("AttentionBrake", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Wiper", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("AutoDrive", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("DoorSelectL", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("DoorSelectR", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("DoorBlock", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("DoorLeft", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("AccelRate", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmerBrakeAdd", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmerBrakeRelease", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmerBrake", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmergencyBrake", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("DoorRight", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("HornB", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("HornC", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("DoorClose", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("AttentionMessage", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Attention", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("AttentionBrake", "Relay", "Switch", { bass = true })
 
-    self.Train:LoadSystem("VentCondMode", "Relay", "Switch", {
+    Wag:LoadSystem("VentCondMode", "Relay", "Switch", {
         maxvalue = 3,
         defaultvalue = 2,
         bass = true
     })
 
-    self.Train:LoadSystem("VentStrengthMode", "Relay", "Switch", {
+    Wag:LoadSystem("VentStrengthMode", "Relay", "Switch", {
         maxvalue = 3,
         defaultvalue = 2,
         bass = true
     })
 
-    self.Train:LoadSystem("VentHeatMode", "Relay", "Switch", {
+    Wag:LoadSystem("VentHeatMode", "Relay", "Switch", {
         maxvalue = 1,
         defaultvalue = 0,
         bass = true
     })
 
-    self.Train:LoadSystem("EmerX1", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EmerX2", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EmerCloseDoors", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("EmergencyDoors", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmerX1", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmerX2", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmerCloseDoors", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("EmergencyDoors", "Relay", "Switch", { bass = true })
 
-    self.Train:LoadSystem("CabinLight", "Relay", "Switch", { maxvalue = 2, defaultvalue = 0, bass = true})
+    Wag:LoadSystem("CabinLight", "Relay", "Switch", { maxvalue = 2, defaultvalue = 0, bass = true})
 
     for k, cfg in pairs(PakToggles or {}) do
-        self.Train:LoadSystem(k, "Relay", "Switch", {
+        Wag:LoadSystem(k, "Relay", "Switch", {
             maxvalue = #cfg.positions - 1,
             defaultvalue = cfg.default or 0,
             bass = true
@@ -138,65 +139,69 @@ function TRAIN_SYSTEM:Initialize()
     end
 
     for _, name in ipairs(PpzToggles or {}) do
-        self.Train:LoadSystem(name, "Relay", "Switch", {
+        Wag:LoadSystem(name, "Relay", "Switch", {
             bass = true,
         })
     end
 
     -- for legacy dependencies and external addons, TODO - include and rewrite these dependencies as new systems
-    self.Train.SA1 = self.Train.PmvParkingBrake
-    -- self.Train.SA14 = self.Train.PmvFreq
-    self.Train.SF18 = self.Train.SF42F1  -- АНСП пит (от РПДП)
-    self.Train.SF19 = self.Train.SF45F1  -- Видео пит
-    self.Train.SF20 = self.Train.SF90F1  -- АСОТП ЦБКИ пит
-    self.Train.SF21 = self.Train.SF70F1  -- РВС пит
-    self.Train.SF36 = self.Train.SF30F9  -- АСОТП ПЦБК
-    self.Train.PowerReserve = self.Train.PmvEmerPower
-    self.Train:LoadSystem("SF54", "Relay", "Switch", { bass = true })  -- Видео
+    Wag.SA1 = Wag.PmvParkingBrake
+    -- Wag.SA14 = Wag.PmvFreq
+    Wag.SF18 = Wag.SF42F1  -- АНСП пит (от РПДП)
+    Wag.SF19 = Wag.SF45F1  -- Видео пит
+    Wag.SF20 = Wag.SF90F1  -- АСОТП ЦБКИ пит
+    Wag.SF21 = Wag.SF70F1  -- РВС пит
+    Wag.SF36 = Wag.SF30F9  -- АСОТП ПЦБК
+    Wag.PowerReserve = Wag.PmvEmerPower
+    Wag:LoadSystem("SF54", "Relay", "Switch", { bass = true })  -- Видео
 
     for _, name in ipairs(PvzToggles or {}) do
-        self.Train:LoadSystem(name, "Relay", "Switch", {
+        Wag:LoadSystem(name, "Relay", "Switch", {
             bass = true, normally_closed = true,
         })
     end
 
-    self.Train:LoadSystem("MasterTrainPowerOn", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MasterTrainPowerOff", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("BatteryCharge", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MasterTrainPowerOn", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MasterTrainPowerOff", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("BatteryCharge", "Relay", "Switch", { bass = true })
 
     -- Allow BS disable from UPI
-    self.Train:LoadSystem("W30K8", "Relay", { open_time = 0.6 })
+    Wag:LoadSystem("W30K8", "Relay", { open_time = 0.6 })
 
-    self.Train:LoadSystem("PB", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("PB", "Relay", "Switch", { bass = true })
 
     -- MFDU
-    self.Train:LoadSystem("MfduF1", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF2", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF3", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF4", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu1", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu4", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu7", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu2", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu5", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu8", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu0", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu3", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu6", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("Mfdu9", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF5", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF6", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF7", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF8", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduF9", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduHelp", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduKontr", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduTv", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduTv1", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("MfduTv2", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduF1", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduF2", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduF3", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduF4", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Mfdu1", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Mfdu4", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Mfdu7", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Mfdu2", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Mfdu5", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Mfdu8", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Mfdu0", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Mfdu3", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Mfdu6", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("Mfdu9", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduF5", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduF6", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduF7", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduF8", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduF9", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduHelp", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduKontr", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduTv", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduTv1", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("MfduTv2", "Relay", "Switch", { bass = true })
 
-    self.Train:LoadSystem("CoupleCenteringR", "Relay", "Switch", { bass = true })
-    self.Train:LoadSystem("CoupleCenteringF", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("CoupleCenteringR", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("CoupleCenteringF", "Relay", "Switch", { bass = true })
+
+    Wag:LoadSystem("DoorLockL", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("DoorLockR", "Relay", "Switch", { bass = true })
+    Wag:LoadSystem("DoorLockC", "Relay", "Switch", { bass = true })
 
     self.Controller = 0
 

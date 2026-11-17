@@ -295,6 +295,25 @@ function ENT:InitializeSounds()
         "subway_trains/765/btn_mfdu_up1.mp3",
         "subway_trains/765/btn_mfdu_up2.mp3",
     }
+
+    self.SoundNames["door_lock_c"] = { "subway_trains/717/switches/rc_on.mp3" }
+    self.SoundPositions["door_lock_c"] = { 200, 1e9, Vector(393.2, 0.9, -16.78), 1 }
+    self.SoundNames["door_unlock_c"] = { "subway_trains/717/switches/rc_off.mp3" }
+    self.SoundPositions["door_unlock_c"] = self.SoundPositions["door_lock_c"]
+    self.SoundNames["door_attempt_c"] = { "doors/door_locked2.wav" }
+    self.SoundPositions["door_attempt_c"] = self.SoundPositions["door_lock_c"]
+    self.SoundNames["door_lock_l"] = self.SoundNames["door_lock_c"]
+    self.SoundPositions["door_lock_l"] = { 200, 1e9, Vector(457.56, 63.2, -22.18), 1 }
+    self.SoundNames["door_unlock_l"] = self.SoundNames["door_unlock_c"]
+    self.SoundPositions["door_unlock_l"] = self.SoundPositions["door_lock_l"]
+    self.SoundNames["door_attempt_l"] = self.SoundNames["door_attempt_c"]
+    self.SoundPositions["door_attempt_l"] = self.SoundPositions["door_lock_l"]
+    self.SoundNames["door_lock_r"] = self.SoundNames["door_lock_c"]
+    self.SoundPositions["door_lock_r"] = { 200, 1e9, Vector(460.44, -63.2, -22.18), 1 }
+    self.SoundNames["door_unlock_r"] = self.SoundNames["door_unlock_c"]
+    self.SoundPositions["door_unlock_r"] = self.SoundPositions["door_lock_r"]
+    self.SoundNames["door_attempt_r"] = self.SoundNames["door_attempt_c"]
+    self.SoundPositions["door_attempt_r"] = self.SoundPositions["door_lock_r"]
 end
 
 

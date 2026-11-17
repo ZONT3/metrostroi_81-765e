@@ -214,10 +214,10 @@ function ENT:InitializeSounds()
     self.SoundNames["rolling_medium1"] = { loop = true, "subway_trains/765/rumble/rolling/rolling_outside_medium1.wav" }
     self.SoundNames["rolling_medium2"] = { loop = true, "subway_trains/765/rumble/rolling/rolling_outside_medium2.wav" }
     self.SoundNames["rolling_high2"] = { loop = true, "subway_trains/765/rumble/rolling/rolling_outside_high2.wav" }
-    self.SoundPositions["rolling_low"] = {480,1e12,Vector(0,0,0),0.6*0.4}
-    self.SoundPositions["rolling_medium1"] = {480,1e12,Vector(0,0,0),0.90*0.4}
-    self.SoundPositions["rolling_medium2"] = {480,1e12,Vector(0,0,0),0.90*0.4}
-    self.SoundPositions["rolling_high2"] = {480,1e12,Vector(0,0,0),1.00*0.4}
+    self.SoundPositions["rolling_low"] = {480, 1e12, Vector(0, 0, 0), 0.6 * 0.4}
+    self.SoundPositions["rolling_medium1"] = {480, 1e12, Vector(0, 0, 0), 0.90 * 0.4}
+    self.SoundPositions["rolling_medium2"] = {480, 1e12, Vector(0, 0, 0), 0.90 * 0.4}
+    self.SoundPositions["rolling_high2"] = {480, 1e12, Vector(0, 0, 0), 1.00 * 0.4}
 
     local doorAlarmFile = self:GetNW2Bool("FastDoorSignal", true) and "subway_trains/765/doors/door_alarm_fast.mp3" or "subway_trains/765/doors/door_alarm.mp3"
     for k, tbl in ipairs({self.LeftDoorPositions or {}, self.RightDoorPositions or {}}) do
@@ -297,10 +297,10 @@ function ENT:InitializeSounds()
     for i = 1, 10 do
         local id1 = Format("b1tunnel_%d", i)
         local id2 = Format("b2tunnel_%d", i)
-        self.SoundNames[id1.."a"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st"..i.."a.wav"}
-        self.SoundNames[id1.."b"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st"..i.."b.wav"}
-        self.SoundNames[id2.."a"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st"..i.."a.wav"}
-        self.SoundNames[id2.."b"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st"..i.."b.wav"}
+        self.SoundNames[id1 .. "a"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st" .. i .. "a.wav"}
+        self.SoundNames[id1 .. "b"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st" .. i .. "b.wav"}
+        self.SoundNames[id2 .. "a"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st" .. i .. "a.wav"}
+        self.SoundNames[id2 .. "b"] = {"subway_trains/765/rumble/rolling/wheels/tunnel/st" .. i .. "b.wav"}
         self.SoundPositions[id1 .. "a"] = {700 * 0.75, 1e9, Vector(317 - 5, 0, -84), 1 * 0.5}
         self.SoundPositions[id1 .. "b"] = self.SoundPositions[id1 .. "a"]
         self.SoundPositions[id2 .. "a"] = {700 * 0.75, 1e9, Vector(-317 + 0, 0, -84), 1 * 0.5}
@@ -310,10 +310,10 @@ function ENT:InitializeSounds()
     for i = 1, 14 do
         local id1 = Format("b1street_%d", i)
         local id2 = Format("b2street_%d", i)
-        self.SoundNames[id1.."a"] = {"subway_trains/765/rumble/rolling/wheels/street/street_"..i.."a.mp3"}
-        self.SoundNames[id1.."b"] = {"subway_trains/765/rumble/rolling/wheels/street/street_"..i.."b.mp3"}
-        self.SoundNames[id2.."a"] = {"subway_trains/765/rumble/rolling/wheels/street/street_"..i.."a.mp3"}
-        self.SoundNames[id2.."b"] = {"subway_trains/765/rumble/rolling/wheels/street/street_"..i.."b.mp3"}
+        self.SoundNames[id1 .. "a"] = {"subway_trains/765/rumble/rolling/wheels/street/street_" .. i .. "a.mp3"}
+        self.SoundNames[id1 .. "b"] = {"subway_trains/765/rumble/rolling/wheels/street/street_" .. i .. "b.mp3"}
+        self.SoundNames[id2 .. "a"] = {"subway_trains/765/rumble/rolling/wheels/street/street_" .. i .. "a.mp3"}
+        self.SoundNames[id2 .. "b"] = {"subway_trains/765/rumble/rolling/wheels/street/street_" .. i .. "b.mp3"}
         self.SoundPositions[id1 .. "a"] = {700, 1e9, Vector(317 - 5, 0, -84), 1.5 * 0.5}
         self.SoundPositions[id1 .. "b"] = self.SoundPositions[id1 .. "a"]
         self.SoundPositions[id2 .. "a"] = {700, 1e9, Vector(-317 + 0, 0, -84), 1.5 * 0.5}
@@ -430,7 +430,7 @@ ENT.AnnouncerPositions = {}
 table.insert(ENT.AnnouncerPositions, {Vector(470, 0, 44), 100, 0.1})
 for i = 1, 4 do
     table.insert(ENT.AnnouncerPositions, {
-        Vector(323 - (i - 1) * 230, --[[+37.5]]
+        Vector(323 - (i - 1) * 230,
             47, 44),
         i == 1 and 60 or 100,
         0.1

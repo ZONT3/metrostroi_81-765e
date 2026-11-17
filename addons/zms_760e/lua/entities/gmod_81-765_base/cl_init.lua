@@ -1553,7 +1553,7 @@ function ENT:Think()
         self:ShowHide("ASHook", ValidfB)
         self:Animate("ASHook", self:GetPackedBool("ASHook") and 1 or 0, 0, 1, 8, 0.5)
 
-        if Cfg765 and Cfg765.NotificationPaper then
+        if --[[Cfg765 and Cfg765.NotificationPaper]] false then
             self:HidePanel("NotificationPaperBtn", false)
             self:ShowHide("NotificationPaper", self:GetPackedBool("NotificationPaper", false))
         else
@@ -1576,14 +1576,6 @@ function ENT:Think()
 
         self:Animate("KM013", CranePos[7 - self:GetPackedRatio("Cran")] or 0, 0, 1, 2, false)
         self:Animate("PB", self:GetPackedBool("PB") and 1 or 0, 0, 1, 8, false)
-
-        local DoorCabL = self:Animate("DoorCabL", self:GetPackedBool("CabinDoorLeft") and 1 or 0, 0, 1, 2, 0.5)
-        local DoorCabR = self:Animate("DoorCabR", self:GetPackedBool("CabinDoorRight") and (self:GetPackedBool("CabinDoorRightLimit") and 0.6 or 1) or 0, 0, 1, 2, 0.5)
-        self:PlayDoorSound(self:Animate("DoorCabM", self:GetPackedBool("PassengerDoor") and 1 or 0, 0, 1, 2, 0.5) > 0.2, "door_cab_m")
-        self:PlayDoorSound(DoorCabL > 0.2, "door_cab_l")
-        self:PlayDoorSound(DoorCabR > 0.2, "door_cab_r")
-        self:AnimateCustom("DoorCabL", "window", self:GetPackedBool("CabinWindowLeft") and 1 or 0, 0, 1, 8, 0.5)
-        self:AnimateCustom("DoorCabR", "window", self:GetPackedBool("CabinWindowRight") and 1 or 0, 0, 1, 8, 0.5)
 
         self:Animate("CabChairAdd", self:GetPackedBool("CabChairAdd") and 1 or 0, 0, 1, 4, 0.5)
         self:HidePanel("CoupleCenteringF", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("FrontCoupled", false))

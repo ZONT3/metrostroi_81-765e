@@ -2278,51 +2278,6 @@ ENT.ButtonMap["CoupleCenteringF"] = {
     }
 }
 
-ENT.ButtonMap["PassengerDoor"] = {
-    pos = Vector(389, -28.5, 40),
-    ang = Angle(0, 90, 90),
-    width = 730,
-    height = 2000,
-    scale = 0.1 / 2,
-    buttons = {
-        {
-            ID = "PassengerDoor",
-            x = 0,
-            y = 0,
-            w = 730,
-            h = 2000,
-            tooltip = "Дверь в кабину машиниста из салона\nPass door",
-            model = {
-                var = "PassengerDoor",
-                sndid = "DoorCabM",
-                sndvol = 1,
-                snd = function(val) return val and "door_cab_open" or "door_cab_close" end,
-                sndmin = 90,
-                sndmax = 1e3,
-                sndang = Angle(-90, 0, 0),
-            }
-        },
-    }
-}
-
-ENT.ButtonMap["PassengerDoor2"] = {
-    pos = Vector(387, 8, 40),
-    ang = Angle(0, -90, 90),
-    width = 730,
-    height = 2000,
-    scale = 0.1 / 2,
-    buttons = {
-        {
-            ID = "PassengerDoor",
-            x = 0,
-            y = 0,
-            w = 730,
-            h = 2000,
-            tooltip = "Дверь в кабину машиниста из салона\nPass door"
-        },
-    }
-}
-
 ENT.ButtonMap["Chair"] = {
     pos = Vector(417, -58, -6),
     ang = Angle(0, 90, 90),
@@ -2337,116 +2292,6 @@ ENT.ButtonMap["Chair"] = {
             w = 830,
             h = 1000,
             tooltip = "Сидуха"
-        },
-    }
-}
-
-ENT.ButtonMap["CabinDoorL"] = {
-    pos = Vector(425, 64.5, 49.2),
-    ang = Angle(0, 0, 91),
-    width = 710,
-    height = 2030,
-    scale = 0.1 / 2,
-    buttons = {
-        {
-            ID = "CabinWindowLeft",
-            x = 0,
-            y = 0,
-            w = 710,
-            h = 600,
-            tooltip = "Форточка",
-            model = {
-                var = "CabinWindowLeft",
-                sndid = "doorw_cab_l",
-            }
-        }, {
-            ID = "CabinDoorLeft",
-            x = 0,
-            y = 600,
-            w = 710,
-            h = 1430,
-            tooltip = "Дверь в кабину машиниста\nCabin door",
-            model = {
-                var = "CabinDoorLeft",
-                sndid = "DoorCabL",
-            }
-        },
-    }
-}
-
-ENT.ButtonMap["CabinDoorL1"] = {
-    pos = Vector(425, 67.5, -52.3),
-    ang = Angle(0, 0, -89),
-    width = 710,
-    height = 2030,
-    scale = 0.1 / 2,
-    buttons = {
-        {
-            ID = "CabinDoorLeft",
-            x = 0,
-            y = 0,
-            w = 710,
-            h = 2030,
-            tooltip = "Дверь в кабину машиниста\nCabin door",
-            model = {
-                var = "CabinDoorLeft",
-                sndid = "DoorCabL",
-            }
-        },
-    }
-}
-
-ENT.ButtonMap["CabinDoorR"] = {
-    pos = Vector(460, -64.5, 49.2),
-    ang = Angle(0, 180, 91),
-    width = 710,
-    height = 2030,
-    scale = 0.1 / 2,
-    buttons = {
-        {
-            ID = "CabinWindowRight",
-            x = 0,
-            y = 0,
-            w = 710,
-            h = 600,
-            tooltip = "Форточка",
-            model = {
-                var = "CabinWindowRight",
-                sndid = "doorw_cab_r",
-            }
-        }, {
-            ID = "CabinDoorRight",
-            x = 0,
-            y = 600,
-            w = 710,
-            h = 1430,
-            tooltip = "Дверь в кабину машиниста\nCabin door",
-            model = {
-                var = "CabinDoorRight",
-                sndid = "DoorCabR",
-            }
-        },
-    }
-}
-
-ENT.ButtonMap["CabinDoorR1"] = {
-    pos = Vector(460, -67.5, -52.3),
-    ang = Angle(0, 180, -89),
-    width = 710,
-    height = 2030,
-    scale = 0.1 / 2,
-    buttons = {
-        {
-            ID = "CabinDoorRight",
-            x = 0,
-            y = 0,
-            w = 710,
-            h = 2030,
-            tooltip = "Дверь в кабину машиниста\nCabin door",
-            model = {
-                var = "CabinDoorRight",
-                sndid = "DoorCabR",
-            }
         },
     }
 }
@@ -2550,7 +2395,7 @@ ENT.ClientProps["GvWrench"] = {
     hide = 0.5,
 }
 
-ENT.ClientProps["DoorCabM"] = {
+ENT.ClientProps["DoorCabC"] = {
     model = "models/metrostroi_train/81-765_v1/765/door_cc.mdl",
     pos = Vector(0, 0, 0),
     ang = Angle(0, 0, 0),
@@ -2821,6 +2666,162 @@ ENT.ClientProps["CabChairAdd"] = {
     ang = Angle(0, 0, 0),
     hideseat = 0.5,
 }
+
+
+for _, s in ipairs({"L", "R", "C"}) do
+    local pos = s == "C" and Vector(393.2, 0.9, -16.78) or Vector(s == "L" and 457.56 or 460.44, s == "L" and 63.2 or -63.2, -22.18)
+    local ang = Angle(0.000, s == "L" and 0 or s == "R" and 180 or s == "C" and 90, 90.000)
+    ENT.ButtonMap["DoorLockInner" .. s] = {
+        pos = pos, ang = ang,
+        width = 30, height = 30, scale = 0.1,
+        buttons = {{
+            ID = "DoorLock" .. s .. "Toggle", tooltip = "Замок",
+            x = 0, y = 0, w = 30, h = 30,
+            model = {
+                var = "DoorLock" .. s,
+                states = {"Common.Lock.Unlocked", "Common.Lock.Locked"}
+            }
+        }}
+    }
+    ang = Angle(ang)
+    ang:RotateAroundAxis(Vector(0, 0, 1), 180)
+    pos = pos + ang:Up() * 3 - ang:Forward() * 30 * 0.1
+    ENT.ButtonMap["DoorLockOuter" .. s] = {
+        pos = pos, ang = ang,
+        width = 30, height = 30, scale = 0.1,
+        buttons = {{
+            ID = "DoorLock" .. s .. "Toggle", tooltip = "Замок",
+            x = 0, y = 0, w = 30, h = 30,
+            model = {
+                var = "DoorLock" .. s,
+                states = {"Common.Lock.Unlocked", "Common.Lock.Locked"}
+            }
+        }}
+    }
+end
+
+ENT.ButtonMap["CabinDoorL"] = {
+    pos = Vector(429, 62.6, 49.2), ang = Angle(0, 0, 91),
+    width = 710, height = 2030, scale = 0.05,
+    buttons = {
+        {
+            ID = "CabinWindowLeft", tooltip = "Форточка",
+            x = 0, y = 0, w = 710, h = 600,
+            model = {
+                var = "CabinWindowLeft",
+                sndid = "doorw_cab_l",
+            }
+        }, {
+            ID = "CabinDoorLeft", tooltip = "Дверь в кабину машиниста\nCabin door",
+            x = 0, y = 600, w = 710, h = 1430,
+            model = { var = "CabinDoorLeft", sndid = "DoorCabL", }
+        },
+    }
+}
+
+ENT.ButtonMap["CabinDoorL1"] = {
+    pos = Vector(429, 65, -52.3), ang = Angle(0, 0, -89),
+    width = 710, height = 2030, scale = 0.05,
+    buttons = {
+        {
+            ID = "CabinDoorLeft", tooltip = "Дверь в кабину машиниста\nCabin door",
+            x = 0, y = 0, w = 710, h = 2030,
+            model = { var = "CabinDoorLeft", sndid = "DoorCabL", }
+        },
+    }
+}
+
+ENT.ButtonMap["CabinDoorL2"] = {
+    pos = Vector(421.83, 24.51, 45.14), ang = Angle(0.000, 79.370, 90.000),
+    width = 710, height = 2030, scale = 0.05,
+    buttons = {
+        {
+            ID = "CabinDoorLeft", tooltip = "Дверь в кабину машиниста\nCabin door",
+            x = 0, y = 0, w = 710, h = 2030,
+            model = { var = "CabinDoorLeft", sndid = "DoorCabL", }
+        },
+    }
+}
+
+ENT.ButtonMap["CabinDoorR"] = {
+    pos = Vector(464, -62.6, 49.2), ang = Angle(0, 180, 91),
+    width = 710, height = 2030, scale = 0.05,
+    buttons = {
+        {
+            ID = "CabinWindowRight", tooltip = "Форточка",
+            x = 0, y = 0, w = 710, h = 600,
+            model = {
+                var = "CabinWindowRight",
+                sndid = "doorw_cab_r",
+            }
+        }, {
+            ID = "CabinDoorRight", tooltip = "Дверь в кабину машиниста\nCabin door",
+            x = 0, y = 600, w = 710, h = 1430,
+            model = { var = "CabinDoorRight", sndid = "DoorCabR", }
+        },
+    }
+}
+
+ENT.ButtonMap["CabinDoorR1"] = {
+    pos = Vector(464, -65, -52.3), ang = Angle(0, 180, -89),
+    width = 710, height = 2030, scale = 0.05,
+    buttons = {
+        {
+            ID = "CabinDoorRight", tooltip = "Дверь в кабину машиниста\nCabin door",
+            x = 0, y = 0, w = 710, h = 2030,
+            model = { var = "CabinDoorRight", sndid = "DoorCabR", }
+        },
+    }
+}
+
+ENT.ButtonMap["CabinDoorR2"] = {
+    pos = Vector(428.54, -59.7, 46.1), ang = Angle(0.000, 102.590, 90.000),
+    width = 710, height = 2030, scale = 0.05,
+    buttons = {
+        {
+            ID = "CabinDoorRight", tooltip = "Дверь в кабину машиниста\nCabin door",
+            x = 0, y = 0, w = 710, h = 2030,
+            model = { var = "CabinDoorRight", sndid = "DoorCabR", }
+        },
+    }
+}
+
+ENT.ButtonMap["PassengerDoor"] = {
+    pos = Vector(392.6, -28.5, 40), ang = Angle(0, 90, 90),
+    width = 730, height = 2000, scale = 0.05,
+    buttons = {
+        {
+            ID = "PassengerDoor", tooltip = "Дверь в кабину машиниста из салона\nPass door",
+            x = 0, y = 0, w = 730, h = 2000,
+            model = { var = "PassengerDoor", sndid = "DoorCabC", }
+        },
+    }
+}
+
+ENT.ButtonMap["PassengerDoor1"] = {
+    pos = Vector(391.1, 8, 40), ang = Angle(0, -90, 90),
+    width = 730, height = 2000, scale = 0.05,
+    buttons = {
+        {
+            ID = "PassengerDoor", tooltip = "Дверь в кабину машиниста из салона\nPass door",
+            x = 0, y = 0, w = 730, h = 2000,
+            model = { var = "PassengerDoor", sndid = "DoorCabC", }
+        },
+    }
+}
+
+ENT.ButtonMap["PassengerDoor2"] = {
+    pos = Vector(428.32, -26.98, 45.98), ang = Angle(0.000, 179.830, 90.000),
+    width = 730, height = 2000, scale = 0.05,
+    buttons = {
+        {
+            ID = "PassengerDoor", tooltip = "Дверь в кабину машиниста из салона\nPass door",
+            x = 0, y = 0, w = 730, h = 2000,
+            model = { var = "PassengerDoor", sndid = "DoorCabC", }
+        },
+    }
+}
+
 
 ENT.ClientProps["NotificationPaper"] = {
     model = "models/metrostroi_train/81-765/notification_paper.mdl",
@@ -3468,6 +3469,9 @@ function ENT:UpdateTextures()
     end
 end
 
+
+local door_sides = { "C", "L", "R" }
+
 function ENT:Think(...)
     local BaseClass = scripted_ents.GetStored("gmod_81-765_base").t
     local retval =  BaseClass.Think(self, ...)
@@ -3554,7 +3558,51 @@ function ENT:Think(...)
     self:SetVariadicSoundState("ring_ppz", self:GetNW2Int("BupRingType", 1), 6, self:GetPackedBool("MsgRing", false) and 1.6 or 0, 1)
     self:SetVariadicSoundState("ring_call", self:GetNW2Int("CallRingType", 1), 6, self:GetPackedBool("CallRing", false) and 1.0 or 0, 1)
 
+    local DoorCabL = self:Animate("DoorCabL", self:GetPackedBool("CabinDoorLeft") and 1 or -0.03, 0, 1, 2, 0.5) > 0.2
+    local DoorCabR = self:Animate("DoorCabR", self:GetPackedBool("CabinDoorRight") and (self:GetPackedBool("CabinDoorRightLimit") and 0.6 or 1) or -0.03, 0, 1, 2, 0.5) > 0.2
+    local DoorCabC = self:Animate("DoorCabC", self:GetPackedBool("PassengerDoor") and 1 or -0.03, 0, 1, 2, 0.5) > 0.2
+    self:PlayDoorSound(DoorCabC, "door_cab_m")
+    self:PlayDoorSound(DoorCabL, "door_cab_l")
+    self:PlayDoorSound(DoorCabR, "door_cab_r")
+    self:AnimateCustom("DoorCabL", "window", self:GetPackedBool("CabinWindowLeft") and 1 or 0, 0, 1, 8, 0.5)
+    self:AnimateCustom("DoorCabR", "window", self:GetPackedBool("CabinWindowRight") and 1 or 0, 0, 1, 8, 0.5)
+
+    self:AnimateCustom("DoorCabL", "lock", self:GetPackedBool("DoorLockL") and 1 or 0, 0, 1, 64, 0.5)
+    self:AnimateCustom("DoorCabR", "lock", self:GetPackedBool("DoorLockR") and 1 or 0, 0, 1, 64, 0.5)
+    self:AnimateCustom("DoorCabC", "lock", self:GetPackedBool("DoorLockC") and 1 or 0, 0, 1, 64, 0.5)
+
+    self:HidePanel("CabinDoorL", DoorCabL)
+    self:HidePanel("CabinDoorL1", DoorCabL)
+    self:HidePanel("CabinDoorL2", not DoorCabL)
+    self:HidePanel("CabinDoorR", DoorCabR)
+    self:HidePanel("CabinDoorR1", DoorCabR)
+    self:HidePanel("CabinDoorR2", not DoorCabR)
+    self:HidePanel("PassengerDoor", DoorCabC)
+    self:HidePanel("PassengerDoor1", DoorCabC)
+    self:HidePanel("PassengerDoor2", not DoorCabC)
+    self:HidePanel("DoorLockInnerL", DoorCabL)
+    self:HidePanel("DoorLockOuterL", DoorCabL)
+    self:HidePanel("DoorLockInnerR", DoorCabR)
+    self:HidePanel("DoorLockOuterR", DoorCabR)
+    self:HidePanel("DoorLockInnerC", DoorCabC)
+    self:HidePanel("DoorLockOuterC", DoorCabC)
+
+    local ct = CurTime()
+    for _, s in ipairs(door_sides) do
+        local ts = self:GetNW2Int("DoorAttempt" .. s, 0) / 1000
+        self:AnimateCustom("DoorCab" .. s, "handle", ct < ts and 1 or 0, 0, 1, 64, 0.5)
+    end
+
     return retval
+end
+
+function ENT:OnPlay(soundid, location, range, pitch)
+    if location ~= "bass" then return soundid, location, range, pitch end
+    if string.StartsWith(soundid, "DoorLock") then
+        local chr = string.lower(string.sub(soundid, 9))
+        return range > 0 and "door_lock_" .. chr or "door_unlock_" .. chr, location, 1, 1
+    end
+    return scripted_ents.GetStored("gmod_81-765_base").t.OnPlay(self, soundid, location, range, pitch)
 end
 
 function ENT:ShowHidePak(id, show)

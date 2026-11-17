@@ -8,6 +8,9 @@ Entities.gmod_subway_81-767.Name = 81-767 (Москва промежуточны
 Common.ClientProp.Show                                                         = Показано
 Common.ClientProp.Hide                                                         = Скрыто
 
+Common.Lock.Unlocked                                                           = Разблокирован
+Common.Lock.Locked                                                             = Заблокирован
+
 Common.765.CabLight.Off                                                        = Выключено
 Common.765.CabLight.Normal                                                     = Нормальное
 Common.765.CabLight.Full                                                       = Усиленное

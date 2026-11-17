@@ -68,15 +68,16 @@ TODO
   - [ ] BU-IK service mode
   - [ ] New CAMS
   - [ ] ASOTP-765
+  - [ ] ASNP
   - [ ] RVS
 - [ ] Alpha
   - [ ] KL3
   - [ ] Fix various clientside multiplayer-related issues
   - [x] LED-based BNT loop routes and bugfixes
-  - [ ] AO disappearing should clear ARS brake signal when Vdop > 0 and V==0
-    - [ ] KVT on AO should mute ARS ring but wont save from RVTB poweroff
-    - [ ] Remove "Forgiveful BARS"
-  - [ ] Doors buttonmaps
+  - [x] AO disappearing should clear ARS brake signal when Vdop > 0 and V==0
+    - [x] KVT on AO should mute ARS ring but wont save from RVTB poweroff
+    - [x] Remove "Forgiveful BARS"
+  - [x] Doors locks and anims
   - [ ] Tryokhgranka animations
   - [ ] HV circuits rework
   - [x] Glass in cabin
