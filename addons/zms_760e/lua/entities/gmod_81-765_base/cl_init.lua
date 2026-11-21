@@ -1616,7 +1616,6 @@ function ENT:Think()
             self:SetSoundState("vent_loop_max", 0.0, 1)
         end
 
-        self:HideButton("KAHToggle", self:GetPackedBool("ALSk"))
         self:Animate("VmLv", self:GetPackedRatio("LV"), 0, 1, 16, 1)
         self:Animate("VmHv", self:GetPackedRatio("HV"), 0, 1, 16, 6)
 

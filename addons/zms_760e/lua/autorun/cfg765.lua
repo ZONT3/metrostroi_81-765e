@@ -18,3 +18,5 @@ function Cfg765.SetNotificationPaper(imagePath)
         })
     end
 end
+
+CV_765_SHOW_UNSAFE_ALS = CreateConVar("metrostroi_765_show_unsafe_als", "0", {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "Show unsafe options \"AbMode\", \"Als75\" and \"1/4\" even if no map config sets it")

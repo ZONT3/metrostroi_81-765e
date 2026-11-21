@@ -372,7 +372,7 @@ if SERVER then
         end
 
         local alsArs = Wag:GetNW2Bool("Skif:AlsArs")
-        self:CheckDisplayState(1, alsArs and "2/6" or Wag.ArsDau and "ДАУ" or "1/5", STATE_NORMAL)
+        self:CheckDisplayState(1, alsArs and "2/6" or Wag.ArsDau and "ДАУ" or Wag.AlsFreqs == 3 and "1/4" or "1/5", STATE_NORMAL)
         self:CheckDisplayState(2, "АРС1", ars_states[Wag:GetNW2Int("Skif:ARS1", -1)] or STATE_INACTIVE)
         self:CheckDisplayState(3, "АРС2", ars_states[Wag:GetNW2Int("Skif:ARS2", -1)] or STATE_INACTIVE)
         self:CheckDisplayState(4, Wag.PmvAtsBlock.Value == 1 and "АТС1" or Wag.PmvAtsBlock.Value == 2 and "АТС2" or Wag.PmvAtsBlock.Value == 3 and "УОС" or "ШТАТ", STATE_NORMAL)

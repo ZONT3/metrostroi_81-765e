@@ -31,6 +31,7 @@ function TRAIN_SYSTEM:Initialize()
     self.AO = 0
     self.NextNoFq = false
     self.Ready = false
+    self.MetaAO = false
     self.dV = 0
     self.Load = 0
 end
@@ -79,7 +80,15 @@ function TRAIN_SYSTEM:Think(dT)
     self.F4 = ALS.F4 > 0 and not self.NoFreq
     self.F5 = ALS.F5 > 0 and not self.NoFreq
     self.F6 = ALS.F6 > 0 and not self.NoFreq
-    self.RealF5 = self.F5 and not self.F4 and not self.F3 and not self.F2 and not self.F1
+
+    local OneToFour = not TwoToSix and Wag.AlsFreqs == 3
+    local Tkl = not TwoToSix and Wag.AlsFreqs == 2
+    local F2_spd = Tkl and 75 or OneToFour and 60  or 70
+    local F3_spd = OneToFour and 40                or 60
+    local F4_spd = OneToFour and 0                 or 40
+    local AlsZero = OneToFour and self.F4 or self.F5
+
+    self.RealF5 = AlsZero and (not self.F4 or OneToFour) and not self.F3 and not self.F2 and not self.F1
     self.NoFreq = self.NoFreq or (not self.F1 and not self.F2 and not self.F3 and not self.F4 and not self.F5)
     self.UOS = UOS and 1 or 0
 
@@ -110,29 +119,29 @@ function TRAIN_SYSTEM:Think(dT)
 
     if EnableALS and Wag.BUKP.Active > 0 and PowerALS then
         local Vlimit = 0
-        if self.F4 then Vlimit = 40 end
-        if self.F3 then Vlimit = 60 end
-        if self.F2 then Vlimit = 70 end
+        if self.F4 then Vlimit = F4_spd end
+        if self.F3 then Vlimit = F3_spd end
+        if self.F2 then Vlimit = F2_spd end
         if self.F1 then Vlimit = 80 end
         self.SpeedLimit = Vlimit + 0.5
         self.NextLimit = Vlimit
 
         local count = 0
-        if self.F1 then self.NextLimit = 80 count = count + 1 end
-        if self.F2 then self.NextLimit = 70 count = count + 1 end
-        if self.F3 then self.NextLimit = 60 count = count + 1 end
-        if self.F4 then self.NextLimit = 40 count = count + 1 end
-        if self.F5 then self.NextLimit = 0 count = count + 1 end
+        if self.F1 then self.NextLimit = 80      count = count + 1 end
+        if self.F2 then self.NextLimit = F2_spd  count = count + 1 end
+        if self.F3 then self.NextLimit = F3_spd  count = count + 1 end
+        if self.F4 then self.NextLimit = F4_spd  count = count + 1 end
+        if self.F5 then self.NextLimit = 0       count = count + 1 end
         if self.F6 then count = count + 1 end
 
-        local HasAoFeature = self.NoFreq or self.F5
+        local HasAoFeature = self.NoFreq or AlsZero
         AO = self.AO == 1 and HasAoFeature
 
         if HasAoFeature then
-            local AoFeature = self.F5 and 1 or 2
+            local AoFeature = AlsZero and 1 or 2
             local changed = self.LastAoFeature ~= AoFeature
             self.LastAoFeature = AoFeature
-            if self.F5 and not self.WasAlsZero then
+            if AlsZero and not self.WasAlsZero then
                 self.WasAlsZero = true
                 changed = false
             end
@@ -148,15 +157,9 @@ function TRAIN_SYSTEM:Think(dT)
             elseif changed and self.NoAoFeatureChangeTimer then
                 self.NoAoFeatureChangeTimer = nil
             end
-        else
-            AO = false
-            self.WasAlsZero = false
-            self.WasAlsNoFq = false
-            self.LastAoFeature = nil
-            self.NoAoFeatureChangeTimer = nil
         end
 
-        if AO and self.NoAoFeatureChangeTimer and CurTime() >= self.NoAoFeatureChangeTimer then
+        if not HasAoFeature or AO and self.NoAoFeatureChangeTimer and CurTime() >= self.NoAoFeatureChangeTimer then
             AO = false
             self.WasAlsZero = false
             self.WasAlsNoFq = false
@@ -215,7 +218,7 @@ function TRAIN_SYSTEM:Think(dT)
         if Active and not UOS then
             SpeedLimit = self.KB and not AO and 20 or SpeedLimit
 
-            if self.AO > 0 and Ring and not AO and ZeroSpeed then
+            if self.MetaAO and Ring and not AO and ZeroSpeed and (self.AO == 1 or SpeedLimit > 20) then
                 Ring = false
             elseif self.AO == 0 and AO and not Ring then
                 Ring = true
@@ -386,6 +389,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.Drive = Drive and 1 or 0
         self.Emer = Emer and 1 or 0
         self.AO = AO and 1 or 0
+        self.MetaAO = AO or ALS.AO or self.WasAlsZero and self.WasAlsNoFq
         self.PN3 = PN3 and 1 or 0
         self.AllowStart = AllowStart and 1 or 0
         self.DisableDrive = DisableDrive

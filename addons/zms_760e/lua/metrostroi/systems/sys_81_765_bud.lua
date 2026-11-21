@@ -66,7 +66,6 @@ function TRAIN_SYSTEM:Initialize()
     end
 
     -- Relay 80K1: Wagon-wise electric door closed signal
-    -- Used single one instead of per-bud for performance
     self.Train:LoadSystem("W80K1", "Relay")
 end
 

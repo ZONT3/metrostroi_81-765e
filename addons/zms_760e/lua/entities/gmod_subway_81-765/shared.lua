@@ -885,13 +885,32 @@ ENT.SpawnerCustom = {
         "ArsMode",
         "Режим для АБ",
         "List",
-        {"1/5", "ДАУ (АБ)", "ДАУ (АЛС-АРС)"},
+        function()
+            local unsafe = CV_765_SHOW_UNSAFE_ALS:GetBool()
+            local enforce = Cfg765 and Cfg765.EnforceAlsMode
+            local OneToFive = not enforce or enforce.OneToFive
+            local DauAb = not enforce or enforce.DauAb
+            local DauAlsArs = not enforce or enforce.DauAlsArs
+            local Tkl = not enforce and unsafe or enforce and enforce.Als75
+            local OneToFour = not enforce and unsafe or enforce and enforce.OneToFour
+
+            return {
+                [1] = OneToFive and "1/5" or nil,
+                [2] = DauAb and "ДАУ (АБ)" or nil,
+                [3] = DauAlsArs and "ДАУ (АЛС-АРС)" or nil,
+                [4] = Tkl and "1/5 (ТКЛ)" or nil,
+                [5] = OneToFour and "1/4 (КЛ)" or nil,
+            }
+            -- { "1/5", "ДАУ (АБ)", "ДАУ (АЛС-АРС)", "1/5 (ТКЛ)", "1/4 (КЛ)" },
+        end,
         1,
         function(ent, val)
             ent.AlsArs = val == 3
-            ent.ArsDau = val ~= 1
-            ent:SetNW2String("AlsArs", ent.AlsArs)
-            ent:SetNW2String("ArsDau", ent.ArsDau)
+            ent.ArsDau = val == 2 or val == 3
+            ent.AlsFreqs = val == 5 and 3 or val == 4 and 2 or 1
+            ent:SetNW2Bool("AlsArs", ent.AlsArs)
+            ent:SetNW2Bool("ArsDau", ent.ArsDau)
+            ent:SetNW2String("OneFqMode", val == 5 and "1/4" or "1/5")
         end,
         Section = "Settings", Subsection = "VisualSettings"
     },
