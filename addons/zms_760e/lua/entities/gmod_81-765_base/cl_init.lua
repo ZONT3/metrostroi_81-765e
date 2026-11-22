@@ -1967,11 +1967,6 @@ function ENT:GetBit(nwvar, idx)
     return bit.band(self:GetNW2Int(nwvar, 0), bit.lshift(1, idx)) ~= 0 and 1 or 0
 end
 
-function ENT:Draw()
-    local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
-    BaseClass.Draw(self)
-end
-
 function ENT:DrawPost(special)
     self.RTMaterial:SetInt("$flags", bit.bor(self.RTMaterial:GetInt("$flags"), 65536))  -- "$decal" flag
     self.RTMaterial:SetTexture("$basetexture", self.LBnt)

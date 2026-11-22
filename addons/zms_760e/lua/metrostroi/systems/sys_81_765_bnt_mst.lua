@@ -68,12 +68,15 @@ end
 
 function TRAIN_SYSTEM:ClientThink()
     local Wag = self.Train
+
     if Wag:GetNW2Int("BntType", 1) ~= 3 then return end
+
     local BNT = Wag.BNT
     self.Working = Wag:GetNW2Bool("BNT:Working", false)
 
     if not self.NextDrawStrip or CurTime() >= self.NextDrawStrip then
         self.NextDrawStrip = CurTime() + ft_strip
+        self.GlowingDots = {}
         if BNT and (BNT:ShouldDrawPanel("BNT_MST_STRIP_L") or BNT:ShouldDrawPanel("BNT_MST_STRIP_R")) then
             render.PushRenderTarget(self.Train.Bnt_MST_Strip, 0, 0, scw_strip, sch_strip)
             render.Clear(0, 0, 0, 0)
@@ -103,10 +106,15 @@ function TRAIN_SYSTEM:ClientThink()
 end
 
 
-local function draw_station(x, y, idx, size, color, elapsed, enroute, counter)
-    surface.SetDrawColor(enroute and (counter and color_green or color_off) or elapsed and color or color_off)
-    surface.SetTexture((enroute and counter or not enroute and elapsed) and tex_led_on or tex_led_off)
+function TRAIN_SYSTEM:DrawStation(x, y, idx, size, color, elapsed, enroute, counter)
+    local tex = (enroute and counter or not enroute and elapsed) and tex_led_on or tex_led_off
+    color = enroute and (counter and color_green or color_off) or elapsed and color or color_off
+    surface.SetDrawColor(color)
+    surface.SetTexture(tex)
     surface.DrawTexturedRectRotated(x, y, size, size, (idx * 243.786) % 360)
+    if tex == tex_led_on then
+        table.insert(self.GlowingDots, { x = x, y = y, color = color })
+    end
 end
 
 function TRAIN_SYSTEM:DrawStrip()
@@ -130,10 +138,10 @@ function TRAIN_SYSTEM:DrawStrip()
     if mst_led then
         for idx, cur_led in ipairs(mst_led) do
             local elapsed = cur_idx and (not path and cur_idx >= idx or path and idx >= cur_idx)
-            draw_station(cur_led[1] + led_offset_x, cur_led[2] + led_offset_y, idx, cur_led.size, color, elapsed, idx == cur_idx and depart, self.Counter)
+            self:DrawStation(cur_led[1] + led_offset_x, cur_led[2] + led_offset_y, idx, cur_led.size, color, elapsed, idx == cur_idx and depart, self.Counter)
         end
         for idx, cur_led in ipairs(mst_led.other) do
-            draw_station(cur_led[1] + led_offset_x, cur_led[2] + led_offset_y, idx + #mst_led, cur_led.size, color, false, false, false)
+            self:DrawStation(cur_led[1] + led_offset_x, cur_led[2] + led_offset_y, idx + #mst_led, cur_led.size, color, false, false, false)
         end
         return
     end
@@ -152,7 +160,7 @@ function TRAIN_SYSTEM:DrawStrip()
     for idx, cur_led in ipairs(led) do
         local elapsed = not path and cur_idx >= idx or path and idx >= cur_idx
         local x1 = x + k * cur_led / 2
-        draw_station(x1, y0, idx, 42, color, elapsed, idx == cur_idx and depart, self.Counter)
+        self:DrawStation(x1, y0, idx, 42, color, elapsed, idx == cur_idx and depart, self.Counter)
         x = x + k * cur_led
     end
 end
@@ -232,3 +240,102 @@ function TRAIN_SYSTEM:DrawDisplay(left)
     self.Text = sarmat.CacheText(self, "Цифровой информационный комплекс КБ МЕТРОСПЕЦТЕХНИКА", true)
     self.Text.color = color_eng
 end
+
+
+Metrostroi765MstSprites = Metrostroi765MstSprites or {}
+local angle_zero = Angle(0, 0, 0)
+local to_render_sort = function(a, b) return a.dist < b.dist end
+local sprite_mat = Metrostroi.MakeSpriteTexture("sprites/light_glow02", true)
+local strips_panels = {}
+for idx = 1, 4 do
+    table.insert(strips_panels, "BNT_MST_STRIP_L" .. idx)
+    table.insert(strips_panels, "BNT_MST_STRIP_R" .. idx)
+end
+
+local function get_vis_handle(wag, id)
+    wag.MstBntVisHandles = wag.MstBntVisHandles or {}
+    local handle = wag.MstBntVisHandles[id]
+    if not handle then
+        handle = util.GetPixelVisibleHandle()
+        wag.MstBntVisHandles[id] = handle
+    end
+    return handle
+end
+
+hook.Add("Think", "Metrostroi.765.MstBntSprites", function()
+    local ply = LocalPlayer()
+    if not ply or not CV_765_BNT_SPRITES_COUNT then return end
+
+    local ply_pos = ply:EyePos()
+    local to_render = {}
+    for wag in pairs(Metrostroi.SpawnedTrains) do
+        if wag and wag.BNT_MST and wag.BNT_MST.GlowingDots and wag:IsValid() and wag:ShouldRenderClientEnts() then
+            for dot_idx, dot in ipairs(wag.BNT_MST.GlowingDots) do
+                for _, panel_k in ipairs(strips_panels) do
+                    local panel = wag.ButtonMap[panel_k]
+                    if panel and wag:ShouldDrawPanel(panel_k) then
+                        local pos, ang = LocalToWorld(Vector(dot.x * (panel.scale or 1), -dot.y * (panel.scale or 1), 0), angle_zero, panel.pos, panel.ang)
+                        local color = dot.color
+                        table.insert(to_render, {
+                            pos = pos, ang = ang, color = color, wag = wag,
+                            dist = wag:LocalToWorld(pos):DistToSqr(ply_pos),
+                            id = Format("%d.%s", wag:EntIndex(), tostring(pos))
+                        })
+                    end
+                end
+            end
+        end
+    end
+
+    table.sort(to_render, to_render_sort)
+
+    local count = CV_765_BNT_SPRITES_COUNT:GetInt()
+
+    for idx = 1, count do
+        local sprite = Metrostroi765MstSprites[idx]
+        local rd = to_render[idx]
+
+        if rd and not sprite then
+            sprite = { }
+            Metrostroi765MstSprites[idx] = sprite
+        end
+
+        if sprite then
+            if rd then
+                sprite.id = rd.id
+                sprite.wag = rd.wag
+                sprite.pos = rd.pos
+                sprite.color = rd.color or color_white
+                sprite.visible = true
+            else
+                sprite.visible = false
+                sprite.wag = nil
+                sprite.pos = nil
+            end
+        end
+    end
+end)
+
+local function color_a2b(col, a)
+    return Color(col.r * a, col.g * a, col.b * a)
+end
+hook.Add("PostDrawTranslucentRenderables", "Metrostroi.765.MstBntSprites.Draw", function(_, b)
+    if b then return end
+    local count = CV_765_BNT_SPRITES_COUNT and CV_765_BNT_SPRITES_COUNT:GetInt() or 0
+
+    cam.IgnoreZ(true)
+    for idx, sprite in pairs(Metrostroi765MstSprites) do
+        if idx > count or not sprite or not sprite.visible then break end
+
+        local wag = sprite.wag
+        if wag and wag:IsValid() then
+            local pos = wag:LocalToWorld(sprite.pos)
+            local visibility = util.PixelVisible(pos, 1, get_vis_handle(sprite.wag, sprite.id))
+            if visibility > 0 then
+                render.SetMaterial(sprite_mat)
+                render.DrawSprite(pos, 1.2, 1.2, color_a2b(sprite.color, visibility))
+            end
+        end
+    end
+    cam.IgnoreZ(false)
+end)
