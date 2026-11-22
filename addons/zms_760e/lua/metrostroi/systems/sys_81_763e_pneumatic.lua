@@ -374,15 +374,13 @@ function TRAIN_SYSTEM:Think(dT)
     self.DoorLeft = BUD.DoorLeft
     self.DoorRight = BUD.DoorRight
     self.CloseDoors = BUD.CloseDoors
-    self.LeftDoorState = BUD.LeftDoorState
-    self.RightDoorState = BUD.RightDoorState
-    self.LeftDoorDir = BUD.LeftDoorDir
-    self.RightDoorDir = BUD.RightDoorDir
-    self.LeftDoorSpeed = BUD.LeftDoorSpeed
-    self.RightDoorSpeed = BUD.RightDoorSpeed
     self.DoorSpeedMain = BUD.DoorSpeedMain
-    for i = 1, #self.LeftDoorSpeed do
-        self.LeftDoorSpeed[i] = BUD.LeftDoorSpeed[i]
-        self.RightDoorSpeed[i] = BUD.RightDoorSpeed[i]
+    for i = 1, 4 do
+        self.LeftDoorState[i] = BUD.DoorState[i]
+        self.RightDoorState[i] = BUD.DoorState[4 + i]
+        self.LeftDoorDir[i] = BUD.DoorDir[i]
+        self.RightDoorDir[i] = BUD.DoorDir[4 + i]
+        self.LeftDoorSpeed[i] = BUD.DoorSpeed[i]
+        self.RightDoorSpeed[i] = BUD.DoorSpeed[4 + i]
     end
 end

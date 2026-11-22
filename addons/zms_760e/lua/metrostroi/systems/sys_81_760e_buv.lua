@@ -152,12 +152,14 @@ function TRAIN_SYSTEM:Think(dT)
     if CurTime() - self.CurTime < 0.1 then return end
     self.CurTime = CurTime()
     local Train = self.Train
+    local BUD = Train.BUD
+    local Electric = Train.Electric
 
     local IsHead = not not Train.RV
     local HasEngine = not not Train.AsyncInverter
-    local P = HasEngine and Train.Electric.Power750V or Train.Electric.Main750V
+    local P = HasEngine and Electric.Power750V or Electric.Main750V
 
-    self.Power = Train.Electric.CU * Train.SF23F11.Value
+    self.Power = Electric.CU * Train.SF23F11.Value
     if self.Power < 1 and self.Work then self.Work = nil end
     if not self.State and self.Power > 0 and not self.Work then self.Work = CurTime() + math.Rand(0.4, 0.68) end
     self.State = self.Power > 0 and self.Work and CurTime() >= self.Work
@@ -165,8 +167,8 @@ function TRAIN_SYSTEM:Think(dT)
     Train:SetNW2Bool("BUV:Power", self.Power > 0)
     Train:SetNW2Bool("BUV:Work", self.State)
 
-    self.ADUVWork = (Train.Electric.EmerSupply * Train.SF21F1.Value > 0) or self.States.BCPressure == nil
-    self.ADUTWork = (Train.Electric.BTO > 0) or self.States.BCPressure == nil
+    self.ADUVWork = (Electric.EmerSupply * Train.SF21F1.Value > 0) or self.States.BCPressure == nil
+    self.ADUTWork = (Electric.BTO > 0) or self.States.BCPressure == nil
     local SchemeWork = HasEngine and (
         Train:ReadTrainWire(6) * Train.SF23F5.Value > 0.5 or
         (Train:ReadTrainWire(14) + Train:ReadTrainWire(15) == 1 and 1 or 0) * Train.SF23F6.Value > 0
@@ -178,36 +180,36 @@ function TRAIN_SYSTEM:Think(dT)
     local WheelsF = IsValid(Train.FrontBogey) and Train.FrontBogey.Wheels
     local WheelsR = IsValid(Train.RearBogey) and Train.RearBogey.Wheels
 
-    self.Load = self.Power * 60 + (self.State and 100 or 0) + (self.PuWork and 46 or 0) + (self.ADUVWork and self.ADUTWork and 140 or 0) + Train.BUD.Load + Train.IK.Load
+    self.Load = self.Power * 60 + (self.State and 100 or 0) + (self.PuWork and 46 or 0) + (self.ADUVWork and self.ADUTWork and 140 or 0) + BUD.Load + Train.IK.Load
 
-    local bud_work = Train.BUD.BUDWork == 1
+    local bud_work = BUD.BUDWork == 1
 
     if self.State then
         self.Load = self.Load + 100
         if not self.States.BUVWork then self.Train:CANWrite("BUV", Train:GetWagonNumber(), "BUKP", nil, "Get", 1) end
-        for i = 1, 4 do
-            self:CState("Door" .. i .. "Closed", bud_work and Train.BUD.LeftDoorClosed[i] and CurTime() >= Train.BUD.LeftDoorClosed[i] or not bud_work and Train.Electric.KM > 0 and self.States["Door" .. i .. "Closed"])
-            self:CState("Door" .. (i + 4) .. "Closed", bud_work and Train.BUD.RightDoorClosed[i] and CurTime() >= Train.BUD.RightDoorClosed[i] or not bud_work and Train.Electric.KM > 0 and self.States["Door" .. (i + 4) .. "Closed"])
+        for idx = 1, 8 do
+            local w = BUD.Working[idx]
+            self:CState("DoorClosed" .. idx, w and BUD.DoorClosedState[idx] and CurTime() >= BUD.DoorClosedState[idx] or not w and self.States["DoorClosed" .. idx])
         end
 
-        self:CState("LeftDoorsOpened", bud_work and Train.LeftDoorsOpened or not bud_work and Train.Electric.KM > 0 and self.States.LeftDoorsOpened)
-        self:CState("RightDoorsOpened", bud_work and Train.RightDoorsOpened or not bud_work and Train.Electric.KM > 0 and self.States.RightDoorsOpened)
+        self:CState("LeftDoorsOpened", bud_work and Train.LeftDoorsOpened or not bud_work and Electric.KM > 0 and self.States.LeftDoorsOpened)
+        self:CState("RightDoorsOpened", bud_work and Train.RightDoorsOpened or not bud_work and Electric.KM > 0 and self.States.RightDoorsOpened)
         self:CState("BUDWork", bud_work)
         if IsHead then
             self:CState("DoorBack", Train.PassengerDoor or Train.CabinDoorLeft or Train.CabinDoorRight)
             self:CState("CabDoorLeft", not Train.CabinDoorLeft)
             self:CState("CabDoorRight", not Train.CabinDoorRight)
             self:CState("CabDoorPass", not Train.PassengerDoor)
-            self:CState("CondK", Train.Electric.KM * Train.SF62F3.Value > 0.5)
+            self:CState("CondK", Electric.KM * Train.SF62F3.Value > 0.5)
         end
 
         self:CState("EmPT", Train:ReadTrainWire(28) > 0)
         self:CState("NoAssembly", self.TargetStrength > 0)
-        local emer = Train:ReadTrainWire(45) + Train:ReadTrainWire(19)
+        local emer = Electric.ReserveCU * (Train:ReadTrainWire(45) + Train:ReadTrainWire(19))
         local bv = Train.BV.Value
         local strength, brake, drive = 0, 0, 0
         if emer > 0 then
-            strength = Train:ReadTrainWire(45) > 0 and 4 or Train:ReadTrainWire(19) > 0 and 2 or 0
+            strength = Electric.ReserveCU * Train:ReadTrainWire(45) > 0 and 4 or Train:ReadTrainWire(19) > 0 and 2 or 0
             drive = strength * bv
         else
             brake = self.Brake
@@ -215,12 +217,12 @@ function TRAIN_SYSTEM:Think(dT)
             strength = self.DriveStrength
         end
 
-        self.Scheme = (Train.Speed < 0.4 and 0 or Train.Electric.Brake) + drive > 0
+        self.Scheme = (Train.Speed < 0.4 and 0 or Electric.Brake) + drive > 0
         self:CState("Strength", self.Strength)
 
         -- TODO get that from VVVF
         if HasEngine then
-            self:CState("Scheme", ((Train.Speed < 6.5 and 0 or brake) + drive > 0 and (drive > 0 and (Train.Pneumatic.BrakeCylinderPressure < 0.7 or self.Slope1 or Train:ReadTrainWire(19) + Train:ReadTrainWire(45) > 0) or brake > 0 and Train.Pneumatic.BrakeCylinderPressure < 1.7 + Train.Pneumatic.WeightLoadRatio * 0.5 + Train.Pneumatic.BrakeCylinderRegulationError)) and SchemeWork > 0.5)
+            self:CState("Scheme", ((Train.Speed < 6.5 and 0 or brake) + drive > 0 and (drive > 0 and (Train.Pneumatic.BrakeCylinderPressure < 0.7 or self.Slope1 or Electric.ReserveCU * (Train:ReadTrainWire(19) + Train:ReadTrainWire(45)) > 0) or brake > 0 and Train.Pneumatic.BrakeCylinderPressure < 1.7 + Train.Pneumatic.WeightLoadRatio * 0.5 + Train.Pneumatic.BrakeCylinderRegulationError)) and SchemeWork > 0.5)
         else
             self:CState("Scheme", (Train.Speed < 6.5 and 0 or brake) + drive > 0 and (drive > 0 and Train.Pneumatic.BrakeCylinderPressure < 0.7 or brake > 0 and Train.Pneumatic.BrakeCylinderPressure < 1.7 + Train.Pneumatic.WeightLoadRatio * 0.5 + Train.Pneumatic.BrakeCylinderRegulationError))
         end
@@ -272,16 +274,16 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("TLPressure", self.ADUTWork and math.Round(Train.Pneumatic.TrainLinePressure, 1) or not self.ADUTWork and self.States.TLPressure)
         self:CState("BLPressure", self.ADUTWork and math.Round(Train.Pneumatic.BrakeLinePressure, 1) or not self.ADUTWork and self.States.BLPressure)
         self:CState("WeightLoad", math.Round(Train.Pneumatic.WeightLoadRatio, 2))
-        self:CState("ElectricEnergyUsed", Train.Electric.ElectricEnergyUsed / 3.6e6)
+        self:CState("ElectricEnergyUsed", Electric.ElectricEnergyUsed / 3.6e6)
         self:CState("PSNEnabled", self.PSN)
-        self:CState("AddressDoorsL", Train.BUD.AddressReadyL)
-        self:CState("AddressDoorsR", Train.BUD.AddressReadyR)
+        self:CState("AddressDoorsL", BUD.AddressReadyL)
+        self:CState("AddressDoorsR", BUD.AddressReadyR)
 
         if HasEngine then
-            self:CState("EnginesBroken", not self:Get("PVU5") and Train.Electric.KM * Train.SF23F4.Value == 1)
+            self:CState("EnginesBroken", not self:Get("PVU5") and Electric.KM * Train.SF23F4.Value == 1)
             self:CState("PSNBroken", false)
             self:CState("BVEnabled", Train.BV.Value > 0)
-            self:CState("MKCurrent", math.Round(Train.Electric.MK * math.Round(math.Rand(12, 15) * (Train.Pneumatic.Compressor and (CurTime() - Train.Pneumatic.Compressor > 0 and 1 or CurTime() - Train.Pneumatic.Compressor > -4 and (4 + (CurTime() - Train.Pneumatic.Compressor)) / 4) or 0))))
+            self:CState("MKCurrent", math.Round(Electric.MK * math.Round(math.Rand(12, 15) * (Train.Pneumatic.Compressor and (CurTime() - Train.Pneumatic.Compressor > 0 and 1 or CurTime() - Train.Pneumatic.Compressor > -4 and (4 + (CurTime() - Train.Pneumatic.Compressor)) / 4) or 0))))
             self:CState("MKWork", not self:Get("PVU2") and Train.SF30F3.Value == 1)
             self:CState("DriveStrength", math.min(0, Train.AsyncInverter.Torque + Train.AsyncInverter.Torque * math.Rand(0, 0.05)))
             self:CState("BrakeStrength", math.max(0, Train.AsyncInverter.Torque + Train.AsyncInverter.Torque * math.Rand(0, 0.05)))
@@ -301,15 +303,15 @@ function TRAIN_SYSTEM:Think(dT)
         end
 
         self:CState("LV", Train.Battery.Voltage)
-        self:CState("HVBad", Train.Electric.Main750V < 550)
-        self:CState("LVBad", Train.Electric.TrueBattery80V < 60)
+        self:CState("HVBad", Electric.Main750V < 550)
+        self:CState("LVBad", Electric.TrueBattery80V < 60)
         self:CState("EnginesDone", self.EnginesDone)
         self:CState("PassLightEnabled", self.MainLights == 1)
         self:CState("VagEqConsumption", self.IVO or -00.1)
         self:CState("Uch", Train.Battery.ChargeVoltage)
         self:CState("Ich", math.max(0, Train.Battery.Current))
         self:CState("HVVoltage", math.floor(P))
-        self:CState("LVVoltage", math.floor(Train.Electric.TrueBattery80V))
+        self:CState("LVVoltage", math.floor(Electric.TrueBattery80V))
         self:CState("Cond1", self.Cond1 > 0)
         self:CState("Cond2", self.Cond2 > 0)
         self:CState("HeatEnabled", false)
@@ -321,7 +323,7 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("BadCombination", (Train:ReadTrainWire(3) * Train:ReadTrainWire(4)) > 0)
         self:CState("WagType", Train.SubwayTrain.WagType)
         self:CState("WagNumber", Train.WagonNumber)
-        self:CState("ElectricEnergyDissipated", Train.Electric.ElectricEnergyDissipated / 3.6e6)
+        self:CState("ElectricEnergyDissipated", Electric.ElectricEnergyDissipated / 3.6e6)
         self:CState("BrakeEquip", Train.K31.Value > 0)
         self:CState("BTOKTO1", self.BTOKTO1)
         self:CState("BTOKTO2", self.BTOKTO2)
@@ -358,6 +360,18 @@ function TRAIN_SYSTEM:Think(dT)
         end
     end
 
+    self.BupActive = Train:ReadTrainWire(82) == 1
+    self.ZeroSpeed = Train.SF80F9.Value * (self.BupActive and Train:ReadTrainWire(83) or self.ZeroSpeed)
+    if self.ZeroSpeed > 0 then
+        self.ZeroSpeedTimer = CurTime() + 0.6
+    elseif self.ZeroSpeedTimer then
+        if CurTime() >= self.ZeroSpeedTimer then
+            self.ZeroSpeedTimer = nil
+        else
+            self.ZeroSpeed = Train.Speed < 0.4 and 1 or 0
+        end
+    end
+
     if self.PuWork then
         local EncoderF = self:EncoderCheck(WheelsF, Train.FrontBogey) or Train.Speed < 1.8 and self.EncoderFWork == 1
         local EncoderR = self:EncoderCheck(WheelsR, Train.RearBogey) or Train.Speed < 1.8 and self.EncoderRWork == 1
@@ -379,8 +393,8 @@ function TRAIN_SYSTEM:Think(dT)
     if self.Reset and self.Reset ~= CurTime() then self.Reset = nil end
     self.IVO = self.IVO + (Train.Battery.LoadCurrent - self.IVO) * dT * 8 + math.Rand(-6, 6) * dT / 4
     if HasEngine then
-        local bv_off = (self:Get("BVOff") or Train.Electric.KM * Train.SF23F4.Value < 1) and (Train:ReadTrainWire(19) + Train:ReadTrainWire(45) == 0) or self:Get("PVU7")
-        local bv_on = Train.Electric.KM > 0 and (self:Get("BVOn") or Train:ReadTrainWire(2) > 0 or self:Get("BVInit") or Train:ReadTrainWire(19) + Train:ReadTrainWire(45) > 0) and not self:Get("PVU7")
+        local bv_off = (self:Get("BVOff") or Electric.KM * Train.SF23F4.Value < 1) and Electric.ReserveCU * (Train:ReadTrainWire(19) + Train:ReadTrainWire(45)) == 0 or self:Get("PVU7")
+        local bv_on = Electric.KM > 0 and (self:Get("BVOn") or Train:ReadTrainWire(2) > 0 or self:Get("BVInit") or Electric.ReserveCU * (Train:ReadTrainWire(19) + Train:ReadTrainWire(45)) > 0) and not self:Get("PVU7")
         if Train.BV.Value ~= self.PrevBV and Train:ReadTrainWire(5) == 0 and Train:ReadTrainWire(6) == 1 then self.PrevBV = Train.BV.Value end
         if Train:ReadTrainWire(5) ~= self.PrevBV1 then
             if Train:ReadTrainWire(5) == 0 then
@@ -465,8 +479,8 @@ function TRAIN_SYSTEM:Think(dT)
     self.Brake = brake
     self.Drive = drive
     self.Strength = (self.Brake == 1 and -1 or 1) * strength * SchemeWork
-    if HasEngine then Train.Electric:TriggerInput("Slope", self.SchemeSlope and 1 or 0) end
-    self.TargetStrength = (self:Get("Brake") == 1 and -1 or 1) * (self:Get("DriveStrength") or 0) + (Train:ReadTrainWire(45) == 1 and 4 or Train:ReadTrainWire(19) == 1 and 2 or 0)
+    if HasEngine then Electric:TriggerInput("Slope", self.SchemeSlope and 1 or 0) end
+    self.TargetStrength = (self:Get("Brake") == 1 and -1 or 1) * (self:Get("DriveStrength") or 0) + (Electric.ReserveCU * Train:ReadTrainWire(45) == 1 and 4 or Electric.ReserveCU * Train:ReadTrainWire(19) == 1 and 2 or 0)
 
     local strongerBrake
     if HasEngine then
@@ -533,18 +547,6 @@ function TRAIN_SYSTEM:Think(dT)
     end
 
     if self.State then
-        self.BupActive = Train:ReadTrainWire(82) == 1
-        self.ZeroSpeed = Train.SF80F9.Value * (self.BupActive and Train:ReadTrainWire(83) or self.ZeroSpeed)
-        if self.ZeroSpeed > 0 then
-            self.ZeroSpeedTimer = CurTime() + 0.6
-        elseif self.ZeroSpeedTimer then
-            if CurTime() >= self.ZeroSpeedTimer then
-                self.ZeroSpeedTimer = nil
-            else
-                self.ZeroSpeed = Train.Speed < 0.4 and 1 or 0
-            end
-        end
-
         if self.States.Scheme and self.TargetStrength < 0 then
             if not self.SchemeTimer then
                 self.SchemeTimer = CurTime() + math.Rand(0.2, 0.6)
@@ -554,7 +556,6 @@ function TRAIN_SYSTEM:Think(dT)
         end
     else
         self.BupActive = false
-        self.ZeroSpeed = 0
         self.SchemeTimer = nil
     end
 
@@ -570,8 +571,8 @@ function TRAIN_SYSTEM:Think(dT)
     self.PN3 = self:Get("PN3") and self:Get("PN3") > 0 or false
     self.UosPn3 = self:Get("UosPn3") and self:Get("UosPn3") > 0 or false
 
-    self.PSN = not self:Get("PVU6") and Train.Electric.EmerSupply > 0 and self.PSNSignal and Train.SF30F4.Value > 0 and 1 or Train.Electric.ReservePsn
-    if Train.Electric.Main750V < 550 or Train.Electric.Main750V > 975 then self.PSN = 0 end
+    self.PSN = not self:Get("PVU6") and Electric.EmerSupply > 0 and self.PSNSignal and Train.SF30F4.Value > 0 and 1 or Electric.ReservePsn
+    if Electric.Main750V < 550 or Electric.Main750V > 975 then self.PSN = 0 end
     if self.PSN == 0 and self.PassLight and self.MainLights == 1 and not self.MainLightsTimer then self.MainLightsTimer = CurTime() end
     self.Recurperation = not self:Get("ReccOff") and 1 or 0
 
@@ -605,7 +606,7 @@ function TRAIN_SYSTEM:Think(dT)
         self.OrientateBUP = nil
     end
 
-    local condPower = self:Get("Cond1") and Train.Electric.KM * Train.SF61F3.Value > 0
+    local condPower = self:Get("Cond1") and Electric.KM * Train.SF61F3.Value > 0
     self.Cond1 = condPower and 1 or 0
     if P < 550 or P > 975 then self.Cond1 = 0 end
 
@@ -633,7 +634,7 @@ function TRAIN_SYSTEM:Think(dT)
     self.PrevOrientation = self.Train:ReadTrainWire(3) > 0
     self.PrevRevOrientation = self.Train:ReadTrainWire(4) > 0
     if self.ADUVWork then
-        if (self:Get("PVU4") and Train.SF21F1.Value > 0 or self:Get("PantDisabled") and Train.SF21F1.Value > 0) and Train.Electric.EmerSupply > 0 then
+        if (self:Get("PVU4") and Train.SF21F1.Value > 0 or self:Get("PantDisabled") and Train.SF21F1.Value > 0) and Electric.EmerSupply > 0 then
             self.Pant = true
         else
             self.Pant = false

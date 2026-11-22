@@ -51,6 +51,7 @@ function TRAIN_SYSTEM:Initialize()
     self.KM = 0
     -- Control circuits power (Питание ЦУ)
     self.CU = 0
+    self.ReserveCU = 0
 
     -- PSN in reserve mode
     self.ReservePsn = 0
@@ -124,7 +125,7 @@ end
 function TRAIN_SYSTEM:Outputs()
     return {
         "TrueBattery80V", "Shared80V", "Psn80V", "SharedPsn80V", "Emer80V", "Supply80V",
-        "AKB", "PSN", "EmerSupply", "KM", "Battery80V", "ReservePsn", "CU",
+        "AKB", "PSN", "EmerSupply", "KM", "Battery80V", "ReservePsn", "CU", "ReserveCU",
         "Brake", "Drive", "V2", "V1", "Main750V", "Power750V", "Aux750V", "BTB", "MK", "DoorsClosed",
         "SD", "EmerXod", "PowerReserve", "Recurperation", "Iexit", "Itotal", "Chopper", "ElectricEnergyUsed",
         "ElectricEnergyDissipated", "EnergyChange", "BTO", "ZeroSpeed", "DoorsControl", "UPIPower", "UPI2Power",
@@ -233,6 +234,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
     self.PSN = self:LV(self.Psn80V)
     self.EmerSupply = self:LV(self.Emer80V)
     self.CU = self.EmerSupply * IO(Wag.SF30F6.Value + Wag.SF30F8.Value + Wag.SF30F9.Value)
+    self.ReserveCU = self.CU * Wag.SF23F6.Value
 
     S.AkbCharge = IO(Wag:ReadTrainWire(42))
 
@@ -306,7 +308,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
 
         self.UPIPower = S.SharedLv * Wag.SF23F8.Value
         self.UPI2Power = self.EmerSupply
-        self.PowerReserve = self.EmerSupply * IO((1 - Wag.SF23F8.Value) * abs(RV.KRRPosition) + Wag.SF23F8.Value)
+        self.PowerReserve = self.EmerSupply * Wag.SF23F1.Value * IO((1 - Wag.SF23F8.Value) * abs(RV.KRRPosition) + Wag.SF23F8.Value)
         Wag:WriteTrainWire(20, self.EmerSupply)
         Wag:WriteTrainWire(36, Wag.SF23F1.Value * Wag.EmergencyControls.Value)
 

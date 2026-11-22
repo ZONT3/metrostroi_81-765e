@@ -63,6 +63,7 @@ TODO
     - [ ] BL-IK re-implementation
     - [ ] Proper font variations for BMT, BNM
     - [ ] Evacuation messages
+  - [ ] BV recovery
   - [ ] Curtain in cabin
   - [ ] Passenger-driver call
   - [ ] BU-IK service mode

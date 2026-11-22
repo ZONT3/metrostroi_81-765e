@@ -959,7 +959,7 @@ function TRAIN_SYSTEM:Think(dT)
                     local working = self:CheckBuv(train)
                     local doorclose = working and train.BUDWork
                     for d = 1, 8 do
-                        if not train["Door" .. d .. "Closed"] then
+                        if not train["DoorClosed" .. d] then
                             doorclose = false
                             break
                         end
@@ -1304,8 +1304,8 @@ function TRAIN_SYSTEM:Think(dT)
                         local train = self.Trains[self.Trains[i]]
                         local orientation = Train.PpzOrient.Value > 0 and train.Orientation
                         for d = 1, 4 do
-                            Train:SetNW2Bool("Skif:Door" .. d .. "L" .. i, train["Door" .. (orientation and d or d + 4) .. "Closed"])
-                            Train:SetNW2Bool("Skif:Door" .. d .. "R" .. i, train["Door" .. (orientation and d + 4 or d) .. "Closed"])
+                            Train:SetNW2Bool("Skif:Door" .. d .. "L" .. i, train["DoorClosed" .. (orientation and d or 9 - d)])
+                            Train:SetNW2Bool("Skif:Door" .. d .. "R" .. i, train["DoorClosed" .. (orientation and 9 - d or d)])
                             Train:SetNW2Bool("Skif:DoorAod" .. d .. "L" .. i, train["DoorAod" .. (orientation and d or 9 - d)])
                             Train:SetNW2Bool("Skif:DoorAod" .. d .. "R" .. i, train["DoorAod" .. (orientation and 9 - d or d)])
                         end

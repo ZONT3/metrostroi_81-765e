@@ -351,14 +351,11 @@ if SERVER then
             else
                 if self.ActiveTimer and CurTime() > self.ActiveTimer then
                     local orientation = wagon.Orientation
-                    for di = 1, 4 do
-                        local r = wagon["Door" .. (orientation and di + 4 or di) .. "Closed"]
-                        local l = wagon["Door" .. (orientation and di or di + 4) .. "Closed"]
-                        Wag:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), r)
-                        Wag:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di + 4), l)
+                    for di = 1, 8 do
+                        Wag:SetNW2Bool(string.format("BUIK:Wag%dDoor%dClosed", idx, di), wagon["DoorClosed" .. (orientation and di or 9 - di)])
                     end
 
-                    local err = wagon.ParkingBrakeEnabled or not wagon.BUVWork --[[ or not wagon.BTBReady]]
+                    local err = wagon.ParkingBrakeEnabled or not wagon.BUVWork or not wagon.BUDWork --[[ or not wagon.BTBReady]]
                     Wag:SetNW2String("BUIK:WagErr" .. idx, err)
                 end
 
@@ -1571,13 +1568,13 @@ else
             local dx, dy
             dx, dy = wagX + sizeWagDoorGap, wagY - sizeWagDoorH / 2
             for di = 1, 4 do
-                local dc = wagDoors[5 - di] and (not doorsClosed and self.colorActive or self.colorInactive) or colorRed
+                local dc = wagDoors[4 + di] and (not doorsClosed and self.colorActive or self.colorInactive) or colorRed
                 drawOutlinedRect(dx, dy, sizeWagDoorW, sizeWagDoorH, color, dc)
                 dx = dx + sizeWagDoorGap + sizeWagDoorW
             end
             dx, dy = wagX + sizeWagDoorGap, wagY - sizeWagDoorH / 2 + sizeWagH - 2
             for di = 1, 4 do
-                local dc = wagDoors[di + 4] and (not doorsClosed and self.colorActive or self.colorInactive) or colorRed
+                local dc = wagDoors[di] and (not doorsClosed and self.colorActive or self.colorInactive) or colorRed
                 drawOutlinedRect(dx, dy, sizeWagDoorW, sizeWagDoorH, color, dc)
                 dx = dx + sizeWagDoorGap + sizeWagDoorW
             end
@@ -1796,10 +1793,11 @@ else
             drawCircle(x0, y0, r1, colorRed)
         end
 
+        speed = math.floor(speed) % 100
         draw.SimpleText("00", "BUIKSpeedometer", x0, y0 - 88, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         draw.SimpleText(
-            tostring(math.floor(speed) % 100), "BUIKSpeedometer", x0 + (speed < 10 and 76 or 0), y0 - 88,
-            blink and (red_blink and colorYellow or colorRed) or self.colorActive,
+            tostring(speed), "BUIKSpeedometer", x0 + (speed < 10 and 76 or 0), y0 - 88,
+            blink and speed >= maxSpeed and (red_blink and colorYellow or colorRed) or self.colorActive,
             TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
         self.MaxSpeed = maxSpeed
