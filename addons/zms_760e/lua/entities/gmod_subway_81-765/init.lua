@@ -10,7 +10,7 @@ table.Add(ENT.SyncTable, {
     "EnableBVEmer", "Ticker", "KAH", "KAHk", "ALS", "ALSk", "ABESD", "ABESDk", "SD", "SDk", "FDepot", "PassScheme", "EnableBV",
     "DisableBV", "Ring", "R_Program2", "R_Announcer", "R_Line", "R_Micro", "R_Emer", "R_Program1", "R_Program11", "R_ChangeRoute",
     "R_ToBack", "DoorSelectL", "DoorSelectR", "DoorBlock", "EmerBrakeAdd", "EmerBrakeRelease", "EmerBrake", "DoorClose", "AttentionMessage",
-    "Attention", "AttentionBrake", "EmergencyBrake", "Pr", "OtklR", "GlassHeating", "Washer", "SC",
+    "Attention", "AttentionBrake", "EmergencyBrake", "Pr", "OtklR", "GlassHeating", "Washer", "SC", "PanelLight",
     "Stand", "EmergencyCompressor", "EmergencyCompressor2", "EmergencyControls", "EmergencyControlsK", "Wiper", "DoorLeft", "AccelRate", "HornB", "HornC", "DoorRight",
     "AutoDrive", "Micro", "Vent1", "Vent2", "Vent", "PassLight", "CabLight", "HeadlightsSwitch", "ParkingBrake",
     "BBER", "BBE", "Compressor", "CabLightStrength", "AppLights1", "AppLights2", "MfduF1", "MfduF2", "MfduF3",
@@ -352,6 +352,8 @@ function ENT:Think()
     end
     self:SetPackedBool("CabinEnabledEmer", cabl)
     self:SetPackedBool("CabinEnabledFull", cablight > 0.25)
+    self:SetPackedBool("PanelLights", Panel.PanelLights > 0)
+    self:SetPackedBool("PmoLights", Panel.PmoLights > 0)
 
     self:SetNW2Bool("MfduLamp", powerUpi and self.BUKP.State ~= 0)
     self:SetNW2Bool("DoorsClosed", self.Electric.DoorsClosed > 0)

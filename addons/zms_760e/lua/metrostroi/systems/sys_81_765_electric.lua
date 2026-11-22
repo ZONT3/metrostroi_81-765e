@@ -382,6 +382,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
 
         Panel.CabLight = IO(self.CU + S.EmerBattPower) * Wag.SF52F1.Value * min(1 + self.KM, Wag.CabinLight.Value)
         Panel.PanelLights = IO(self.CU + S.EmerBattPower) * Wag.SF52F1.Value
+        Panel.PmoLights = Panel.PanelLights * Wag.PanelLight.Value
         Panel.HeadlightsFull = IO(self.UPIPower * S.OrientFwd * Wag.SF51F1.Value * RV["KRO11-12"] * max(0, Wag.HeadlightsSwitch.Value - 1) + RV["KRR3-4"] * self.KM)
         Panel.HeadlightsHalf = IO(self.UPIPower * S.OrientFwd * Wag.SF51F1.Value * RV["KRO11-12"] * Wag.HeadlightsSwitch.Value + RV["KRR3-4"] * self.KM)
         Panel.RedLights = IO(Wag.SF51F2.Value * self.AKB + (1 - S.OrientFwd) * Wag.SF51F1.Value * self.KM + Wag.EmergencyControls.Value * self.KM)

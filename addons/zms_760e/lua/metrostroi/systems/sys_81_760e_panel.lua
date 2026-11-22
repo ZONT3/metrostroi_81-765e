@@ -129,6 +129,7 @@ function TRAIN_SYSTEM:Initialize()
     Wag:LoadSystem("EmergencyDoors", "Relay", "Switch", { bass = true })
 
     Wag:LoadSystem("CabinLight", "Relay", "Switch", { maxvalue = 2, defaultvalue = 0, bass = true})
+    Wag:LoadSystem("PanelLight", "Relay", "Switch", { bass = true })
 
     for k, cfg in pairs(PakToggles or {}) do
         Wag:LoadSystem(k, "Relay", "Switch", {
@@ -208,6 +209,7 @@ function TRAIN_SYSTEM:Initialize()
     self.AnnouncerPlaying = 0
     self.CabLight = 0
     self.PanelLights = 0
+    self.PmoLights = 0
     self.HeadlightsHalf = 0
     self.HeadlightsFull = 0
     self.RedLights = 0
@@ -246,7 +248,7 @@ end
 function TRAIN_SYSTEM:Outputs()
     return {
         "Controller",
-        "AnnouncerPlaying", "TargetController", "CabLight", "PanelLights", "HeadlightsHalf", "HeadlightsFull", "RedLights", "CabVent", "WorkFan", "LV",
+        "AnnouncerPlaying", "TargetController", "CabLight", "PanelLights", "PmoLights", "HeadlightsHalf", "HeadlightsFull", "RedLights", "CabVent", "WorkFan", "LV",
         "DoorLeftL", "DoorRightL", "DoorCloseL", "DoorBlockL", "EmerBrakeL", "EmerXodL", "KAHl", "ALSl", "PRl", "OtklRl", "R_Linel", "R_ChangeRoutel", "Washerl", "Wiperl",
         "EmergencyControlsl", "EmergencyDoorsl", "GlassHeatingl", "PowerOffl", "PowerOnl", "SalonLighting1", "SalonLighting2", "BatteryChargel", "WiperPower"
     }

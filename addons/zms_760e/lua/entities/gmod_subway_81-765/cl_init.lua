@@ -1540,7 +1540,7 @@ ENT.ButtonMap["Lighting"] = {
             model = "models/metrostroi_train/81-722/button_rot.mdl", ang = 45,
             getfunc = function(ent) return ent:GetPackedRatio("CabinLight") end,
             var = "CabinLight", speed = 4.1, min = 0, max = 0.27,
-            sndvol = 0.4, snd = function(val,val2) return val2 == 1 and "multiswitch_panel_mid" or val and "multiswitch_panel_min" or "multiswitch_panel_max" end,
+            sndvol = 0.4, snd = function(val, val2) return val2 == 1 and "multiswitch_panel_mid" or val and "multiswitch_panel_min" or "multiswitch_panel_max" end,
             sndmin = 90, sndmax = 1e3,
         }},
         {ID = "CabinLight-", x = 80 - 8, y = 25, w = 20, h = 30, tooltip = "Освещение кабины (влево)", model = {
@@ -1551,12 +1551,12 @@ ENT.ButtonMap["Lighting"] = {
             var = "CabinLight", states = {"Common.765.CabLight.Off", "Common.765.CabLight.Normal", "Common.765.CabLight.Full"},
             varTooltip = function(ent) return ent:GetPackedRatio("CabinLight") / 0.99 end
         }},
-        -- {ID = "PanelLightToggle", x = 140, y = 30, radius = 15, tooltip = "Освещение пульта", model = {
-        --     model = "models/metrostroi_train/81-722/button_rot.mdl", ang = 45,
-        --     var = "PanelLight", speed = 8.2, min = 0, max = 0.27,
-        --     sndvol = 0.4, snd = function(val,val2) return val and "multiswitch_panel_max" or "multiswitch_panel_min" end,
-        --     sndmin = 90, sndmax = 1e3,
-        -- }},
+        {ID = "PanelLightToggle", x = 160, y = 40, radius = 15, tooltip = "Освещение пульта", model = {
+            model = "models/metrostroi_train/81-722/button_rot.mdl", ang = 45,
+            var = "PanelLight", speed = 8.2, min = 0, max = 0.27,
+            sndvol = 0.4, snd = function(val, val2) return val and "multiswitch_panel_max" or "multiswitch_panel_min" end,
+            sndmin = 90, sndmax = 1e3,
+        }},
     }
 }
 
@@ -2984,6 +2984,9 @@ local LIGHT_GLOW_WHITE_R = 8
 local LIGHT_GLOW_RED_L = 9
 local LIGHT_GLOW_RED_R = 10
 local LIGHT_CAB = 11
+local LIGHT_PMO1 = 12
+local LIGHT_PMO2 = 13
+local LIGHT_PMO3 = 14
 
 table.Merge(ENT.Lights, {
     [LIGHT_HEADLIGHT] = {
@@ -3021,6 +3024,18 @@ table.Merge(ENT.Lights, {
         texture = "sprites/light_glow02.vmt"
     },
     [LIGHT_CAB] = { "dynamiclight", Vector(470, 0, 22), Angle(0,0,0), Color(220, 220, 220), brightness = 0.5, distance = 500 },
+    [LIGHT_PMO1] = {
+        "headlight", Vector(499.53, 25.58, 1.93), Angle(71.710, 180.000, 180.000), Color(146, 212, 250),
+        farz = 26, nearz = 2, shadows = 1, brightness = 0.2, fov = 120,
+    },
+    [LIGHT_PMO2] = {
+        "headlight", Vector(499.53, 2.14, 1.93), Angle(71.710, 180.000, 180.000), Color(146, 212, 250),
+        farz = 26, nearz = 2, shadows = 1, brightness = 0.2, fov = 120,
+    },
+    [LIGHT_PMO3] = {
+        "headlight", Vector(493.81, 48.99, 1.93), Angle(71.710, -149.437, -180.000), Color(146, 212, 250),
+        farz = 26, nearz = 2, shadows = 1, brightness = 0.2, fov = 120,
+    },
 })
 
 ENT.ButtonMap["MFDU"] = {
@@ -3526,13 +3541,18 @@ function ENT:Think(...)
 
     local cabl_full = self:GetPackedBool("CabinEnabledFull")
     local cabl_half = self:GetPackedBool("CabinEnabledEmer")
-    cabl_full = self:Animate("CabFull", cabl_full and 1 or 0, 0, 1, 12, false)
-    cabl_half = self:Animate("CabEmer", cabl_half and 1 or 0, 0, 1, 12, false)
+    cabl_full = self:Animate("CabFull", cabl_full and 1 or 0, 0, 1, 64, false)
+    cabl_half = self:Animate("CabEmer", cabl_half and 1 or 0, 0, 1, 64, false)
     self:ShowHideSmooth("cab_full", cabl_full)
     self:ShowHideSmooth("cab_half", cabl_half)
     if Metrostroi.Version > 1537278077 then
-        self:SetLightPower(LIGHT_CAB, true, cabl_full * 0.8 + cabl_half * 0.2)
+        self:SetLightPower(LIGHT_CAB, cabl_full or cabl_half, cabl_full * 0.8 + cabl_half * 0.2)
     end
+
+    local pmo = self:GetPackedBool("PmoLights")
+    self:SetLightPower(LIGHT_PMO1, pmo, pmo and 1 or 0)
+    self:SetLightPower(LIGHT_PMO2, pmo, pmo and 1 or 0)
+    self:SetLightPower(LIGHT_PMO3, pmo, pmo and 1 or 0)
 
     local k35_1 = self:HandleDoorState("K35C1Val", "door_k35_1", "BayCoverK35_1", "BayCoverK35_1", 0.1, 0.2)
     local k35_2 = self:HandleDoorState("K35C2Val", "door_k35_2", "BayCoverK35_2", "BayCoverK35_2", 0.1, 0.2)
