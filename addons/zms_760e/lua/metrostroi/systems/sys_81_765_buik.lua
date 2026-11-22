@@ -311,9 +311,9 @@ if SERVER then
 
     function TRAIN_SYSTEM:Speedometer(Wag)
         Wag:SetNW2Float("BUIK:ActualSpeed", Wag.BARS.Speed)
-        Wag:SetNW2Int("BUIK:MaxSpeed", Wag:GetNW2Int("Skif:SpeedLimit", 0) or 0)
-        Wag:SetNW2Int("BUIK:NextSpeed", Wag:GetNW2Int("Skif:NextSpeedLimit", 0) or 0)
-        Wag:SetNW2Bool("BUIK:SpeedometerBlink", Wag:GetNW2Bool("Skif:NoFreqReal", false) or Wag:GetNW2Bool("Skif:BarsBrake", false))
+        Wag:SetNW2Int("BUIK:MaxSpeed", self.Active and Wag:GetNW2Int("Skif:SpeedLimit", 0) or 0)
+        Wag:SetNW2Int("BUIK:NextSpeed", self.Active and Wag:GetNW2Int("Skif:NextSpeedLimit", 0) or 0)
+        Wag:SetNW2Bool("BUIK:SpeedometerBlink", self.Active and (Wag:GetNW2Bool("Skif:NoFreqReal", false) or Wag:GetNW2Bool("Skif:BarsBrake", false)))
         Wag:SetNW2Bool("BUIK:NoMaxSpeed", not self.Active and Wag.BARS.UOS < 1 or Wag:GetNW2Bool("Skif:NoFreq", false))
         Wag:SetNW2Int("BUIK:Odometer", math.floor((Wag.Odometer or 0) / 1000))
     end
@@ -1789,13 +1789,18 @@ else
             draw.SimpleText(tostring(i * 5), "BUIKSpeedometerClock", x3, y3, maxSpeed > 0 and i * 5 == math.floor(maxSpeed) and colorRed or self.colorWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         end
 
+        local blink = Wag:GetNW2Bool("BUIK:SpeedometerBlink", false)
+        local red_blink = blink and CurTime() % 1.2 < 0.6
         drawCircle(x0, y0, r1, self.colorBackgroundSpeedometer, 1)
-        if Wag:GetNW2Bool("BUIK:SpeedometerBlink", false) and CurTime() % 1.2 < 0.6 then
+        if red_blink then
             drawCircle(x0, y0, r1, colorRed)
         end
 
         draw.SimpleText("00", "BUIKSpeedometer", x0, y0 - 88, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-        draw.SimpleText(tostring(math.floor(speed) % 100), "BUIKSpeedometer", x0 + (speed < 10 and 76 or 0), y0 - 88, self.colorActive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(
+            tostring(math.floor(speed) % 100), "BUIKSpeedometer", x0 + (speed < 10 and 76 or 0), y0 - 88,
+            blink and (red_blink and colorYellow or colorRed) or self.colorActive,
+            TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
         self.MaxSpeed = maxSpeed
         self.NextSpeed = nextSpeed
