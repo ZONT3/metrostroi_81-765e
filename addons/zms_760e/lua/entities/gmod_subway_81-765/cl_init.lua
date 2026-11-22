@@ -2976,6 +2976,9 @@ ENT.ClientProps["VmHv"] = {
 }
 
 
+local LIGHT_INTER_1 = 1
+local LIGHT_INTER_2 = 2
+local LIGHT_INTER_3 = 3
 local LIGHT_HEADLIGHT = 4
 local LIGHT_AREA_WHITE = 5
 local LIGHT_AREA_RED = 6
@@ -3037,6 +3040,9 @@ table.Merge(ENT.Lights, {
         farz = 26, nearz = 2, shadows = 1, brightness = 0.2, fov = 120,
     },
 })
+ENT.Lights[LIGHT_INTER_1] = { "dynamiclight", Vector(220, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 3, distance = 350 }
+ENT.Lights[LIGHT_INTER_2] = { "dynamiclight", Vector(-55, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 2.5, distance = 550 }
+ENT.Lights[LIGHT_INTER_3] = { "dynamiclight", Vector(-330, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 1.8, distance = 750 }
 
 ENT.ButtonMap["MFDU"] = {
     pos = Vector(500.71, 4.24, -0.7),

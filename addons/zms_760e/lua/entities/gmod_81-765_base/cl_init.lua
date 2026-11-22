@@ -846,9 +846,9 @@ local LIGHT_INTER_1 = 1
 local LIGHT_INTER_2 = 2
 local LIGHT_INTER_3 = 3
 ENT.Lights = {
-    [LIGHT_INTER_1] = { "dynamiclight", Vector( 220, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 3, distance = 350 },
-    [LIGHT_INTER_2] = { "dynamiclight", Vector( -80, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 3, distance = 350 },
-    [LIGHT_INTER_3] = { "dynamiclight", Vector( -330, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 3, distance = 350 },
+    [LIGHT_INTER_1] = { "dynamiclight", Vector(330, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 3, distance = 350 },
+    [LIGHT_INTER_2] = { "dynamiclight", Vector(0, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 2.5, distance = 550 },
+    [LIGHT_INTER_3] = { "dynamiclight", Vector(-330, 0, 0), Angle(0,0,0), Color(220, 220, 220), brightness = 1.8, distance = 750 },
 }
 
 ENT.PakPositions = {
