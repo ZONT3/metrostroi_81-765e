@@ -256,7 +256,7 @@ end
 
 function ZMS.ScreenHelper(panelName, group, name, x, y, w, h, buttons, margin)
     if not ENT then return end
-    src = ENT.ButtonMap[panelName]
+    local src = ENT.ButtonMap[panelName]
     if not src then return end
     local pos = src.pos + src.ang:Forward() * x * (src.scale or 0.016) + src.ang:Right() * y * (src.scale or 0.016)
     local tgt = table.Copy(src)
@@ -426,4 +426,39 @@ if SERVER then
     end)
 
     CreateConVar("765_debug", "0", FCVAR_ARCHIVE)
+end
+
+if CLIENT then
+    function Metrostroi765GetBlurredTex(name, src, w, h, size, passes)
+        local blurRT = GetRenderTargetEx(
+            name, w, h,
+            RT_SIZE_DEFAULT,
+            MATERIAL_RT_DEPTH_SEPARATE,
+            bit.bor(2, 256),
+            0,
+            IMAGE_FORMAT_RGBA8888
+        )
+
+        render.PushRenderTarget(blurRT)
+            render.Clear(0, 0, 0, 0, true, true)
+
+            cam.Start2D()
+            render.OverrideAlphaWriteEnable(true, true)
+                surface.SetDrawColor(255, 255, 255, 255)
+                surface.SetTexture(src)
+                surface.DrawTexturedRect(size, size, w - size * 2, h - size * 2)
+            render.OverrideAlphaWriteEnable(false)
+            cam.End2D()
+
+            render.BlurRenderTarget(blurRT, size, size, passes)
+        render.PopRenderTarget()
+
+        local mat = CreateMaterial(name .. "_Mat", "UnlitGeneric", {
+            ["$vertexcolor"] = 0,
+            ["$vertexalpha"] = 1,
+            ["$nolod"] = 1,
+        })
+        mat:SetTexture("$basetexture", blurRT)
+        return mat
+    end
 end

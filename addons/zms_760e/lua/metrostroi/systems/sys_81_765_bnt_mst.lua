@@ -31,6 +31,11 @@ local scw_strip, sch_strip = 4096, 364
 local led_offset_x, led_offset_y = -1, -2
 local ft_strip = 0.4
 
+local led_size = 8
+local icon_size = 16 * led_size
+local icon_box = icon_size + 3 * led_size
+local string_w = scw_display - icon_box * 2
+
 local color_white = Color(255, 255, 255)
 local color_off = Color(128, 128, 128)
 local color_green = Color(62, 255, 62)
@@ -42,6 +47,8 @@ local tex_led_on = surface.GetTextureID("81-765_v1_assets/rt/mst_led_on")
 local tex_led_off = surface.GetTextureID("81-765_v1_assets/rt/mst_led_off")
 local tex_arrow = surface.GetTextureID("81-765_v1_assets/rt/mst_arrow")
 local tex_x = surface.GetTextureID("81-765_v1_assets/rt/mst_x")
+local tex_arrow_b = Metrostroi765GetBlurredTex("765_TexB_MstArrow", tex_arrow, icon_size, icon_size, 4, 4)
+local tex_x_b = Metrostroi765GetBlurredTex("765_TexB_MstX", tex_x, icon_size, icon_size, 4, 4)
 
 surface.CreateFont("CIK765.BntMst", {
     font = "BntMst1_v1",
@@ -61,9 +68,28 @@ surface.CreateFont("CIK765.BntMst", {
     scanlines = false,
 })
 
+surface.CreateFont("CIK765.BntMst.B", {
+    font = "BntMst1_v1",
+    size = 112,
+    weight = 0,
+    blursize = 16,
+    scanlines = 0,
+    antialias = true,
+    underline = false,
+    italic = false,
+    strikeout = false,
+    symbol = false,
+    rotary = false,
+    shadow = true,
+    additive = true,
+    outline = true,
+    extended = true
+})
+
 
 function TRAIN_SYSTEM:ClientInitialize()
     self.Font = "CIK765.BntMst"
+    self.FontBlur = "CIK765.BntMst.B"
 end
 
 function TRAIN_SYSTEM:ClientThink()
@@ -165,10 +191,6 @@ function TRAIN_SYSTEM:DrawStrip()
     end
 end
 
-local led_size = 8
-local icon_size = 16 * led_size
-local icon_box = icon_size + 3 * led_size
-local string_w = scw_display - icon_box * 2
 function TRAIN_SYSTEM:DrawDisplay(left)
     local Wag = self.Train
 
@@ -189,17 +211,24 @@ function TRAIN_SYSTEM:DrawDisplay(left)
 
     local exit_here = Wag:GetNW2Bool(left and "BNT:SelectLeft" or "BNT:SelectRight", false)
     local tex = exit_here and tex_arrow or tex_x
+    local tex_b = exit_here and tex_arrow_b or tex_x_b
     local color = arrived and exit_here and color_ru or color_red
 
     render.OverrideBlend(
         true,
         BLEND_SRC_ALPHA, BLEND_ONE,                 BLENDFUNC_ADD,
         BLEND_DST_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA, BLENDFUNC_ADD
-    )    surface.SetDrawColor(color)
-    surface.SetTexture(tex)
-    surface.DrawTexturedRect(led_size * 2, 0, icon_size, icon_size)
-    surface.DrawTexturedRect(scw_display - icon_box + led_size, 0, icon_size, icon_size)
+    )
+        surface.SetDrawColor(color)
+        surface.SetTexture(tex)
+        surface.DrawTexturedRect(led_size * 2, 0, icon_size, icon_size)
+        surface.DrawTexturedRect(scw_display - icon_box + led_size, 0, icon_size, icon_size)
     render.OverrideBlend(false)
+
+    surface.SetDrawColor(color.r, color.g, color.b, 50)
+    surface.SetMaterial(tex_b)
+    surface.DrawTexturedRect(led_size * 2 - 4, -4, icon_size + 8, icon_size + 8)
+    surface.DrawTexturedRect(scw_display - icon_box + led_size - 4, -4, icon_size + 8, icon_size + 8)
 
     local cache_state = (
         not self.Working and "w" or

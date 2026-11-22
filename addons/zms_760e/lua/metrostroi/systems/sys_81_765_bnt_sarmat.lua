@@ -136,14 +136,14 @@ local function sanitize_text(text)
     return seq
 end
 
-local function print_text(char_seq, tx, x0, y0, w, h, font, color)
+local function print_text(char_seq, tx, x0, y0, w, h, font, fontb, color)
     local x = math.Round(tx / led_size) * led_size + x0
+    render.SetScissorRect(x0, 0, x0 + w, h, true)
     render.OverrideBlend(
         true,
         BLEND_SRC_ALPHA, BLEND_ONE,                 BLENDFUNC_ADD,
         BLEND_DST_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA, BLENDFUNC_ADD
     )
-    render.SetScissorRect(x0, 0, x0 + w, h, true)
     surface.SetFont(font)
     surface.SetTextColor(color or color_default)
     for idx, chr in ipairs(char_seq) do
@@ -152,8 +152,22 @@ local function print_text(char_seq, tx, x0, y0, w, h, font, color)
         local x1 = surface.GetTextPos()
         x = x1 + led_size
     end
-    render.SetScissorRect(0, 0, 0, 0, false)
     render.OverrideBlend(false)
+
+    if fontb then
+        color = color or color_default
+        x = math.Round(tx / led_size) * led_size + x0
+        y0 = y0 + 4
+        surface.SetFont(fontb)
+        surface.SetTextColor(color.r, color.g, color.b, 50)
+        for idx, chr in ipairs(char_seq) do
+            surface.SetTextPos(x, y0)
+            surface.DrawText(chr)
+            local x1 = surface.GetTextPos()
+            x = x1 + led_size
+        end
+    end
+    render.SetScissorRect(0, 0, 0, 0, false)
 end
 
 local function draw_station(x, y0, top, bot)
@@ -267,7 +281,7 @@ function TRAIN_SYSTEM:DrawDisplay(power, primary, text_x0, text_y0, text_w, text
 
     local text = self.Text
     if text and text.x >= -text.width and text.x <= text_w then
-        print_text(text.char_seq, text.x, text_x0, text_y0, text_w, text_h, self.Font, text.color)
+        print_text(text.char_seq, text.x, text_x0, text_y0, text_w, text_h, self.Font, self.FontBlur, text.color)
     end
 
     if not primary then return end
