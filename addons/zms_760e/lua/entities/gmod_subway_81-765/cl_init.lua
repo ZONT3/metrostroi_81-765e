@@ -3076,7 +3076,7 @@ ENT.ButtonMap["CAMS"] = {
 }
 
 ENT.ButtonMap["BMIK"] = {
-    pos = Vector(502.51, -7.86, 51),
+    pos = Vector(502.51, -7.86, 50.4),
     ang = Angle(0, 90, 90),
     width = 1800,
     height = 300,
@@ -3085,11 +3085,11 @@ ENT.ButtonMap["BMIK"] = {
 }
 
 ENT.ButtonMap["BNMIK"] = {
-    pos = Vector(520.84, 13.1, -36.86),
+    pos = Vector(520.84, 12.3, -36.1),
     ang = Angle(0.000, 90.000, 89.296),
     width = 600,
     height = 300,
-    scale = 0.027,
+    scale = 0.030,
     nohide = true,
 }
 

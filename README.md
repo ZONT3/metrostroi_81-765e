@@ -84,6 +84,7 @@ TODO
   - [x] Glass in cabin
   - [x] Cabin models: buttons
   - [ ] Cabin models: controller variants
+  - [ ] Sramat UI fixes
   - [ ] DVORNIK mazafaka
   - [ ] Skins justification
   - [x] Move w/o KD mode

@@ -74,11 +74,16 @@ else
     local ORANGE = Color(255, 151, 17)
     local GREEN  = Color(29, 248, 127)
     local COLORS = { YELLOW, ORANGE, GREEN }
+    local COLORS_B = {}
+    for idx, c in ipairs(COLORS) do
+        COLORS_B[idx] = Color(c.r, c.g, c.b, 185)
+    end
 
     function TRAIN_SYSTEM:ClientThink()
         local Wag = self.Train
         local power = Wag:GetNW2Bool("BMIK:Power", power)
-        self.Color = COLORS[Wag:GetNW2Int("CikColor", 1)] or YELLOW
+        self.Color = COLORS[Wag:GetNW2Int("CikColor", 1)] or COLORS[1]
+        self.ColorB = COLORS_B[Wag:GetNW2Int("CikColor", 1)] or COLORS_B[1]
         self.Working = Wag:GetNW2Bool("IK:Working", true)
         local fail = not self.Working and power
         if not fail then
@@ -127,42 +132,53 @@ else
         end
     end
 
-    surface.CreateFont("BMIK:Size1", {
+    local function create_font(name, tbl)
+        surface.CreateFont(name, tbl)
+        tbl.blursize = 32
+        tbl.scanlines = 0
+        tbl.shadow = true
+        tbl.additive = true
+        tbl.outline = true
+        tbl.extended = true
+        surface.CreateFont(name .. ".B", tbl)
+    end
+
+    create_font("BMIK:Size1", {
         font = "Moscow2017_EMU",
         extended = true,
         size = 255,
         weight = 500,
         antialias = true,
     })
-    surface.CreateFont("BMIK:Size2", {
+    create_font("BMIK:Size2", {
         font = "Moscow2017_EMU Light",
         extended = true,
         size = 146,
         weight = 400,
         antialias = true,
     })
-    surface.CreateFont("BMIK:Size1B", {
+    create_font("BMIK:Size1B", {
         font = "MOSCOW2019",
         extended = true,
         size = 182,
         weight = 500,
         antialias = true,
     })
-    surface.CreateFont("BMIK:Size2B", {
+    create_font("BMIK:Size2B", {
         font = "MOSCOW2019 Light",
         extended = true,
         size = 130,
         weight = 400,
         antialias = true,
     })
-    surface.CreateFont("BNMIK:A", {
+    create_font("BNMIK:A", {
         font = "Moscow2017_EMU",
         extended = true,
         size = 180,
         weight = 500,
         antialias = true,
     })
-    surface.CreateFont("BNMIK:B", {
+    create_font("BNMIK:B", {
         font = "MOS",
         extended = true,
         size = 180,
@@ -220,11 +236,15 @@ else
                 self.BmDisplText = curText
             end
         end
+        local font_b = self.BmFont .. ".B"
         if self.BmLines == 1 then
             draw.SimpleText(self.BmDisplText, self.BmFont, scw_bm / 2 + 12, sch_bm / 2 + 24, self.Color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText(self.BmDisplText, font_b, scw_bm / 2 + 12, sch_bm / 2 + 25, self.ColorB, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         else
             draw.SimpleText(self.BmDisplText, self.BmFont, scw_bm / 2 + 12, sch_bm / 2 - 56 + 12, self.Color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             draw.SimpleText(self.BmDisplText2, self.BmFont, scw_bm / 2 + 12, sch_bm / 2 + 56 + 12, self.Color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText(self.BmDisplText, font_b, scw_bm / 2 + 12, sch_bm / 2 - 56 + 13, self.ColorB, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText(self.BmDisplText2, font_b, scw_bm / 2 + 12, sch_bm / 2 + 56 + 13, self.ColorB, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         end
     end
 
@@ -236,6 +256,7 @@ else
         end
         local fontType = self.Train:GetNW2Int("BMIK:Font", 1) == 1
         draw.SimpleText(self.BnmDisplText, "BNMIK:" .. (fontType and "A" or "B"), scw_bnm / 2, sch_bnm / 2 + 18, self.Color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(self.BnmDisplText, "BNMIK:" .. (fontType and "A.B" or "B.B"), scw_bnm / 2, sch_bnm / 2 + 19, self.ColorB, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
     local function defaultRender(_, mat, w, h)
