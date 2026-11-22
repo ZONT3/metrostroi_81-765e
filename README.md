@@ -81,6 +81,10 @@ TODO
   - [x] Doors locks and anims
   - [ ] Tryokhgranka animations
   - [ ] HV circuits rework
+    - [x] VVVF
+    - [ ] Recc
+    - [ ] Chopper
+    - [ ] Display values
   - [x] Glass in cabin
   - [x] Cabin models: buttons
   - [ ] Cabin models: controller variants

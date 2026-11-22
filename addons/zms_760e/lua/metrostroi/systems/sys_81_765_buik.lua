@@ -1797,7 +1797,7 @@ else
         draw.SimpleText("00", "BUIKSpeedometer", x0, y0 - 88, self.colorInactive, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         draw.SimpleText(
             tostring(speed), "BUIKSpeedometer", x0 + (speed < 10 and 76 or 0), y0 - 88,
-            blink and speed >= maxSpeed and (red_blink and colorYellow or colorRed) or self.colorActive,
+            blink and speed >= maxSpeed and speed > 0 and (red_blink and colorYellow or colorRed) or self.colorActive,
             TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
         self.MaxSpeed = maxSpeed

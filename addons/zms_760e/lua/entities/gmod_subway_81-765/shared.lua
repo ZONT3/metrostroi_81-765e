@@ -999,10 +999,6 @@ ENT.SpawnerCustom = {
                         end
                     end
 
-                    if MetrostroiAdvanced and MetrostroiAdvanced.TwoToSixMap then
-                        wag.PmvFreq:TriggerInput("Set", 1)
-                    end
-
                     wag.HeadlightsSwitch:TriggerInput("Set", 2)
                     wag.DoorClose:TriggerInput("Set", first and val == 1 and 1 or 0)
                     wag.R_ASNPOn:TriggerInput("Set", 1)
@@ -1014,6 +1010,16 @@ ENT.SpawnerCustom = {
                         wag.PmvParkingBrake:TriggerInput("Set", val == 3 and 1 or 0)
                         wag.PmvLights:TriggerInput("Set", val <= 1 and 0 or 1)
                         wag.PmvCond:TriggerInput("Set", val <= 1 and 0 or 1)
+
+                        if val ~= 4 and IsValid(wag.Owner) and wag.Owner:GetInfoNum("765_lock_cab", 0) == 1 then
+                            wag.DoorLockL:TriggerInput("Set", 1)
+                            wag.DoorLockR:TriggerInput("Set", 1)
+                            wag.DoorLockC:TriggerInput("Set", 1)
+                        end
+
+                        if MetrostroiAdvanced and MetrostroiAdvanced.TwoToSixMap then
+                            wag.PmvFreq:TriggerInput("Set", 1)
+                        end
                     end)
 
                     local yd = os.date("!*t").yday
