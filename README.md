@@ -87,7 +87,7 @@ TODO
     - [ ] Display values
   - [x] Glass in cabin
   - [x] Cabin models: buttons
-  - [ ] Cabin models: controller variants
+  - [x] Cabin models: controller variants
   - [ ] Sramat UI fixes
   - [ ] DVORNIK mazafaka
   - [ ] Skins justification

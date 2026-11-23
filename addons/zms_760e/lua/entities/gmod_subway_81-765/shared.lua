@@ -673,6 +673,11 @@ local ring_types = {
     "2Т Тип 1", "2Т Тип 2", "2Т Тип 3", "2Т Тип 4"
 }
 
+local function random_type(typ, count, seed)
+    if typ == 1 then typ = math.max(0, math.floor(CurTime() + math.sin(seed) * 10)) % count + 2 end
+    return typ - 1
+end
+
 ENT.SpawnerCustom = {
     model = {
         "models/metrostroi_train/81-765_v1/765/hull.mdl", "models/metrostroi_train/81-765_v1/765/salon.mdl", "models/metrostroi_train/81-765_v1/765/underwag_h.mdl",
@@ -839,11 +844,42 @@ ENT.SpawnerCustom = {
     { "CallRingType", "Тип зв. передачи упр.", "List", ring_types, 4, Section = "Settings", Subsection = "AudioEvents" },
     { "HornType", "Тифон (механич.)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
     { "ElectricHornType", "Тифон (ЭП)", "List", { "Стандартный", "Случайный", "Тип 1", "Тип 2", "81-765" }, 5, Section = "Settings", Subsection = "Sounds" },
-    { "KvType", "Звук КВ", "List", { "Случайный", "Alfa Union", "81-765" }, 3, Section = "Settings", Subsection = "Sounds" },
     {},
     -- TODO: bring it back
     -- { "AddressDoors", "Индивид. открытие дверей (765.2)", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
-    { "ForgivefulBars", "БАРС прощает ошибки", "Boolean", true, Section = "Settings", Subsection = "FunctionalSettings" },
+    {
+        "ArsMode",
+        "Режим для АБ",
+        "List",
+        function()
+            local unsafe = CV_765_SHOW_UNSAFE_ALS:GetBool()
+            local enforce = Cfg765 and Cfg765.EnforceAlsMode
+            local OneToFive = not enforce or enforce.OneToFive
+            local DauAb = not enforce or enforce.DauAb
+            local DauAlsArs = not enforce or enforce.DauAlsArs
+            local Tkl = not enforce and unsafe or enforce and enforce.Als75
+            local OneToFour = not enforce and unsafe or enforce and enforce.OneToFour
+
+            return {
+                [1] = OneToFive and "1/5" or nil,
+                [2] = DauAb and "ДАУ (АБ)" or nil,
+                [3] = DauAlsArs and "ДАУ (АЛС-АРС)" or nil,
+                [4] = Tkl and "1/5 (ТКЛ)" or nil,
+                [5] = OneToFour and "1/4 (КЛ)" or nil,
+            }
+            -- { "1/5", "ДАУ (АБ)", "ДАУ (АЛС-АРС)", "1/5 (ТКЛ)", "1/4 (КЛ)" },
+        end,
+        1,
+        function(ent, val)
+            ent.AlsArs = val == 3
+            ent.ArsDau = val == 2 or val == 3
+            ent.AlsFreqs = val == 5 and 3 or val == 4 and 2 or 1
+            ent:SetNW2Bool("AlsArs", ent.AlsArs)
+            ent:SetNW2Bool("ArsDau", ent.ArsDau)
+            ent:SetNW2String("OneFqMode", val == 5 and "1/4" or "1/5")
+        end,
+        Section = "Settings", Subsection = "FunctionalSettings"
+    },
     { "BtbuSd", "Автомат ППЗ БТБУ", "Boolean", false, Section = "Settings", Subsection = "FunctionalSettings" },
     { "PmvType", "Тип ПМВ", "List", { "Ранний .0", "Поздний .0", "81-765.2" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
     { "WcPakType", "Тип 1-го пакетника", "List", { "Не используется", "Движение без КД", "ИОД" }, 1, Section = "Settings", Subsection = "FunctionalSettings" },
@@ -876,44 +912,19 @@ ENT.SpawnerCustom = {
         Section = "Settings", Subsection = "FunctionalSettings"
     },
     {},
+    {
+        "ControllerType765", "Тип контроллера",
+        "List", { "Случайный", "Alfa Union", "Alfa Union (RU)", "Бочка" }, 1,
+        function(ent, typ)
+            ent:SetNW2Int("ControllerType765", random_type(typ, 3, 1))
+        end,
+        Section = "Settings", Subsection = "VisualSettings"
+    },
     { "BMIK:Font", "Шрифт БМТ, БНМ", "List", { "Тип 1", "Тип 2" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "CikColor", "Цвет БМТ, БНМ", "List", { "Метроспецтехника (желтый)", "Сармат (рыжий)", "Ранний (зеленый)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "BntFps", "FPS на БНТ", "List", { "Метроспецтехника (15 FPS)", "Сармат (60 FPS)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "BntType", "Тип БНТ", "List", { "Метроспецтехника v1.2 (LCD)", "Сармат v1.1 (LCD)", "Метроспецтехника v1 (LED)", "Сармат v1 (LED)" }, 1, Section = "Settings", Subsection = "VisualSettings" },
     { "BuikType", "БУ-ИК", "List", { "Метроспецтехника v1-v1.2", "Метроспецтехника v2", "Сармат" }, 1, Section = "Settings", Subsection = "VisualSettings" },
-    {
-        "ArsMode",
-        "Режим для АБ",
-        "List",
-        function()
-            local unsafe = CV_765_SHOW_UNSAFE_ALS:GetBool()
-            local enforce = Cfg765 and Cfg765.EnforceAlsMode
-            local OneToFive = not enforce or enforce.OneToFive
-            local DauAb = not enforce or enforce.DauAb
-            local DauAlsArs = not enforce or enforce.DauAlsArs
-            local Tkl = not enforce and unsafe or enforce and enforce.Als75
-            local OneToFour = not enforce and unsafe or enforce and enforce.OneToFour
-
-            return {
-                [1] = OneToFive and "1/5" or nil,
-                [2] = DauAb and "ДАУ (АБ)" or nil,
-                [3] = DauAlsArs and "ДАУ (АЛС-АРС)" or nil,
-                [4] = Tkl and "1/5 (ТКЛ)" or nil,
-                [5] = OneToFour and "1/4 (КЛ)" or nil,
-            }
-            -- { "1/5", "ДАУ (АБ)", "ДАУ (АЛС-АРС)", "1/5 (ТКЛ)", "1/4 (КЛ)" },
-        end,
-        1,
-        function(ent, val)
-            ent.AlsArs = val == 3
-            ent.ArsDau = val == 2 or val == 3
-            ent.AlsFreqs = val == 5 and 3 or val == 4 and 2 or 1
-            ent:SetNW2Bool("AlsArs", ent.AlsArs)
-            ent:SetNW2Bool("ArsDau", ent.ArsDau)
-            ent:SetNW2String("OneFqMode", val == 5 and "1/4" or "1/5")
-        end,
-        Section = "Settings", Subsection = "VisualSettings"
-    },
     {},
     { "DoorsControls", "Упр. дверьми (A/D)", "List", { "Сначала выбор", "Классическое" }, 1, Section = "Controls" },
     { "CamsSelect", "Камеры на A/D", "Boolean", true, Section = "Controls" },
@@ -1121,7 +1132,7 @@ ENT.Spawner = {
 
             wag:SetNW2Int("VVVFSound", 8)
             wag:SetNW2Int("HornType", 5)
-            wag:SetNW2Int("KvType", 3)
+            wag:SetNW2Int("ControllerType765", 3)
             wag:SetNW2Bool("CoupleSprings", true)
         end,
         function(self, spawnerList)
@@ -1161,14 +1172,14 @@ ENT.Spawner = {
         "RingsType765", "Тип звонков", "List",
         { "Случайный", "Тип 1", "Тип 2", "Тип 3" }, 1,
         function(wag, typ)
-            if typ == 1 then typ = math.floor(CurTime()) % 3 + 2 end
-            typ = typ - 1
+            typ = random_type(typ, 3, 2)
             wag:SetNW2Int("ArsRingType", typ < 3 and 3 or 2)
             wag:SetNW2Int("BupRingType", typ + 3)
             wag:SetNW2Int("CallRingType", 7)
         end,
         Section = "Settings", Subsection = "FunctionalSettings"
     },
+    ENT.SpawnerFields["ControllerType765"],
     {},
     ENT.SpawnerFields["Announcer"],
     ENT.SpawnerFields["CISConfig"],

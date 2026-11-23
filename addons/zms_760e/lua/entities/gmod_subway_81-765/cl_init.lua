@@ -2881,10 +2881,28 @@ ENT.ClientProps["KRR"] = {
     hideseat = 0.5,
 }
 
-ENT.ClientProps["Controller"] = {
+local ControllerPos = {0, 0.22, 0.41, 0.6, 0.8, 1}
+local Controllers = {"ControllerAuOrig", "ControllerAuRu", "ControllerBarrel"}
+
+ENT.ClientProps["ControllerAuOrig"] = {
+    model = "models/metrostroi_train/81-765_v1/765/km_au_orig.mdl",
+    pos = Vector(488.6, 24.7, -14.4),
+    ang = Angle(0, 0, 0),
+    hide = 2,
+}
+
+ENT.ClientProps["ControllerAuRu"] = {
     model = "models/metrostroi_train/81-722/81-722_controller.mdl",
-    pos = Vector(488.6, 24.7, -14.2),
+    pos = Vector(488.6, 24.7, -14.4),
     ang = Angle(0, 90, 0),
+    hide = 2,
+    scale = 1.25,
+}
+
+ENT.ClientProps["ControllerBarrel"] = {
+    model = "models/metrostroi_train/81-765_v1/765/km_barrel.mdl",
+    pos = Vector(488.6, 24.7, -14.29),
+    ang = Angle(0, 0, 0),
     hide = 2,
 }
 
@@ -3617,6 +3635,16 @@ function ENT:Think(...)
     for _, s in ipairs(door_sides) do
         local ts = self:GetNW2Int("DoorAttempt" .. s, 0) / 1000
         self:AnimateCustom("DoorCab" .. s, "handle", ct < ts and 1 or 0, 0, 1, 64, 0.5)
+    end
+
+    local controller_type = self:GetNW2Int("ControllerType765", 1)
+    for idx, controller in ipairs(Controllers) do
+        if idx == controller_type then
+            self:ShowHide(controller, true)
+            self:Animate(controller, ControllerPos[self:GetPackedRatio("Controller") + 4] or 0, idx == 2 and 0.316 or 0, idx == 2 and 0.66 or 1, 2, false)
+        else
+            self:ShowHide(controller, false)
+        end
     end
 
     return retval

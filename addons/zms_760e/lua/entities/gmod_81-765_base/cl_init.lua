@@ -1322,7 +1322,6 @@ function ENT:MezhwagConnectable(wag, prefix)
 end
 
 local CranePos = {0, 0.28, 0.38, 0.48, 0.85, 1}
-local ControllerPos = {0, 0.22, 0.41, 0.6, 0.8, 1}
 function ENT:Think()
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.Think(self)
@@ -1564,7 +1563,6 @@ function ENT:Think()
         self:Animate("MnBl", self:GetPackedRatio("BL"), 0, 1, 256, 2)
         self:Animate("MnTl", self:GetPackedRatio("TL"), 0, 1, 256, 2)
         self:Animate("MnBc", self:GetPackedRatio("BC"), 0, 1, 256, 2)
-        self:Animate("Controller", ControllerPos[self:GetPackedRatio("Controller") + 4] or 0, 0.316, 0.66, 2, false)
         self:Animate("EmergencyBrakeValve", self:GetPackedBool("EmergencyBrakeValve") and 1 or 0, 0, 1, 6, false)
 
         self:Animate("K9", self:GetPackedBool("K9") and 0 or 1, 0, 1, 16, 0.5)

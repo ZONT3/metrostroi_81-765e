@@ -285,8 +285,7 @@ function ENT:TrainSpawnerUpdate()
         end
     end
 
-    local kvType = self:GetNW2Int("KvType", 1)
-    if kvType == 1 then kvType = math.random(2) else kvType = kvType - 1 end
+    local kvType = self:GetNW2Int("ControllerType765", 1)
     self.KvSnd = kvType == 1 and "KV1_" or "KV2_"
 
     self:SetNW2Int("BNT:ScreenFps", self:GetNW2Int("BntFps", 2) == 2 and 60 or 15)
