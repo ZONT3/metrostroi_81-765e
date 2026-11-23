@@ -2860,12 +2860,12 @@ ENT.ButtonMap["NotificationPaperBtn"] = {
     }
 }
 
--- ENT.ClientProps["wiper"] = {
---     model = "models/metrostroi_train/81-760/81_760_wiper.mdl",
---     pos = Vector(0, 0, 0),
---     ang = Angle(0, 0, 0),
---     hide = 2,
--- }
+ENT.ClientProps["Wiper"] = {
+    model = "models/metrostroi_train/81-765_v1/765/wiper.mdl",
+    pos = Vector(0, 0, 0),
+    ang = Angle(0, 0, 0),
+    hide = 2,
+}
 
 ENT.ClientProps["KRO"] = {
     model = "models/metrostroi_train/81-765_v1/765/reversor.mdl",
@@ -3645,6 +3645,24 @@ function ENT:Think(...)
         else
             self:ShowHide(controller, false)
         end
+    end
+
+    local dT = FrameTime()
+    local wiper_power = self:GetNW2Bool("WiperPower", false)
+    local wiper_val = self.WiperVal or 0
+    if wiper_power or wiper_val ~= 0 then
+        wiper_val = wiper_val + dT * 0.4
+        if not wiper_power and wiper_val > 1 then
+            wiper_val = 0
+        elseif wiper_val > 1 then
+            wiper_val = wiper_val % 1.0
+        end
+    end
+    self.WiperVal = wiper_val
+
+    local wiper = self.ClientEnts["Wiper"]
+    if IsValid(wiper) then
+        wiper:SetPoseParameter("position", wiper_val)
     end
 
     return retval

@@ -89,7 +89,7 @@ TODO
   - [x] Cabin models: buttons
   - [x] Cabin models: controller variants
   - [ ] Sramat UI fixes
-  - [ ] DVORNIK mazafaka
+  - [x] DVORNIK mazafaka
   - [ ] Skins justification
   - [x] Move w/o KD mode
     - [x] Electric-side doors closed signal ~~*Not found on any schematics*~~ *finally found one*

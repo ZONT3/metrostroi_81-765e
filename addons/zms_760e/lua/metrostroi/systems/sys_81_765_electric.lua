@@ -401,7 +401,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
         Panel.OtklRl = self.UPIPower * Wag.OtklR.Value * Wag.SF70F3.Value
         Panel.Washerl = self.PowerReserve * Wag.Washer.Value * Wag.SF70F3.Value
         Panel.Wiperl = self.PowerReserve * Wag.Wiper.Value * Wag.SF70F3.Value
-        Panel.WiperPower = self.PowerReserve * Wag.SF70F3.Value
+        Panel.WiperPower = self.PowerReserve * IO(Panel.Washerl + Panel.Wiperl)
         Panel.EmergencyControlsl = self.UPIPower * Wag.EmergencyControls.Value
         Panel.EmergencyDoorsl = self.UPIPower * Wag.EmergencyDoors.Value
         Panel.GlassHeatingl = self.PowerReserve * Wag.SF70F2.Value * Wag.GlassHeating.Value
