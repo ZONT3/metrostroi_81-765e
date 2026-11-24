@@ -1321,7 +1321,6 @@ function ENT:MezhwagConnectable(wag, prefix)
     )
 end
 
-local CranePos = {0, 0.28, 0.38, 0.48, 0.85, 1}
 function ENT:Think()
     local BaseClass = scripted_ents.GetStored("gmod_subway_base").t
     BaseClass.Think(self)
@@ -1571,9 +1570,6 @@ function ENT:Think()
 
         self:Animate("KRO", self:GetPackedRatio("KRO", 0), 0, 1, 6, false)
         self:Animate("KRR", self:GetPackedRatio("KRR", 0), 0, 1, 3, false)
-
-        self:Animate("KM013", CranePos[7 - self:GetPackedRatio("Cran")] or 0, 0, 1, 2, false)
-        self:Animate("PB", self:GetPackedBool("PB") and 1 or 0, 0, 1, 8, false)
 
         self:Animate("CabChairAdd", self:GetPackedBool("CabChairAdd") and 1 or 0, 0, 1, 4, 0.5)
         self:HidePanel("CoupleCenteringF", not self:GetNW2Bool("CoupleSprings", false) or self:GetNW2Bool("FrontCoupled", false))

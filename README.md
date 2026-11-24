@@ -72,7 +72,7 @@ TODO
   - [ ] ASNP
   - [ ] RVS
 - [ ] Alpha
-  - [ ] KL3
+  - [x] KL3
   - [ ] Fix various clientside multiplayer-related issues
   - [x] LED-based BNT loop routes and bugfixes
   - [x] AO disappearing should clear ARS brake signal when Vdop > 0 and V==0

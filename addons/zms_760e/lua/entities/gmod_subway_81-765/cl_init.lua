@@ -2906,13 +2906,13 @@ ENT.ClientProps["ControllerBarrel"] = {
     hide = 2,
 }
 
+local CranePos = {0, 0.28, 0.38, 0.48, 0.85, 1}
 ENT.ClientProps["KM013"] = {
     model = "models/metrostroi_train/81-765_v1/765/krmsh_cab.mdl",
     pos = Vector(484.06, -11.59, -16.47),
     ang = Angle(-16.245, -21.177, 88.204),
     hideseat = 0.5,
 }
-
 if not ENT.ClientSounds["br_013"] then ENT.ClientSounds["br_013"] = {} end
 table.insert(ENT.ClientSounds["br_013"], {"KM013", function(ent, _, var) return "br_013" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)})
 
@@ -2921,9 +2921,16 @@ ENT.ClientProps["PB"] = {
     pos = Vector(495.93, 37.23, -46.48),
     ang = Angle(0, 0, 0),
 }
-
 if not ENT.ClientSounds["PB"] then ENT.ClientSounds["PB"] = {} end
 table.insert(ENT.ClientSounds["PB"], {"PB", function(ent, var) return var > 0 and "pb_on" or "pb_off" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)})
+
+ENT.ClientProps["Kl3"] = {
+    model = "models/metrostroi_train/81-765_v1/765/kl3.mdl",
+    pos = Vector(500.41, 15.71, -46.72),
+    ang = Angle(0, 0, 0),
+}
+if not ENT.ClientSounds["Kl3"] then ENT.ClientSounds["Kl3"] = {} end
+table.insert(ENT.ClientSounds["Kl3"], {"Kl3", function(ent, var) return var > 0 and "pb_on" or "pb_off" end, 1, 1, 50, 1e3, Angle(-90, 0, 0)})
 
 ENT.ClientProps["ASHook"] = {
     model = "models/metrostroi_train/81-760/81_760_brake_valve.mdl",
@@ -3664,6 +3671,10 @@ function ENT:Think(...)
     if IsValid(wiper) then
         wiper:SetPoseParameter("position", wiper_val)
     end
+
+    self:Animate("KM013", CranePos[7 - self:GetPackedRatio("Cran")] or 0, 0, 1, 2, false)
+    self:Animate("PB", self:GetPackedBool("PB") and 1 or 0, 0, 1, 8, false)
+    self:Animate("Kl3", self:GetPackedBool("Kl3") and 1 or 0, 0, 1, 8, false)
 
     return retval
 end
