@@ -4,8 +4,8 @@ ZMS.Rec765 = ZMS.Rec765 or {}
 
 CreateClientConVar("765_rec_dur1", "0", true, true)
 CreateClientConVar("765_rec_dur2", "0", true, true)
-CreateClientConVar("765_rec1", "https://steamusercontent-a.akamaihd.net/ugc/13614774836284261489/0D1AFCAED2F09DCB354A1DB285231C025695E2E0/", true, true)
-CreateClientConVar("765_rec2", "https://steamusercontent-a.akamaihd.net/ugc/9499205620757309889/D44F090374929A59ED4BF5C7FA3A2A642547BE30/", true, true)
+local rec1_cvar = CreateClientConVar("765_rec1", "https://steamusercontent-a.akamaihd.net/ugc/13614774836284261489/0D1AFCAED2F09DCB354A1DB285231C025695E2E0/", true, true)
+local rec2_cvar = CreateClientConVar("765_rec2", "https://steamusercontent-a.akamaihd.net/ugc/9499205620757309889/D44F090374929A59ED4BF5C7FA3A2A642547BE30/", true, true)
 
 local TRACK_KEYS = {
     {
@@ -224,20 +224,22 @@ local function ConfigureEntry(e, idx)
     end
 end
 
-local function ChuraClientPanel(panel)
-    panel:ClearControls()
-    panel:SetPadding(0)
-    panel:SetSpacing(0)
-    panel:Dock( FILL )
-
+hook.Add("765.PopulateOptions", "765.UserSoundOptions", function(panel)
     panel:Help("Экстренные сообщения БУ-ИК")
-    panel:ControlHelp("Применяются ко всем заспавненным вами 81-760Э и обновляются при каждом изменении.")
+    panel:ControlHelp("Применяются ко всем заспавненным вами 81-765 и обновляются при каждом изменении.")
     panel:ControlHelp("Становятся доступны как только все игроки кэшировали звук. Если в меню БУ-ИК \"Доп. инфо\" на записи висит маркировка \"запись\" - значит кто-то все еще ее кэширует/скачивает. Видно только на БУ-ИК варианта Метроспецтехники.")
     ConfigureEntry(panel:TextEntry("Запись №1", "765_rec1"), 1)
     ConfigureEntry(panel:TextEntry("Запись №2", "765_rec2"), 2)
     panel:ControlHelp("Только прямые ссылки на звук. Некоторые форматы неподдерживаются, гуглите особенности BASS, если необходимо узнать подробности.")
-end
 
-hook.Add("PopulateToolMenu", "765.ClientPanel", function()
-    spawnmenu.AddToolMenuOption("Utilities", "Metrostroi", "metrostroi765_client_panel", "81-760Э", "", "", ChuraClientPanel)
+    panel:Button("Вернуть исходные звуки", "765_reset_usersound")
+    panel:ControlHelp("ВНИМАНИЕ: Если у вас зависает игра при смене карты или выходе, исользуйте эту кнопку для возврата к оригинальным значениям. Эта проблема присутствует при неудачной попытке скачать звук.")
+
+    panel:Help("")
+    panel:Help("")
+end)
+
+concommand.Add("765_reset_usersound", function()
+    rec1_cvar:SetString("https://steamusercontent-a.akamaihd.net/ugc/13614774836284261489/0D1AFCAED2F09DCB354A1DB285231C025695E2E0/")
+    rec2_cvar:SetString("https://steamusercontent-a.akamaihd.net/ugc/9499205620757309889/D44F090374929A59ED4BF5C7FA3A2A642547BE30/")
 end)
