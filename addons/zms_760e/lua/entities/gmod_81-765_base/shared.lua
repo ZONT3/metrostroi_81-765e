@@ -269,15 +269,29 @@ function ENT:InitializeSounds()
     self.SoundPositions["door_cond_close"] = self.SoundPositions["door_cond_open"]
 
     for idx = 1, 8 do
+        local left = idx < 5
+        local offset_x = left and idx - 1 or idx - 5
         if self.IsIntermediate or idx ~= 5 then
             local k = "bud_" .. idx
             local k_op = k .. "_open"
             local k_cl = k .. "_close"
             self.SoundNames[k_op] = self.SoundNames["door_puv_open"]
-            self.SoundPositions[k_op] = {800, 1e9, Vector((idx > 4 and 415.5 or 283.8) - (idx - (idx > 4 and 5 or 1)) * 235.5, idx > 4 and -43 or 43, 52), 0.5}
+            self.SoundPositions[k_op] = {800, 1e9, Vector((left and 283.8 or 415.5) - (idx - (left and 1 or 5)) * 235.5, left and 43 or -43, 52), 0.5}
             self.SoundNames[k_cl] = self.SoundNames["door_puv_close"]
             self.SoundPositions[k_cl] = self.SoundPositions[k_op]
         end
+
+        local pos = Vector(
+            (left and 378.23 or 322.03) - offset_x * 235.61,
+            left and 65.53 or -65.53,
+            -38.07
+        )
+        local k_lock = "door_lock_" .. idx
+        local k_unlock = "door_unlock_" .. idx
+        self.SoundNames[k_lock] = "subway_trains/717/switches/rc_on.mp3"
+        self.SoundPositions[k_lock] = {800, 1e9, pos, 0.5}
+        self.SoundNames[k_unlock] = "subway_trains/717/switches/rc_off.mp3"
+        self.SoundPositions[k_unlock] = self.SoundPositions[k_lock]
     end
 
     self.SoundNames["sf_on"] = "subway_trains/722/switches/sf_on.mp3"

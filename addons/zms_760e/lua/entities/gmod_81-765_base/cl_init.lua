@@ -768,10 +768,6 @@ for k, tbl in ipairs({ENT.LeftDoorPositions or {}, ENT.RightDoorPositions or {}}
                     tooltip = "Ручная блокировка",
                     model = {
                         var = "DoorManualBlock" .. idx,
-                        model = "models/metrostroi_train/81-717/battery_enabler.mdl",
-                        speed = 9, vmin = 1, vmax = 0, sndvol = 0.8, scale = 0.1,
-                        snd = function(val) return val and "pak_on" or "pak_off" end,
-                        sndmin = 80, sndmax = 1e3 / 3, sndang = Angle(-90, 0, 0),
                     }
                 }
             }
@@ -881,16 +877,28 @@ ENT.TriangActions["BayBs"] = {
 }
 for idx = 1, 8 do
     local left = idx < 5
-    local i = left and idx - 1 or idx - 5
-    local offset = 235.7 * i
+    local offset_x = left and idx - 1 or idx - 5
     ENT.TriangActions["BayCoverBud" .. idx] = {
         {
-            pos = Vector((left and 301.75 or 435.98) - offset, left and 58.88 or -58.88, 42.04),
+            pos = Vector((left and 301.75 or 435.98) - 235.7 * offset_x, left and 58.88 or -58.88, 42.04),
             ang = Angle(0.000, left and 90.000 or -90.000, -180.000)
         }, {
-            pos = Vector((left and 263.98 or 398.23) - offset, left and 58.88 or -58.88, 42.04),
+            pos = Vector((left and 263.98 or 398.23) - 235.7 * offset_x, left and 58.88 or -58.88, 42.04),
             ang = Angle(0.000, left and 90.000 or -90.000, -180.000)
         },
+    }
+
+    local pos = Vector(
+        (left and 378.23 or 322.03) - offset_x * 235.61,
+        left and 65.53 or -65.53,
+        -38.07
+    )
+    ENT.TriangActions["DoorManualBlock" .. idx] = {
+        {
+            pos = pos,
+            ang = Angle(left and 180 or 0, 0, left and 88 or -92)
+        },
+        k = "DoorManualBlock" .. idx
     }
 end
 
@@ -1524,9 +1532,9 @@ function ENT:Think()
         local anim_k = "Triang" .. k
         local val
         if not v.k then
-            val = self:Animate(anim_k, cur and 1 or 0, 0, 1, 16, 0.5)
+            val = self:Animate(anim_k, cur and 1 or 0, 0, 1, 32, 0.5)
         else
-            val = self:Animate(anim_k, self:GetPackedBool(v.k) and 1 or 0, 0, 1, 16, 0.5)
+            val = self:Animate(anim_k, self:GetPackedBool(v.k) and 1 or 0, 0, 1, 32, 0.5)
         end
         if cur then
             for idx = 1, 2 do
@@ -2038,6 +2046,9 @@ function ENT:OnPlay(soundid, location, range, pitch)
         return range > 0 and "battery_on_1" or "battery_off_1", location, 1, 1
     elseif soundid == "BV" then
         return range > 0 and "battery_pneumo" or "bv_off", location, 1, 1
+    elseif string.StartsWith(soundid, "DoorManualBlock") then
+        local idx = string.sub(soundid, 16)
+        return range > 0 and "door_lock_" .. idx or "door_unlock_" .. idx, location, 1, 1
     end
     return soundid, location, range, pitch
 end

@@ -79,7 +79,7 @@ TODO
     - [x] KVT on AO should mute ARS ring but wont save from RVTB poweroff
     - [x] Remove "Forgiveful BARS"
   - [x] Doors locks and anims
-  - [ ] Tryokhgranka animations
+  - [x] Tryokhgranka animations
   - [ ] HV circuits rework
     - [x] VVVF
     - [ ] Recc

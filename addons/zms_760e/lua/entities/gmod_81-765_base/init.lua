@@ -502,14 +502,14 @@ function ENT:TriangCover(id)
     else
         local cur_id = self:GetNW2String("TriangId", "")
         if cur_id == id then return end
-        self:TriangAction(id, function() self[val_k] = true end)
+        self:TriangAction(id, 0.4, function() self[val_k] = true end)
     end
 end
 
-function ENT:TriangAction(id, after)
+function ENT:TriangAction(id, dur, after)
     self:SetNW2String("TriangId", id)
     self.TriangAfter = after
-    self.TriangDelay = CurTime() + 0.4
+    self.TriangDelay = CurTime() + (dur or 1.2)
 end
 
 function ENT:OnCouple(couple, isfront)
@@ -562,7 +562,11 @@ function ENT:OnButtonPress(button, ply)
         return
     end
     if string.StartsWith(button, "BayCoverBud") then
-        self:TriangCover("BayCoverBud" .. tonumber(string.sub(button, 12)))
+        self:TriangCover("BayCoverBud" .. string.sub(button, 12))
+        return
+    end
+    if string.StartsWith(button, "DoorManualBlock") then
+        self:TriangAction("DoorManualBlock" .. string.sub(button, 16, 16))
         return
     end
 end
