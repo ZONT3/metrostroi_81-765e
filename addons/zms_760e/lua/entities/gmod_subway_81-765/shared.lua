@@ -984,15 +984,16 @@ ENT.SpawnerCustom = {
                 end
                 local first = i == 1 or _LastSpawner ~= CurTime()
                 if first then
-                    if IsValid(wag.Owner) and wag.Owner.GetUTimeTotalTime then
+                    local auto_odometer = IsValid(wag.Owner) and wag.Owner:GetInfoNum("765_auto_odometer", 0) == 1
+                    if auto_odometer and wag.Owner.GetUTimeTotalTime then
                         _Odometer = math.floor(wag.Owner:GetUTimeTotalTime() * 1000 / 3600 * 1000)
                     else
-                        _Odometer = math.random(0, 999999)
+                        _Odometer = auto_odometer and math.random(0, 999999) or nil
                     end
                     _DoorsDelay = math.Rand(0.42, 0.57)
                 end
-                if _Odometer then wag.Odometer = _Odometer end
                 if _DoorsDelay then wag.BUD.DoorsDelayMax = _DoorsDelay end
+                if _Odometer then wag.Odometer = _Odometer end
                 if wag.SA1 then
                     local leaveOff = {
                         SF22F4 = not wag:GetNW2Bool("BtbuSd", false),
@@ -1017,6 +1018,7 @@ ENT.SpawnerCustom = {
 
                     -- Without that, sometimes they remain turned off in turbostroi, but turning on on main thread
                     timer.Simple(1, function()
+                        if not IsValid(wag) then return end
                         wag.PmvAddressDoors:TriggerInput("Set", wag:GetNW2Bool("AddressDoors", false) and 0 or 1)
                         wag.PmvParkingBrake:TriggerInput("Set", val == 3 and 1 or 0)
                         wag.PmvLights:TriggerInput("Set", val <= 1 and 0 or 1)
@@ -1087,6 +1089,20 @@ ENT.SpawnerCustom = {
 
                     wag.Pneumatic.BrakeLinePressure = 2.25 + math.random() * 0.15
                 end
+
+                timer.Simple(1, function()
+                    if not IsValid(wag) then return end
+                    if wag.Odometer then
+                        local base = wag.Odometer * 0.01 * (wag.SA1 and 1.04 or 1) * math.Rand(0.985, 1.015)
+                        if wag.AsyncInverter then
+                            wag.AsyncInverter:TriggerInput("IConsumedTotal", 1e3 * base * (1 - 0.1125))
+                            wag.AsyncInverter:TriggerInput("IRecTotal", 1e3 * base * (1 - 0.1125) / math.Rand(3.49, 3.51))
+                        else
+                            wag.Irecc = math.max(0, math.Rand(-18, 5))
+                        end
+                        wag.Electric:TriggerInput("IvoUsed", 3.6e6 * base * 0.1125)
+                    end
+                end)
 
                 wag.Pneumatic.TrainLinePressure = val == 3 and 5 + math.random() or val == 2 and 6.6 + math.random() * 1.4 or 7.6 + math.random() * 0.5
                 if not wag.SA1 then wag.Pneumatic.TLPressure = wag.Pneumatic.TrainLinePressure end

@@ -4,41 +4,48 @@ TRAIN_SYSTEM.DontAccelerateSimulation = false
 
 function TRAIN_SYSTEM:Initialize()
     -- Physics state
-    self.Torque = 0.0               -- Relative units of torque, m/s²
+    self.Torque = 0.0             -- Relative units of torque, m/s²
 
     -- Inverter state
-    self.Assembly = 0               -- Currently assembled scheme mode, 1/0/-1
-    self.Disassembled = 0           -- Scheme disassembled by invertor, 1/0
-    self.State = 0.0                -- Nominal output state, [1, 0]
-    self.InverterFrequency = 0.0    -- Output per-phase frequency, Hz
-    self.TargetCurrent = 0.0        -- Target Current, that inverter will hold, A
-    self.Current = 0.0              -- Total electric current, A
-    self.Drive = 0                  -- Drive mode signal, 1/0
-    self.Brake = 0                  -- Brake model signal, 1/0
-    self.DeltaSpeed = 0             -- Actual acceleration, m/s²
-    self.Load = 0                   -- Load factor
-    self.LowSpeedMode = 0           -- Low speed program factor, [0, 1]
+    self.Assembly = 0             -- Currently assembled scheme mode, 1/0/-1
+    self.Disassembled = 0         -- Scheme disassembled by invertor, 1/0
+    self.State = 0.0              -- Nominal output state, [1, 0]
+    self.InverterFrequency = 0.0  -- Output per-phase frequency, Hz
+    self.TargetCurrent = 0.0      -- Target Current, that inverter will hold, A
+    self.Current = 0.0            -- Total electric current, A
+    self.Drive = 0                -- Drive mode signal, 1/0
+    self.Brake = 0                -- Brake model signal, 1/0
+    self.DeltaSpeed = 0           -- Actual acceleration, m/s²
+    self.Load = 0                 -- Load factor
+    self.LowSpeedMode = 0         -- Low speed program factor, [0, 1]
+    self.RecurperationMode = 0    -- Recurperation on by ATC, 1/0
+    self.Recurperation = 0        -- Recurperation active, 1/0
+    self.Chopper = 0              -- Chopper state, [0, 1]
+    self.IChopped = 0             -- Current currently being chopped, A
+    self.IConsumedTotal = 0       -- Electricity consumed, Wh
+    self.IRecTotal = 0            -- Electricity recurperated, Wh
 
     -- Inverter input signals
-    self.Speed = 0                  -- Speed of train, km/h
-    self.Power = 0                  -- HV Power supply assembled, 1/0
-    self.Voltage = 0                -- HV, V
-    self.Command = 0                -- Command collective signal (target mode and level), [4, -3]
-    self.WeightLoadRatio = 0        -- [0, inf]
-    self.Slope = 0                  -- Slope mode signal, 1/0
+    self.Speed = 0                -- Speed of train, km/h
+    self.Power = 0                -- HV Power supply assembled, 1/0
+    self.Voltage = 0              -- HV, V
+    self.Command = 0              -- Command collective signal (target mode and level), [4, -3]
+    self.WeightLoadRatio = 0      -- [0, inf]
+    self.Slope = 0                -- Slope mode signal, 1/0
 
     -- Internals
     self.LastSpeed = 0
 end
 
 function TRAIN_SYSTEM:Inputs()
-    return { "Speed", "Power", "Voltage", "Command", "WeightLoadRatio", "Load" }
+    return { "Speed", "Power", "Voltage", "Command", "WeightLoadRatio", "Load", "RecurperationMode", "IConsumedTotal", "IRecTotal" }
 end
 
 function TRAIN_SYSTEM:Outputs()
     return {
         "Drive", "Brake", "Assembly", "Torque", "Current", "State", "InverterFrequency", "Disassembled", "LowSpeedMode", "Load",
-        "TargetCurrent", "Speed", "Voltage", "Power", "Command", "WeightLoadRatio", "Slope", "DeltaSpeed"
+        "TargetCurrent", "Speed", "Voltage", "Power", "Command", "WeightLoadRatio", "Slope", "DeltaSpeed", "IConsumedTotal", "IRecTotal",
+        "IChopped", "Chopper",
     }
 end
 
@@ -195,6 +202,24 @@ function TRAIN_SYSTEM:Think(dT)
     local xTorque = interpolate(self.xTorque, abs(I))
     local Torque = (2 * 3 * V ^ 2 * R2 / (2 * pi * f * s * R ^ 2)) * 0.000744 * assembly * xTorque
 
+    if assembly < 0 and self.State > 0 then
+        self.Recurperation = ((not self.ChopperTimer or CurTime() >= self.ChopperTimer) and HV and 1 or 0) * self.RecurperationMode
+
+        self.IChopped = self.IChopped + (-I * (1 - self.Recurperation) - self.IChopped) * dT * 2
+        self.Chopper = Clamp(self.IChopped / 120, 0, 1) * (0.6 + 0.4 * Clamp((self.ChopperTimer or 0) - CurTime(), 0, 3) / 3)
+        self.IRecTotal = self.IRecTotal + self.Train.Electric.Counter * self.Recurperation * max(0, -I - self.IChopped) * 0.8 * self.Voltage * dT / 3600
+    else
+        self.Recurperation = 0
+        self.IChopped = 0
+        self.Chopper = 0
+        if assembly > 0 and self.State > 0 then
+            self.IConsumedTotal = self.IConsumedTotal + self.Train.Electric.Counter * I * self.Voltage * dT / 3600
+        end
+    end
+
+    if not self.ChopperTimer and assembly < 0 and self.Recurperation == 0 then self.ChopperTimer = CurTime() + Rand(2.8, 3.4) end
+    if self.Recurperation == 1 or assembly >= 0 then self.ChopperTimer = nil end
+
     -- Outputs
     self.Assembly = assembly
     self.LowSpeedMode = ls
@@ -226,7 +251,7 @@ if CLIENT then
         local text = Format(
             "S=% 05.2f I=% 07.2fA I_t=% 07.2fA f=% 06.2fHz T=% 06.2fm/s²\n" ..
             "V=% 06.2fkm/h U=% 07.2fV Cmd=% 05.2f Cmd_s=%01d k_m=% 05.2f\n" ..
-            "dV=% 06.2fm/s² k_L=% 05.2f k_LS=%04.2f",
+            "dV=% 06.2fm/s² k_L=% 05.2f k_LS=%04.2f I_c=%06.2fA",
             wag:GetNW2Int("VVVF:State", -1) / 100,
             wag:GetNW2Int("VVVF:Current", -1) / 100,
             wag:GetNW2Int("VVVF:TargetCurrent", -1) / 100,
@@ -239,7 +264,8 @@ if CLIENT then
             wag:GetNW2Int("VVVF:WeightLoadRatio", -1) / 100,
             wag:GetNW2Int("VVVF:DeltaSpeed", -1) / 100,
             wag:GetNW2Int("VVVF:Load", -1) / 100,
-            wag:GetNW2Int("VVVF:LowSpeedMode", -1) / 100
+            wag:GetNW2Int("VVVF:LowSpeedMode", -1) / 100,
+            wag:GetNW2Int("VVVF:IChopped", -1) / 100
         )
 
         surface.SetFont("DebugFixed")
@@ -269,6 +295,7 @@ if SERVER then
                 wag:SetNW2Int("VVVF:DeltaSpeed", vvvf.DeltaSpeed * 100)
                 wag:SetNW2Int("VVVF:Load", vvvf.Load * 100)
                 wag:SetNW2Int("VVVF:LowSpeedMode", vvvf.LowSpeedMode * 100)
+                wag:SetNW2Int("VVVF:IChopped", vvvf.IChopped * 100)
             end
         end
     end)

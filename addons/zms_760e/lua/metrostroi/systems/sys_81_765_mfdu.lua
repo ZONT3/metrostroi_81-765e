@@ -278,10 +278,16 @@ surface.CreateFont("Mfdu765.24", {
     outline = false,
 })
 
-surface.CreateFont("Mfdu765.MsgLog", {
+surface.CreateFont("Mfdu765.20", {
     font = "Open Sans",
     extended = true,
     size = 20,
+})
+
+surface.CreateFont("Mfdu765.22", {
+    font = "Open Sans",
+    extended = true,
+    size = 22,
 })
 
 surface.CreateFont("Mfdu765.28", {
@@ -290,25 +296,32 @@ surface.CreateFont("Mfdu765.28", {
     size = 28,
 })
 
-surface.CreateFont("Mfdu765.TopBarSmall", {
-    font = "Open Sans",
-    extended = true,
-    size = 26,
-    weight = 400,
-})
-
 surface.CreateFont("Mfdu765.40", {
     font = "Open Sans",
     extended = true,
     size = 40,
-    weight = 500,
+    weight = 400,
 })
 
-surface.CreateFont("Mfdu765.DepotMode", {
+surface.CreateFont("Mfdu765.44", {
+    font = "Open Sans",
+    extended = true,
+    size = 44,
+    weight = 400,
+})
+
+surface.CreateFont("Mfdu765.48", {
+    font = "Open Sans",
+    extended = true,
+    size = 48,
+    weight = 400,
+})
+
+surface.CreateFont("Mfdu765.50", {
     font = "Open Sans",
     extended = true,
     size = 50,
-    weight = 500,
+    weight = 400,
 })
 
 surface.CreateFont("Mfdu765.Message", {
@@ -360,25 +373,11 @@ surface.CreateFont("Mfdu765.StatusValueSpeed", {
     weight = 600,
 })
 
-surface.CreateFont("Mfdu765.DoorsLabels", {
-    font = "Open Sans",
-    extended = true,
-    size = 40,
-    weight = 400,
-})
-
 surface.CreateFont("Mfdu765.DoorsSide", {
     font = "Open Sans",
     extended = true,
     size = 40,
     weight = 600,
-})
-
-surface.CreateFont("Mfdu765.BodyTextLarge", {
-    font = "Open Sans",
-    extended = true,
-    size = 48,
-    weight = 500,
 })
 
 surface.CreateFont("Mfdu765.BodyTextSmall", {
@@ -541,6 +540,9 @@ function TRAIN_SYSTEM:DrawStatic()
     surface.DrawRect(scrW - sizeStatusSide, statusY, sizeBorder, sizeStatus)
 
     drawBox(0, scrOffsetY + 0, scrW, sizeTopBar, colorMainDarker, nil, sizeBorder)
+    surface.SetDrawColor(colorMainDarker)
+    surface.DrawRect(sizeStatusSide * 1.2, scrOffsetY + sizeBorder, sizeBorder, sizeTopBar - sizeBorder * 2)
+    surface.DrawRect(scrW - sizeStatusSide * 1.2 - sizeBorder, scrOffsetY + sizeBorder, sizeBorder, sizeTopBar - sizeBorder * 2)
 
     do
         local x, y = 0, scrOffsetY + scrH - sizeFooter
@@ -586,17 +588,17 @@ function TRAIN_SYSTEM:DrawTopBar(Wag, title)
         end
     end
 
-    local x, y = sizeStatusSide / 2, scrOffsetY + sizeTopBar / 2
+    local x, y = sizeStatusSide * 1.2 / 2, scrOffsetY + sizeTopBar / 2
     if line1 and line2 then
-        draw.SimpleText(line1, "Mfdu765.TopBarSmall", x, y - 12, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-        draw.SimpleText(line2, "Mfdu765.TopBarSmall", x, y + 12, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(line1, "Mfdu765.28", x, y - 16, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(line2, "Mfdu765.28", x, y + 16, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     else
-        draw.SimpleText(line, "Mfdu765.TopBarSmall", x, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(line, "Mfdu765.28", x, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
-    draw.SimpleText(title, "Mfdu765.40", scrW / 2, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-    draw.SimpleText(Wag:GetNW2String("Skif:Date", ""), "Mfdu765.TopBarSmall", scrW - x, y - 12, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-    draw.SimpleText(Wag:GetNW2String("Skif:Time", "--:--:--"), "Mfdu765.TopBarSmall", scrW - x, y + 12, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.SimpleText(title, "Mfdu765.44", scrW / 2, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.SimpleText(Wag:GetNW2String("Skif:Date", ""), "Mfdu765.28", scrW - x, y - 16, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.SimpleText(Wag:GetNW2String("Skif:Time", "--:--:--"), "Mfdu765.28", scrW - x, y + 16, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 end
 
 local sizeMainLinesH = 50
@@ -616,13 +618,13 @@ function TRAIN_SYSTEM:DrawMainPage()
 
     y = y + sizeMainLinesGapSmall + sizeMainLinesH
     draw.SimpleText("V", "Mfdu765.SpeedLetter", x, y + 4, colorRed, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
-    draw.SimpleText("доп", "Mfdu765.BodyTextLarge", x, y + 4, colorRed, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+    draw.SimpleText("доп", "Mfdu765.48", x, y + 4, colorRed, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
     draw.SimpleText(tostring(self.SpeedLimit), "Mfdu765.SpeedLetter", x, y - 12, colorRed, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
 
     if self.AlsArs then
         y = y + sizeMainLinesGapSmall * 2 + sizeMainLinesH * 2
         draw.SimpleText("V", "Mfdu765.SpeedLetter", x, y - 12, colorYellow, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
-        draw.SimpleText("пред", "Mfdu765.BodyTextLarge", x, y - 12, colorYellow, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+        draw.SimpleText("пред", "Mfdu765.48", x, y - 12, colorYellow, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
         draw.SimpleText(tostring(self.SpeedNext), "Mfdu765.SpeedLetter", x, y - 24, colorYellow, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
     end
 
@@ -989,13 +991,13 @@ function TRAIN_SYSTEM:DrawDepot()
     local Wag = self.Train
     local x = scrW / 2
     local y = scrOffsetY + sizeDepotHeader / 2
-    draw.SimpleText(self.State2 == 1 and "Ввод номеров вагонов" or "РЕЖИМ ДЕПО", "Mfdu765.DepotMode", x, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.SimpleText(self.State2 == 1 and "Ввод номеров вагонов" or "РЕЖИМ ДЕПО", "Mfdu765.50", x, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
     y = scrOffsetY + scrH - sizeDepotHeader / 2
     x = sizeButtonBorder + sizeDepotRowW / 4
-    draw.SimpleText(Wag:GetNW2String("Skif:Date", ""), "Mfdu765.DepotMode", x, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.SimpleText(Wag:GetNW2String("Skif:Date", ""), "Mfdu765.50", x, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     x = sizeButtonBorder + 3 * sizeDepotRowW / 4
-    draw.SimpleText(Wag:GetNW2String("Skif:Time", "--:--:--"), "Mfdu765.DepotMode", x, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.SimpleText(Wag:GetNW2String("Skif:Time", "--:--:--"), "Mfdu765.50", x, y, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
     local wagn = Wag:GetNW2Int("Skif:WagNum", 0)
 
@@ -1017,7 +1019,7 @@ function TRAIN_SYSTEM:DrawDepot()
         end
 
         if entry then
-            draw.SimpleText(entry, "Mfdu765.DepotMode", x + 50, y + sizeDepotRowH / 2, colorMain, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+            draw.SimpleText(entry, "Mfdu765.50", x + 50, y + sizeDepotRowH / 2, colorMain, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 
             local ent = Wag:GetNW2String("Skif:Enter", "-")
             local entering = ent ~= "-"
@@ -1039,7 +1041,7 @@ function TRAIN_SYSTEM:DrawDepot()
             end
             text = tostring(text)
 
-            surface.SetFont("Mfdu765.DepotMode")
+            surface.SetFont("Mfdu765.50")
             local tw, th = surface.GetTextSize(#text > 0 and text or "1")
             local tx, ty = x + sizeDepotCol + sizeDepotCol2 / 2, y + sizeDepotRowH / 2
             if entering and sel then
@@ -1047,7 +1049,7 @@ function TRAIN_SYSTEM:DrawDepot()
                 surface.DrawRect(tx - tw / 2, ty - th / 2, tw, th)
             end
             local color = entering and sel and colorBlack or sel and colorBlue or colorMain
-            draw.SimpleText(text, "Mfdu765.DepotMode", tx, ty, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText(text, "Mfdu765.50", tx, ty, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         end
 
         y = y + sizeDepotRowH
@@ -1073,7 +1075,7 @@ function TRAIN_SYSTEM:DrawDoorsPage(Wag, x, y, w, h)
     local gw, gh = w - posDoorsGridX - sizeMainMargin, h - posDoorsGridY - sizeMainMargin
     self:DrawGrid(
         gx, gy, gw, gh, false, sizeMainMargin * 0.75,
-        doorsLabels, "Mfdu765.DoorsLabels",
+        doorsLabels, "Mfdu765.44",
         true, "Mfdu765.24",
         sizeMainMargin, sizeMainMargin / 2,
         function(wagIdx, doorIdx)
@@ -1229,7 +1231,7 @@ function TRAIN_SYSTEM:DrawTable(x, y, w, h, rows, cols, colLengths, getter, boxM
     end
 end
 
-local elRowIndex = {"Параметр", "Uкс, В", "Uбс, В", "Uзу, В", "Ⅰмк, А", "Ⅰтп, А", "Ⅰзу, А", "Ⅰво, А", "Pп, кВт/ч", "Pр, кВт/ч", "Pоб, кВт/ч"}
+local elRowIndex = {"Параметр", "Uкс, В", "Uбс, В", "Uзу, В", "Ⅰмк, А", "Ⅰтп, А", "Ⅰзу, А", "Ⅰво, А", "Pп, кВт*ч", "Pр, кВт*ч", "Pоб, кВт*ч"}
 local elRowLen = {[1] = 108}
 function TRAIN_SYSTEM:DrawElectric(Wag, x, y, w, h)
     self:DrawTable(x, y, w, h - sizeMainMargin, #elRowIndex, 9, elRowLen, function(row, col)
@@ -1265,7 +1267,7 @@ function TRAIN_SYSTEM:DrawElectric(Wag, x, y, w, h)
                 return val, colorGreen
             elseif row == 6 then
                 if not async then return end
-                local val = math.Round(Wag:GetNW2Int("Skif:I" .. idx, 0) / 10)
+                local val = math.abs(math.Round(Wag:GetNW2Int("Skif:I" .. idx, 0) / 10))
                 return val, colorGreen
             elseif row == 7 then
                 local val = Wag:GetNW2Int("Skif:Ich" .. idx, 0) / 10
@@ -1274,11 +1276,11 @@ function TRAIN_SYSTEM:DrawElectric(Wag, x, y, w, h)
                 local val = Wag:GetNW2Int("Skif:IVO" .. idx, 0) / 10
                 return math.Round(val), colorGreen
             elseif row == 9 then
-                return Wag:GetNW2Int("Skif:Power" .. idx, 0), colorGreen
+                return Wag:GetNW2Int("Skif:PowerUsed" .. idx, 0), colorGreen, nil, "Mfdu765.22"
             elseif row == 10 then
-                return Wag:GetNW2Int("Skif:Dissipated" .. idx, 0), colorGreen
+                return Wag:GetNW2Int("Skif:Recurperated" .. idx, 0), colorGreen, nil, "Mfdu765.22"
             elseif row == 11 then
-                return Wag:GetNW2Int("Skif:Power" .. idx, 0) - Wag:GetNW2Int("Skif:Dissipated" .. idx, 0), colorGreen
+                return Wag:GetNW2Int("Skif:PowerUsed" .. idx, 0) - Wag:GetNW2Int("Skif:Recurperated" .. idx, 0), colorGreen, nil, "Mfdu765.22"
             end
         end
     end)
@@ -1482,7 +1484,7 @@ function TRAIN_SYSTEM:DrawCondPage(Wag, x, y, w, h)
         end
     )
 
-    draw.SimpleText("Температура", "Mfdu765.BodyTextLarge", x + w / 2, gy + gh + 16, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+    draw.SimpleText("Температура", "Mfdu765.48", x + w / 2, gy + gh + 16, colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
     local cw = w / 3
     draw.SimpleText("Кабина:", "Mfdu765.BodyTextSmall", x + cw / 2, gy + gh + 128, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     draw.SimpleText("20.0 ℃", "Mfdu765.BodyTextSmallBold", x + cw / 2 + 100, gy + gh + 128, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
@@ -1492,7 +1494,7 @@ function TRAIN_SYSTEM:DrawCondPage(Wag, x, y, w, h)
     draw.SimpleText("Внешняя:", "Mfdu765.BodyTextSmall", x + cw * 2 + cw / 2, gy + gh + 128, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
     draw.SimpleText("18.5 ℃", "Mfdu765.BodyTextSmallBold", x + cw * 2 + cw / 2 + 100, gy + gh + 128, colorMain, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
 
-    draw.SimpleText("Режим: " .. (Wag:GetNW2Bool("Skif:Cond", false) and "Лето" or "Зима"), "Mfdu765.BodyTextLarge", x + w / 2 - sizeButtonW / 2, gy + gh + 212, self.Select > 0 and colorBlue or colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.SimpleText("Режим: " .. (Wag:GetNW2Bool("Skif:Cond", false) and "Лето" or "Зима"), "Mfdu765.48", x + w / 2 - sizeButtonW / 2, gy + gh + 212, self.Select > 0 and colorBlue or colorMain, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     surface.SetDrawColor(Wag:GetNW2Bool("Skif:CondAny", false) and (Wag:GetNW2Bool("Skif:Cond", false) and colorYellow or colorBlue) or colorMain)
     surface.SetMaterial(icons[6][Wag:GetNW2Bool("Skif:Cond", false) and 2 or 1])
     local icw, ich = sizeButtonW * 0.7, sizeFooter * 0.7
@@ -1655,13 +1657,13 @@ function TRAIN_SYSTEM:DrawMessages(Wag, x, y, w, h)
             surface.DrawRect(x, y, w, sizeMsgH)
         end
         x = x + sizeMsgDate / 2
-        draw.SimpleText(msg.dateAppeared, "Mfdu765.MsgLog", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(msg.dateAppeared, "Mfdu765.20", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         x = x + sizeMsgDate / 2 + sizeBorder + sizeMsgTime / 2
-        draw.SimpleText(msg.timeAppeared, "Mfdu765.MsgLog", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(msg.timeAppeared, "Mfdu765.20", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         x = x + sizeMsgTime / 2 + sizeBorder + sizeMsgCat / 2
-        draw.SimpleText(msg.cat, "Mfdu765.MsgLog", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(msg.cat, "Mfdu765.20", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         x = x + sizeMsgCat / 2 + sizeBorder + 2
-        draw.SimpleText(msg.text, "Mfdu765.MsgLog", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        draw.SimpleText(msg.text, "Mfdu765.20", x, y + sizeMsgH / 2 - 2, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
         x = x0
         y = y + sizeMsgH
     end

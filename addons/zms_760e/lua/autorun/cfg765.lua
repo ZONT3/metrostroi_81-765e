@@ -22,9 +22,10 @@ end
 CV_765_SHOW_UNSAFE_ALS = CreateConVar("metrostroi_765_show_unsafe_als", "0", {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "Show unsafe options \"AbMode\", \"Als75\" and \"1/4\" even if no map config sets it")
 
 if CLIENT then
-    CV_765_LOCK_CAB = CreateClientConVar("765_lock_cab", "0", true, true, "Lock cabin on spawn", 0, 1)
+    CV_765_LOCK_CAB          = CreateClientConVar("765_lock_cab", "0", true, true, "Lock cabin on spawn", 0, 1)
+    CV_765_AUTO_ODOMETER     = CreateClientConVar("765_auto_odometer", "1", true, true, "Use GetUTimeTotalTime-based odometer value on spawn", 0, 1)
     CV_765_BNT_SPRITES_COUNT = CreateClientConVar("765_bnt_sprites", "64", true, false, "MST BNT LED sprites max count", 0, 128)
-    CV_765_BNT_SPRITE_TYPE = CreateClientConVar("765_bnt_sprite_type", "1", true, false, "MST BNT LED sprites max count", 1, 2)
+    CV_765_BNT_SPRITE_TYPE   = CreateClientConVar("765_bnt_sprite_type", "1", true, false, "MST BNT LED sprites max count", 1, 2)
 
     local function ChuraClientPanel(panel)
         panel:ClearControls()
@@ -37,6 +38,8 @@ if CLIENT then
         panel:Help("Основные опции")
 
         panel:CheckBox("Закрыть замки кабины при спавне", "765_lock_cab")
+        panel:CheckBox("Авто-одометр при спавне", "765_auto_odometer")
+        panel:ControlHelp("Задает значение одометра при спавне на основе общего времени игрока, проведенном на текущем сервере. Требует наличие ULX или подобного аддона.")
 
         panel:Help("")
         panel:Help("Тип спрайта станции БНТ \"МСТ\"")

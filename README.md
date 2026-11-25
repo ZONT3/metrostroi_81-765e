@@ -2,7 +2,7 @@
 
 Codebase for 81-765 derived trains.
 
-README is currently in WIP state until closed alpha-test.
+README is currently in WIP state until open beta-test.
 
 ## 81-765/766/767 «Москва»
 
@@ -39,6 +39,7 @@ TODO
     - [ ] Brake squeal remake
     - [ ] I personally dislike current state of CIK code, so maybe rewrite it from scratch (3700 lines of code 💀)
 - [ ] Beta
+  - [ ] Fix various clientside multiplayer-related stuttering issues
   - [ ] Models
     - [x] Early, half-baked variant
       - [x] Basic
@@ -73,18 +74,17 @@ TODO
   - [ ] RVS
 - [ ] Alpha
   - [x] KL3
-  - [ ] Fix various clientside multiplayer-related issues
   - [x] LED-based BNT loop routes and bugfixes
   - [x] AO disappearing should clear ARS brake signal when Vdop > 0 and V==0
     - [x] KVT on AO should mute ARS ring but wont save from RVTB poweroff
     - [x] Remove "Forgiveful BARS"
   - [x] Doors locks and anims
   - [x] Tryokhgranka animations
-  - [ ] HV circuits rework
+  - [x] HV circuits rework
     - [x] VVVF
-    - [ ] Recc
-    - [ ] Chopper
-    - [ ] Display values
+    - [x] Recc
+    - [x] Chopper
+    - [x] Display values
   - [x] Glass in cabin
   - [x] Cabin models: buttons
   - [x] Cabin models: controller variants

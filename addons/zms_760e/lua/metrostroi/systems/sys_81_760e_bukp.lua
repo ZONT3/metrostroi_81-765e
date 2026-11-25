@@ -1315,9 +1315,6 @@ function TRAIN_SYSTEM:Think(dT)
                         local train = self.Trains[self.Trains[i]]
                         Train:SetNW2Int("Skif:BrakeStrength" .. i, math.abs(train.BrakeStrength or 0) * 100)
                         Train:SetNW2Int("Skif:DriveStrength" .. i, math.abs(train.DriveStrength or 0) * 100)
-                        Train:SetNW2Int("Skif:Power" .. i, train.ElectricEnergyUsed)
-                        Train:SetNW2Int("Skif:I" .. i, train.I)
-                        Train:SetNW2Int("Skif:U" .. i, train.HVVoltage and train.HVVoltage * 10 or 0)
                         Train:SetNW2Int("Skif:EbrakeGood" .. i, train.EbrakeGood)
                     end
                 elseif self.State2 == 41 then
@@ -1327,11 +1324,11 @@ function TRAIN_SYSTEM:Think(dT)
                         Train:SetNW2Int("Skif:IVO" .. i, train.VagEqConsumption and train.VagEqConsumption * 10 or 0)
                         Train:SetNW2Int("Skif:UBS" .. i, train.LV and train.LV * 10 or 0)
                         Train:SetNW2Int("Skif:U" .. i, train.HVVoltage and train.HVVoltage * 10 or 0)
-                        Train:SetNW2Int("Skif:I" .. i, train.I)
+                        Train:SetNW2Int("Skif:I" .. i, train.I * 10)
                         Train:SetNW2Int("Skif:Ich" .. i, train.Ich and train.Ich * 10)
                         Train:SetNW2Int("Skif:Uch" .. i, train.Uch and train.Uch * 10)
-                        Train:SetNW2Int("Skif:Power" .. i, train.ElectricEnergyUsed)
-                        Train:SetNW2Int("Skif:Dissipated" .. i, train.ElectricEnergyDissipated)
+                        Train:SetNW2Int("Skif:PowerUsed" .. i, train.Iused)
+                        Train:SetNW2Int("Skif:Recurperated" .. i, train.Irecc)
                     end
                 elseif self.State2 == 51 or self.State2 == 52 then
                     for i = 1, self.WagNum do

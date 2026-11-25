@@ -307,7 +307,7 @@ function ENT:Think()
         self:SetPackedRatio("asynccurrent", math.Clamp(state * (state + VVVF.State / 1), 0, 1) * math.Clamp(self.Speed / 6, 0, 1))
         self:SetPackedRatio("asyncstate", math.Clamp(VVVF.State / 0.2 * math.abs(VVVF.Current) / 100, 0, 1))
         self:SetPackedRatio("VVVF:LowSpeed", VVVF.LowSpeedMode)
-        self:SetPackedRatio("chopper", math.Clamp(Electric.Chopper > 0 and Electric.Iexit / 100 or 0, 0, 1))
+        self:SetPackedRatio("chopper", VVVF.Chopper)
         self:SetPackedBool("CompressorWork", self.Pneumatic.Compressor and CurTime() - self.Pneumatic.Compressor > 0)
 
         self:SetPackedRatio("IVO", 0.5 + self.BUV.IVO / 150)

@@ -154,9 +154,10 @@ function TRAIN_SYSTEM:Think(dT)
     local Train = self.Train
     local BUD = Train.BUD
     local Electric = Train.Electric
+    local VVVF = Train.AsyncInverter
 
     local IsHead = not not Train.RV
-    local HasEngine = not not Train.AsyncInverter
+    local HasEngine = not not VVVF
     local P = HasEngine and Electric.Power750V or Electric.Main750V
 
     self.Power = Electric.CU * Train.SF23F11.Value
@@ -274,7 +275,6 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("TLPressure", self.ADUTWork and math.Round(Train.Pneumatic.TrainLinePressure, 1) or not self.ADUTWork and self.States.TLPressure)
         self:CState("BLPressure", self.ADUTWork and math.Round(Train.Pneumatic.BrakeLinePressure, 1) or not self.ADUTWork and self.States.BLPressure)
         self:CState("WeightLoad", math.Round(Train.Pneumatic.WeightLoadRatio, 2))
-        self:CState("ElectricEnergyUsed", Electric.ElectricEnergyUsed / 3.6e6)
         self:CState("PSNEnabled", self.PSN)
         self:CState("AddressDoorsL", BUD.AddressReadyL)
         self:CState("AddressDoorsR", BUD.AddressReadyR)
@@ -285,11 +285,15 @@ function TRAIN_SYSTEM:Think(dT)
             self:CState("BVEnabled", Train.BV.Value > 0)
             self:CState("MKCurrent", math.Round(Electric.MK * math.Round(math.Rand(12, 15) * (Train.Pneumatic.Compressor and (CurTime() - Train.Pneumatic.Compressor > 0 and 1 or CurTime() - Train.Pneumatic.Compressor > -4 and (4 + (CurTime() - Train.Pneumatic.Compressor)) / 4) or 0))))
             self:CState("MKWork", not self:Get("PVU2") and Train.SF30F3.Value == 1)
-            self:CState("DriveStrength", math.min(0, Train.AsyncInverter.Torque + Train.AsyncInverter.Torque * math.Rand(0, 0.05)))
-            self:CState("BrakeStrength", math.max(0, Train.AsyncInverter.Torque + Train.AsyncInverter.Torque * math.Rand(0, 0.05)))
-            self:CState("I", Train.AsyncInverter.Current)
+            self:CState("DriveStrength", math.min(0, VVVF.Torque + VVVF.Torque * math.Rand(0, 0.05)))
+            self:CState("BrakeStrength", math.max(0, VVVF.Torque + VVVF.Torque * math.Rand(0, 0.05)))
+            self:CState("I", VVVF.Current)
             self:CState("EbrakeGood", not Train:GetNW2Int("BtbuSd", false) or not self.SchemeTimer or CurTime() < self.SchemeTimer)
+            self:CState("Iused", Electric.IvoUsed / 3.6e6 + VVVF.IConsumedTotal / 1e3)
+            self:CState("Irecc", VVVF.IRecTotal / 1e3)
         else
+            self:CState("Iused", Electric.IvoUsed / 3.6e6)
+            self:CState("Irecc", Train.Irecc or 0)
             self:CState("DriveStrength", 0)
             self:CState("BrakeStrength", 0)
             self:CState("I", 0)
@@ -302,16 +306,18 @@ function TRAIN_SYSTEM:Think(dT)
             end
         end
 
-        self:CState("LV", Train.Battery.Voltage)
+        local counter = Electric.Counter == 1
+
+        self:CState("LV", counter and Train.Battery.Voltage or 0)
         self:CState("HVBad", Electric.Main750V < 550)
-        self:CState("LVBad", Electric.TrueBattery80V < 60)
+        self:CState("LVBad", not counter or Electric.TrueBattery80V < 60)
         self:CState("EnginesDone", self.EnginesDone)
         self:CState("PassLightEnabled", self.MainLights == 1)
-        self:CState("VagEqConsumption", self.IVO or -00.1)
-        self:CState("Uch", Train.Battery.ChargeVoltage)
-        self:CState("Ich", math.max(0, Train.Battery.Current))
-        self:CState("HVVoltage", math.floor(P))
-        self:CState("LVVoltage", math.floor(Electric.TrueBattery80V))
+        self:CState("VagEqConsumption", counter and self.IVO or -00.1)
+        self:CState("Uch", counter and Train.Battery.ChargeVoltage or 0)
+        self:CState("Ich", counter and math.max(0, Train.Battery.Current) or 0)
+        self:CState("HVVoltage", counter and math.floor(P) or 0)
+        self:CState("LVVoltage", counter and math.floor(Electric.TrueBattery80V) or 0)
         self:CState("Cond1", self.Cond1 > 0)
         self:CState("Cond2", self.Cond2 > 0)
         self:CState("HeatEnabled", false)
@@ -323,7 +329,6 @@ function TRAIN_SYSTEM:Think(dT)
         self:CState("BadCombination", (Train:ReadTrainWire(3) * Train:ReadTrainWire(4)) > 0)
         self:CState("WagType", Train.SubwayTrain.WagType)
         self:CState("WagNumber", Train.WagonNumber)
-        self:CState("ElectricEnergyDissipated", Electric.ElectricEnergyDissipated / 3.6e6)
         self:CState("BrakeEquip", Train.K31.Value > 0)
         self:CState("BTOKTO1", self.BTOKTO1)
         self:CState("BTOKTO2", self.BTOKTO2)
@@ -493,7 +498,7 @@ function TRAIN_SYSTEM:Think(dT)
         if HasEngine then
             if (self:Get("Brake") or 0) == 0 then
                 self.EnginesDone = false
-            elseif Train.AsyncInverter.Brake == 1 and Train.Speed < 7 or self:Get("PVU5") then
+            elseif VVVF.Brake == 1 and Train.Speed < 7 or self:Get("PVU5") then
                 self.EnginesDone = true
             end
         else
@@ -506,9 +511,9 @@ function TRAIN_SYSTEM:Think(dT)
         end
 
         if HasEngine then
-            if self.TargetStrength < 0 and not self.PTReplaceTimer and math.abs(Train.AsyncInverter.Torque) < 0.01 then
+            if self.TargetStrength < 0 and not self.PTReplaceTimer and math.abs(VVVF.Torque) < 0.01 then
                 self.PTReplaceTimer = CurTime()
-            elseif (self.TargetStrength >= 0 or math.abs(Train.AsyncInverter.Torque) >= 0.1) and self.PTReplaceTimer then
+            elseif (self.TargetStrength >= 0 or math.abs(VVVF.Torque) >= 0.1) and self.PTReplaceTimer then
                 self.PTReplaceTimer = nil
             end
         else

@@ -57,9 +57,10 @@ function TRAIN_SYSTEM:Initialize()
     self.ReservePsn = 0
 
     -- Total energy used by train
+    self.IvoUsed = 0 -- joules
     self.ElectricEnergyUsed = 0 -- joules
     self.ElectricEnergyDissipated = 0 -- joules
-    self.EnergyChange = 0
+
     --Wag wire outside power
     -- Need many iterations for engine simulation to converge
     self.SubIterations = 16
@@ -97,9 +98,6 @@ function TRAIN_SYSTEM:Initialize()
     self.Brake = 0
     self.Drive = 0
     self.BTO = 0
-    self.Recurperation = 0
-    self.Iexit = 0
-    self.Itotal = 0
     self.Chopper = 0
     self.ChopperTimeout = 0
     self.MK = 0
@@ -116,10 +114,13 @@ function TRAIN_SYSTEM:Initialize()
     self.ZeroSpeed = 0
     self.DoorsControl = 0
     self.DoorsClosed = 0
+    self.Counter = 0
+    self.Itotal = 0
+    self.Iexit = 0
 end
 
 function TRAIN_SYSTEM:Inputs()
-    return {"EnergyChange", "Power", "Slope"}
+    return {"Power", "Slope", "IvoUsed"}
 end
 
 function TRAIN_SYSTEM:Outputs()
@@ -127,17 +128,19 @@ function TRAIN_SYSTEM:Outputs()
         "TrueBattery80V", "Shared80V", "Psn80V", "SharedPsn80V", "Emer80V", "Supply80V",
         "AKB", "PSN", "EmerSupply", "KM", "Battery80V", "ReservePsn", "CU", "ReserveCU",
         "Brake", "Drive", "V2", "V1", "Main750V", "Power750V", "Aux750V", "BTB", "MK", "DoorsClosed",
-        "SD", "EmerXod", "PowerReserve", "Recurperation", "Iexit", "Itotal", "Chopper", "ElectricEnergyUsed",
-        "ElectricEnergyDissipated", "EnergyChange", "BTO", "ZeroSpeed", "DoorsControl", "UPIPower", "UPI2Power",
+        "SD", "EmerXod", "PowerReserve", "Chopper", "ElectricEnergyUsed", "ElectricEnergyDissipated",
+        "IvoUsed", "BTO", "ZeroSpeed", "DoorsControl", "UPIPower", "UPI2Power", "Counter",
+        "Itotal", "Iexit",
     }
 end
 
 function TRAIN_SYSTEM:TriggerInput(name, value)
     if name == "Power" and value then
         self.ForcePoweron = CurTime() + 5
+    else
+        self[name] = value
     end
 
-    if name == "Slope" then self.Slope = value end
 end
 
 local S = {}
@@ -173,7 +176,7 @@ end
 function TRAIN_SYSTEM:Think(dT, iter)
     local Wag = self.Train
     local Battery = Wag.Battery
-    local Async = Wag.AsyncInverter
+    local VVVF = Wag.AsyncInverter
     local Panel = Wag.Panel
     local BUV = Wag.BUV
     local RV = Wag.RV
@@ -235,6 +238,7 @@ function TRAIN_SYSTEM:Think(dT, iter)
     self.EmerSupply = self:LV(self.Emer80V)
     self.CU = self.EmerSupply * IO(Wag.SF30F6.Value + Wag.SF30F8.Value + Wag.SF30F9.Value)
     self.ReserveCU = self.CU * Wag.SF23F6.Value
+    self.Counter = self.KM * Wag.SF23F12.Value
 
     S.AkbCharge = IO(Wag:ReadTrainWire(42))
 
@@ -475,40 +479,34 @@ function TRAIN_SYSTEM:Think(dT, iter)
     Battery:TriggerInput("Load", S.Load)
     Battery:TriggerInput("SetInfinite", 1 - Wag.W30KM.Value)
 
-    if not Async then return end
+    self.IvoUsed = self.IvoUsed + self.Counter * S.Load * dT
+    self.ElectricEnergyUsed = self.ElectricEnergyUsed + (VVVF and VVVF.Current * VVVF.Voltage * dT or 0) + S.Load * dT
+    self.ElectricEnergyDissipated = self.ElectricEnergyDissipated + (VVVF and VVVF.IChopped * 750 * dT or 0)
+
+    local Itotal, Iexit = S.Uakb > 55 and (S.Load / S.Uakb) * 0.5 or 0, 0
+    if VVVF then
+        Itotal = Itotal + max(0, VVVF.Current * 2)
+        Iexit = VVVF.Recurperation * max(0, -VVVF.Current - VVVF.IChopped)
+    end
+
+    self.Itotal = self.Itotal + (Itotal - self.Itotal) * 2 * dT
+    self.Iexit = self.Iexit + (Iexit * 2 - self.Iexit) * 2 * dT
+
+    if not VVVF then return end
 
     self.MK = self.PSN * S.HV * self.KM * Wag.SF30F3.Value * (BUV.MK > 0 and 1 or Wag:ReadTrainWire(10))
     local command = BUV.Strength or 0
-    local speed = Async.Speed
+    local speed = VVVF.Speed
     if self.command ~= command and CurTime() - self.commandTimer > (0.3 + (command ~= 0 and speed > 2 and sign(command) ~= sign(self.command) and 0.6 or 0)) then
         self.commandTimer = CurTime()
         self.command = command
     end
 
-    Async:TriggerInput("Power", self.KM * (Wag.SF23F4 and Wag.SF23F4.Value or 1) * Wag.GV.Value * Wag.BV.Value)
-    Async:TriggerInput("Voltage", self.Power750V)
-    Async:TriggerInput("Command", self.command)
-    Async:TriggerInput("WeightLoadRatio", Wag.Pneumatic.WeightLoadRatio)
-    Async:TriggerInput("Slope", self.Slope)
-
-    self.EnergyChange = Async.Assembly > 0 and (Async.Current ^ 2) * 2.2 or 0
-    self.Itotal = Async.Current
-
-    if Async.Assembly < 0 and Async.State > 0 then
-        self.Recurperation = C(self.Main750V > 749 and self.Main750V < 921) * BUV.Recurperation
-        self.Iexit = self.Iexit + (-Async.Current * 2 * self.Recurperation - self.Iexit) * dT * 2
-
-        S.ChopperWork = (self.Main750V >= 921 or self.Main750V < 550) and 1 or 0
-        S.ChopperWork = S.ChopperWork + (1 - self.Recurperation)
-        if S.ChopperWork > 0 and CurTime() >= self.ChopperTimeout then self.ChopperTimeout = CurTime() + Rand(1, 5) end
-        self.Chopper = (S.ChopperWork > 0 or CurTime() < self.ChopperTimeout) and 1 or 0
-    else
-        self.Recurperation = 0
-        self.Iexit = 0
-        self.Chopper = 0
-    end
-
-    self.ElectricEnergyUsed = self.ElectricEnergyUsed + max(0, self.EnergyChange) * dT
-    self.ElectricEnergyDissipated = self.ElectricEnergyDissipated + max(0, self.Iexit ^ 2) * 2.2 * dT
+    VVVF:TriggerInput("Power", self.KM * (Wag.SF23F4 and Wag.SF23F4.Value or 1) * Wag.GV.Value * Wag.BV.Value)
+    VVVF:TriggerInput("Voltage", self.Power750V)
+    VVVF:TriggerInput("Command", self.command)
+    VVVF:TriggerInput("WeightLoadRatio", Wag.Pneumatic.WeightLoadRatio)
+    VVVF:TriggerInput("Slope", self.Slope)
+    VVVF:TriggerInput("RecurperationMode", BUV.Recurperation)
 
 end

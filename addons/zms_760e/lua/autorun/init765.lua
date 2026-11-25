@@ -295,6 +295,8 @@ function ZMS.ScreenHelper(panelName, group, name, x, y, w, h, buttons, margin)
     end
 end
 
+CreateConVar("765_debug", "0", {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED})
+
 if SERVER then
     local enttbl = {}
 
@@ -424,8 +426,6 @@ if SERVER then
         if not IsValid(swep) or swep:GetClass() ~= "weapon_stunstick" then return end
         ent.Battery:TriggerInput("SetLevel", math.min(1, ent.Battery.Charge / ent.Battery.Capacity + 0.05))
     end)
-
-    CreateConVar("765_debug", "0", FCVAR_ARCHIVE)
 end
 
 if CLIENT then
